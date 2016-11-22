@@ -10,7 +10,32 @@ The operations exposed are comparable to the Command Line Management tool or the
 
 The Akka Cluster HTTP Management is a separate jar file. Make sure that you have the following dependency in your project::
 
-  "com.typesafe.akka" %% "akka-cluster-http-management" % "@version@" @crossString@
+sbt
+:   @@@vars
+    ```scala
+    libraryDependencies += "com.lightbend.akka" %% "akka-cluster-http-management" % "$version$"
+    ```
+    @@@
+
+Maven
+:   @@@vars
+    ```xml
+    <dependency>
+      <groupId>com.lightbend.akka</groupId>
+      <artifactId>akka-cluster-http-management_$scala.binaryVersion$</artifactId>
+      <version>$version$</version>
+    </dependency>
+    ```
+    @@@
+
+Gradle
+:   @@@vars
+    ```gradle
+    dependencies {
+      compile group: "com.lightbend.akka", name: "akka-cluster-http-management_$scala.binaryVersion$", version: "$version$"
+    }
+    ```
+    @@@
 
 
 ## API Definition
@@ -114,6 +139,29 @@ You can configure hostname and port to use for the HTTP Cluster management by ov
 However, those are the values by default. In case you are running multiple cluster instances within the same JVM these 
 configuration parameters should allow you to expose different cluster management APIs by modifying the port:
 
+Scala
+:   ```
+    //Config Actor system 1
+    akka.cluster.http.management.hostname = "127.0.0.1"
+    akka.cluster.http.management.port = 19999
+    
+    //Config Actor system 2
+    akka.cluster.http.management.hostname = "127.0.0.1"
+    akka.cluster.http.management.port = 20000
+    
+    ... 
+    
+    val actorSystem1 = ActorSystem("as1", config1)
+    val cluster1 = Cluster(actorSystem1)
+    val actorSystem2 = ActorSystem("as2", config2)
+    val cluster2 = Cluster(actorSystem2)
+
+    ClusterHttpManagement(cluster1).start()
+    ClusterHttpManagement(cluster2).start()
+    ```
+    
+Java
+:   ```
     //Config Actor system 1
     akka.cluster.http.management.hostname = "127.0.0.1"
     akka.cluster.http.management.port = 19999
@@ -131,10 +179,19 @@ configuration parameters should allow you to expose different cluster management
 
     ClusterHttpManagement.create(cluster1).start();
     ClusterHttpManagement.create(cluster2).start();
-
+    ```
+    
 It is also possible to modify the default root path of the API (`members/`). Provide your desired path when starting:
 
+Scala
+:   ```
+    ClusterHttpManagement(cluster, "myClusterName").start()
+    ```
+    
+Java
+:   ```
     ClusterHttpManagement.create(cluster, "myClusterName").start();
+    ```
 
 
 ## Security
@@ -144,36 +201,104 @@ This module does not provide security by default. It's the developer's choice to
 
 The non-secured usage of the module is as follows:
 
+Scala
+:   ```
+    ClusterHttpManagement(cluster).start()
+    ```
+    
+Java
+:   ```
     ClusterHttpManagement.create(cluster).start();
+    ```
 
 ### Enabling SSL for Cluster HTTP Management
 
 To enable SSL you need to provide an `SSLContext`. You can find more information about it in @ref:[Server side https support](http/server-side-https-support.md)
 
+Scala
+:   ```
+    val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
+    ClusterHttpManagement(cluster, https).start()
+    ```
+    
+Java
+:   ```
     HttpsConnectionContext https = ConnectionContext.https(sslContext);
     ClusterHttpManagement.create(cluster, https).start();
+    ```
 
 ### Enabling Basic Authentication for Cluster HTTP Management
 
 To enable Basic Authentication you need to provide an authenticator. You can find more information in @ref:[Authenticate Basic Async directive](http/routing-dsl/directives/security-directives/authenticateBasicAsync.md)
-     
+
+Scala
+:   ```
+    def myUserPassAuthenticator(credentials: Credentials): Future[Option[String]] =
+      credentials match {
+        case p @ Credentials.Provided(id) =>
+          Future {
+            // potentially
+            if (p.verify("p4ssw0rd")) Some(id)
+            else None
+          }
+        case _ => Future.successful(None)
+      }
+      
+    ClusterHttpManagement(cluster, myUserPassAuthenticator(_)).start()  
+    ```
+    
+Java
+:   ```
     ClusterHttpManagement.create(cluster, myUserPassAuthenticator).start();
+    ```
 
 ### Enabling SSL and Basic Authentication for Cluster HTTP Management
 
 To enable SSL and Basic Authentication you need to provide both an `SSLContext` and an authenticator.
-     
+
+Scala
+:   ```
+    def myUserPassAuthenticator(credentials: Credentials): Future[Option[String]] =
+      credentials match {
+        case p @ Credentials.Provided(id) =>
+          Future {
+            // potentially
+            if (p.verify("p4ssw0rd")) Some(id)
+            else None
+          }
+        case _ => Future.successful(None)
+      }
+      
+    val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
+    ClusterHttpManagement(cluster, myUserPassAuthenticator(_), https).start()
+    ```
+    
+Java
+:   ```
     HttpsConnectionContext https = ConnectionContext.https(sslContext);
     ClusterHttpManagement.create(cluster, myUserPassAuthenticator, https).start();
+    ```
 
-## Stopping HTTP Cluster Management
+## Stopping Cluster HTTP Management
 
 In a dynamic environment you might want to start and stop multiple instances of HTTP Cluster Management.
-You can do so by calling `stop()` on `ClusterHttpManagement`. This method return a `Future<Done>` to inform when the 
+You can do so by calling `stop()` on `ClusterHttpManagement`. This method return a `Future[Done]` to inform when the 
 module has been stopped.
 
+Scala
+:   ```
+    val httpClusterManagement = ClusterHttpManagement(cluster)
+    httpClusterManagement.start()
+    //...
+    val bindingFuture = httpClusterManagement.stop()
+    bindingFuture.onComplete { _ => println("It's stopped") }
+    ```
+    
+Java
+:   ```
     ClusterHttpManagement httpClusterManagement = ClusterHttpManagement.create(cluster);
     httpClusterManagement.start();
     //...
     httpClusterManagement.stop();
+    ```
     
