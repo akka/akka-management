@@ -42,23 +42,23 @@ Gradle
 
 The following table describes the usage of the API:
 
-| Path | HTTP method | Required form fields | Responses | Description |
-| ---- | ----------- | -------------------- | --------- | ----------- |
-| `/members/` | GET | None | See below | Returns the status of the Cluster in JSON format.
-| `/members/` | POST | address: {address} | See below | Executes join operation in cluster for the provided `{address}`.
-| `/members/{address}` | GET  | None | See below | Returns the status of `{address}` in the Cluster in JSON format.
-| `/members/{address}` | DELETE | None | See below | Executes leave operation in cluster for provided `{address}`.
-| `/members/{address}` | PUT | operation: Down | See below | Executes down operation in cluster for provided `{address}`.
-| `/members/{address}` | PUT | operation: Leave | See below | Executes leave operation in cluster for provided `{address}`.
+| Path                 | HTTP method | Required form fields | Description
+| -------------------- | ----------- | -------------------- | -----------
+| `/members/`          | GET         | None                 | Returns the status of the Cluster in JSON format.
+| `/members/`          | POST        | address: `{address}` | Executes join operation in cluster for the provided `{address}`.
+| `/members/{address}` | GET         | None                 | Returns the status of `{address}` in the Cluster in JSON format.
+| `/members/{address}` | DELETE      | None                 | Executes leave operation in cluster for provided `{address}`.
+| `/members/{address}` | PUT         | operation: Down      | Executes down operation in cluster for provided `{address}`.
+| `/members/{address}` | PUT         | operation: Leave     | Executes leave operation in cluster for provided `{address}`.
 
 The expected format of `address` follows the Cluster URI convention. Example: `akka://Main@myhostname.com:3311`
 
 ### Get /members responses
 
-| Response code | Description |
-| ------------- | ----------- |
-| 200 | Status of cluster in JSON format |
-| 500 | Something went wrong. Cluster might be shutdown.|
+| Response code | Description
+| ------------- | -----------
+| 200           | Status of cluster in JSON format
+| 500           | Something went wrong. Cluster might be shutdown.
  
  Example response:
  
@@ -77,22 +77,22 @@ The expected format of `address` follows the Cluster URI convention. Example: `a
 
 ### Post /members responses
 
-| Response code | Description |
-| ------------- | ----------- |
-| 200 | Executing join operation. |
-| 500 | Something went wrong. Cluster might be shutdown.| 
+| Response code | Description
+| ------------- | -----------
+| 200           | Executing join operation.
+| 500           | Something went wrong. Cluster might be shutdown. 
 
 Example response:
 
-    Joining ${address}
+    Joining akka.tcp://test@10.10.10.10:111
 
 ### Get /members/{address} responses
 
-| Response code | Description |
-| ------------- | ----------- |
-| 200 | Status of cluster in JSON format |
-| 404 | No member was found in the cluster for the given `{address}`. |
-| 500 | Something went wrong. Cluster might be shutdown.| 
+| Response code | Description
+| ------------- | -----------
+| 200           | Status of cluster in JSON format
+| 404           | No member was found in the cluster for the given `{address}`.
+| 500           | Something went wrong. Cluster might be shutdown.
 
 Example response:
 
@@ -105,29 +105,29 @@ Example response:
 
 ### Delete /members/{address} responses
 
-| Response code | Description |
-| ------------- | ----------- |
-| 200 | Executing leave operation. |
-| 404 | No member was found in the cluster for the given `{address}`. |
-| 500 | Something went wrong. Cluster might be shutdown.| 
+| Response code | Description
+| ------------- | -----------
+| 200           | Executing leave operation.
+| 404           | No member was found in the cluster for the given `{address}`.
+| 500           | Something went wrong. Cluster might be shutdown.
 
 Example response:
 
-    Leaving ${address}
+    Leaving akka.tcp://test@10.10.10.10:111
 
 ### Put /members/{address} responses
 
-| Response code | Operation | Description |
-| ------------- | --------- | ----------- |
-| 200 | Down  | Executing down operation. |
-| 200 | Leave | Executing leave operation. |
-| 400 | - | Operation supplied in `operation` form field is not supported. |
-| 404 | - | No member was found in the cluster for the given `{address}` |
-| 500 | - | Something went wrong. Cluster might be shutdown.| 
+| Response code | Operation | Description
+| ------------- | --------- | -----------
+| 200           | Down      | Executing down operation.
+| 200           | Leave     | Executing leave operation.
+| 400           |           | Operation supplied in `operation` form field is not supported.
+| 404           |           | No member was found in the cluster for the given `{address}`
+| 500           |           | Something went wrong. Cluster might be shutdown.
 
 Example response:
 
-    Downing ${address}
+    Downing akka.tcp://test@10.10.10.10:111
 
 ## Configuration
 
@@ -144,44 +144,40 @@ Scala
     //Config Actor system 1
     akka.cluster.http.management.hostname = "127.0.0.1"
     akka.cluster.http.management.port = 19999
-    
+    ...
     //Config Actor system 2
     akka.cluster.http.management.hostname = "127.0.0.1"
     akka.cluster.http.management.port = 20000
-    
     ... 
-    
     val actorSystem1 = ActorSystem("as1", config1)
     val cluster1 = Cluster(actorSystem1)
     val actorSystem2 = ActorSystem("as2", config2)
     val cluster2 = Cluster(actorSystem2)
-
+    ...
     ClusterHttpManagement(cluster1).start()
     ClusterHttpManagement(cluster2).start()
     ```
     
 Java
-:   ```
+:   ```java
     //Config Actor system 1
     akka.cluster.http.management.hostname = "127.0.0.1"
     akka.cluster.http.management.port = 19999
-    
+    ...
     //Config Actor system 2
     akka.cluster.http.management.hostname = "127.0.0.1"
     akka.cluster.http.management.port = 20000
-    
-    ... 
-    
+    ...
     ActorSystem actorSystem1 = ActorSystem.create("as1", config1);
     Cluster cluster1 = Cluster.get(actorSystem1);
     ActorSystem actorSystem2 = ActorSystem.create("as2", config2);
     Cluster cluster2 = Cluster.get(actorSystem2);
-
+    ...
     ClusterHttpManagement.create(cluster1).start();
     ClusterHttpManagement.create(cluster2).start();
     ```
     
-It is also possible to modify the default root path of the API (`members/`). Provide your desired path when starting:
+It is also possible to modify the default root path of the API (`members/` by default). Provide your desired path when starting:
 
 Scala
 :   ```
@@ -213,7 +209,7 @@ Java
 
 ### Enabling SSL for Cluster HTTP Management
 
-To enable SSL you need to provide an `SSLContext`. You can find more information about it in @ref:[Server side https support](http/server-side-https-support.md)
+To enable SSL you need to provide an `SSLContext`. You can find more information about it in @extref[Server side https support](akka-http-docs:scala/http/server-side-https-support)
 
 Scala
 :   ```
@@ -229,7 +225,7 @@ Java
 
 ### Enabling Basic Authentication for Cluster HTTP Management
 
-To enable Basic Authentication you need to provide an authenticator. You can find more information in @ref:[Authenticate Basic Async directive](http/routing-dsl/directives/security-directives/authenticateBasicAsync.md)
+To enable Basic Authentication you need to provide an authenticator. You can find more information in @extref:[Authenticate Basic Async directive](akka-http-docs:scala/http/routing-dsl/directives/security-directives/authenticateBasicAsync)
 
 Scala
 :   ```
@@ -243,7 +239,7 @@ Scala
           }
         case _ => Future.successful(None)
       }
-      
+    ...
     ClusterHttpManagement(cluster, myUserPassAuthenticator(_)).start()  
     ```
     
@@ -268,7 +264,7 @@ Scala
           }
         case _ => Future.successful(None)
       }
-      
+    ...
     val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
     ClusterHttpManagement(cluster, myUserPassAuthenticator(_), https).start()
     ```
@@ -282,7 +278,7 @@ Java
 ## Stopping Cluster HTTP Management
 
 In a dynamic environment you might want to start and stop multiple instances of HTTP Cluster Management.
-You can do so by calling `stop()` on `ClusterHttpManagement`. This method return a `Future[Done]` to inform when the 
+You can do so by calling `stop()` on @scaladoc[ClusterHttpManagement](akka.cluster.http.management.ClusterHttpManagement). This method return a `Future[Done]` to inform when the 
 module has been stopped.
 
 Scala

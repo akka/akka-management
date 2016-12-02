@@ -1,5 +1,8 @@
+import java.nio.file.Paths
+
 lazy val management = project
   .in(file("."))
+  .settings(unidocSettings)
   .aggregate(`cluster-http`, docs)
 
 lazy val `cluster-http` = project
@@ -10,17 +13,24 @@ lazy val `cluster-http` = project
     Dependencies.ClusterHttp
   )
 
+val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in (ProjectRef(file("."), "management"), Compile)
 lazy val docs = project
   .in(file("docs"))
   .enablePlugins(ParadoxPlugin, NoPublish)
   .settings(
     name := "Akka Management",
     paradoxTheme := Some(builtinParadoxTheme("generic")),
+    paradox in Compile := (paradox in Compile).dependsOn(unidocTask).value,
     paradoxProperties ++= Map(
       "version" -> version.value,
       "scala.binaryVersion" -> scalaBinaryVersion.value,
-      "extref.akka-docs.base_url" -> s"http://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s.html",
+      "extref.akka-docs.base_url" -> s"http://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s",
+      "extref.akka-http-docs.base_url" -> s"http://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s.html",
       "extref.java-api.base_url" -> "https://docs.oracle.com/javase/8/docs/api/index.html?%s.html",
-      "scaladoc.akka.base_url" -> s"http://doc.akka.io/api/akka/${Dependencies.AkkaVersion}"
+      "scaladoc.akka.base_url" -> s"http://doc.akka.io/api/akka/${Dependencies.AkkaVersion}",
+      "scaladoc.akka.cluster.http.management.base_url" -> {
+        if (isSnapshot.value) Paths.get((target in paradox in Compile).value.getPath).relativize(Paths.get(unidocTask.value.head.getPath)).toString
+        else s"http://developer.lightbend.com/docs/api/akka-cluster-http-management/${version.value}"
+      }
     )
   )
