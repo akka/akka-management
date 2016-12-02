@@ -26,6 +26,8 @@ object Common extends AutoPlugin {
 
     licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
 
+    // scala versions are determined from the .travis.yml file
+
     crossVersion := CrossVersion.binary,
 
     scalacOptions ++= Seq(
