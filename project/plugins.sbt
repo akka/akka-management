@@ -1,5 +1,5 @@
 addSbtPlugin("de.heikoseeberger"                 % "sbt-header"       % "1.6.0")
-addSbtPlugin("org.scalariform"                   % "sbt-scalariform"  % "1.5.1")
+addSbtPlugin("com.geirsson"                      % "sbt-scalafmt"     % "0.4.10")
 addSbtPlugin("com.dwijnand"                      % "sbt-dynver"       % "1.0.0+15-3655d014")
 addSbtPlugin("com.lightbend.paradox"             % "sbt-paradox"      % "0.2.7")
 addSbtPlugin("com.eed3si9n"                      % "sbt-unidoc"       % "0.3.3")
