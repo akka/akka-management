@@ -3,6 +3,8 @@ import java.nio.file.Paths
 lazy val management = project
   .in(file("."))
   .settings(unidocSettings)
+  .enablePlugins(NoPublish)
+  .disablePlugins(BintrayPlugin)
   .aggregate(`cluster-http`, docs)
 
 lazy val `cluster-http` = project
@@ -17,6 +19,7 @@ val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in (ProjectRef(file("."), "m
 lazy val docs = project
   .in(file("docs"))
   .enablePlugins(ParadoxPlugin, NoPublish)
+  .disablePlugins(BintrayPlugin)
   .settings(
     name := "Akka Management",
     paradoxTheme := Some(builtinParadoxTheme("generic")),
@@ -31,6 +34,7 @@ lazy val docs = project
       "scaladoc.akka.cluster.http.management.base_url" -> {
         if (isSnapshot.value) Paths.get((target in paradox in Compile).value.getPath).relativize(Paths.get(unidocTask.value.head.getPath)).toString
         else s"http://developer.lightbend.com/docs/api/akka-cluster-http-management/${version.value}"
-      }
+      },
+      "scaladoc.version" -> "2.12.0"
     )
   )
