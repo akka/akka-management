@@ -1,3 +1,24 @@
-# akka-cluster-management
+# Akka Cluster Management
+
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/akka/akka?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This repository contains interfaces to interact with an Akka Cluster.
+
+Documentation
+-------------
+
+See [reference](http://developer.lightbend.com/docs/akka-cluster-management/0.1/) and [API](http://developer.lightbend.com/docs/api/akka-cluster-management/0.3/akka/cluster/http/management/index.html) documentation pages.
+
+Contributions & Maintainers
+---------------------------
+
+*This project does not have contributors, it only has maintainers—frequent and infrequent—and everyone helps out.*
+We love new maintainers as well as old maintainers. :-)
+The Akka core team keeps an eye on the project to assure its overall coherence but does not fully support these modules.
+
+Contributions are very welcome, see [CONTRIBUTING.md](https://github.com/akka/akka-cluster-management/blob/master/CONTRIBUTING.md) or skim [existing tickets](https://github.com/akka/akka-cluster-management/issues) to see where you could help out.
+
+Caveat Emptor
+-------------
+
+A component in this project does not have to obey the rule of staying binary compatible between releases. Breaking API changes may be introduced without notice as we refine and simplify based on your feedback. A module may be dropped in any release without prior deprecation. The Lightbend subscription does not cover support for these modules.

@@ -22,8 +22,11 @@ import org.scalatest.{ Matchers, WordSpecLike }
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
-class ClusterHttpManagementSpec extends WordSpecLike with Matchers
-  with ClusterHttpManagementJsonProtocol with ClusterHttpManagementHelper {
+class ClusterHttpManagementSpec
+    extends WordSpecLike
+    with Matchers
+    with ClusterHttpManagementJsonProtocol
+    with ClusterHttpManagementHelper {
 
   val config = ConfigFactory.parseString(
     """
@@ -111,8 +114,8 @@ class ClusterHttpManagementSpec extends WordSpecLike with Matchers
 
         implicit val materializer = ActorMaterializer()
 
-        val httpRequest = HttpRequest(uri = "http://127.0.0.1:20000/members")
-          .addHeader(Authorization(BasicHttpCredentials("user", "p4ssw0rd")))
+        val httpRequest = HttpRequest(uri = "http://127.0.0.1:20000/members").addHeader(
+            Authorization(BasicHttpCredentials("user", "p4ssw0rd")))
         val responseGetMembersFuture = Http().singleRequest(httpRequest)
         val responseGetMembers = Await.result(responseGetMembersFuture, 5 seconds)
 

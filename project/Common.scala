@@ -2,8 +2,8 @@ import sbt._, Keys._
 
 import de.heikoseeberger.sbtheader._
 import de.heikoseeberger.sbtheader.HeaderKey._
-import com.typesafe.sbt.SbtScalariform
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import org.scalafmt.sbt.ScalaFmtPlugin
+import org.scalafmt.sbt.ScalaFmtPlugin.autoImport._
 
 object Common extends AutoPlugin {
 
@@ -16,7 +16,7 @@ object Common extends AutoPlugin {
   override def trigger = allRequirements
   override def requires = plugins.JvmPlugin && HeaderPlugin
 
-  override lazy val projectSettings = SbtScalariform.scalariformSettings ++
+  override lazy val projectSettings = reformatOnCompileSettings ++
     Dependencies.Common ++ Seq(
     organization := "com.lightbend.akka",
     organizationName := "Lightbend Inc.",
@@ -26,8 +26,8 @@ object Common extends AutoPlugin {
 
     licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
 
-    scalaVersion := crossScalaVersions.value.head,
-    crossScalaVersions := Dependencies.ScalaVersions,
+    // scala versions are determined from the .travis.yml file
+
     crossVersion := CrossVersion.binary,
 
     scalacOptions ++= Seq(
@@ -59,17 +59,8 @@ object Common extends AutoPlugin {
       "java" -> FileHeader
     ),
 
-    ScalariformKeys.preferences in Compile  := formattingPreferences,
-    ScalariformKeys.preferences in Test     := formattingPreferences
+    formatSbtFiles := false,
+    scalafmtConfig := Some(baseDirectory.in(ThisBuild).value / ".scalafmt.conf"),
+    ivyScala := ivyScala.value.map(_.copy(overrideScalaVersion = sbtPlugin.value)) // TODO Remove once this workaround no longer needed (https://github.com/sbt/sbt/issues/2786)!
   )
-
-  def formattingPreferences = {
-    import scalariform.formatter.preferences._
-    FormattingPreferences()
-      .setPreference(RewriteArrowSymbols, false)
-      .setPreference(AlignParameters, true)
-      .setPreference(AlignSingleLineCaseStatements, true)
-      .setPreference(SpacesAroundMultiImports, true)
-  }
-
 }

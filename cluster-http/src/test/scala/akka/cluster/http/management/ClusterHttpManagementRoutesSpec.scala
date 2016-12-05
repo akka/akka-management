@@ -14,7 +14,11 @@ import org.scalatest.{ Matchers, WordSpecLike }
 
 import scala.collection.immutable._
 
-class ClusterHttpManagementRoutesSpec extends WordSpecLike with Matchers with ScalatestRouteTest with ClusterHttpManagementJsonProtocol {
+class ClusterHttpManagementRoutesSpec
+    extends WordSpecLike
+    with Matchers
+    with ScalatestRouteTest
+    with ClusterHttpManagementJsonProtocol {
 
   "Http Cluster Management Routes" should {
     "return list of members" when {
@@ -45,9 +49,12 @@ class ClusterHttpManagementRoutesSpec extends WordSpecLike with Matchers with Sc
         when(mockedReachability.observersGroupedByUnreachable).thenReturn(unreachable)
 
         Get("/members") ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
-          val clusterUnreachableMember = ClusterUnreachableMember("akka://Main@hostname3.com:3311", Seq("akka://Main@hostname.com:3311", "akka://Main@hostname2.com:3311"))
-          val clusterMembers = Set(ClusterMember("akka://Main@hostname.com:3311", "1", "Joining", Set()), ClusterMember("akka://Main@hostname2.com:3311", "2", "Joining", Set()))
-          responseAs[ClusterMembers] shouldEqual ClusterMembers(s"$address1", clusterMembers, Seq(clusterUnreachableMember))
+          val clusterUnreachableMember = ClusterUnreachableMember("akka://Main@hostname3.com:3311",
+            Seq("akka://Main@hostname.com:3311", "akka://Main@hostname2.com:3311"))
+          val clusterMembers = Set(ClusterMember("akka://Main@hostname.com:3311", "1", "Joining", Set()),
+            ClusterMember("akka://Main@hostname2.com:3311", "2", "Joining", Set()))
+          responseAs[ClusterMembers] shouldEqual ClusterMembers(s"$address1", clusterMembers,
+            Seq(clusterUnreachableMember))
           status == StatusCodes.OK
         }
       }
@@ -166,7 +173,8 @@ class ClusterHttpManagementRoutesSpec extends WordSpecLike with Matchers with Sc
         doNothing().when(mockedCluster).down(any[Address])
 
         Put(s"/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
-          responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(s"Member [$address] not found")
+          responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(
+              s"Member [$address] not found")
           status == StatusCodes.NotFound
         }
       }
@@ -219,7 +227,8 @@ class ClusterHttpManagementRoutesSpec extends WordSpecLike with Matchers with Sc
         doNothing().when(mockedCluster).down(any[Address])
 
         Put(s"/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
-          responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(s"Member [$address] not found")
+          responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(
+              s"Member [$address] not found")
           status == StatusCodes.NotFound
         }
       }
