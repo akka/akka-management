@@ -7,7 +7,7 @@ This repository contains interfaces to interact with an Akka Cluster.
 Documentation
 -------------
 
-See [reference](http://developer.lightbend.com/docs/akka-cluster-management/0.1/) and [API](http://developer.lightbend.com/docs/api/akka-cluster-management/0.3/akka/cluster/http/management/index.html) documentation pages.
+See [reference](http://developer.lightbend.com/docs/akka-cluster-management/0.1-RC1/) and [API](http://developer.lightbend.com/docs/api/akka-cluster-management/0.1-RC1/akka/cluster/http/management/index.html) documentation pages.
 
 Contributions & Maintainers
 ---------------------------
