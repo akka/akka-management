@@ -192,8 +192,11 @@ Java
 
 ## Security
 
-> **Note:**
+@@@ note
+
 This module does not provide security by default. It's the developer's choice to add security to this API.
+
+@@@
 
 The non-secured usage of the module is as follows:
 
