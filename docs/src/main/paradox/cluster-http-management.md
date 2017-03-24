@@ -13,7 +13,7 @@ The Akka Cluster HTTP Management is a separate jar file. Make sure that you have
 sbt
 :   @@@vars
     ```scala
-    libraryDependencies += "com.lightbend.akka" %% "akka-cluster-http-management" % "$version$"
+    libraryDependencies += "com.lightbend.akka" %% "akka-management-cluster-http" % "$version$"
     ```
     @@@
 
@@ -22,7 +22,7 @@ Maven
     ```xml
     <dependency>
       <groupId>com.lightbend.akka</groupId>
-      <artifactId>akka-cluster-http-management_$scala.binaryVersion$</artifactId>
+      <artifactId>akka-management-cluster-http_$scala.binaryVersion$</artifactId>
       <version>$version$</version>
     </dependency>
     ```
@@ -32,7 +32,7 @@ Gradle
 :   @@@vars
     ```gradle
     dependencies {
-      compile group: "com.lightbend.akka", name: "akka-cluster-http-management_$scala.binaryVersion$", version: "$version$"
+      compile group: "com.lightbend.akka", name: "akka-management-cluster-http_$scala.binaryVersion$", version: "$version$"
     }
     ```
     @@@
