@@ -61,13 +61,6 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
         }
 
         val leader = cluster.readView.leader.map(_.toString)
-//        try {
-//          println(Some(cluster.readView.leader))
-//        println(Some(cluster.state.leader))
-
-//        } catch {
-//          case r => println(r)
-//        }
 
         ClusterMembers(s"${cluster.readView.selfAddress}", members, unreachable, leader)
       }
