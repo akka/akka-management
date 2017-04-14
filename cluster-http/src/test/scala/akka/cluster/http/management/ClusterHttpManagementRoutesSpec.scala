@@ -21,7 +21,7 @@ class ClusterHttpManagementRoutesSpec
     with ClusterHttpManagementJsonProtocol {
 
   "Http Cluster Management Routes" should {
-    "return list of members" when {
+    "return list of members with cluster leader" when {
       "calling GET /members" in {
         val address1 = Address("akka", "Main", "hostname.com", 3311)
         val address2 = Address("akka", "Main", "hostname2.com", 3311)
@@ -32,7 +32,7 @@ class ClusterHttpManagementRoutesSpec
 
         val clusterMember1 = Member(uniqueAddress1, Set())
         val clusterMember2 = Member(uniqueAddress2, Set())
-        val currentClusterState = CurrentClusterState(SortedSet(clusterMember1, clusterMember2))
+        val currentClusterState = CurrentClusterState(SortedSet(clusterMember1, clusterMember2), leader = Some(address1))
 
         val unreachable = Map(
           UniqueAddress(address3, 2L) → Set(uniqueAddress1, uniqueAddress2)
@@ -43,8 +43,10 @@ class ClusterHttpManagementRoutesSpec
         val mockedReachability = mock(classOf[Reachability])
 
         when(mockedCluster.readView).thenReturn(mockedClusterReadView)
+        when(mockedCluster.state).thenReturn(currentClusterState)
         when(mockedClusterReadView.state).thenReturn(currentClusterState)
         when(mockedClusterReadView.selfAddress).thenReturn(address1)
+        when(mockedClusterReadView.leader).thenReturn(Some(address1))
         when(mockedClusterReadView.reachability).thenReturn(mockedReachability)
         when(mockedReachability.observersGroupedByUnreachable).thenReturn(unreachable)
 
@@ -54,7 +56,7 @@ class ClusterHttpManagementRoutesSpec
           val clusterMembers = Set(ClusterMember("akka://Main@hostname.com:3311", "1", "Joining", Set()),
             ClusterMember("akka://Main@hostname2.com:3311", "2", "Joining", Set()))
           responseAs[ClusterMembers] shouldEqual ClusterMembers(s"$address1", clusterMembers,
-            Seq(clusterUnreachableMember))
+            Seq(clusterUnreachableMember), Some(address1.toString))
           status == StatusCodes.OK
         }
       }

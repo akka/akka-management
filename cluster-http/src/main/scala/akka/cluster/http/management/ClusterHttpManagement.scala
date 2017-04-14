@@ -22,7 +22,8 @@ final case class ClusterUnreachableMember(node: String, observedBy: Seq[String])
 final case class ClusterMember(node: String, nodeUid: String, status: String, roles: Set[String])
 final case class ClusterMembers(selfNode: String,
                                 members: Set[ClusterMember],
-                                unreachable: Seq[ClusterUnreachableMember])
+                                unreachable: Seq[ClusterUnreachableMember],
+                                leader: Option[String])
 final case class ClusterHttpManagementMessage(message: String)
 
 private[akka] sealed trait ClusterHttpManagementOperation
@@ -38,7 +39,7 @@ object ClusterHttpManagementOperation {
 trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val clusterUnreachableMemberFormat = jsonFormat2(ClusterUnreachableMember)
   implicit val clusterMemberFormat = jsonFormat4(ClusterMember)
-  implicit val clusterMembersFormat = jsonFormat3(ClusterMembers)
+  implicit val clusterMembersFormat = jsonFormat4(ClusterMembers)
   implicit val clusterMemberMessageFormat = jsonFormat1(ClusterHttpManagementMessage)
 }
 
@@ -59,7 +60,9 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
             ClusterUnreachableMember(s"${subject.address}", observers.toSeq.sorted.map(m ⇒ s"${m.address}"))
         }
 
-        ClusterMembers(s"${cluster.readView.selfAddress}", members, unreachable)
+        val leader = cluster.readView.leader.map(_.toString)
+
+        ClusterMembers(s"${cluster.readView.selfAddress}", members, unreachable, leader)
       }
     }
 
