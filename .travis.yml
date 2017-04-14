@@ -17,7 +17,8 @@ cache:
     - $HOME/.sbt/boot
 
 script:
-  - sbt -J-XX:ReservedCodeCacheSize=128m ++$TRAVIS_SCALA_VERSION test docs/paradox
+  - sbt -J-XX:ReservedCodeCacheSize=128m ++$TRAVIS_SCALA_VERSION ";test:compile;docs/paradox"
+  - git diff --exit-code --color || { echo "[error] Unformatted code found. Please run 'test:compile' and commit the reformatted code."; false; } && sbt -J-XX:ReservedCodeCacheSize=128m ++$TRAVIS_SCALA_VERSION ";test"
 
 deploy:
   provider: script
