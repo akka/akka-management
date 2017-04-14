@@ -32,7 +32,8 @@ class ClusterHttpManagementRoutesSpec
 
         val clusterMember1 = Member(uniqueAddress1, Set())
         val clusterMember2 = Member(uniqueAddress2, Set())
-        val currentClusterState = CurrentClusterState(SortedSet(clusterMember1, clusterMember2), leader = Some(address1))
+        val currentClusterState =
+          CurrentClusterState(SortedSet(clusterMember1, clusterMember2), leader = Some(address1))
 
         val unreachable = Map(
           UniqueAddress(address3, 2L) → Set(uniqueAddress1, uniqueAddress2)
