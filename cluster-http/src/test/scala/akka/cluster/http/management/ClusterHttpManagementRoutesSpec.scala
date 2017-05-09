@@ -5,6 +5,7 @@ package akka.cluster.http.management
 
 import akka.actor.Address
 import akka.cluster.ClusterEvent.CurrentClusterState
+import akka.cluster.MemberStatus.Joining
 import akka.cluster._
 import akka.http.scaladsl.model.{ FormData, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
@@ -21,7 +22,7 @@ class ClusterHttpManagementRoutesSpec
     with ClusterHttpManagementJsonProtocol {
 
   "Http Cluster Management Routes" should {
-    "return list of members with cluster leader" when {
+    "return list of members with cluster leader and oldest" when {
       "calling GET /members" in {
         val address1 = Address("akka", "Main", "hostname.com", 3311)
         val address2 = Address("akka", "Main", "hostname2.com", 3311)
@@ -30,8 +31,8 @@ class ClusterHttpManagementRoutesSpec
         val uniqueAddress1 = UniqueAddress(address1, 1L)
         val uniqueAddress2 = UniqueAddress(address2, 2L)
 
-        val clusterMember1 = Member(uniqueAddress1, Set())
-        val clusterMember2 = Member(uniqueAddress2, Set())
+        val clusterMember1 = new Member(uniqueAddress1, 1, Joining, Set())
+        val clusterMember2 = new Member(uniqueAddress2, 2, Joining, Set())
         val currentClusterState =
           CurrentClusterState(SortedSet(clusterMember1, clusterMember2), leader = Some(address1))
 
@@ -57,7 +58,7 @@ class ClusterHttpManagementRoutesSpec
           val clusterMembers = Set(ClusterMember("akka://Main@hostname.com:3311", "1", "Joining", Set()),
             ClusterMember("akka://Main@hostname2.com:3311", "2", "Joining", Set()))
           responseAs[ClusterMembers] shouldEqual ClusterMembers(s"$address1", clusterMembers,
-            Seq(clusterUnreachableMember), Some(address1.toString))
+            Seq(clusterUnreachableMember), Some(address1.toString), Some(address1.toString))
           status == StatusCodes.OK
         }
       }
