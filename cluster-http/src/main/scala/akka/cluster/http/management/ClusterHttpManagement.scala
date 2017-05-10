@@ -129,7 +129,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
    * [[akka.cluster.Cluster]] instance. This version does not provide Basic Authentication. It uses
    * the default path "members".
    */
-  def apply(cluster: Cluster): Route = apply(cluster, "members")
+  def apply(cluster: Cluster): Route = apply(cluster, "")
 
   /**
    * Creates an instance of [[akka.cluster.http.management.ClusterHttpManagementRoutes]] to manage the specified
@@ -137,11 +137,13 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
    * the specified path `pathPrefixName`.
    */
   def apply(cluster: Cluster, pathPrefixName: String): Route =
-    pathPrefix(pathPrefixName) {
-      pathEndOrSingleSlash {
-        routeGetMembers(cluster) ~ routePostMembers(cluster)
-      } ~
-      routesMember(cluster)
+    rawPathPrefix(pathPrefixName) {
+      pathPrefix("members") {
+        pathEndOrSingleSlash {
+          routeGetMembers(cluster) ~ routePostMembers(cluster)
+        } ~
+        routesMember(cluster)
+      }
     }
 
   /**
