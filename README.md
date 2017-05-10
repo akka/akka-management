@@ -2,7 +2,7 @@
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/akka/akka)
 
-This repository contains interfaces inspect, interact and manage various Parts of Akka, primarily Akka Cluster.
+This repository contains interfaces to inspect, interact and manage various Parts of Akka, primarily Akka Cluster.
 Future additions may extend these concepts to other parts of Akka.
 
 Documentation
