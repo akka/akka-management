@@ -1,8 +1,9 @@
-# Akka Cluster Management
+# Akka (Cluster) Management
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/akka/akka)
 
-This repository contains interfaces to interact with an Akka Cluster.
+This repository contains interfaces to inspect, interact and manage various Parts of Akka, primarily Akka Cluster.
+Future additions may extend these concepts to other parts of Akka.
 
 Documentation
 -------------
@@ -21,4 +22,6 @@ Contributions are very welcome, see [CONTRIBUTING.md](https://github.com/akka/ak
 Caveat Emptor
 -------------
 
-A component in this project does not have to obey the rule of staying binary compatible between releases. Breaking API changes may be introduced without notice as we refine and simplify based on your feedback. A module may be dropped in any release without prior deprecation. The Lightbend subscription does not cover support for these modules.
+A component in this project does not have to obey the rule of staying binary compatible between releases. Breaking API changes may be introduced without notice as we refine and simplify based on your feedback. A module may be dropped in any release without prior deprecation. 
+
+The Lightbend subscription does not cover support for these modules.
