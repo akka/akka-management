@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.Done
 import akka.actor.AddressFromURIString
-import akka.cluster.{ Cluster, Member }
+import akka.cluster.{ Cluster, Member, MemberStatus }
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
@@ -62,7 +62,11 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
         }
 
         val leader = cluster.readView.leader.map(_.toString)
-        val oldest = cluster.state.members.toSeq.sorted(Member.ageOrdering).headOption.map(_.address.toString)
+        val oldest = cluster.state.members.toSeq
+          .sorted(Member.ageOrdering)
+          .filter(_.status == MemberStatus.Up)
+          .headOption // we are only interested in the oldest one that is still Up
+          .map(_.address.toString)
 
         ClusterMembers(s"${cluster.readView.selfAddress}", members, unreachable, leader, oldest)
       }
