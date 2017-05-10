@@ -23,7 +23,8 @@ final case class ClusterMember(node: String, nodeUid: String, status: String, ro
 final case class ClusterMembers(selfNode: String,
                                 members: Set[ClusterMember],
                                 unreachable: Seq[ClusterUnreachableMember],
-                                leader: Option[String])
+                                leader: Option[String],
+                                oldest: Option[String])
 final case class ClusterHttpManagementMessage(message: String)
 
 private[akka] sealed trait ClusterHttpManagementOperation
@@ -39,7 +40,7 @@ object ClusterHttpManagementOperation {
 trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val clusterUnreachableMemberFormat = jsonFormat2(ClusterUnreachableMember)
   implicit val clusterMemberFormat = jsonFormat4(ClusterMember)
-  implicit val clusterMembersFormat = jsonFormat4(ClusterMembers)
+  implicit val clusterMembersFormat = jsonFormat5(ClusterMembers)
   implicit val clusterMemberMessageFormat = jsonFormat1(ClusterHttpManagementMessage)
 }
 
@@ -61,8 +62,12 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
         }
 
         val leader = cluster.readView.leader.map(_.toString)
+        val oldest = cluster.state.members
+          .toSeq.sorted(Member.ageOrdering)
+          .filter(_.status == MemberStatus.Up).headOption // we are only interested in the oldest one that is still Up
+          .map(_.address.toString)
 
-        ClusterMembers(s"${cluster.readView.selfAddress}", members, unreachable, leader)
+        ClusterMembers(s"${cluster.readView.selfAddress}", members, unreachable, leader, oldest)
       }
     }
 
