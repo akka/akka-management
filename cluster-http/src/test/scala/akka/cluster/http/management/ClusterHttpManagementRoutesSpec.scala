@@ -6,6 +6,7 @@ package akka.cluster.http.management
 import akka.actor.Address
 import akka.cluster.ClusterEvent.CurrentClusterState
 import akka.cluster.MemberStatus.Joining
+import akka.cluster.MemberStatus.Up
 import akka.cluster._
 import akka.http.scaladsl.model.{ FormData, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
@@ -31,7 +32,7 @@ class ClusterHttpManagementRoutesSpec
         val uniqueAddress1 = UniqueAddress(address1, 1L)
         val uniqueAddress2 = UniqueAddress(address2, 2L)
 
-        val clusterMember1 = new Member(uniqueAddress1, 1, Joining, Set())
+        val clusterMember1 = new Member(uniqueAddress1, 1, Up, Set())
         val clusterMember2 = new Member(uniqueAddress2, 2, Joining, Set())
         val currentClusterState =
           CurrentClusterState(SortedSet(clusterMember1, clusterMember2), leader = Some(address1))
@@ -55,10 +56,21 @@ class ClusterHttpManagementRoutesSpec
         Get("/members") ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
           val clusterUnreachableMember = ClusterUnreachableMember("akka://Main@hostname3.com:3311",
             Seq("akka://Main@hostname.com:3311", "akka://Main@hostname2.com:3311"))
-          val clusterMembers = Set(ClusterMember("akka://Main@hostname.com:3311", "1", "Joining", Set()),
+          val clusterMembers = Set(ClusterMember("akka://Main@hostname.com:3311", "1", "Up", Set()),
             ClusterMember("akka://Main@hostname2.com:3311", "2", "Joining", Set()))
-          responseAs[ClusterMembers] shouldEqual ClusterMembers(s"$address1", clusterMembers,
-            Seq(clusterUnreachableMember), Some(address1.toString), Some(address1.toString))
+
+          val expected = ClusterMembers(selfNode = s"$address1", members = clusterMembers,
+            unreachable = Seq(clusterUnreachableMember), leader = Some(address1.toString),
+            oldest = Some(address1.toString))
+
+          val members = responseAs[ClusterMembers]
+          // specific checks for easier spotting in failure output what was not matching
+          members.leader shouldEqual expected.leader
+          members.members shouldEqual expected.members
+          members.oldest shouldEqual expected.oldest
+          members.selfNode shouldEqual expected.selfNode
+          members.unreachable shouldEqual expected.unreachable
+          members shouldEqual expected
           status == StatusCodes.OK
         }
       }
