@@ -26,7 +26,7 @@ deploy:
     - sbt -J-XX:ReservedCodeCacheSize=128m ++$TRAVIS_SCALA_VERSION publish && curl -I https://ci.lightbend.com/job/techhub-publisher/build?token=$TECH_HUB_TOKEN
   on:
     tags: true
-    repo: akka/akka-cluster-management
+    repo: akka/akka-management
 
 env:
   global:

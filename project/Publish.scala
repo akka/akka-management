@@ -22,6 +22,6 @@ object Publish extends AutoPlugin {
 
   override def projectSettings = Seq(
     bintrayOrganization := Some("akka"),
-    bintrayPackage := "akka-cluster-management"
+    bintrayPackage := "akka-management"
   )
 }
