@@ -8,7 +8,7 @@ Future additions may extend these concepts to other parts of Akka.
 Documentation
 -------------
 
-See [reference](http://developer.lightbend.com/docs/akka-cluster-management/current/) and [API](http://developer.lightbend.com/docs/api/akka-cluster-management/current/akka/cluster/http/management/index.html) documentation pages.
+See [reference](http://developer.lightbend.com/docs/akka-management/current/) and [API](http://developer.lightbend.com/docs/api/akka-management/current/akka/cluster/http/management/index.html) documentation pages.
 
 Contributions & Maintainers
 ---------------------------
@@ -17,7 +17,7 @@ Contributions & Maintainers
 We love new maintainers as well as old maintainers. :-)
 The Akka core team keeps an eye on the project to assure its overall coherence but does not fully support these modules.
 
-Contributions are very welcome, see [CONTRIBUTING.md](https://github.com/akka/akka-cluster-management/blob/master/CONTRIBUTING.md) or skim [existing tickets](https://github.com/akka/akka-cluster-management/issues) to see where you could help out.
+Contributions are very welcome, see [CONTRIBUTING.md](https://github.com/akka/akka-management/blob/master/CONTRIBUTING.md) or skim [existing tickets](https://github.com/akka/akka-management/issues) to see where you could help out.
 
 Caveat Emptor
 -------------

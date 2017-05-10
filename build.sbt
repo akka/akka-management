@@ -33,7 +33,7 @@ lazy val docs = project
       "scaladoc.akka.base_url" -> s"http://doc.akka.io/api/akka/${Dependencies.AkkaVersion}",
       "scaladoc.akka.cluster.http.management.base_url" -> {
         if (isSnapshot.value) Paths.get((target in paradox in Compile).value.getPath).relativize(Paths.get(unidocTask.value.head.getPath)).toString
-        else s"http://developer.lightbend.com/docs/api/akka-cluster-management/${version.value}"
+        else s"http://developer.lightbend.com/docs/api/akka-management/${version.value}"
       },
       "scaladoc.version" -> "2.12.0"
     )

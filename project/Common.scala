@@ -20,9 +20,9 @@ object Common extends AutoPlugin {
     Dependencies.Common ++ Seq(
     organization := "com.lightbend.akka",
     organizationName := "Lightbend Inc.",
-    homepage := Some(url("https://github.com/akka/akka-cluster-management")),
-    scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-cluster-management"), "git@github.com:akka/akka-cluster-management.git")),
-    developers += Developer("contributors", "Contributors", "https://gitter.im/akka/dev", url("https://github.com/akka/akka-cluster-management/graphs/contributors")),
+    homepage := Some(url("https://github.com/akka/akka-management")),
+    scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-management"), "git@github.com:akka/akka-management.git")),
+    developers += Developer("contributors", "Contributors", "https://gitter.im/akka/dev", url("https://github.com/akka/akka-management/graphs/contributors")),
 
     licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
 

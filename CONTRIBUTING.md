@@ -5,9 +5,9 @@
 This is the process for committing code into master.
 
 1. Make sure you have signed the Lightbend CLA, if not, [sign it online](http://www.lightbend.com/contribute/cla).
-2. Before starting to work on a feature or a fix, make sure that there is a ticket for your work in the [issue tracker](https://github.com/akka/akka-cluster-management/issues). If not, create it first.
+2. Before starting to work on a feature or a fix, make sure that there is a ticket for your work in the [issue tracker](https://github.com/akka/akka-management/issues). If not, create it first.
 3. Perform your work according to the [pull request requirements](#pull-request-requirements).
-4. When the feature or fix is completed you should open a [Pull Request](https://help.github.com/articles/using-pull-requests) on [GitHub](https://github.com/akka/akka-cluster-management/pulls).
+4. When the feature or fix is completed you should open a [Pull Request](https://help.github.com/articles/using-pull-requests) on [GitHub](https://github.com/akka/akka-management/pulls).
 5. The Pull Request should be reviewed by other maintainers (as many as feasible/practical). Note that the maintainers can consist of outside contributors, both within and outside Lightbend. Outside contributors are encouraged to participate in the review process, it is not a closed process.
 6. After the review you should fix the issues (review comments, CI failures) by pushing a new commit for new review, iterating until the reviewers give their thumbs up and CI tests pass.
 7. If the branch merge conflicts with its target, rebase your branch onto the target branch.
@@ -78,6 +78,6 @@ Example:
 
 ## How To Enforce These Guidelines?
 
-1. [Travis CI](https://travis-ci.org/akka/akka-cluster-management) automatically merges the code, builds it, runs the tests and sets Pull Request status accordingly of results in GitHub.
+1. [Travis CI](https://travis-ci.org/akka/akka-management) automatically merges the code, builds it, runs the tests and sets Pull Request status accordingly of results in GitHub.
 2. [Scalafmt](https://olafurpg.github.io/scalafmt) enforces some of the code style rules.
 3. [sbt-header plugin](https://github.com/sbt/sbt-header) manages consistent copyright headers in every source file.
