@@ -7,16 +7,20 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.Done
 import akka.actor.AddressFromURIString
+import akka.cluster.sharding.{ ClusterSharding, ShardRegion }
 import akka.cluster.{ Cluster, Member, MemberStatus }
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ Route, RouteResult }
 import akka.http.scaladsl.{ ConnectionContext, Http }
+import akka.pattern.ask
 import akka.stream.ActorMaterializer
+import akka.util.Timeout
 import spray.json.DefaultJsonProtocol
 
 import scala.concurrent.{ Future, Promise }
+import scala.concurrent.duration._
 
 final case class ClusterUnreachableMember(node: String, observedBy: Seq[String])
 final case class ClusterMember(node: String, nodeUid: String, status: String, roles: Set[String])
@@ -26,6 +30,8 @@ final case class ClusterMembers(selfNode: String,
                                 leader: Option[String],
                                 oldest: Option[String])
 final case class ClusterHttpManagementMessage(message: String)
+final case class ShardRegionInfo(shardId: String, numEntities: Int)
+final case class ShardDetails(regions: Seq[ShardRegionInfo])
 
 private[akka] sealed trait ClusterHttpManagementOperation
 private[akka] case object Down extends ClusterHttpManagementOperation
@@ -42,6 +48,8 @@ trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJso
   implicit val clusterMemberFormat = jsonFormat4(ClusterMember)
   implicit val clusterMembersFormat = jsonFormat5(ClusterMembers)
   implicit val clusterMemberMessageFormat = jsonFormat1(ClusterHttpManagementMessage)
+  implicit val shardRegionInfoFormat = jsonFormat2(ShardRegionInfo)
+  implicit val shardDetailsFormat = jsonFormat1(ShardDetails)
 }
 
 trait ClusterHttpManagementHelper extends ClusterHttpManagementJsonProtocol {
@@ -124,6 +132,27 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
       }
     }
 
+  private def routeGetShardInfo(cluster: Cluster, shardRegionName: String) =
+    get {
+      extractExecutionContext { implicit executor =>
+        complete {
+          implicit val timeout = Timeout(1.second)
+          try {
+            ClusterSharding(cluster.system)
+              .shardRegion(shardRegionName)
+              .ask(ShardRegion.GetShardRegionStats)
+              .mapTo[ShardRegion.ShardRegionStats]
+              .map { shardRegionStats =>
+                ShardDetails(shardRegionStats.stats.map(s => ShardRegionInfo(s._1, s._2)).toSeq)
+              }
+          } catch {
+            case _: IllegalArgumentException =>
+              StatusCodes.NotFound → ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
+          }
+        }
+      }
+    }
+
   /**
    * Creates an instance of [[akka.cluster.http.management.ClusterHttpManagementRoutes]] to manage the specified
    * [[akka.cluster.Cluster]] instance. This version does not provide Basic Authentication. It uses
@@ -143,6 +172,11 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
           routeGetMembers(cluster) ~ routePostMembers(cluster)
         } ~
         routesMember(cluster)
+      } ~
+      pathPrefix("shard_regions" / Remaining) { shardRegionName =>
+        pathEnd {
+          routeGetShardInfo(cluster, shardRegionName)
+        }
       }
     }
 
