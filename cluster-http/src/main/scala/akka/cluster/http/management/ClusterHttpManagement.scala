@@ -136,7 +136,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
     get {
       extractExecutionContext { implicit executor =>
         complete {
-          implicit val timeout = Timeout(1.second)
+          implicit val timeout = Timeout(5.seconds)
           try {
             ClusterSharding(cluster.system)
               .shardRegion(shardRegionName)
@@ -173,7 +173,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
         } ~
         routesMember(cluster)
       } ~
-      pathPrefix("shard_regions" / Remaining) { shardRegionName =>
+      pathPrefix("shards" / Remaining) { shardRegionName =>
         pathEnd {
           routeGetShardInfo(cluster, shardRegionName)
         }

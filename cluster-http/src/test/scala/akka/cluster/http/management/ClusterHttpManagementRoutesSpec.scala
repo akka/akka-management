@@ -332,7 +332,7 @@ class ClusterHttpManagementRoutesSpec
         clusterHttpManagement.start()
 
         val responseGetShardDetailsFuture = Http().singleRequest(
-          HttpRequest(uri = s"http://127.0.0.1:20100/shard_regions/$name")
+          HttpRequest(uri = s"http://127.0.0.1:20100/shards/$name")
         )
         val responseGetShardDetails = Await.result(responseGetShardDetailsFuture, 1.second)
         responseGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
@@ -344,7 +344,7 @@ class ClusterHttpManagementRoutesSpec
         unmarshaledGetShardDetails shouldEqual ShardDetails(Seq(ShardRegionInfo("ShardId", 1)))
 
         val responseInvalidGetShardDetailsFuture = Http().singleRequest(
-          HttpRequest(uri = s"http://127.0.0.1:20100/shard_regions/ThisShardRegionDoesNotExist")
+          HttpRequest(uri = s"http://127.0.0.1:20100/shards/ThisShardRegionDoesNotExist")
         )
         val responseInvalidGetShardDetails = Await.result(responseInvalidGetShardDetailsFuture, 1.second)
         responseInvalidGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`

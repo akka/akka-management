@@ -15,7 +15,7 @@ object Dependencies {
   val ClusterHttp = Seq(
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster"                       % AkkaVersion,
-      "com.typesafe.akka" %% "akka-cluster-sharding"              % AkkaVersion    % "provided",
+      "com.typesafe.akka" %% "akka-cluster-sharding"              % AkkaVersion,
       "com.typesafe.akka" %% "akka-http"                          % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json"               % AkkaHttpVersion,
       "io.spray"          %% "spray-json"                         % "1.3.2",                  // ApacheV2
