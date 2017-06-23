@@ -3,7 +3,7 @@ import sbt._, Keys._
 object Dependencies {
 
   val AkkaVersion = "2.4.18"
-  val AkkaHttpVersion = "10.0.6"
+  val AkkaHttpVersion = "10.0.8"
   val junitVersion = "4.12"
 
   val Common = Seq(
