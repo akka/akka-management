@@ -17,8 +17,12 @@ cache:
     - $HOME/.sbt/boot
 
 script:
+  # make 'git branch' work again
+  - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
   - sbt -J-XX:ReservedCodeCacheSize=128m ++$TRAVIS_SCALA_VERSION ";test:compile;docs/paradox"
   - git diff --exit-code --color || { echo "[error] Unformatted code found. Please run 'test:compile' and commit the reformatted code."; false; } && sbt -J-XX:ReservedCodeCacheSize=128m ++$TRAVIS_SCALA_VERSION ";test"
+  # check policies, if on master also upload
+  - if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_EVENT_TYPE" == "push" ]]; then sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate; else sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies; fi
 
 deploy:
   provider: script
@@ -30,6 +34,8 @@ deploy:
 
 env:
   global:
+    # encrypt with: travis encrypt WHITESOURCE_KEY=...
+    - secure: "KK7AsqpqUBRl3vnPzVfmlfogl/HMq7Xb2t6EHHB9pi8QWmK25ufPAxF6G+vx0mIAAP7r6n/lkdVBnuZC1jp6G1/I4adsXJOkCF6YTSb9XmH9jK+YhI6xuqFx5vRqxb2faK+6VY6IJXQFD8/1gkdVr0hN3Hq4I5Yg0GAUxAaKKNWeh7VsFmrFiMCj7Q8s2U4+aGSgyKnptQ35JV63SPZV0rgPPIv1kZuqLi526fQMwOIfhpaRh763v7wgINJjZhvAjIbpicGmayZSnZPhs0+Z/jh9pK8sja1S+dUJSEe4IIfGMJINko58fKNPrxaenk05pwTJ+pWKmYWwxyEIiJrTkNHHUnXYCaJf7Qfiyv+sdZ9opGTs0xXS+/kaI9WPQ/vToyMTSjhZnCx0D9vJMuIVDM0OD+1GO66LqdBWK5nC+tgSstf79HK0gZP7hLzhxNj+4mXajECBlg+GucN6wmhrUB2UMGZ6/NvfIdzuXFFQCuSf3Hp+4z7yDV+FgqZeiedLLlZrvaE0IKrNaJ1CfzZ8jIzhjYXFFG9ERMeyGp7n8/7LW2NcHOI+BvKcaNOV4umRXWcXh7mQqzmZ+t3t+4IQFCR1lTrYj59KA4UI2Z9viZBefwIll1X2UNJ2uzbcCqdQSNrTi8LPfuqU39hdxYcw69it7K55Ktah6qiFwKpPlUc="
     # encrypt with: travis encrypt BINTRAY_USER=...
     - secure: "aV03M2fhMugeGddRWpVHmY1v82mC1uF1uivyeHKNzEPKSYKWpHbiK9hx2RDY6dSccBURFIIkpzzGYCAyJa7AnDsvUy/voyscDZo0/cCbC2gMz5pTB0MpuzTnBPTbjzl4E8JNRryBszdMn7SXCRL9JTyrQLe9JS/XxQvv5ZBYXYg1A68Xa+RaIJkODzkzpD31ITnSpqtRUv1j2h/VqLIvVT03av4AOmq2In4WSQDmBj8Eq0enYPvQ9kLgeQ13zew2nOT0WL7Src+HO9BMwifdpih1kXw0qYs/rJMGwZOw2ksHjxZqO8BGHIxqcRo+wZnUDgK4S5SFSumPatdqFJeAegHV2TNSm6DPDcPxitl0oHkopHF+wCvSX+vv/VFwTATJy+gAi2L8X0D1XxjPz2V/CbDXsiPA6p7uE6YVmcnGe3pnx5jJCWduBr7O2g9ggUqtkNAYYeqb26zIZN2eEjBAmYeEC/B5HMLW8WcanRioDFA/pp4r7ilIBBuQ4AmRN3aaN8+N/a95NBuwbnP8wFqErNYwfV1Bqa576AuPF5sVCHgvmXDkrYshmbkuqjoJxtRhKMbyX9sbIJ1mah20b9k+3sndwh73zKPb3r8eF8ozxlLohPNOYshl6LFJRFRKMSK4fJ6y9lYgHZhYWSWcHACxGI90QCPWesSWTMfNwRM0Sno="
     # encrypt with: travis encrypt BINTRAY_PASS=...
