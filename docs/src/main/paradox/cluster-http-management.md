@@ -2,7 +2,7 @@
 # Cluster Http Management
 
 Akka Cluster HTTP Management is module that allows you interaction with an `akka-cluster` through an HTTP interface.
-This module exposes different operations to manage nodes in a cluster. 
+This module exposes different operations to manage nodes in a cluster.
 
 The operations exposed are comparable to the Command Line Management tool or the JMX interface `akka-cluster` provides.
 
@@ -50,6 +50,7 @@ The following table describes the usage of the API:
 | `/members/{address}` | DELETE      | None                 | Executes leave operation in cluster for provided `{address}`.
 | `/members/{address}` | PUT         | operation: Down      | Executes down operation in cluster for provided `{address}`.
 | `/members/{address}` | PUT         | operation: Leave     | Executes leave operation in cluster for provided `{address}`.
+| `/shards/{name}`     | GET         | None                 | Returns shard info for the shard region with the provided `{name}`
 
 The expected format of `address` follows the Cluster URI convention. Example: `akka://Main@myhostname.com:3311`
 
@@ -59,9 +60,9 @@ The expected format of `address` follows the Cluster URI convention. Example: `a
 | ------------- | -----------
 | 200           | Status of cluster in JSON format
 | 500           | Something went wrong. Cluster might be shutdown.
- 
+
  Example response:
- 
+
      {
        "selfNode": "akka.tcp://test@10.10.10.10:1111",
        "members": [
@@ -80,7 +81,7 @@ The expected format of `address` follows the Cluster URI convention. Example: `a
 | Response code | Description
 | ------------- | -----------
 | 200           | Executing join operation.
-| 500           | Something went wrong. Cluster might be shutdown. 
+| 500           | Something went wrong. Cluster might be shutdown.
 
 Example response:
 
@@ -129,6 +130,24 @@ Example response:
 
     Downing akka.tcp://test@10.10.10.10:111
 
+### Get /shards/{name} responses
+
+| Response code | Description
+| ------------- | -----------
+| 200           | Shard region information in JSON format
+| 404           | No shard region was found on the node for the given `{name}`
+
+ Example response:
+
+     {
+       "regions": [
+         {
+           "shardId": "1234",
+           "numEntities": 30
+         }
+       ]
+     }
+
 ## Configuration
 
 You can configure hostname and port to use for the HTTP Cluster management by overriding the following:
@@ -136,7 +155,7 @@ You can configure hostname and port to use for the HTTP Cluster management by ov
     akka.cluster.http.management.hostname = "127.0.0.1"
     akka.cluster.http.management.port = 19999
 
-However, those are the values by default. In case you are running multiple cluster instances within the same JVM these 
+However, those are the values by default. In case you are running multiple cluster instances within the same JVM these
 configuration parameters should allow you to expose different cluster management APIs by modifying the port:
 
 Scala
@@ -148,7 +167,7 @@ Scala
     //Config Actor system 2
     akka.cluster.http.management.hostname = "127.0.0.1"
     akka.cluster.http.management.port = 20000
-    ... 
+    ...
     val actorSystem1 = ActorSystem("as1", config1)
     val cluster1 = Cluster(actorSystem1)
     val actorSystem2 = ActorSystem("as2", config2)
@@ -157,7 +176,7 @@ Scala
     ClusterHttpManagement(cluster1).start()
     ClusterHttpManagement(cluster2).start()
     ```
-    
+
 Java
 :   ```java
     //Config Actor system 1
@@ -176,18 +195,20 @@ Java
     ClusterHttpManagement.create(cluster1).start();
     ClusterHttpManagement.create(cluster2).start();
     ```
-    
-It is also possible to modify the default root path of the API (`members/` by default). Provide your desired path when starting:
+
+It is also possible to modify the root path of the API (no root path by default). Provide your desired path when starting:
 
 Scala
 :   ```
     ClusterHttpManagement(cluster, "myClusterName").start()
     ```
-    
+
 Java
 :   ```
     ClusterHttpManagement.create(cluster, "myClusterName").start();
     ```
+
+In this example, with this configuration, then the cluster management apis will be exposed at `/myClusterName/members`, `/myClusterName/shards/{name}`, etc.
 
 
 ## Security
@@ -204,7 +225,7 @@ Scala
 :   ```
     ClusterHttpManagement(cluster).start()
     ```
-    
+
 Java
 :   ```
     ClusterHttpManagement.create(cluster).start();
@@ -219,7 +240,7 @@ Scala
     val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
     ClusterHttpManagement(cluster, https).start()
     ```
-    
+
 Java
 :   ```
     HttpsConnectionContext https = ConnectionContext.https(sslContext);
@@ -245,7 +266,7 @@ Scala
     ...
     ClusterHttpManagement(cluster, myUserPassAuthenticator(_)).start()  
     ```
-    
+
 Java
 :   ```
     ClusterHttpManagement.create(cluster, myUserPassAuthenticator).start();
@@ -271,7 +292,7 @@ Scala
     val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
     ClusterHttpManagement(cluster, myUserPassAuthenticator(_), https).start()
     ```
-    
+
 Java
 :   ```
     HttpsConnectionContext https = ConnectionContext.https(sslContext);
@@ -281,7 +302,7 @@ Java
 ## Stopping Cluster HTTP Management
 
 In a dynamic environment you might want to start and stop multiple instances of HTTP Cluster Management.
-You can do so by calling `stop()` on @scaladoc[ClusterHttpManagement](akka.cluster.http.management.ClusterHttpManagement). This method return a `Future[Done]` to inform when the 
+You can do so by calling `stop()` on @scaladoc[ClusterHttpManagement](akka.cluster.http.management.ClusterHttpManagement). This method return a `Future[Done]` to inform when the
 module has been stopped.
 
 Scala
@@ -292,7 +313,7 @@ Scala
     val bindingFuture = httpClusterManagement.stop()
     bindingFuture.onComplete { _ => println("It's stopped") }
     ```
-    
+
 Java
 :   ```
     ClusterHttpManagement httpClusterManagement = ClusterHttpManagement.create(cluster);
@@ -300,4 +321,3 @@ Java
     //...
     httpClusterManagement.stop();
     ```
-    
