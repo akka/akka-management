@@ -67,7 +67,7 @@ class ClusterHttpManagementSpec
         implicit val materializer = ActorMaterializer()
 
         val responseGetMembersFuture = Http().singleRequest(HttpRequest(uri = "http://127.0.0.1:19999/members"))
-        val responseGetMembers = Await.result(responseGetMembersFuture, 5 seconds)
+        val responseGetMembers = Await.result(responseGetMembersFuture, 5.seconds)
 
         Unmarshal(responseGetMembers.entity).to[ClusterMembers].onSuccess {
           case clusterMembers: ClusterMembers ⇒
@@ -78,7 +78,7 @@ class ClusterHttpManagementSpec
         responseGetMembers.status shouldEqual StatusCodes.OK
 
         val bindingFuture = clusterHttpManagement.stop()
-        Await.ready(bindingFuture, 5 seconds)
+        Await.ready(bindingFuture, 5.seconds)
         system.terminate()
       }
 
@@ -117,7 +117,7 @@ class ClusterHttpManagementSpec
         val httpRequest = HttpRequest(uri = "http://127.0.0.1:20000/members").addHeader(
             Authorization(BasicHttpCredentials("user", "p4ssw0rd")))
         val responseGetMembersFuture = Http().singleRequest(httpRequest)
-        val responseGetMembers = Await.result(responseGetMembersFuture, 5 seconds)
+        val responseGetMembers = Await.result(responseGetMembersFuture, 5.seconds)
 
         Unmarshal(responseGetMembers.entity).to[ClusterMembers].onSuccess {
           case clusterMembers: ClusterMembers ⇒
@@ -127,7 +127,7 @@ class ClusterHttpManagementSpec
         responseGetMembers.status shouldEqual StatusCodes.OK
 
         val bindingFuture = clusterHttpManagement.stop()
-        Await.ready(bindingFuture, 5 seconds)
+        Await.ready(bindingFuture, 5.seconds)
         system.terminate()
       }
 
@@ -179,7 +179,7 @@ class ClusterHttpManagementSpec
 
         val httpRequest = HttpRequest(uri = "https://127.0.0.1:20001/members")
         val responseGetMembersFuture = Http().singleRequest(httpRequest, connectionContext = https)
-        val responseGetMembers = Await.result(responseGetMembersFuture, 5 seconds)
+        val responseGetMembers = Await.result(responseGetMembersFuture, 5.seconds)
 
         Unmarshal(responseGetMembers.entity).to[ClusterMembers].onSuccess {
           case clusterMembers: ClusterMembers ⇒
@@ -189,7 +189,7 @@ class ClusterHttpManagementSpec
         responseGetMembers.status shouldEqual StatusCodes.OK
 
         val bindingFuture = clusterHttpManagement.stop()
-        Await.ready(bindingFuture, 5 seconds)
+        Await.ready(bindingFuture, 5.seconds)
         system.terminate()
       }
     }
