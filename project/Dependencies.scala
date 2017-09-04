@@ -18,7 +18,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-cluster-sharding"              % AkkaVersion,
       "com.typesafe.akka" %% "akka-http"                          % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json"               % AkkaHttpVersion,
-      "io.spray"          %% "spray-json"                         % "1.3.2",                  // ApacheV2
+      "io.spray"          %% "spray-json"                         % "1.3.3",                  // ApacheV2
       "com.typesafe.akka" %% "akka-distributed-data-experimental" % AkkaVersion     % "test",
       "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "test",
       "junit"             % "junit"                               % junitVersion    % "test",
