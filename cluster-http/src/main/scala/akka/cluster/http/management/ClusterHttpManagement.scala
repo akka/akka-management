@@ -71,8 +71,8 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
 
         val leader = cluster.readView.leader.map(_.toString)
         val oldest = cluster.state.members.toSeq
-          .sorted(Member.ageOrdering)
           .filter(_.status == MemberStatus.Up)
+          .sorted(Member.ageOrdering)
           .headOption // we are only interested in the oldest one that is still Up
           .map(_.address.toString)
 
@@ -122,9 +122,15 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
       }
     }
 
+  private def findMember(cluster: Cluster, memberAddress: String): Option[Member] = {
+    cluster.readView.members.find(m ⇒
+      s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress
+    )
+  }
+
   private def routesMember(cluster: Cluster) =
     path(Remaining) { memberAddress ⇒
-      cluster.readView.members.find(m ⇒ s"${m.uniqueAddress.address}" == memberAddress) match {
+      findMember(cluster, memberAddress) match {
         case Some(member) ⇒
           routeGetMember(cluster, member) ~ routeDeleteMember(cluster, member) ~ routePutMember(cluster, member)
         case None ⇒
