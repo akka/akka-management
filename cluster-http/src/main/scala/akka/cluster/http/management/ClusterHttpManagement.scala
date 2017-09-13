@@ -122,11 +122,9 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
       }
     }
 
-  private def findMember(cluster: Cluster, memberAddress: String): Option[Member] = {
-    cluster.readView.members.find(m ⇒
-      s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress
-    )
-  }
+  private def findMember(cluster: Cluster, memberAddress: String): Option[Member] =
+    cluster.readView.members.find(
+        m ⇒ s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress)
 
   private def routesMember(cluster: Cluster) =
     path(Remaining) { memberAddress ⇒

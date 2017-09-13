@@ -261,7 +261,7 @@ class ClusterHttpManagementRoutesSpec
         Seq("akka://Main2@hostname.com:3311", "Main2@hostname.com:3311").foreach(address => {
           Put(s"/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
             responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(
-              s"Member [$address] not found")
+                s"Member [$address] not found")
             status == StatusCodes.NotFound
           }
         })
@@ -289,7 +289,8 @@ class ClusterHttpManagementRoutesSpec
 
         Seq("akka://Main@hostname.com:3311", "Main@hostname.com:3311").foreach(address => {
           Put(s"/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
-            responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage("Operation not supported")
+            responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(
+                "Operation not supported")
             status == StatusCodes.NotFound
           }
         })
