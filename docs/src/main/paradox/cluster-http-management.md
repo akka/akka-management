@@ -54,6 +54,8 @@ The following table describes the usage of the API:
 
 The expected format of `address` follows the Cluster URI convention. Example: `akka://Main@myhostname.com:3311`
 
+In the paths `address` is also allowed to be provided without the protocol prefix. Example: `Main@myhostname.com:3311`
+
 ### Get /members responses
 
 | Response code | Description
