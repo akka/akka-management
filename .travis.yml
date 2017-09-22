@@ -5,6 +5,7 @@ scala:
   - "2.11.11"
 
 jdk:
+  - oraclejdk9
   - oraclejdk8
 
 before_cache:
