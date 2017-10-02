@@ -365,6 +365,28 @@ class ClusterHttpManagementRoutesSpec
         system.terminate()
       }
     }
+
+    "respect base path" in {
+      val pathPrefixName = "cluster"
+
+      val address1 = Address("akka", "Main", "hostname.com", 3311)
+      val uniqueAddress1 = UniqueAddress(address1, 1L)
+      val clusterMember1 = Member(uniqueAddress1, Set())
+      val members = SortedSet(clusterMember1)
+
+      val mockedCluster = mock(classOf[Cluster])
+      val mockedClusterReadView = mock(classOf[ClusterReadView])
+      when(mockedCluster.readView).thenReturn(mockedClusterReadView)
+      when(mockedClusterReadView.members).thenReturn(members)
+      doNothing().when(mockedCluster).leave(any[Address])
+
+      Seq("akka://Main@hostname.com:3311", "Main@hostname.com:3311").foreach(address => {
+        Get(s"/cluster/members/$address") ~> ClusterHttpManagementRoutes(mockedCluster, pathPrefixName) ~> check {
+          responseAs[ClusterMember] shouldEqual ClusterMember("akka://Main@hostname.com:3311", "1", "Joining", Set())
+          status == StatusCodes.OK
+        }
+      })
+    }
   }
 }
 
