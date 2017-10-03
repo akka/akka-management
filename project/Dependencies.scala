@@ -19,7 +19,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-http"                          % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json"               % AkkaHttpVersion,
       "io.spray"          %% "spray-json"                         % "1.3.3",                  // ApacheV2
-      "com.typesafe.akka" %% "akka-distributed-data-experimental" % AkkaVersion     % "test",
+      "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test",
       "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "test",
       "junit"             % "junit"                               % junitVersion    % "test",
       "org.mockito"       % "mockito-all"                         % "1.10.19"       % "test"  // Common Public License 1.0
