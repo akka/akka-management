@@ -380,12 +380,11 @@ class ClusterHttpManagementRoutesSpec
       when(mockedClusterReadView.members).thenReturn(members)
       doNothing().when(mockedCluster).leave(any[Address])
 
-      Seq("akka://Main@hostname.com:3311", "Main@hostname.com:3311").foreach(address => {
-        Get(s"/cluster/members/$address") ~> ClusterHttpManagementRoutes(mockedCluster, pathPrefixName) ~> check {
-          responseAs[ClusterMember] shouldEqual ClusterMember("akka://Main@hostname.com:3311", "1", "Joining", Set())
-          status == StatusCodes.OK
-        }
-      })
+      Get(s"/cluster/members/akka://Main@hostname.com:3311") ~> ClusterHttpManagementRoutes(mockedCluster,
+        pathPrefixName) ~> check {
+        responseAs[ClusterMember] shouldEqual ClusterMember("akka://Main@hostname.com:3311", "1", "Joining", Set())
+        status == StatusCodes.OK
+      }
     }
   }
 }
