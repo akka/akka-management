@@ -5,7 +5,7 @@ lazy val `akka-management` = project
   .settings(unidocSettings)
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
-  .aggregate(`cluster-http`, docs)
+  .aggregate(`cluster-http`, `cluster-http-tests`, docs)
 
 lazy val `cluster-http` = project
   .in(file("cluster-http"))
@@ -15,7 +15,16 @@ lazy val `cluster-http` = project
     Dependencies.ClusterHttp
   )
 
-val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in (ProjectRef(file("."), "akka-management"), Compile)
+lazy val `cluster-http-tests` = project
+  .in(file("cluster-http-tests"))
+  .enablePlugins(AutomateHeaderPlugin, NoPublish)
+  .settings(
+    name := "akka-management-cluster-http-tests",
+    Dependencies.ClusterHttpTests
+  )
+  .dependsOn(`cluster-http`)
+
+val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project
   .in(file("docs"))
   .enablePlugins(ParadoxPlugin, NoPublish)
