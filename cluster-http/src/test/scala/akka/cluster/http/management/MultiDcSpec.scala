@@ -11,13 +11,18 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.testkit.SocketUtil
 import com.typesafe.config.ConfigFactory
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.time.{ Millis, Seconds, Span }
 
-class MultiDcSpec extends WordSpec with Matchers with ScalaFutures with ClusterHttpManagementJsonProtocol {
+class MultiDcSpec
+    extends WordSpec
+    with Matchers
+    with ScalaFutures
+    with ClusterHttpManagementJsonProtocol
+    with Eventually {
 
-  implicit val patience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(50, Millis))
+  implicit val patience: PatienceConfig = PatienceConfig(timeout = Span(10, Seconds), interval = Span(50, Millis))
 
   val config = ConfigFactory.parseString(
     """
@@ -57,10 +62,14 @@ class MultiDcSpec extends WordSpec with Matchers with ScalaFutures with ClusterH
       try {
         val cluster = Cluster(dcASystem)
         ClusterHttpManagement(cluster).start().futureValue
-        val response = Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:$httpPortA/members")).futureValue
-        response.status should equal(StatusCodes.OK)
-        val members = Unmarshal(response.entity).to[ClusterMembers].futureValue
-        members.members.size should equal(2)
+
+        eventually {
+          val response = Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:$httpPortA/members")).futureValue
+          response.status should equal(StatusCodes.OK)
+          val members = Unmarshal(response.entity).to[ClusterMembers].futureValue
+          members.members.size should equal(2)
+          members.members.map(_.status) should equal(Set("Up"))
+        }
       } finally {
         dcASystem.terminate()
         dcBSystem.terminate()
