@@ -1,8 +1,7 @@
 import sbt._, Keys._
 
 object Dependencies {
-  val AkkaVersion = "2.4.20"
-  val AkkaVersion256 = "2.5.6" // For tests
+  val AkkaVersion = "2.5.6"
   val AkkaHttpVersion = "10.0.10"
   val junitVersion = "4.12"
 
@@ -19,17 +18,10 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-http"                          % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json"               % AkkaHttpVersion,
       "io.spray"          %% "spray-json"                         % "1.3.3",                  // ApacheV2
-      "com.typesafe.akka" %% "akka-distributed-data-experimental" % AkkaVersion     % "test",
+      "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test",
       "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "test",
       "junit"             % "junit"                               % junitVersion    % "test",
       "org.mockito"       % "mockito-all"                         % "1.10.19"       % "test"  // Common Public License 1.0
-    )
-  )
-
-  val ClusterHttpTests = Seq(
-    libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-cluster"                       % AkkaVersion256 % "test",
-      "com.typesafe.akka" %% "akka-testkit"                       % AkkaVersion256 % "test"
     )
   )
 }
