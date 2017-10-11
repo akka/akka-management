@@ -15,7 +15,7 @@ lazy val `cluster-http` = project
     Dependencies.ClusterHttp
   )
 
-val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in (ProjectRef(file("."), "akka-management"), Compile)
+val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project
   .in(file("docs"))
   .enablePlugins(ParadoxPlugin, NoPublish)

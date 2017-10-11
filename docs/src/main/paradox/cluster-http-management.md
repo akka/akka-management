@@ -75,8 +75,12 @@ In the paths `address` is also allowed to be provided without the protocol prefi
            "roles": []
          }
        ],
-       "unreachable": []
+       "unreachable": [],
+       "leader: "akka.tcp://test@10.10.10.10:1111",
+       "oldest: "akka.tcp://test@10.10.10.10:1111"
      }
+     
+Where `oldest` is the oldest node in the current datacenter.
 
 ### Post /members responses
 

@@ -71,7 +71,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
 
         val leader = cluster.readView.leader.map(_.toString)
         val oldest = cluster.state.members.toSeq
-          .filter(_.status == MemberStatus.Up)
+          .filter(node => node.status == MemberStatus.Up && node.dataCenter == cluster.selfDataCenter)
           .sorted(Member.ageOrdering)
           .headOption // we are only interested in the oldest one that is still Up
           .map(_.address.toString)
