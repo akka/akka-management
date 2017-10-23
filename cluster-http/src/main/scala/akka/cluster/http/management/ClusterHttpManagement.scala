@@ -14,13 +14,13 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ Route, RouteResult }
 import akka.http.scaladsl.{ ConnectionContext, Http }
-import akka.pattern.ask
+import akka.pattern.{ ask, AskTimeoutException }
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import spray.json.DefaultJsonProtocol
 
-import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration._
+import scala.concurrent.{ Future, Promise }
 
 final case class ClusterUnreachableMember(node: String, observedBy: Seq[String])
 final case class ClusterMember(node: String, nodeUid: String, status: String, roles: Set[String])
@@ -150,6 +150,9 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
                 ShardDetails(shardRegionStats.stats.map(s => ShardRegionInfo(s._1, s._2)).toSeq)
               }
           } catch {
+            case _: AskTimeoutException =>
+              StatusCodes.NotFound → ClusterHttpManagementMessage(
+                  s"Shard Region $shardRegionName not responding, may have been terminated")
             case _: IllegalArgumentException =>
               StatusCodes.NotFound → ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
           }
