@@ -1,5 +1,7 @@
 import java.nio.file.Paths
 
+scalaVersion := "2.12.2"
+
 lazy val `akka-management` = project
   .in(file("."))
   .settings(unidocSettings)
@@ -18,7 +20,8 @@ lazy val `cluster-http` = project
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project
   .in(file("docs"))
-  .enablePlugins(ParadoxPlugin, NoPublish)
+  .enablePlugins(ParadoxPlugin)
+  .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .settings(
     name := "Akka Management",
