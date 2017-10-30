@@ -172,8 +172,10 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
    * [[akka.cluster.Cluster]] instance. This version does not provide Basic Authentication. It uses
    * the specified path `pathPrefixName`.
    */
-  def apply(cluster: Cluster, pathPrefixName: String): Route =
-    rawPathPrefix(pathPrefixName) {
+  def apply(cluster: Cluster, pathPrefixName: String): Route = {
+    val basePath = if (pathPrefixName.isEmpty) rawPathPrefix(pathPrefixName) else pathPrefix(pathPrefixName)
+
+    basePath {
       pathPrefix("members") {
         pathEndOrSingleSlash {
           routeGetMembers(cluster) ~ routePostMembers(cluster)
@@ -186,6 +188,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
         }
       }
     }
+  }
 
   /**
    * Creates an instance of [[akka.cluster.http.management.ClusterHttpManagementRoutes]] to manage the specified
