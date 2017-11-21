@@ -173,7 +173,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
    * the specified path `pathPrefixName`.
    */
   def apply(cluster: Cluster, pathPrefixName: String): Route = {
-    val basePath = if (pathPrefixName.isEmpty) rawPathPrefix(pathPrefixName) else pathPrefix(pathPrefixName)
+      val basePath = if (pathPrefixName.isEmpty) rawPathPrefix(pathPrefixName) else pathPrefix(pathPrefixName)
 
     basePath {
       pathPrefix("members") {

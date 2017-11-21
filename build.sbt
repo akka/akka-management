@@ -15,6 +15,14 @@ lazy val `cluster-http` = project
     Dependencies.ClusterHttp
   )
 
+lazy val `joining` = project
+  .in(file("joining"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-management-joining",
+    Dependencies.Joining
+  )
+
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project
   .in(file("docs"))
