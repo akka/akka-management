@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.cluster.bootstrap.dns
 
@@ -10,7 +10,7 @@ import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Address, DeadLet
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.CurrentClusterState
-import akka.cluster.bootstrap.ClusterBootstrapSettings
+import akka.cluster.bootstrap.{ ClusterBootstrap, ClusterBootstrapSettings }
 import akka.http.scaladsl.model.Uri
 import akka.pattern.{ ask, pipe }
 import akka.discovery.ServiceDiscovery
@@ -18,7 +18,7 @@ import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.util.PrettyDuration
 
 import scala.collection.immutable
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
 /** INTERNAL API */
@@ -35,7 +35,7 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
 
     final case class ObtainedHttpSeedNodesObservation(
         seedNodesSourceAddress: Address,
-        observedSeedNodes: Set[Address] // TODO order by address sorting?
+        observedSeedNodes: Set[Address]
     ) extends DeadLetterSuppression
 
     final case class NoSeedNodesObtainedWithinDeadline(contactPoint: Uri) extends DeadLetterSuppression
@@ -53,15 +53,25 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
     /** Prepares member addresses for a self-join attempt */
     def selfAddressIfAbleToJoinItself(system: ActorSystem): Option[Address] = {
       val cluster = Cluster(system)
-      val selfHost = cluster.selfAddress.host
-      if (lowestAddressContactPoint.contains(selfHost.get)) {
-        // we are the "lowest address" and should join ourselves to initiate a new cluster
-        Some(cluster.selfAddress)
-      } else None
+      val bootstrap = ClusterBootstrap(system)
 
+      // we KNOW this await is safe, since we set the value before we bind the HTTP things even
+      val selfContactPoint = Await.result(bootstrap.selfContactPoint, 30.seconds)
+
+      // we check if a contact point is "us", by comparing host and port that we've bound to
+      def lowestContactPointIsSelfManagement(lowest: ResolvedTarget): Boolean =
+        lowest.host == selfContactPoint.authority.host.toString() &&
+        lowest.port.getOrElse(selfContactPoint.authority.port) == selfContactPoint.authority.port
+
+      lowestAddressContactPoint
+        .find(lowestContactPointIsSelfManagement) // if the lowest contact-point address is "us"
+        .map(_ ⇒ cluster.selfAddress) // then we should join our own remoting address
     }
 
-    /** Contact point with the "lowest" address, it is expected to join itself if no other cluster is found in the deployment. */
+    /**
+     * Contact point with the "lowest" contact point address,
+     * it is expected to join itself if no other cluster is found in the deployment.
+     */
     def lowestAddressContactPoint: Option[ResolvedTarget] =
       observedContactPoints.sortBy(e ⇒ e.host + ":" + e.port.getOrElse(0)).headOption
 

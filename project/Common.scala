@@ -9,7 +9,7 @@ object Common extends AutoPlugin {
 
   val FileHeader = (HeaderPattern.cStyleBlockComment,
     """|/*
-       | * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+       | * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
        | */
        |""".stripMargin)
 

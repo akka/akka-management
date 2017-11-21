@@ -1,24 +1,29 @@
 /*
- * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.cluster.bootstrap
 
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
+import akka.annotation.InternalApi
 import akka.cluster.bootstrap.dns.HeadlessServiceDnsBootstrap
 import akka.discovery.ServiceDiscovery
 import akka.event.Logging
+import akka.http.scaladsl.model.Uri
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 
+import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension {
+
   import ClusterBootstrap._
   import system.dispatcher
+
   private implicit val mat = ActorMaterializer()(system)
 
   private val log = Logging(system, classOf[ClusterBootstrap])
@@ -32,6 +37,8 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     val clazz = settings.contactPointDiscovery.discoveryClass
     system.dynamicAccess.createInstanceFor[ServiceDiscovery](clazz, List(classOf[ActorSystem] → system)).get
   }
+
+  private[this] val _selfContactPointUri: Promise[Uri] = Promise()
 
   def start(): Unit =
     if (bootstrapStep.compareAndSet(NotRunning, Initializing)) {
@@ -50,8 +57,25 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
         case Success(_) ⇒ // ignore, all's fine
         case Failure(_) ⇒ log.warning("Failed to complete bootstrap within {}!", bootTimeout)
       }
+    } else log.warning("Bootstrap already initiated, yet start() method was called again. Ignoring.")
 
-    }
+  /**
+   * INTERNAL API
+   *
+   * Must be invoked by whoever starts the HTTP server with the `HttpClusterBootstrapRoutes`.
+   * This allows us to "reverse lookup" from a lowest-address sorted contact point list,
+   * that we discover via discovery, if a given contact point corresponds to our remoting address,
+   * and if so, we may opt to join ourselves using the address.
+   *
+   * @return true if successfully set, false otherwise (i.e. was set already)
+   */
+  @InternalApi
+  def setSelfContactPoint(baseUri: Uri): Boolean =
+    _selfContactPointUri.trySuccess(baseUri)
+
+  /** INTERNAL API */
+  private[akka] def selfContactPoint: Future[Uri] =
+    _selfContactPointUri.future
 
 }
 

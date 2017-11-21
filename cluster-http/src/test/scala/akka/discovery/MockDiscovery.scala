@@ -1,14 +1,15 @@
 /*
- * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.discovery
 
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.annotation.InternalApi
 import akka.discovery.ServiceDiscovery.Resolved
 import akka.event.Logging
+import akka.io.{ Dns, IO }
 
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration

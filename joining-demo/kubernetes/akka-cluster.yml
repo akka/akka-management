@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: appka
-        image: ktoso/akka-management-joining:1.3.3.7
+        image: ktoso/akka-management-joining-demo:1.3.3.7
         imagePullPolicy: Never
         env:
         - name: HOST_NAME
@@ -27,7 +27,7 @@ spec:
         livenessProbe:
           tcpSocket:
 #            port: 2551
-            port: 8558
+            port: 19999
         ports:
         # akka remoting
         - name: remoting

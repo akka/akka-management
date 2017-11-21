@@ -20,8 +20,10 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-cluster-sharding"              % AkkaVersion,
       "com.typesafe.akka" %% "akka-http"                          % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json"               % AkkaHttpVersion,
-      "io.spray"          %% "spray-json"                         % SprayJsonVersion, // ApacheV2
-      "ru.smslv.akka"     %% "akka-dns"                           % akkaDns,
+      "io.spray"          %% "spray-json"                         % SprayJsonVersion,                  // ApacheV2
+
+      // TODO this would be needed to use the SRV records, but more likely we want to implement it ourselves
+      // "ru.smslv.akka"     %% "akka-dns"                           % akkaDns, // ApacheV2
 
       "com.typesafe.akka" %% "akka-distributed-data-experimental" % AkkaVersion     % "test",
       "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "test",
