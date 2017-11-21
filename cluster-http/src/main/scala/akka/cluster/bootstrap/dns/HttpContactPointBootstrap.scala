@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.cluster.bootstrap.dns
 
 import java.util.concurrent.ThreadLocalRandom
 
-import akka.actor.{ Actor, ActorLogging, ActorRef, Props, Timers }
+import akka.actor.{ Actor, ActorLogging, ActorRef, Address, Props, Timers }
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.cluster.bootstrap.ClusterBootstrapSettings
@@ -86,14 +86,14 @@ private[dns] class HttpContactPointBootstrap(
   override def receive = {
     case Internal.ProbeNow() ⇒
       val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
-      log.info("Probing {} for seed nodes...", req.uri)
+      log.debug("Probing {} for seed nodes...", req.uri)
 
       http.singleRequest(req).flatMap(res ⇒ Unmarshal(res).to[SeedNodes]).pipeTo(self)
 
-    case response @ SeedNodes(node, members, oldest) ⇒
+    case response @ SeedNodes(node, members) ⇒
       if (members.isEmpty) {
         if (clusterNotObservedWithinDeadline) {
-          permitParentToFormClusterIfPossible() // FIXME only signal this once?
+          permitParentToFormClusterIfPossible()
 
           // if we are not the lowest address, we won't join ourselves,
           // and then we'll end up observing someone else forming the cluster, so we continue probing
@@ -101,7 +101,7 @@ private[dns] class HttpContactPointBootstrap(
         } else {
           // we keep probing and looking if maybe a cluster does form after all
           //
-          // (technically could be long polling or websockets, but that would need reconnect logic, so this is simpler)
+          // (technically could be long polling or web-sockets, but that would need reconnect logic, so this is simpler)
           scheduleNextContactPointProbing()
         }
       } else {
@@ -123,7 +123,7 @@ private[dns] class HttpContactPointBootstrap(
     existingClusterNotObservedWithinDeadline.isOverdue()
 
   private def permitParentToFormClusterIfPossible(): Unit = {
-    log.info("No seed-nodes obtained from {} within stable margin [{}], may want to initiate the cluster myself...",
+    log.debug("No seed-nodes obtained from {} within stable margin [{}], may want to initiate the cluster myself...",
       baseUri, settings.contactPoint.noSeedsStableMargin)
 
     context.parent ! HeadlessServiceDnsBootstrap.Protocol.NoSeedNodesObtainedWithinDeadline(baseUri)

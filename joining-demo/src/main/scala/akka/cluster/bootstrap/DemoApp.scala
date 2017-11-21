@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.cluster.bootstrap
 
@@ -13,19 +13,15 @@ import akka.http.scaladsl.Http
 import akka.io.{ Dns, IO }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import akka.cluster.http.management._
 import akka.stream.scaladsl.Source
 import com.typesafe.config.ConfigFactory
 
 object DemoApp extends App {
 
-  implicit val system = ActorSystem("DemoApp", ConfigFactory.parseString("""
+  implicit val system = ActorSystem("Appka", ConfigFactory.parseString("""
        akka.loglevel = INFO
        akka.actor.provider = cluster
-        akka.io.dns {
-          async-dns {
-            resolve-srv  = false
-          }
-        }
     """).withFallback(ConfigFactory.load()))
 
   import system.log
@@ -35,6 +31,7 @@ object DemoApp extends App {
 
   log.info(s"Started [$system], cluster.selfAddress = ${cluster.selfAddress}")
 
+  ClusterHttpManagement(cluster).start()
   ClusterBootstrap(system).start()
 
   cluster

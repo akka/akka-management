@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.cluster.bootstrap.contactpoint
 
+import java.util.concurrent.atomic.AtomicReference
+
 import akka.actor.{ ActorSystem, Address }
-import akka.cluster.{ Cluster, Member, MemberStatus }
+import akka.annotation.InternalApi
+import akka.cluster.{ Cluster, Member, MemberStatus, UniqueAddress }
 import akka.cluster.bootstrap.ClusterBootstrapSettings
 import akka.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol.{ ClusterMember, SeedNodes }
 import akka.event.{ Logging, LoggingAdapter }
@@ -19,7 +22,6 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
 
   private def routeGetSeedNodes: Route = extractClientIP { clientIp ⇒
     extractActorSystem { implicit system ⇒
-      import system.dispatcher
       val cluster = Cluster(system)
 
       def memberToClusterMember(m: Member): ClusterMember =
@@ -30,14 +32,7 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
       // TODO shuffle the members so in a big deployment nodes start joining different ones and not all the same?
       val members = state.members.take(settings.contactPoint.httpMaxSeedNodesToExpose).map(memberToClusterMember)
 
-      // TODO add a method to find oldest to cluster state?
-      val oldest = state.members.toSeq
-        .filter(node => node.status == MemberStatus.Up && node.dataCenter == cluster.selfDataCenter)
-        .sorted(Member.ageOrdering)
-        .headOption // we are only interested in the oldest one that is still Up
-        .map(_.uniqueAddress.address)
-
-      val info = SeedNodes(cluster.selfMember.uniqueAddress.address, members, oldest)
+      val info = SeedNodes(cluster.selfMember.uniqueAddress.address, members)
       log.info("Bootstrap request from {}: Contact Point returning {} seed-nodes ([{}])", clientIp, members.size,
         members)
       complete(info)
