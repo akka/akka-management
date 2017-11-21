@@ -4,16 +4,17 @@
 package akka.cluster.http.management
 
 import akka.actor.ActorSystem
-import akka.cluster.Cluster
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ HttpRequest, StatusCodes }
+import akka.http.scaladsl.model.{ HttpRequest, StatusCodes, Uri }
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.management.cluster.{ ClusterHttpManagement, ClusterHttpManagementJsonProtocol, ClusterMembers }
+import akka.management.http.ManagementRouteProviderSettings
 import akka.stream.ActorMaterializer
 import akka.testkit.SocketUtil
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ Matchers, WordSpec }
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.{ Matchers, WordSpec }
 
 class MultiDcSpec
     extends WordSpec
@@ -57,11 +58,16 @@ class MultiDcSpec
 
       implicit val dcASystem = ActorSystem("MultiDcSystem", config.withFallback(dcA))
       val dcBSystem = ActorSystem("MultiDcSystem", config.withFallback(dcB))
-      implicit val materialiser = ActorMaterializer()
+      implicit val materializer = ActorMaterializer()
+
+      val routeSettings = new ManagementRouteProviderSettings {
+        override def selfBaseUri: Uri = s"http://126.0.0.1:$httpPortA"
+      }
 
       try {
-        val cluster = Cluster(dcASystem)
-        ClusterHttpManagement(cluster).start().futureValue
+        Http()
+          .bindAndHandle(ClusterHttpManagement(dcASystem).routes(routeSettings), "127.0.0.1", httpPortA)
+          .futureValue
 
         eventually {
           val response = Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:$httpPortA/members")).futureValue

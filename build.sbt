@@ -1,30 +1,84 @@
 import java.nio.file.Paths
 
-lazy val `akka-management` = project
+// root
+lazy val `akka-management-root` = project
   .in(file("."))
   .settings(unidocSettings)
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
-  .aggregate(`cluster-http`, docs)
+  .aggregate(
+    `akka-discovery`,
+    `akka-discovery-dns`,
+    `akka-management`,
+    `cluster-http`,
+    `cluster-bootstrap`,
+    docs)
 
+// interfaces and extension for Discovery
+lazy val `akka-discovery` = project
+  .in(file("discovery"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery",
+    Dependencies.Discovery
+  )
+
+// DNS implementation of discovery, default and works well for Kubernetes among other things
+lazy val `akka-discovery-dns` = project
+  .in(file("discovery-dns"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-dns",
+    Dependencies.DiscoveryDns
+  )
+  .dependsOn(`akka-discovery`)
+
+// gathers all enabled routes and serves them (HTTP or otherwise)
+lazy val `akka-management` = project
+  .in(file("management"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-management",
+    Dependencies.ManagementHttp
+  )
+
+// cluster management http routes, expose information and operations about the cluster
 lazy val `cluster-http` = project
   .in(file("cluster-http"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-cluster-http",
-    Dependencies.ClusterHttp,
-    resolvers += Resolver.bintrayRepo("hajile", "maven")
+    Dependencies.ClusterHttp
   )
+  .dependsOn(`akka-management`)
 
-lazy val `joining-demo` = project
-  .in(file("joining-demo"))
+// cluster bootstraping
+lazy val `cluster-bootstrap` = project
+  .in(file("cluster-bootstrap"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "akka-management-joining-demo",
+    name := "akka-management-cluster-bootstrap",
+    Dependencies.ClusterBootstrap
+  )
+  .dependsOn(`akka-management`, `akka-discovery`)
+
+// TODO cluster-bootstrap-dns which would just pull together things
+
+// demo of the bootstrap
+lazy val `bootstrap-joining-demo` = project
+  .in(file("bootstrap-joining-demo"))
+  .enablePlugins(NoPublish)
+  .disablePlugins(BintrayPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-management-bootstrap-joining-demo",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
-  ).dependsOn(`cluster-http`)
+  ).dependsOn(`akka-management`, `cluster-http`, `akka-discovery-dns`, `cluster-bootstrap`)
 
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project

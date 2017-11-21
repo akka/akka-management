@@ -18,7 +18,7 @@ object Common extends AutoPlugin {
 
   override lazy val projectSettings = reformatOnCompileSettings ++
     Dependencies.Common ++ Seq(
-    organization := "com.lightbend.akka",
+    organization := "com.lightbend.akka.management", // FIXME proposing this change, then we can have "com.lightbend.akka.management|discovery" etc; we'd do management.commercial for example later
     organizationName := "Lightbend Inc.",
     homepage := Some(url("https://github.com/akka/akka-management")),
     scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-management"), "git@github.com:akka/akka-management.git")),
@@ -61,6 +61,8 @@ object Common extends AutoPlugin {
 
     formatSbtFiles := false,
     scalafmtConfig := Some(baseDirectory.in(ThisBuild).value / ".scalafmt.conf"),
+
+    scalaVersion := "2.12.4",
     ivyScala := ivyScala.value.map(_.copy(overrideScalaVersion = sbtPlugin.value)) // TODO Remove once this workaround no longer needed (https://github.com/sbt/sbt/issues/2786)!
   )
 }

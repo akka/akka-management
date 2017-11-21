@@ -37,24 +37,24 @@ will notice and start joining this node. Now the process just explained in the p
 joining" continues until all nodes have joined the cluster. 
 
 In summary, the process is as follows:
-
-* find Contact Points using DNS
-* start probing each of the Contact Points for their known seed-nodes
-* a) Cluster already exists
-    - if any of the Contact Points returns known seed-nodes, join them immediately
-    - the node is now part of the cluster, mission complete
-    - each time a node is added to the cluster, it is included in the seed-nodes (with a maximum limit of a few nodes),
-      which causes the joining to be spread out to the nodes which are already part of the cluster. They also start 
-      advertising see-nodes, so if a new node contacts any of those fresly joined nodes, they join the same cluster.
-* b) No cluster exists:
-    - if none of the contact points returns any seed nodes
-    - nodes will after a timeout realise they should form a new cluster, 
-      and will decide that the "lowest" address should join itself. 
-    - this deterministic decision causes one of the nodes to join itself, and start advertising itself in it's Contact Point 
-      as seed-node
-    - other nodes notice this via contact point probing and join this node
-    - from here the process explained in "Cluster already exists" continues as explained in the "epidemic joining" process,
-      until all nodes have joined the cluster.
+ - find Contact Points using DNS
+ - start probing each of the Contact Points for their known seed-nodes
+ - a) Cluster already exists
+   - if any of the Contact Points returns known seed-nodes, join them immediately
+   - the node is now part of the cluster, mission complete
+   - each time a node is added to the cluster, it is included in the seed-nodes (with a maximum limit of a few nodes),
+     which causes the joining to be spread out to the nodes which are already part of the cluster. They also start 
+     advertising see-nodes, so if a new node contacts any of those fresly joined nodes, they join the same cluster.
+ - b) No cluster exists:
+   - if none of the contact points returns any seed nodes
+   - nodes will after a timeout realise they should form a new cluster, 
+     and will decide that the "lowest" address should join itself. 
+   - this deterministic decision causes one of the nodes to join itself, and start advertising itself in it's Contact Point 
+     as seed-node
+   - other nodes notice this via contact point probing and join this node
+   - from here the process explained in "Cluster already exists" continues as explained in the "epidemic joining" process,
+     until all nodes have joined the cluster.
+ 
 
 TODO: We aim to use SRV records here, but A works fine as well. The impl should try SRV and fallback to A if none available.
 
