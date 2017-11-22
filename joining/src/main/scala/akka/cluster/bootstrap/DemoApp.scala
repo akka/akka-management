@@ -7,6 +7,7 @@ import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
 import akka.cluster.ClusterEvent.ClusterDomainEvent
 import akka.cluster.{ Cluster, ClusterEvent }
 import akka.http.scaladsl.Http
+import akka.io.{ Dns, IO }
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 
@@ -23,7 +24,13 @@ object DemoApp extends App {
 
   log.info(s"Started [$system], cluster.selfAddress = ${cluster.selfAddress}")
 
+  log.info(s"provider = ${Dns(system).provider}")
+  log.info(s"provider actor class = ${Dns(system).provider.actorClass}")
+  log.info(s"provider manager class = ${Dns(system).provider.managerClass}")
+
   ClusterBootstrap(system).start()
+
+  val ex = IO(Dns)
 
   cluster
     .subscribe(system.actorOf(Props[ClusterWatcher]), ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])

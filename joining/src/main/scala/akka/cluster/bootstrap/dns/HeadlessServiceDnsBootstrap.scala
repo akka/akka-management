@@ -9,11 +9,11 @@ import akka.annotation.InternalApi
 import akka.cluster.{ Cluster, ClusterEvent }
 import akka.cluster.ClusterEvent.{ ClusterDomainEvent, CurrentClusterState }
 import akka.cluster.bootstrap.ClusterBootstrapSettings
+import akka.cluster.bootstrap.dns.HeadlessServiceDnsBootstrap.Protocol.Internal.DnsResolvedTo
 import akka.http.scaladsl.model.Uri
 import akka.io.AsyncDnsResolver.SrvResolved
 import akka.io.{ Dns, IO }
 import akka.pattern.{ ask, pipe }
-import ru.smslv.akka.dns.raw.SRVRecord
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -38,12 +38,13 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
 
     object Internal {
       final case class AttemptResolve(serviceName: String, resolveTimeout: FiniteDuration)
+      final case class DnsResolvedTo(serviceName: String, addresses: immutable.Seq[String])
     }
   }
 
   protected[dns] final case class DnsServiceContactsObservation(
       observedAt: Long,
-      observedContactPoints: List[SRVRecord] // TODO order by address sorting?
+      observedContactPoints: List[String] // TODO order by address sorting?
   ) {
 
     def willBeStableAt(settings: ClusterBootstrapSettings): Long =
@@ -59,13 +60,9 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
 
     def membersChanged(other: DnsServiceContactsObservation): Boolean = {
       // TODO a bit naive?
-      val these = (this.observedContactPoints.toSet).map { r: SRVRecord ⇒
-        s"${r.target}:${r.port}"
-      }
+      val these = (this.observedContactPoints.toSet)
       println("these >>> " + these)
-      val others = (other.observedContactPoints.toSet).map { r: SRVRecord ⇒
-        s"${r.target}:${r.port}"
-      }
+      val others = (other.observedContactPoints.toSet)
       println("others >>> " + others)
       others != these
     }
@@ -111,11 +108,10 @@ class HeadlessServiceDnsBootstrap(settings: ClusterBootstrapSettings) extends Ac
     case Internal.AttemptResolve(name, timeout) ⇒
       resolve(name, timeout).pipeTo(self)
 
-    case SrvResolved(name, records) ⇒
-      val recordsSize = records.size
-      log.info("Discovered {} [{}] observation: {}", recordsSize, name, records.mkString("[", ",", "]"))
+    case DnsResolvedTo(name, contactPoints) ⇒
+      log.info("Discovered {} [{}] observation: {}", name, contactPoints.mkString("[", ", ", "]"))
 
-      onSrvResolved(serviceName, records, recordsSize)
+      onContactPointsResolved(serviceName, contactPoints)
 
     case ex: Failure ⇒
       log.warning("Resolve attempt failed! Cause: {}", ex.cause)
@@ -159,23 +155,16 @@ class HeadlessServiceDnsBootstrap(settings: ClusterBootstrapSettings) extends Ac
     // ignore, same reason as above
   }
 
-  private def onSrvResolved(serviceName: String, records: immutable.Seq[SRVRecord], recordsSize: Int): Unit =
-    if (recordsSize < settings.requiredContactPoints) {
-      val timeNow = System.currentTimeMillis() // TODO use Clock?
-      val newObservation = DnsServiceContactsObservation(timeNow, records.toList)
-      lastContactsObservation = lastContactsObservation.sameOrChanged(newObservation)
+  private def onContactPointsResolved(serviceName: String, contactPoints: immutable.Seq[String]): Unit = {
+    val timeNow = System.currentTimeMillis() // TODO use Clock?
+    val newObservation = DnsServiceContactsObservation(timeNow, contactPoints.toList)
+    lastContactsObservation = lastContactsObservation.sameOrChanged(newObservation)
 
-      val shouldInitiateJoining =
-        lastContactsObservation.isPastStableMargin(settings, timeNow) || // observation is "stable enough", let's join
-        recordsSize >= settings.expectedContactPoints // join fast-path, all expected contact points have been observed
+    if (contactPoints.size < settings.expectedContactPoints)
+      onInsufficientContactPointsDiscovered(serviceName, lastContactsObservation)
+    else onSufficientContactPointsDiscovered(serviceName, lastContactsObservation)
+  }
 
-      if (shouldInitiateJoining) onInsufficientContactPointsDiscovered(serviceName, lastContactsObservation)
-      else onSufficientContactPointsDiscovered(serviceName, lastContactsObservation)
-    }
-
-  /**
-   * Pipes the result of [[resolve]] ([[SrvResolved]]) to `self`.
-   */
   private def onInsufficientContactPointsDiscovered(serviceName: String,
                                                     observation: DnsServiceContactsObservation): Unit = {
     log.info("Discovered ({}) observation, which is less than the required ({}), retrying (interval: {})",
@@ -189,8 +178,8 @@ class HeadlessServiceDnsBootstrap(settings: ClusterBootstrapSettings) extends Ac
     log.info("Initiating joining! Got sufficient contact points: {}",
       observation.observedContactPoints.mkString("[", ",", "]")) // FIXME better message
 
-    observation.observedContactPoints.foreach { record ⇒
-      val baseUri = Uri("http", Uri.Authority(Uri.Host(record.target), settings.contactPointPort))
+    observation.observedContactPoints.foreach { contactPoint ⇒
+      val baseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint), settings.contactPointPort))
       ensureProbing(baseUri)
     }
   }
@@ -211,17 +200,19 @@ class HeadlessServiceDnsBootstrap(settings: ClusterBootstrapSettings) extends Ac
     // TODO configure interval at which we DNS lookup
     timers.startSingleTimer(TimerKeyResolveDNS, Internal.AttemptResolve(serviceName, resolveTimeout), 1.second)
 
-  private def resolve(name: String, resolveTimeout: FiniteDuration): Future[SrvResolved] =
+  private def resolve(name: String, resolveTimeout: FiniteDuration): Future[DnsResolvedTo] =
     dns.ask(Dns.Resolve(name))(resolveTimeout) map {
       case srv: SrvResolved =>
-        log.warning("Resolved Srv.Resolved: " + srv)
-        srv
+        log.debug("Resolved Srv.Resolved: " + srv)
+        DnsResolvedTo(name, srv.srv.map(_.target))
+
       case resolved: Dns.Resolved =>
-        log.warning("Resolved UNEXPECTED Dns.Resolved: " + resolved)
-        SrvResolved(name, Nil)
+        log.debug("Resolved Dns.Resolved: " + resolved)
+        DnsResolvedTo(name, resolved.ipv4.map(_.getHostAddress))
+
       case resolved ⇒
         log.warning("Resolved UNEXPECTED: " + resolved)
-        SrvResolved(name, Nil)
+        DnsResolvedTo(name, Nil)
     }
 
   private def stopProbingContactPoints(): Unit =

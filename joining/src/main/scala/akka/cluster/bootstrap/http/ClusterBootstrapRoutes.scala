@@ -39,9 +39,11 @@ final class ClusterBootstrapRoutes(settings: ClusterBootstrapSettings) extends H
     // TODO basePath, same as akka-management
     // val basePath = if (pathPrefixName.isEmpty) rawPathPrefix(pathPrefixName) else pathPrefix(pathPrefixName)
 
-    concat(
-      (get & path("bootstrap" / "seed-nodes"))(routeGetSeedNodes)
-    )
+    logRequest("bootstrap") {
+      concat(
+        (get & path("bootstrap" / "seed-nodes"))(routeGetSeedNodes)
+      )
+    }
   }
 
 }
@@ -50,6 +52,6 @@ object ClusterBootstrapRequests {
   import akka.http.scaladsl.client.RequestBuilding._
 
   def bootstrapSeedNodes(baseUri: Uri, selfNodeAddress: Address): HttpRequest =
-    Post(baseUri + "/bootstrap" + "/seed-nodes")
+    Get(baseUri + "/bootstrap" + "/seed-nodes")
 
 }

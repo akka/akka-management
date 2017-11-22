@@ -69,6 +69,9 @@ class HttpContactPointBootstrap(
    */
   private val existingClusterNotObservedWithinDeadline: Deadline = settings.stableMargin.fromNow
 
+  override def preStart(): Unit =
+    self ! Internal.ProbeNow()
+
   override def receive = {
     case Internal.ProbeNow() ⇒
       val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri, cluster.selfAddress)

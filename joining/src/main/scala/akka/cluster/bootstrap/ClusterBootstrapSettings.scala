@@ -6,7 +6,6 @@ package akka.cluster.bootstrap
 import java.util.Locale
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.{ Sink, Source }
 import com.typesafe.config.Config
 
 import scala.concurrent.duration._
@@ -25,7 +24,7 @@ final case class ClusterBootstrapSettings(
     namespaceName: Option[String] = Some("default"), // k8s specific ??
     dnsSuffix: String = ".svc.cluster.local", // k8s specific ??
     requiredContactPoints: Int = 3, // TODO this is a hard lower limit, we should have that to avoid "single node" joining itself?
-    expectedContactPoints: Int = 4, // if we see that many contact points, we could ignore the stable timeout and do as fast-join?
+    expectedContactPoints: Int = 3, // if we see that many contact points, we could ignore the stable timeout and do as fast-join?
     httpProbeInterval: FiniteDuration = 5.seconds,
     httpProbeIntervalJitter: Double = 0.2, // +/- 20%
     httpMaxSeedNodesToExpose: Int = 5,
