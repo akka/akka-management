@@ -67,7 +67,7 @@ class HttpContactPointBootstrap(
    * If we don't observe any seed-nodes until the deadline triggers, we notify the parent about it,
    * such that it may make the decision to join this node to itself or not (initiating a new cluster).
    */
-  private val existingClusterNotObservedWithinDeadline: Deadline = settings.stableMargin.fromNow
+  private val existingClusterNotObservedWithinDeadline: Deadline = settings.contactPointNoSeedsStableMargin.fromNow
 
   override def preStart(): Unit =
     self ! Internal.ProbeNow()
@@ -94,8 +94,17 @@ class HttpContactPointBootstrap(
           scheduleNextContactPointProbing()
         }
       } else {
-        performParentJoining(response)
-        context.stop(self)
+        notifyParentNoSeedNodesWereFoundWithinDeadline(response)
+        // we notified the parent that it may join itself if it is the designated node,
+        // since we did not observe any existing cluster. However, in case this node
+        // can't join itself (it's not the lowest address), some other node will --
+        // so we continue probing.
+        //
+        // Summing up, one of the following will happen:
+        // A) this node is allowed to join itself, and does so, and stops this probing actor -- our job is done.
+        // B) some other node triggers the same process and joins itself
+        //    - in which case we'll notice seed-nodes in our probing sooner or later!
+        scheduleNextContactPointProbing()
       }
   }
 
@@ -104,12 +113,12 @@ class HttpContactPointBootstrap(
 
   private def permitParentToFormClusterIfPossible(): Unit = {
     log.info("No seed-nodes obtained from {} within stable margin [{}], may want to initiate the cluster myself...",
-      baseUri, settings.stableMargin)
+      baseUri, settings.contactPointNoSeedsStableMargin)
 
-    context.parent ! HeadlessServiceDnsBootstrap.Protocol.NoSeedNodesObtainedWithinDeadline()
+    context.parent ! HeadlessServiceDnsBootstrap.Protocol.NoSeedNodesObtainedWithinDeadline(baseUri)
   }
 
-  private def performParentJoining(members: SeedNodes): Unit = {
+  private def notifyParentNoSeedNodesWereFoundWithinDeadline(members: SeedNodes): Unit = {
     log.info("Found existing cluster, {} returned seed-nodes: {}", members.selfNode, members.seedNodes)
 
     val seedAddresses = members.seedNodes.map(_.node)

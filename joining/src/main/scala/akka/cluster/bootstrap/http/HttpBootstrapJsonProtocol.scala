@@ -27,7 +27,6 @@ object HttpBootstrapJsonProtocol extends DefaultJsonProtocol {
 
   final case class SeedNode(address: Address)
 
-  // TODO this very similar to cluster-http
   // we use Address since we want to know which protocol is being used (tcp, artery, artery-tcp etc)
   final case class ClusterMember(node: Address, nodeUid: Long, status: String, roles: Set[String])
 

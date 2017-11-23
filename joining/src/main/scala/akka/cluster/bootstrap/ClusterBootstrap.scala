@@ -43,7 +43,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
       // TODO load the right one depending on config / env?
       // TODO should get it's own config then too
       val bootstrapManager =
-        system.systemActorOf(HeadlessServiceDnsBootstrap.props(settings), "clusterBootstrapManager")
+        system.systemActorOf(HeadlessServiceDnsBootstrap.props(settings), "headlessServiceDnsBootstrap")
       val reply = (bootstrapManager ? HeadlessServiceDnsBootstrap.Protocol.InitiateBootstraping).mapTo[
           HeadlessServiceDnsBootstrap.Protocol.BootstrapingCompleted]
 
@@ -51,7 +51,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
       val clusterBootstrapRoutes = new ClusterBootstrapRoutes(settings)
       // FIXME bind to specific port?
       http.bindAndHandle(RouteResult.route2HandlerFlow(clusterBootstrapRoutes.routes), "0.0.0.0",
-        settings.contactPointPort)
+        settings.httpContactPointPort)
 
       initCompleted.completeWith(reply.map(_ ⇒ Done)) // FIXME
 
@@ -75,7 +75,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 object ClusterBootstrap extends ExtensionId[ClusterBootstrap] with ExtensionIdProvider {
   override def lookup: ClusterBootstrap.type = ClusterBootstrap
 
-  override def get(system: ActorSystem) = super.get(system)
+  override def get(system: ActorSystem): ClusterBootstrap = super.get(system)
 
   override def createExtension(system: ExtendedActorSystem): ClusterBootstrap = new ClusterBootstrap()(system)
 

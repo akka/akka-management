@@ -14,7 +14,8 @@ import com.typesafe.config.ConfigFactory
 object DemoApp extends App {
 
   implicit val system = ActorSystem("DemoApp", ConfigFactory.parseString("""
-       akka.actor.provider = "cluster"
+       akka.loglevel = INFO
+       akka.actor.provider = cluster
     """).withFallback(ConfigFactory.load()))
 
   import system.log
@@ -23,10 +24,6 @@ object DemoApp extends App {
   implicit val cluster = Cluster(system)
 
   log.info(s"Started [$system], cluster.selfAddress = ${cluster.selfAddress}")
-
-  log.info(s"provider = ${Dns(system).provider}")
-  log.info(s"provider actor class = ${Dns(system).provider.actorClass}")
-  log.info(s"provider manager class = ${Dns(system).provider.managerClass}")
 
   ClusterBootstrap(system).start()
 
