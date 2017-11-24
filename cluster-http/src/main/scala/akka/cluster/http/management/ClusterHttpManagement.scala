@@ -7,6 +7,8 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.Done
 import akka.actor.AddressFromURIString
+import akka.cluster.bootstrap.ClusterBootstrapSettings
+import akka.cluster.bootstrap.contactpoint.ClusterBootstrapRoutes
 import akka.cluster.sharding.{ ClusterSharding, ShardRegion }
 import akka.cluster.{ Cluster, Member, MemberStatus }
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
@@ -17,6 +19,7 @@ import akka.http.scaladsl.{ ConnectionContext, Http }
 import akka.pattern.{ ask, AskTimeoutException }
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
+import com.typesafe.config.ConfigFactory
 import spray.json.DefaultJsonProtocol
 
 import scala.concurrent.duration._
@@ -173,7 +176,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
    * the specified path `pathPrefixName`.
    */
   def apply(cluster: Cluster, pathPrefixName: String): Route = {
-      val basePath = if (pathPrefixName.isEmpty) rawPathPrefix(pathPrefixName) else pathPrefix(pathPrefixName)
+    val basePath = if (pathPrefixName.isEmpty) rawPathPrefix(pathPrefixName) else pathPrefix(pathPrefixName)
 
     basePath {
       pathPrefix("members") {
@@ -384,21 +387,41 @@ class ClusterHttpManagement(
         case (None, None) ⇒ ClusterHttpManagementRoutes(cluster)
       }
 
-      val routes = RouteResult.route2HandlerFlow(clusterHttpManagementRoutes)
+      // TODO instead of binding to hardcoded things here, discovery can also be used for this binding!
+      val hostname = settings.ClusterHttpManagementHostname
+      val port = settings.ClusterHttpManagementPort
+      // Basically: "give me the SRV host/port for the port called `akka-bootstrap`"
+      // discovery.lookup("_akka-bootstrap" + ".effective-name.default").find(myaddress)
+      // ----
+
+      // FIXME -- think about the style of how we want to make these available
+      // I was rather thinking that management extensions should be able to be registered somehow
+      // and then be included in here
+      val bootstrapSettings = ClusterBootstrapSettings(
+          ConfigFactory
+            .parseString("akka.cluster.bootstrap.contact-point.port-fallback = ")
+            .withFallback(system.settings.config))
+      val bootstrapContactPointRoutes = new ClusterBootstrapRoutes(bootstrapSettings)
+      // FIXME -- end of fixme section
+
+      val routes = RouteResult.route2HandlerFlow(
+        clusterHttpManagementRoutes ~
+        bootstrapContactPointRoutes.routes // FIXME provide a nicer way to extend akka-management routes
+      )
 
       val serverFutureBinding = https match {
         case Some(context) ⇒
           Http().bindAndHandle(
             routes,
-            settings.ClusterHttpManagementHostname,
-            settings.ClusterHttpManagementPort,
+            hostname,
+            port,
             connectionContext = context
           )
         case None ⇒
           Http().bindAndHandle(
             routes,
-            settings.ClusterHttpManagementHostname,
-            settings.ClusterHttpManagementPort
+            hostname,
+            port
           )
       }
 

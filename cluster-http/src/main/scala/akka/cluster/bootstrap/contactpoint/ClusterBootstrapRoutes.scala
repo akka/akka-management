@@ -28,7 +28,7 @@ final class ClusterBootstrapRoutes(settings: ClusterBootstrapSettings) extends H
       val state = cluster.state
 
       // TODO shuffle the members so in a big deployment nodes start joining different ones and not all the same?
-      val members = state.members.take(settings.contactPointNoSeedsStableMargin).map(memberToClusterMember)
+      val members = state.members.take(settings.contactPoint).map(memberToClusterMember)
 
       // TODO add a method to find oldest to cluster state?
       val oldest = state.members.toSeq
