@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
  */
-package akka.cluster.bootstrap.http
+package akka.cluster.bootstrap.contactpoint
 
 import akka.actor.{ ActorSystem, Address }
 import akka.cluster.{ Cluster, Member, MemberStatus }
 import akka.cluster.bootstrap.ClusterBootstrapSettings
-import akka.cluster.bootstrap.http.HttpBootstrapJsonProtocol.{ ClusterMember, SeedNodes }
+import akka.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol.{ ClusterMember, SeedNodes }
 import akka.event.{ Logging, LoggingAdapter }
 import akka.http.scaladsl.model.{ HttpRequest, Uri }
 import akka.http.scaladsl.server.Route
@@ -28,7 +28,7 @@ final class ClusterBootstrapRoutes(settings: ClusterBootstrapSettings) extends H
       val state = cluster.state
 
       // TODO shuffle the members so in a big deployment nodes start joining different ones and not all the same?
-      val members = state.members.take(settings.httpMaxSeedNodesToExpose).map(memberToClusterMember)
+      val members = state.members.take(settings.contactPointNoSeedsStableMargin).map(memberToClusterMember)
 
       // TODO add a method to find oldest to cluster state?
       val oldest = state.members.toSeq

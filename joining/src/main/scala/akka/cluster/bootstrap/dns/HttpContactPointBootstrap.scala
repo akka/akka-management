@@ -7,8 +7,8 @@ import akka.actor.{ Actor, ActorLogging, ActorRef, Props, Timers }
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.cluster.bootstrap.ClusterBootstrapSettings
-import akka.cluster.bootstrap.http.HttpBootstrapJsonProtocol.SeedNodes
-import akka.cluster.bootstrap.http.{ ClusterBootstrapRequests, HttpBootstrapJsonProtocol }
+import akka.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol.SeedNodes
+import akka.cluster.bootstrap.contactpoint.{ ClusterBootstrapRequests, HttpBootstrapJsonProtocol }
 import akka.compat.Future
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal

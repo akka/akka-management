@@ -7,12 +7,14 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.Done
 import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
+import akka.cluster.Cluster
 import akka.cluster.bootstrap.dns.HeadlessServiceDnsBootstrap
-import akka.cluster.bootstrap.http.ClusterBootstrapRoutes
+import akka.cluster.bootstrap.contactpoint.ClusterBootstrapRoutes
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
 import akka.pattern.ask
+import akka.discovery.ServiceDiscovery
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 
@@ -32,10 +34,16 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
   val settings = ClusterBootstrapSettings(system.settings.config)
 
+  // used for initial discovery of contact points
+  val discovery: ServiceDiscovery = {
+    val clazz = settings.contactPointDiscovery.discoveryClass
+    system.dynamicAccess.createInstanceFor[ServiceDiscovery](clazz, List(classOf[ActorSystem] → system)).get
+  }
+
   def start(): Future[Done] = {
     val p = Promise[Done]()
     if (bootstrapStep.compareAndSet(NotRunning, Initializing(p.future))) {
-      log.info("Initiating bootstrap procedure using {} method...", settings.bootstrapMethod)
+      log.info("Initiating bootstrap procedure using {} method...", settings.contactPointDiscovery.discoveryMethod)
       implicit val initTimeout: Timeout = Timeout(1.day) // configure? or what should it do really? try until forever meh?
 
       val initCompleted = Promise[Done]()
@@ -49,9 +57,17 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
       // FIXME should be the same server as akka-management
       val clusterBootstrapRoutes = new ClusterBootstrapRoutes(settings)
-      // FIXME bind to specific port?
-      http.bindAndHandle(RouteResult.route2HandlerFlow(clusterBootstrapRoutes.routes), "0.0.0.0",
-        settings.httpContactPointPort)
+
+      val bindHost = Cluster(system).selfAddress.host.getOrElse(
+          _ ⇒ throw new IllegalStateException("Node has no selfAddress.host!"))
+
+      // TODO this is how we can discover the port we should be binding to
+      discovery.lookup("_akka-bootstrap" + ".effective-name.default")
+      // ----
+
+      http.bindAndHandle(clusterBootstrapRoutes.routes, bindHost.toString,
+        // FIXME we may want to DISCOVER our own port for this actually! it'd be set in the yml file, and told to us via DNS
+        settings.contactPoint.portFallback)
 
       initCompleted.completeWith(reply.map(_ ⇒ Done)) // FIXME
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
  */
-package akka.cluster.bootstrap.http
+package akka.cluster.bootstrap.contactpoint
 
 import akka.actor.{ Address, AddressFromURIString }
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport

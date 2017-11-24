@@ -3,19 +3,19 @@
  */
 package akka.cluster.bootstrap.dns
 
-import java.util.Date
+import java.util.{Date, Locale}
 
 import akka.actor.Status.Failure
-import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Address, DeadLetterSuppression, Props, Timers }
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Address, DeadLetterSuppression, Props, Timers}
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.CurrentClusterState
 import akka.cluster.bootstrap.ClusterBootstrapSettings
-import akka.cluster.bootstrap.dns.HeadlessServiceDnsBootstrap.Protocol.Internal.DnsResolvedTo
 import akka.http.scaladsl.model.Uri
 import akka.io.AsyncDnsResolver.SrvResolved
-import akka.io.{ Dns, IO }
-import akka.pattern.{ ask, pipe }
+import akka.io.{Dns, IO}
+import akka.pattern.{ask, pipe}
+import akka.discovery.ServiceDiscovery
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -39,10 +39,8 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
     final case class NoSeedNodesObtainedWithinDeadline(contactPoint: Uri) extends DeadLetterSuppression
 
     object Internal {
-      final case class AttemptResolve(serviceName: String, resolveTimeout: FiniteDuration)
-          extends DeadLetterSuppression
-      final case class DnsResolvedTo(serviceName: String, addresses: immutable.Seq[String])
-          extends DeadLetterSuppression
+      final case class AttemptResolve(serviceName: String)
+        extends DeadLetterSuppression
     }
   }
 
@@ -67,7 +65,7 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
     def lowestAddressContactPoint: Option[String] = observedContactPoints.sorted.headOption
 
     def willBeStableAt(settings: ClusterBootstrapSettings): Long =
-      observedAt + settings.dnsStableMargin.toMillis
+      observedAt + settings.contactPointDiscovery.stableMargin.toMillis
 
     def isPastStableMargin(settings: ClusterBootstrapSettings, timeNow: Long): Boolean =
       willBeStableAt(settings) < timeNow
@@ -114,16 +112,13 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
  */
 // also known as the "Baron von Bootstrappen"
 @InternalApi
-final class HeadlessServiceDnsBootstrap(settings: ClusterBootstrapSettings)
-    extends Actor
-    with ActorLogging
-    with Timers {
+final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: ClusterBootstrapSettings)
+    extends Actor with ActorLogging with Timers {
 
   import HeadlessServiceDnsBootstrap.Protocol._
   import HeadlessServiceDnsBootstrap._
   import context.dispatcher
 
-  private val dns = IO(Dns)(context.system)
   private val cluster = Cluster(context.system)
 
   private val TimerKeyResolveDNS = "resolve-dns-key"
@@ -137,7 +132,7 @@ final class HeadlessServiceDnsBootstrap(settings: ClusterBootstrapSettings)
       val serviceName = settings.effectiveServiceName(context.system)
 
       log.info("Locating service members, via DNS lookup: {}", serviceName)
-      resolve(serviceName, settings.dnsResolveTimeout).pipeTo(self)
+      discovery.resolve(serviceName, settings.dnsResolveTimeout).pipeTo(self)
 
       context become bootstraping(serviceName, sender())
   }
@@ -147,7 +142,7 @@ final class HeadlessServiceDnsBootstrap(settings: ClusterBootstrapSettings)
     case Internal.AttemptResolve(name, timeout) ⇒
       resolve(name, timeout).pipeTo(self)
 
-    case DnsResolvedTo(name, contactPoints) ⇒
+    case ServiceDiscovery.Resolved(name, contactPoints) ⇒
       onContactPointsResolved(name, contactPoints)
 
     case ex: Failure ⇒
@@ -187,10 +182,10 @@ final class HeadlessServiceDnsBootstrap(settings: ClusterBootstrapSettings)
 
   private def onInsufficientContactPointsDiscovered(serviceName: String,
                                                     observation: DnsServiceContactsObservation): Unit = {
-    log.info("Discovered ({}) observation, which is less than the required ({}), retrying (interval: {})",
-      observation.observedContactPoints.size, settings.requiredContactPointsNr, settings.dnsResolveTimeout)
+    log.info("Discovered [{}] observation, which is less than the required [{}], retrying (interval: {})",
+      observation.observedContactPoints.size, settings.requiredContactPointsNr, settings.contactPointDiscovery.stableMargin)
 
-    scheduleNextResolve(serviceName, settings.dnsResolveTimeout)
+    scheduleNextResolve(serviceName, settings.contactPointDiscovery.)
   }
 
   private def onSufficientContactPointsDiscovered(serviceName: String,
@@ -200,7 +195,7 @@ final class HeadlessServiceDnsBootstrap(settings: ClusterBootstrapSettings)
 
     observation.observedContactPoints.foreach { contactPoint ⇒
       // TODO would be nice if we can discover this via DNS as well? and leave option to override here
-      val targetPort = settings.httpContactPointPort
+      val targetPort = settings.httpContactPointFallbackPort
       val baseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint), targetPort))
       ensureProbing(baseUri)
     }
@@ -250,26 +245,24 @@ final class HeadlessServiceDnsBootstrap(settings: ClusterBootstrapSettings)
   }
 
   private def scheduleNextResolve(serviceName: String, resolveTimeout: FiniteDuration): Unit =
-    timers.startSingleTimer(TimerKeyResolveDNS, Internal.AttemptResolve(serviceName, resolveTimeout),
+    timers.startSingleTimer(TimerKeyResolveDNS, Internal.AttemptResolve(serviceName),
       settings.dnsResolveInterval)
 
-  private def resolve(name: String, resolveTimeout: FiniteDuration): Future[DnsResolvedTo] = {
-    def cleanIpString(ipString: String) =
-      ipString.replaceAll("/", "")
-
-    dns.ask(Dns.Resolve(name))(resolveTimeout) map {
-      case srv: SrvResolved =>
-        log.debug("Resolved Srv.Resolved: " + srv)
-        DnsResolvedTo(name, srv.srv.map(_.target).map(cleanIpString))
-
-      case resolved: Dns.Resolved =>
-        log.debug("Resolved Dns.Resolved: " + resolved)
-        DnsResolvedTo(name, resolved.ipv4.map(_.getHostAddress).map(cleanIpString))
-
-      case resolved ⇒
-        log.warning("Resolved UNEXPECTED: " + resolved)
-        DnsResolvedTo(name, Nil)
+  /**
+   * Effective name is combination of service name and other namespaces,
+   * e.g. `appka-service.my-namespace.svc.cluster.local`.
+   */
+  def effectiveServiceName(system: ActorSystem): String = {
+    val service = settings.contactPointDiscovery.serviceName match {
+      case Some(name) ⇒ name
+      case _ ⇒ system.name.toLowerCase(Locale.ROOT).replaceAll(" ", "-").replace("_", "-")
     }
+    val ns = namespaceName match {
+      case Some(name) ⇒ s".$name"
+      case _ ⇒ ""
+    }
+
+    s"$service$ns$dnsSuffix"
   }
 
   protected def timeNow(): Long =
