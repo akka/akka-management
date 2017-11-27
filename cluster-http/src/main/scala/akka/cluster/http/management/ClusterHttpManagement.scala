@@ -397,10 +397,15 @@ class ClusterHttpManagement(
       // FIXME -- think about the style of how we want to make these available
       // I was rather thinking that management extensions should be able to be registered somehow
       // and then be included in here
-      val bootstrapSettings = ClusterBootstrapSettings(
-          ConfigFactory
-            .parseString("akka.cluster.bootstrap.contact-point.port-fallback = ")
-            .withFallback(system.settings.config))
+      val bootstrapConfig = ConfigFactory.parseString(s"""
+        # we currently bind to the same port as akka-management and rely this information this way
+        akka.cluster.bootstrap.contact-point.port-fallback = $port
+
+        # enable resolving srv records -- this is an external lib setting, see: https://github.com/ilya-epifanov/akka-dns
+        akka.io.dns.async-dns.resolve-srv = true
+        """).withFallback(system.settings.config)
+
+      val bootstrapSettings = ClusterBootstrapSettings(bootstrapConfig)
       val bootstrapContactPointRoutes = new HttpClusterBootstrapRoutes(bootstrapSettings)
       // FIXME -- end of fixme section
 

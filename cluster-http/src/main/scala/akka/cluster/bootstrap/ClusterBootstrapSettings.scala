@@ -22,24 +22,28 @@ final class ClusterBootstrapSettings(config: Config) {
     private val discoveryConfig: Config = bootConfig.getConfig("contact-point-discovery")
 
     val serviceName: Option[String] =
-      if (bootConfig.hasPath("service-name")) Some(bootConfig.getString("service-name")) else None
+      if (discoveryConfig.hasPath("service-name")) Some(discoveryConfig.getString("service-name")) else None
 
     val serviceNamespace: Option[String] =
-      if (bootConfig.hasPath("service-namespace")) Some(bootConfig.getString("service-namespace")) else None
+      if (discoveryConfig.hasPath("service-namespace")) Some(discoveryConfig.getString("service-namespace")) else None
 
     def effectiveName(system: ActorSystem): String = {
       val service = serviceName match {
         case Some(name) ⇒ name
         case _ ⇒ system.name.toLowerCase(Locale.ROOT).replaceAll(" ", "-").replace("_", "-")
       }
-      if (bootConfig.hasPath("effective-name")) bootConfig.getString("effective-name")
-      else service + "." + serviceNamespace + ".svc.cluster.local"
+      val namespace = serviceNamespace match {
+        case Some(ns) ⇒ s".$ns"
+        case _ ⇒ ""
+      }
+      if (discoveryConfig.hasPath("effective-name")) discoveryConfig.getString("effective-name")
+      else service + namespace
     }
 
     val discoveryMethod: String = discoveryConfig.getString("discovery-method")
 
     private val effectiveDiscoveryConfig: Config = discoveryConfig.withFallback(config.getConfig(discoveryMethod))
-    val discoveryClass: String = discoveryConfig.getString("discovery-method")
+    val discoveryClass: String = effectiveDiscoveryConfig.getString("class")
 
     val stableMargin: FiniteDuration =
       effectiveDiscoveryConfig.getDuration("stable-margin", TimeUnit.MILLISECONDS).millis

@@ -15,6 +15,7 @@ import akka.http.scaladsl.model.Uri
 import akka.pattern.{ ask, pipe }
 import akka.discovery.ServiceDiscovery
 import akka.discovery.ServiceDiscovery.ResolvedTarget
+import akka.util.PrettyDuration
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -186,7 +187,7 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
                                                     observation: DnsServiceContactsObservation): Unit = {
     log.info("Discovered [{}] observation, which is less than the required [{}], retrying (interval: {})",
       observation.observedContactPoints.size, settings.contactPointDiscovery.requiredContactPointsNr,
-      settings.contactPointDiscovery.interval)
+      PrettyDuration.format(settings.contactPointDiscovery.interval))
 
     scheduleNextResolve(serviceName, settings.contactPointDiscovery.interval)
   }
@@ -195,8 +196,6 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
                                                   observation: DnsServiceContactsObservation): Unit = {
     log.info("Initiating contact-point probing, sufficient contact points: {}",
       observation.observedContactPoints.mkString(", "))
-
-    // TODO
 
     observation.observedContactPoints.foreach { contactPoint ⇒
       val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
