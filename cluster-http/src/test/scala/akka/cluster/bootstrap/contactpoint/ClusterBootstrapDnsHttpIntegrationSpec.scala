@@ -16,6 +16,7 @@ import org.scalatest.{ Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
 
+/* FIXME test not ready yet
 class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers {
 
   "Cluster Bootstrap" should {
@@ -109,3 +110,4 @@ class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers 
   }
 
 }
+ */

@@ -11,6 +11,8 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.TestProbe
 import org.scalatest.{ Matchers, WordSpecLike }
 
+/* FIXME test not ready yet
+
 class HttpContactPointRoutesSpec
     extends WordSpecLike
     with Matchers
@@ -46,3 +48,4 @@ class HttpContactPointRoutesSpec
   }
 
 }
+ */
