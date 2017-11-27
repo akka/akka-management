@@ -21,15 +21,21 @@ class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers 
 
   "Cluster Bootstrap" should {
 
-    def config(): Config =
+    def config(id: String): Config = {
+      val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+      val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+
+      info(s"System [$id]: management port: $managementPort")
+      info(s"System [$id]:   remoting port: $remotingPort")
+
       ConfigFactory.parseString(s"""
         akka {
           loglevel = INFO
 
           cluster.jmx.multi-mbeans-in-same-jvm = on
 
-          cluster.http.management.port = ${SocketUtil.temporaryServerAddress("127.0.0.1").getPort}
-          remote.netty.tcp.port = ${SocketUtil.temporaryServerAddress("127.0.0.1").getPort}
+          cluster.http.management.port = ${managementPort}
+          remote.netty.tcp.port = ${remotingPort}
 
           cluster.bootstrap {
             contact-point-discovery {
@@ -44,10 +50,11 @@ class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers 
           }
         }
         """.stripMargin).withFallback(ConfigFactory.load())
+    }
 
-    val systemA = ActorSystem("System", config())
-    val systemB = ActorSystem("System", config())
-    val systemC = ActorSystem("System", config())
+    val systemA = ActorSystem("System", config("A"))
+    val systemB = ActorSystem("System", config("B"))
+    val systemC = ActorSystem("System", config("C"))
 
     val clusterA = Cluster(systemA)
     val clusterB = Cluster(systemB)

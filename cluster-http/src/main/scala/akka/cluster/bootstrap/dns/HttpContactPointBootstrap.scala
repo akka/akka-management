@@ -43,7 +43,8 @@ private[dns] object HttpContactPointBootstrap {
  * cluster we're able to inquire about their status, double-check if perhaps they are part of an existing cluster already
  * that we should join, or even coordinate rolling upgrades or more advanced patterns.
  */
-class HttpContactPointBootstrap(
+@InternalApi
+private[dns] class HttpContactPointBootstrap(
     settings: ClusterBootstrapSettings,
     notifyActor: ActorRef,
     baseUri: Uri
@@ -56,6 +57,14 @@ class HttpContactPointBootstrap(
   import HttpContactPointBootstrap.Protocol._
 
   private val cluster = Cluster(context.system)
+
+  if (baseUri.authority.host.address() == cluster.selfAddress.host.getOrElse("---") &&
+      baseUri.authority.port == cluster.selfAddress.port.getOrElse(-1)) {
+    throw new IllegalArgumentException(
+        "Requested base Uri to be probed matches local remoting address, bailing out! " +
+        s"Uri: $baseUri, this node's remoting address: ${cluster.selfAddress}")
+  }
+
   private implicit val mat = ActorMaterializer()
   private val http = Http()(context.system)
   import context.dispatcher

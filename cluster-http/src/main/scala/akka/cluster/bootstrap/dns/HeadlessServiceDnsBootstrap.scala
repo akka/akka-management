@@ -237,16 +237,30 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
     }
   }
 
-  private def ensureProbing(baseUri: Uri): ActorRef = {
+  private def ensureProbing(baseUri: Uri): Option[ActorRef] = {
     val childActorName = s"contactPointProbe-${baseUri.authority.host}-${baseUri.authority.port}"
     log.info("Ensuring probing actor: " + childActorName)
-    context.child(childActorName) match {
-      case Some(contactPointProbingChild) ⇒
-        contactPointProbingChild
-      case None ⇒
-        val props = HttpContactPointBootstrap.props(settings, self, baseUri)
-        context.actorOf(props, childActorName)
-    }
+
+    // This should never really happen in well configured env, but it may happen that someone is confused with ports
+    // and we end up trying to probe (using http for example) a port that actually is our own remoting port.
+    // We actively bail out of this case and log a warning instead.
+    val wasAboutToProbeSelfAddress =
+      baseUri.authority.host.address() == cluster.selfAddress.host.getOrElse("---") &&
+      baseUri.authority.port == cluster.selfAddress.port.getOrElse(-1)
+
+    if (wasAboutToProbeSelfAddress) {
+      log.warning("Misconfiguration detected! Attempted to start probing a contact-point which address [{}] " +
+        "matches our local remoting address [{}]. Avoiding probing this address. Consider double checking your service " +
+        "discovery and port configurations.", baseUri, cluster.selfAddress)
+      None
+    } else
+      context.child(childActorName) match {
+        case Some(contactPointProbingChild) ⇒
+          Some(contactPointProbingChild)
+        case None ⇒
+          val props = HttpContactPointBootstrap.props(settings, self, baseUri)
+          Some(context.actorOf(props, childActorName))
+      }
   }
 
   private def scheduleNextResolve(serviceName: String, interval: FiniteDuration): Unit =

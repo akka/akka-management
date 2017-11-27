@@ -29,21 +29,21 @@ class DnsSrvServiceDiscovery(system: ActorSystem, effectiveConfig: Config) exten
 
     dns.ask(Dns.Resolve(name))(resolveTimeout) map {
       case srv: SrvResolved =>
-        log.debug("Resolved Srv.Resolved: " + srv)
+        log.debug("Resolved Srv.Resolved: {}", srv)
         val addresses = srv.srv.map { entry ⇒
           ServiceDiscovery.ResolvedTarget(cleanIpString(entry.target), Some(entry.port))
         }
         ServiceDiscovery.Resolved(name, addresses)
 
       case resolved: Dns.Resolved =>
-        log.debug("Resolved Dns.Resolved: " + resolved)
+        log.debug("Resolved Dns.Resolved: {}", resolved)
         val addresses = resolved.ipv4.map { entry ⇒
           ServiceDiscovery.ResolvedTarget(cleanIpString(entry.getHostAddress), None)
         }
         ServiceDiscovery.Resolved(name, addresses)
 
       case resolved ⇒
-        log.warning("Resolved UNEXPECTED (resolving to Nil): " + resolved)
+        log.warning("Resolved UNEXPECTED (resolving to Nil): {}", resolved.getClass)
         ServiceDiscovery.Resolved(name, Nil)
     }
   }
