@@ -8,7 +8,6 @@ import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ ClusterDomainEvent, CurrentClusterState, MemberUp }
 import akka.cluster.bootstrap.{ ClusterBootstrap, ClusterBootstrapSettings }
 import akka.cluster.http.management.ClusterHttpManagement
-import akka.cluster.sharding.ShardCoordinator.Internal.DomainEvent
 import akka.discovery.MockDiscovery
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
@@ -21,12 +20,18 @@ class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers 
 
   "Cluster Bootstrap" should {
 
+    var remotingPorts = Map.empty[String, Int]
+    var contactPointPorts = Map.empty[String, Int]
+
     def config(id: String): Config = {
       val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
       val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
 
       info(s"System [$id]: management port: $managementPort")
       info(s"System [$id]:   remoting port: $remotingPort")
+
+      contactPointPorts = contactPointPorts.updated(id, managementPort)
+      remotingPorts = remotingPorts.updated(id, remotingPort)
 
       ConfigFactory.parseString(s"""
         akka {
@@ -45,7 +50,7 @@ class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers 
             }
 
             contact-point {
-              no-seeds-stable-margin = 3 seconds
+              no-seeds-stable-margin = 4 seconds
             }
           }
         }
@@ -64,17 +69,14 @@ class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers 
     val bootstrapB = ClusterBootstrap(systemB)
     val bootstrapC = ClusterBootstrap(systemC)
 
-    val settings = ClusterBootstrapSettings(systemA.settings.config)
-    val httpBootstrap = new HttpClusterBootstrapRoutes(settings)
-
     // prepare the "mock DNS"
     val name = "system.svc.cluster.local"
     MockDiscovery.set(name,
       Resolved(name,
         List(
-          ResolvedTarget(clusterA.selfAddress.host.get, clusterA.selfAddress.port),
-          ResolvedTarget(clusterB.selfAddress.host.get, clusterB.selfAddress.port),
-          ResolvedTarget(clusterC.selfAddress.host.get, clusterC.selfAddress.port)
+          ResolvedTarget(clusterA.selfAddress.host.get, contactPointPorts.get("A")),
+          ResolvedTarget(clusterB.selfAddress.host.get, contactPointPorts.get("B")),
+          ResolvedTarget(clusterC.selfAddress.host.get, contactPointPorts.get("C"))
         )))
 
     "start listening with the http contact-points on 3 systems" in {
@@ -94,7 +96,7 @@ class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers 
       clusterA.subscribe(pA.ref, classOf[ClusterDomainEvent])
 
       pA.expectMsgType[CurrentClusterState]
-      val up1 = pA.expectMsgType[MemberUp](20.seconds)
+      val up1 = pA.expectMsgType[MemberUp](30.seconds)
       info("" + up1)
     }
 

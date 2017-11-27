@@ -154,7 +154,7 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
 
     case ObtainedHttpSeedNodesObservation(infoFromAddress, observedSeedNodes) ⇒
       log.info("Contact point [{}] returned [{}] seed-nodes [{}], initiating cluster joining...", infoFromAddress,
-        observedSeedNodes.size, observedSeedNodes)
+        observedSeedNodes.size, observedSeedNodes.mkString(", "))
 
       replyTo ! BootstrapingCompleted
 
@@ -167,8 +167,7 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
     case NoSeedNodesObtainedWithinDeadline(contactPoint) ⇒
       log.info(
           "Contact point [{}] exceeded stable margin with no seed-nodes in sight. " +
-          "Considering weather this node is allowed to JOIN itself to initiate a new cluster.",
-          contactPoint) // TODO debug
+          "Considering weather this node is allowed to JOIN itself to initiate a new cluster.", contactPoint)
 
       onNoSeedNodesObtainedWithinStableDeadline(contactPoint)
   }
@@ -218,10 +217,11 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
 
           context.stop(self) // the bootstraping is complete
         case None ⇒
-          log.debug(
+          log.info(
               "Exceeded stable margins without locating seed-nodes, however this node is NOT the lowest address out " +
-              "of the discovered IPs in this deployment, thus NOT joining self. Expecting node ({}) to perform the self-join " +
-              "and initiate the cluster.", lastContactsObservation.lowestAddressContactPoint)
+              "of the discovered IPs in this deployment, thus NOT joining self. Expecting node {} (out of {}) to perform the self-join " +
+              "and initiate the cluster.", lastContactsObservation.lowestAddressContactPoint,
+              lastContactsObservation.observedContactPoints)
 
         // nothing to do anymore, the probing will continue until the lowest addressed node decides to join itself.
         // note, that due to DNS changes this may still become this node! We'll then await until the dns stableMargin

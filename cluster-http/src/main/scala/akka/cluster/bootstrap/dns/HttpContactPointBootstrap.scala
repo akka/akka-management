@@ -18,6 +18,7 @@ import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, Uri }
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.pattern.pipe
 import akka.stream.ActorMaterializer
+import akka.util.PrettyDuration
 
 import scala.concurrent.duration._
 
@@ -141,9 +142,9 @@ private[dns] class HttpContactPointBootstrap(
 
   /** Duration with configured jitter applied */
   private def effectiveProbeInterval(): FiniteDuration =
-    probeInterval + (probeInterval.toMillis * jitter(probeInterval).toMillis).toInt.millis
+    probeInterval + jitter(probeInterval)
 
   def jitter(d: FiniteDuration): FiniteDuration =
-    (settings.contactPoint.probeInterval.toMillis * ThreadLocalRandom.current().nextDouble() * d.toMillis).millis
+    (d.toMillis * settings.contactPoint.probeIntervalJitter * ThreadLocalRandom.current().nextDouble()).millis
 
 }
