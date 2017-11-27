@@ -12,7 +12,8 @@ lazy val `cluster-http` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-cluster-http",
-    Dependencies.ClusterHttp
+    Dependencies.ClusterHttp,
+    resolvers += Resolver.bintrayRepo("hajile", "maven")
   )
 
 lazy val `joining-demo` = project
