@@ -3,6 +3,8 @@
  */
 package akka.cluster.bootstrap.dns
 
+import java.util.concurrent.ThreadLocalRandom
+
 import akka.actor.{ Actor, ActorLogging, ActorRef, Props, Timers }
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
@@ -60,21 +62,20 @@ class HttpContactPointBootstrap(
 
   private val ProbingTimerKey = "probing-key"
 
-  private val probeInterval = settings.httpProbeInterval
-  private val probeJitter = settings.httpProbeIntervalJitter
+  private val probeInterval = settings.contactPoint.probeInterval
 
   /**
    * If we don't observe any seed-nodes until the deadline triggers, we notify the parent about it,
    * such that it may make the decision to join this node to itself or not (initiating a new cluster).
    */
-  private val existingClusterNotObservedWithinDeadline: Deadline = settings.contactPointNoSeedsStableMargin.fromNow
+  private val existingClusterNotObservedWithinDeadline: Deadline = settings.contactPoint.noSeedsStableMargin.fromNow
 
   override def preStart(): Unit =
     self ! Internal.ProbeNow()
 
   override def receive = {
     case Internal.ProbeNow() ⇒
-      val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri, cluster.selfAddress)
+      val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
       log.info("Probing {} for seed nodes...", req.uri)
 
       http.singleRequest(req).flatMap(res ⇒ Unmarshal(res).to[SeedNodes]).pipeTo(self)
@@ -113,7 +114,7 @@ class HttpContactPointBootstrap(
 
   private def permitParentToFormClusterIfPossible(): Unit = {
     log.info("No seed-nodes obtained from {} within stable margin [{}], may want to initiate the cluster myself...",
-      baseUri, settings.contactPointNoSeedsStableMargin)
+      baseUri, settings.contactPoint.noSeedsStableMargin)
 
     context.parent ! HeadlessServiceDnsBootstrap.Protocol.NoSeedNodesObtainedWithinDeadline(baseUri)
   }
@@ -131,8 +132,9 @@ class HttpContactPointBootstrap(
 
   /** Duration with configured jitter applied */
   private def effectiveProbeInterval(): FiniteDuration =
-    probeInterval + (probeInterval.toMillis * probeJitter).toInt.millis
+    probeInterval + (probeInterval.toMillis * jitter(probeInterval).toMillis).toInt.millis
 
-  private def timeNow(): Long = System.currentTimeMillis()
+  def jitter(d: FiniteDuration): FiniteDuration =
+    (settings.contactPoint.probeInterval.toMillis * ThreadLocalRandom.current().nextDouble() * d.toMillis).millis
 
 }

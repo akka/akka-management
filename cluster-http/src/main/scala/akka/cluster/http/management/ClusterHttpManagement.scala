@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReference
 import akka.Done
 import akka.actor.AddressFromURIString
 import akka.cluster.bootstrap.ClusterBootstrapSettings
-import akka.cluster.bootstrap.contactpoint.ClusterBootstrapRoutes
+import akka.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
 import akka.cluster.sharding.{ ClusterSharding, ShardRegion }
 import akka.cluster.{ Cluster, Member, MemberStatus }
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
@@ -401,7 +401,7 @@ class ClusterHttpManagement(
           ConfigFactory
             .parseString("akka.cluster.bootstrap.contact-point.port-fallback = ")
             .withFallback(system.settings.config))
-      val bootstrapContactPointRoutes = new ClusterBootstrapRoutes(bootstrapSettings)
+      val bootstrapContactPointRoutes = new HttpClusterBootstrapRoutes(bootstrapSettings)
       // FIXME -- end of fixme section
 
       val routes = RouteResult.route2HandlerFlow(

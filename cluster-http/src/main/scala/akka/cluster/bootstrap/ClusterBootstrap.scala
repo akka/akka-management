@@ -5,21 +5,16 @@ package akka.cluster.bootstrap
 
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.Done
 import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
-import akka.cluster.Cluster
 import akka.cluster.bootstrap.dns.HeadlessServiceDnsBootstrap
-import akka.cluster.bootstrap.contactpoint.ClusterBootstrapRoutes
-import akka.event.Logging
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.RouteResult
-import akka.pattern.ask
 import akka.discovery.ServiceDiscovery
+import akka.event.Logging
+import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Future, Promise }
+import scala.util.{ Failure, Success }
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension {
   import ClusterBootstrap._
@@ -42,12 +37,19 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     if (bootstrapStep.compareAndSet(NotRunning, Initializing)) {
       log.info("Initiating bootstrap procedure using {} method...", settings.contactPointDiscovery.discoveryMethod)
 
-      val bootstrapProps = HeadlessServiceDnsBootstrap.props(settings)
-      // TODO load the right one depending on config / env?
-      // TODO should get it's own config then too
+      // TODO this could be configured as well, depending on how we want to bootstrap
+      val bootstrapProps = HeadlessServiceDnsBootstrap.props(discovery, settings)
       val bootstrap = system.systemActorOf(bootstrapProps, "headlessServiceDnsBootstrap")
-      (bootstrap ? HeadlessServiceDnsBootstrap.Protocol.InitiateBootstraping).mapTo[
+
+      // the boot timeout not really meant to be exceeded
+      implicit val bootTimeout: Timeout = Timeout(1.day)
+      val bootstrapCompleted = (bootstrap ? HeadlessServiceDnsBootstrap.Protocol.InitiateBootstraping).mapTo[
           HeadlessServiceDnsBootstrap.Protocol.BootstrapingCompleted]
+
+      bootstrapCompleted.onComplete {
+        case Success(_) ⇒ // ignore, all's fine
+        case Failure(_) ⇒ log.warning("Failed to complete bootstrap within {}!", bootTimeout)
+      }
 
     }
 

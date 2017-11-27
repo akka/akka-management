@@ -12,10 +12,9 @@ import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.CurrentClusterState
 import akka.cluster.bootstrap.ClusterBootstrapSettings
 import akka.http.scaladsl.model.Uri
-import akka.io.AsyncDnsResolver.SrvResolved
-import akka.io.{ Dns, IO }
 import akka.pattern.{ ask, pipe }
 import akka.discovery.ServiceDiscovery
+import akka.discovery.ServiceDiscovery.ResolvedTarget
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -30,7 +29,8 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
 
   object Protocol {
     final case object InitiateBootstraping
-    final case class BootstrapingCompleted(state: CurrentClusterState)
+    sealed trait BootstrapingCompleted
+    final case object BootstrapingCompleted extends BootstrapingCompleted
 
     final case class ObtainedHttpSeedNodesObservation(
         seedNodesSourceAddress: Address,
@@ -46,13 +46,12 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
 
   protected[dns] final case class DnsServiceContactsObservation(
       observedAt: Long,
-      observedContactPoints: List[String] // TODO order by address sorting?
+      observedContactPoints: List[ResolvedTarget]
   ) {
 
     /** Prepares member addresses for a self-join attempt */
     def selfAddressIfAbleToJoinItself(system: ActorSystem): Option[Address] = {
       val cluster = Cluster(system)
-      // TODO or should we sort the addresses "mathematically" rather than lexicographically?
       val selfHost = cluster.selfAddress.host
       if (lowestAddressContactPoint.contains(selfHost.get)) {
         // we are the "lowest address" and should join ourselves to initiate a new cluster
@@ -62,7 +61,8 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
     }
 
     /** Contact point with the "lowest" address, it is expected to join itself if no other cluster is found in the deployment. */
-    def lowestAddressContactPoint: Option[String] = observedContactPoints.sorted.headOption
+    def lowestAddressContactPoint: Option[ResolvedTarget] =
+      observedContactPoints.sortBy(e ⇒ e.host + ":" + e.port.getOrElse(0)).headOption
 
     def willBeStableAt(settings: ClusterBootstrapSettings): Long =
       observedAt + settings.contactPointDiscovery.stableMargin.toMillis
@@ -134,7 +134,7 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
       val serviceName = settings.contactPointDiscovery.effectiveName(context.system)
 
       log.info("Locating service members, via DNS lookup: {}", serviceName)
-      discovery.lookup(serviceName).pipeTo(self)
+      discovery.lookup(serviceName, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
 
       context become bootstraping(serviceName, sender())
   }
@@ -142,20 +142,20 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
   /** In process of searching for seed-nodes */
   def bootstraping(serviceName: String, replyTo: ActorRef): Receive = {
     case Internal.AttemptResolve(name) ⇒
-      discovery.lookup(name).pipeTo(self)
+      discovery.lookup(name, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
 
     case ServiceDiscovery.Resolved(name, contactPoints) ⇒
       onContactPointsResolved(name, contactPoints)
 
     case ex: Failure ⇒
       log.warning("Resolve attempt failed! Cause: {}", ex.cause)
-      scheduleNextResolve(serviceName)
+      scheduleNextResolve(serviceName, settings.contactPointDiscovery.interval)
 
     case ObtainedHttpSeedNodesObservation(infoFromAddress, observedSeedNodes) ⇒
       log.info("Contact point [{}] returned [{}] seed-nodes [{}], initiating cluster joining...", infoFromAddress,
         observedSeedNodes.size, observedSeedNodes)
 
-      replyTo ! "JOINING SEED NODES!" // FIXME nicer typed message
+      replyTo ! BootstrapingCompleted
 
       val seedNodesList = observedSeedNodes.toList
       cluster.joinSeedNodes(seedNodesList)
@@ -172,7 +172,7 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
       onNoSeedNodesObtainedWithinStableDeadline(contactPoint)
   }
 
-  private def onContactPointsResolved(serviceName: String, contactPoints: immutable.Seq[String]): Unit = {
+  private def onContactPointsResolved(serviceName: String, contactPoints: immutable.Seq[ResolvedTarget]): Unit = {
     val newObservation = DnsServiceContactsObservation(timeNow(), contactPoints.toList)
     lastContactsObservation = lastContactsObservation.sameOrChanged(newObservation)
 
@@ -196,10 +196,11 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
     log.info("Initiating contact-point probing, sufficient contact points: {}",
       observation.observedContactPoints.mkString(", "))
 
+    // TODO
+
     observation.observedContactPoints.foreach { contactPoint ⇒
-      // TODO would be nice if we can discover this via DNS as well? and leave option to override here
-      val targetPort = settings.contactPoint.portFallback
-      val baseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint), targetPort))
+      val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
+      val baseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint.host), targetPort))
       ensureProbing(baseUri)
     }
   }
@@ -210,9 +211,9 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
       lastContactsObservation.selfAddressIfAbleToJoinItself(context.system) match {
         case Some(allowedToJoinSelfAddress) ⇒
           log.info(
-            "Initiating new cluster, self-joining [{}], as this node has the LOWEST address out of: [{}]! " +
-            "Other nodes are expected to locate this cluster via continued contact-point probing.",
-            cluster.selfAddress, lastContactsObservation.observedContactPoints)
+              "Initiating new cluster, self-joining [{}], as this node has the LOWEST address out of: [{}]! " +
+              "Other nodes are expected to locate this cluster via continued contact-point probing.",
+              cluster.selfAddress, lastContactsObservation.observedContactPoints)
 
           cluster.join(allowedToJoinSelfAddress)
 
@@ -232,7 +233,8 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
       // TODO throttle this logging? It may be caused by any of the probing actors
       log.debug(
           "DNS observation has changed more recently than the dnsStableMargin({}) allows (at: {}), not considering to join myself. " +
-          "This process will be retried.", settings.contactPointDiscovery.stableMargin, new Date(lastContactsObservation.observedAt))
+          "This process will be retried.", settings.contactPointDiscovery.stableMargin,
+          new Date(lastContactsObservation.observedAt))
     }
   }
 
@@ -248,10 +250,8 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
     }
   }
 
-  private def scheduleNextResolve(serviceName: String): Unit = {
-    val interval = settings.contactPointDiscovery.interval
+  private def scheduleNextResolve(serviceName: String, interval: FiniteDuration): Unit =
     timers.startSingleTimer(TimerKeyResolveDNS, Internal.AttemptResolve(serviceName), interval)
-  }
 
   protected def timeNow(): Long =
     System.currentTimeMillis()

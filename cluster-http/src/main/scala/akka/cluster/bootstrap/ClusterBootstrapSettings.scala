@@ -49,47 +49,32 @@ final class ClusterBootstrapSettings(config: Config) {
 
     val requiredContactPointsNr = discoveryConfig.getInt("required-contact-point-nr")
     require(requiredContactPointsNr >= 2, "Number of contact points ")
+
+    val resolveTimeout = discoveryConfig.getDuration("resolve-timeout", TimeUnit.MILLISECONDS).millis
+
   }
 
   object contactPoint {
     private val contactPointConfig = bootConfig.getConfig("contact-point")
 
     // FIXME this has to be the same as the management one, we currently override this value when starting management, any better way?
-    val portFallback = bootConfig.getInt("port-fallback")
+    val fallbackPort = contactPointConfig.getInt("fallback-port")
 
     val noSeedsStableMargin: FiniteDuration =
-      bootConfig.getDuration("no-seeds-stable-margin", TimeUnit.MILLISECONDS).millis
+      contactPointConfig.getDuration("no-seeds-stable-margin", TimeUnit.MILLISECONDS).millis
+
+    val probeInterval: FiniteDuration =
+      contactPointConfig.getDuration("probe-interval", TimeUnit.MILLISECONDS).millis
+
+    val probeIntervalJitter: Double =
+      contactPointConfig.getDouble("probe-interval-jitter")
 
     val httpMaxSeedNodesToExpose: Int = 5
   }
 
-//  require(contactPointNoSeedsStableMargin - dnsStableMargin > 1.second,
-//    s"The dnsStableMargin ($dnsStableMargin) MUST be " +
-//      s"at least [1 second] shorter than the contactPointNoSeedsStableMargin ($contactPointNoSeedsStableMargin)")
-
 }
-//
-//final case class ClusterBootstrapSettings_NEIN(
-//    namespaceName: Option[String] = Some("default"), // k8s specific ??
-//
-//    dnsSuffix: String = ".svc.cluster.local", // k8s specific ??
-//    dnsStableMargin: FiniteDuration = 3.seconds,
-//    dnsResolveInterval: FiniteDuration = 1.second, // should be rather aggressive
-//    dnsResolveTimeout: FiniteDuration = 30.seconds,
-//    requiredContactPointsNr: Int = 3, // TODO this is a hard lower limit, we should have that to avoid "single node" joining itself?
-//
-//    // TODO make those http contact point settings
-//    httpContactPointFallbackPort: Int = 8558, // TODO I wonder if we could discover those as well, but likely not needed to be honest?
-//    contactPointNoSeedsStableMargin: FiniteDuration = 10.seconds,
-//    httpProbeInterval: FiniteDuration = 2.second,
-//    httpProbeIntervalJitter: Double = 0.2, // +/- 20%
-//) {
-//
-//
-//}
 
 object ClusterBootstrapSettings {
   def apply(config: Config): ClusterBootstrapSettings =
     new ClusterBootstrapSettings(config)
-
 }
