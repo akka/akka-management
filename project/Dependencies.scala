@@ -2,7 +2,7 @@ import sbt._, Keys._
 
 object Dependencies {
 
-  val AkkaVersion = "2.4.19"
+  val AkkaVersion = "2.4.20"
   val AkkaHttpVersion = "10.0.10"
   val junitVersion = "4.12"
 
