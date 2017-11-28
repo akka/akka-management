@@ -5,7 +5,7 @@ package akka.cluster.bootstrap.dns
 
 import java.util.concurrent.ThreadLocalRandom
 
-import akka.actor.{ Actor, ActorLogging, ActorRef, Props, Timers }
+import akka.actor.{ Actor, ActorLogging, ActorRef, Props, Status, Timers }
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.cluster.bootstrap.ClusterBootstrapSettings
@@ -74,6 +74,8 @@ private[dns] class HttpContactPointBootstrap(
 
   private val probeInterval = settings.contactPoint.probeInterval
 
+  private val probeRequest = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
+
   /**
    * If we don't observe any seed-nodes until the deadline triggers, we notify the parent about it,
    * such that it may make the decision to join this node to itself or not (initiating a new cluster).
@@ -85,10 +87,19 @@ private[dns] class HttpContactPointBootstrap(
 
   override def receive = {
     case Internal.ProbeNow() ⇒
-      val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
-      log.info("Probing {} for seed nodes...", req.uri)
+      log.info("Probing {} for seed nodes...", probeRequest.uri)
 
-      http.singleRequest(req).flatMap(res ⇒ Unmarshal(res).to[SeedNodes]).pipeTo(self)
+      http
+        .singleRequest(probeRequest)
+        .flatMap(_.entity.toStrict(settings.contactPoint.probeTimeout))
+        .flatMap(res ⇒ Unmarshal(res).to[SeedNodes])
+        .pipeTo(self)
+
+    case Status.Failure(cause) =>
+      log.error("Probing {} failed due to {}", probeRequest.uri, cause.getMessage)
+
+      // keep probing, hoping the request will eventually succeed
+      scheduleNextContactPointProbing()
 
     case response @ SeedNodes(node, members, oldest) ⇒
       if (members.isEmpty) {

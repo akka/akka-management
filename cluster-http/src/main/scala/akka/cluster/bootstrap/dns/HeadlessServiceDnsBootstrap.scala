@@ -54,7 +54,8 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
     def selfAddressIfAbleToJoinItself(system: ActorSystem): Option[Address] = {
       val cluster = Cluster(system)
       val selfHost = cluster.selfAddress.host
-      if (lowestAddressContactPoint.contains(selfHost.get)) {
+
+      if (lowestAddressContactPoint.exists(p => selfHost.contains(p.host))) {
         // we are the "lowest address" and should join ourselves to initiate a new cluster
         Some(cluster.selfAddress)
       } else None

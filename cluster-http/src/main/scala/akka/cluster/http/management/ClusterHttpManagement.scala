@@ -390,6 +390,7 @@ class ClusterHttpManagement(
       // TODO instead of binding to hardcoded things here, discovery can also be used for this binding!
       val hostname = settings.ClusterHttpManagementHostname
       val port = settings.ClusterHttpManagementPort
+
       // Basically: "give me the SRV host/port for the port called `akka-bootstrap`"
       // discovery.lookup("_akka-bootstrap" + ".effective-name.default").find(myaddress)
       // ----
