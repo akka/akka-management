@@ -73,6 +73,9 @@ final class ClusterBootstrapSettings(config: Config) {
     val probeIntervalJitter: Double =
       contactPointConfig.getDouble("probe-interval-jitter")
 
+    val probeTimeout: FiniteDuration =
+      contactPointConfig.getDuration("probe-timeout", TimeUnit.MILLISECONDS).millis
+
     val httpMaxSeedNodesToExpose: Int = 5
   }
 
