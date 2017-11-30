@@ -10,5 +10,6 @@ Support for some protocols is provided out of the box and others are provided as
 * Akka Cluster
   - [HTTP](cluster-http-management.md)
   - [Built in](cluster-builtin-management.md)
+  - [Bootstrap](bootstrap.md)
 
 @@@

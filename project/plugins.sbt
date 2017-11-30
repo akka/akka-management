@@ -1,3 +1,5 @@
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.1")
+
 addSbtPlugin("de.heikoseeberger"                 % "sbt-header"       % "1.6.0")
 addSbtPlugin("com.geirsson"                      % "sbt-scalafmt"     % "0.4.10")
 addSbtPlugin("com.dwijnand"                      % "sbt-dynver"       % "1.1.1")
