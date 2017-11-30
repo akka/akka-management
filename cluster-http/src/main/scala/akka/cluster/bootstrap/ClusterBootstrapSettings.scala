@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.cluster.bootstrap
 
@@ -11,10 +11,6 @@ import com.typesafe.config.Config
 
 import scala.concurrent.duration.{ FiniteDuration, _ }
 
-// FIXME make easy to binary evolve (kaze class)
-// FIXME don't hard-code
-// TODO security for the contact point requests?
-// FIXME FIXME !! redesign the settings !! half of those are kubernetes and DNS specific
 final class ClusterBootstrapSettings(config: Config) {
   private val bootConfig = config.getConfig("akka.cluster.bootstrap")
 
@@ -51,10 +47,12 @@ final class ClusterBootstrapSettings(config: Config) {
     val interval: FiniteDuration =
       effectiveDiscoveryConfig.getDuration("interval", TimeUnit.MILLISECONDS).millis
 
-    val requiredContactPointsNr = discoveryConfig.getInt("required-contact-point-nr")
-    require(requiredContactPointsNr >= 2, "Number of contact points ")
+    val requiredContactPointsNr: Int = discoveryConfig.getInt("required-contact-point-nr")
+    require(requiredContactPointsNr >= 2,
+      "Number of contact points must be greater than 1. " +
+      "For 'single node clusters' simply avoid using the seed bootstraping process, and issue a self-join manually.")
 
-    val resolveTimeout = discoveryConfig.getDuration("resolve-timeout", TimeUnit.MILLISECONDS).millis
+    val resolveTimeout: FiniteDuration = discoveryConfig.getDuration("resolve-timeout", TimeUnit.MILLISECONDS).millis
 
   }
 
@@ -72,6 +70,9 @@ final class ClusterBootstrapSettings(config: Config) {
 
     val probeIntervalJitter: Double =
       contactPointConfig.getDouble("probe-interval-jitter")
+
+    val probeTimeout: FiniteDuration =
+      contactPointConfig.getDuration("probe-timeout", TimeUnit.MILLISECONDS).millis
 
     val httpMaxSeedNodesToExpose: Int = 5
   }

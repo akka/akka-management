@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.cluster.bootstrap.contactpoint
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ ClusterDomainEvent, CurrentClusterState, MemberUp }
-import akka.cluster.bootstrap.{ ClusterBootstrap, ClusterBootstrapSettings }
+import akka.cluster.bootstrap.ClusterBootstrap
 import akka.cluster.http.management.ClusterHttpManagement
 import akka.discovery.MockDiscovery
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
@@ -16,7 +16,6 @@ import org.scalatest.{ Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
 
-/* FIXME test not ready yet
 class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers {
 
   "Cluster Bootstrap" should {
@@ -94,7 +93,7 @@ class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers 
       bootstrapC.start()
 
       val pA = TestProbe()(systemA)
-      clusterA.subscribe(pA.ref, classOf[ClusterDomainEvent])
+      clusterA.subscribe(pA.ref, classOf[MemberUp])
 
       pA.expectMsgType[CurrentClusterState]
       val up1 = pA.expectMsgType[MemberUp](30.seconds)
@@ -110,4 +109,3 @@ class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers 
   }
 
 }
- */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.cluster.bootstrap.contactpoint
 
@@ -20,7 +20,7 @@ trait HttpBootstrapJsonProtocol extends SprayJsonSupport with DefaultJsonProtoco
   }
   implicit val SeedNodeFormat = jsonFormat1(SeedNode)
   implicit val ClusterMemberFormat = jsonFormat4(ClusterMember)
-  implicit val ClusterMembersFormat = jsonFormat3(SeedNodes)
+  implicit val ClusterMembersFormat = jsonFormat2(SeedNodes)
 }
 
 object HttpBootstrapJsonProtocol extends DefaultJsonProtocol {
@@ -30,6 +30,6 @@ object HttpBootstrapJsonProtocol extends DefaultJsonProtocol {
   // we use Address since we want to know which protocol is being used (tcp, artery, artery-tcp etc)
   final case class ClusterMember(node: Address, nodeUid: Long, status: String, roles: Set[String])
 
-  final case class SeedNodes(selfNode: Address, seedNodes: Set[ClusterMember], oldest: Option[Address])
+  final case class SeedNodes(selfNode: Address, seedNodes: Set[ClusterMember])
 
 }

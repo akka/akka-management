@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.cluster.bootstrap.contactpoint
 
@@ -8,16 +8,27 @@ import akka.cluster.ClusterEvent.ClusterDomainEvent
 import akka.cluster.bootstrap.ClusterBootstrapSettings
 import akka.cluster.http.management.ClusterHttpManagementJsonProtocol
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import akka.testkit.TestProbe
+import akka.testkit.{ SocketUtil, TestProbe }
 import org.scalatest.{ Matchers, WordSpecLike }
-
-/* FIXME test not ready yet
 
 class HttpContactPointRoutesSpec
     extends WordSpecLike
     with Matchers
     with ScalatestRouteTest
     with HttpBootstrapJsonProtocol {
+
+  override def testConfigSource =
+    s"""
+    akka {
+      remote {
+        enabled-transports = ["akka.remote.netty.tcp"]
+        netty.tcp {
+          hostname = "127.0.0.1"
+          port = ${SocketUtil.temporaryServerAddress("127.0.0.1").getPort}
+        }
+      }
+    }
+    """.stripMargin
 
   "Http Bootstrap routes" should {
 
@@ -35,7 +46,7 @@ class HttpContactPointRoutesSpec
       cluster.join(cluster.selfAddress)
 
       val p = TestProbe()
-      cluster.subscribe(p.ref, ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
+      cluster.subscribe(p.ref, ClusterEvent.InitialStateAsEvents, classOf[ClusterEvent.MemberUp])
       val up = p.expectMsgType[ClusterEvent.MemberUp]
       up.member should ===(cluster.selfMember)
 
@@ -48,4 +59,3 @@ class HttpContactPointRoutesSpec
   }
 
 }
- */
