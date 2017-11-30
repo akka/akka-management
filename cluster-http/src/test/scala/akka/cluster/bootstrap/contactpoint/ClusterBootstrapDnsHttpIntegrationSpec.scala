@@ -93,7 +93,7 @@ class ClusterBootstrapDnsHttpIntegrationSpec extends WordSpecLike with Matchers 
       bootstrapC.start()
 
       val pA = TestProbe()(systemA)
-      clusterA.subscribe(pA.ref, classOf[ClusterDomainEvent])
+      clusterA.subscribe(pA.ref, classOf[MemberUp])
 
       pA.expectMsgType[CurrentClusterState]
       val up1 = pA.expectMsgType[MemberUp](30.seconds)

@@ -46,7 +46,7 @@ class HttpContactPointRoutesSpec
       cluster.join(cluster.selfAddress)
 
       val p = TestProbe()
-      cluster.subscribe(p.ref, ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
+      cluster.subscribe(p.ref, ClusterEvent.InitialStateAsEvents, classOf[ClusterEvent.MemberUp])
       val up = p.expectMsgType[ClusterEvent.MemberUp]
       up.member should ===(cluster.selfMember)
 
