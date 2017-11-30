@@ -6,7 +6,7 @@ package akka.cluster.bootstrap.dns
 import java.util.{ Date, Locale }
 
 import akka.actor.Status.Failure
-import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Address, DeadLetterSuppression, Props, Timers }
+import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Address, DeadLetterSuppression, Props }
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.CurrentClusterState
@@ -16,10 +16,11 @@ import akka.pattern.{ ask, pipe }
 import akka.discovery.ServiceDiscovery
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.util.PrettyDuration
-
 import scala.collection.immutable
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
+
+import akka.actor.Cancellable
 
 /** INTERNAL API */
 @InternalApi
@@ -42,6 +43,7 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
 
     object Internal {
       final case class AttemptResolve(serviceName: String) extends DeadLetterSuppression
+      case object ScheduledAttemptResolve
     }
   }
 
@@ -125,8 +127,7 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
 @InternalApi
 final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: ClusterBootstrapSettings)
     extends Actor
-    with ActorLogging
-    with Timers {
+    with ActorLogging {
 
   import HeadlessServiceDnsBootstrap.Protocol._
   import HeadlessServiceDnsBootstrap._
@@ -134,10 +135,15 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
 
   private val cluster = Cluster(context.system)
 
-  private val TimerKeyResolveDNS = "resolve-dns-key"
-
   private var lastContactsObservation: DnsServiceContactsObservation =
     DnsServiceContactsObservation(Long.MaxValue, Nil)
+
+  private var timerTask: Option[Cancellable] = None
+
+  override def postStop(): Unit = {
+    timerTask.foreach(_.cancel())
+    super.postStop()
+  }
 
   /** Awaiting initial signal to start the bootstrap process */
   override def receive: Receive = {
@@ -153,7 +159,13 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
   /** In process of searching for seed-nodes */
   def bootstraping(serviceName: String, replyTo: ActorRef): Receive = {
     case Internal.AttemptResolve(name) ⇒
-      discovery.lookup(name, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
+      attemptResolve(name)
+
+    case Internal.ScheduledAttemptResolve ⇒
+      if (timerTask.isDefined) {
+        attemptResolve(serviceName)
+        timerTask = None
+      }
 
     case ServiceDiscovery.Resolved(name, contactPoints) ⇒
       onContactPointsResolved(name, contactPoints)
@@ -181,6 +193,9 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
 
       onNoSeedNodesObtainedWithinStableDeadline(contactPoint)
   }
+
+  private def attemptResolve(name: String): Unit =
+    discovery.lookup(name, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
 
   private def onContactPointsResolved(serviceName: String, contactPoints: immutable.Seq[ResolvedTarget]): Unit = {
     val newObservation = DnsServiceContactsObservation(timeNow(), contactPoints.toList)
@@ -273,8 +288,12 @@ final class HeadlessServiceDnsBootstrap(discovery: ServiceDiscovery, settings: C
       }
   }
 
-  private def scheduleNextResolve(serviceName: String, interval: FiniteDuration): Unit =
-    timers.startSingleTimer(TimerKeyResolveDNS, Internal.AttemptResolve(serviceName), interval)
+  private def scheduleNextResolve(serviceName: String, interval: FiniteDuration): Unit = {
+    // this re-scheduling of timer tasks might not be completely safe, e.g. in case of restarts, but should
+    // be good enough for the Akka 2.4 release. In the Akka 2.5 release we are using Timers.
+    timerTask.foreach(_.cancel())
+    timerTask = Some(context.system.scheduler.scheduleOnce(interval, self, Internal.ScheduledAttemptResolve))
+  }
 
   protected def timeNow(): Long =
     System.currentTimeMillis()

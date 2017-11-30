@@ -48,7 +48,7 @@ class HttpContactPointRoutesSpec
       val p = TestProbe()
       cluster.subscribe(p.ref, ClusterEvent.InitialStateAsEvents, classOf[ClusterEvent.MemberUp])
       val up = p.expectMsgType[ClusterEvent.MemberUp]
-      up.member should ===(cluster.selfMember)
+      up.member.uniqueAddress should ===(cluster.selfUniqueAddress)
 
       ClusterBootstrapRequests.bootstrapSeedNodes("") ~> httpBootstrap.routes ~> check {
         val response = responseAs[HttpBootstrapJsonProtocol.SeedNodes]
