@@ -9,7 +9,7 @@ object Whitesource extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  def majorMinor(version: String): Option[String] ="""\d+\.\d+""".r.findFirstIn(version)
+  def majorMinor(version: String): Option[String] = """\d+\.\d+""".r.findFirstIn(version)
 
   override lazy val projectSettings = Seq(
     // do not change the value of whitesourceProduct
@@ -22,6 +22,8 @@ object Whitesource extends AutoPlugin {
           else "adhoc"
         else majorMinor((version in LocalRootProject).value).map(_ + "-stable").getOrElse("adhoc")
       )
-    }
+    },
+    whitesourceForceCheckAllDependencies := true,
+    whitesourceFailOnError := true
   )
 }
