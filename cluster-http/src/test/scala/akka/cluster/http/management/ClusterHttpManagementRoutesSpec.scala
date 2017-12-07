@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-package akka.management.http
+package akka.cluster.http.management
 
 import akka.actor.{ Actor, Address, Props }
 import akka.cluster.ClusterEvent.CurrentClusterState
