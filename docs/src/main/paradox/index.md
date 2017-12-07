@@ -7,10 +7,9 @@ Support for some protocols is provided out of the box and others are provided as
 
 @@@ index
 
-* Akka Cluster
-  - [HTTP](cluster-http-management.md)
-  - [Built in](cluster-builtin-management.md)
-  - [Cluster Bootstrap](bootstrap.md)
-  - [Service Discovery](discovery.md)
+  - [Akka Management (HTTP)](cluster-http-management.md)
+  - [Akka Management (JMX)](cluster-jmx-management.md)
+  - [Akka Cluster Bootstrap](bootstrap.md)
+  - [Akka Discovery](discovery.md)
 
 @@@

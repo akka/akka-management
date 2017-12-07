@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-package akka.cluster.http.management
+package akka.management.http
 
 import akka.actor.AddressFromURIString
 import akka.cluster.{ Cluster, Member, MemberStatus }
@@ -119,14 +119,14 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
     }
 
   /**
-   * Creates an instance of [[akka.cluster.http.management.ClusterHttpManagementRoutes]] to manage the specified
+   * Creates an instance of [[akka.management.http.ClusterHttpManagementRoutes]] to manage the specified
    * [[akka.cluster.Cluster]] instance. This version does not provide Basic Authentication. It uses
    * the default path "members".
    */
   def apply(cluster: Cluster): Route = apply(cluster, "")
 
   /**
-   * Creates an instance of [[akka.cluster.http.management.ClusterHttpManagementRoutes]] to manage the specified
+   * Creates an instance of [[akka.management.http.ClusterHttpManagementRoutes]] to manage the specified
    * [[akka.cluster.Cluster]] instance. This version does not provide Basic Authentication. It uses
    * the specified path `pathPrefixName`.
    */
@@ -149,7 +149,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
   }
 
   /**
-   * Creates an instance of [[akka.cluster.http.management.ClusterHttpManagementRoutes]] to manage the specified
+   * Creates an instance of [[akka.management.http.ClusterHttpManagementRoutes]] to manage the specified
    * [[akka.cluster.Cluster]] instance. This version provides Basic Authentication through the specified
    * AsyncAuthenticator. It uses the default path "members".
    */
@@ -159,7 +159,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
     }
 
   /**
-   * Creates an instance of [[akka.cluster.http.management.ClusterHttpManagementRoutes]] to manage the specified
+   * Creates an instance of [[akka.management.http.ClusterHttpManagementRoutes]] to manage the specified
    * [[akka.cluster.Cluster]] instance. This version provides Basic Authentication through the specified
    * AsyncAuthenticator. It uses the specified path `pathPrefixName`.
    */

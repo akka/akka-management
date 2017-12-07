@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-package akka.cluster.http.management
+package akka.management.http
 
 import akka.actor.{ Actor, Address, Props }
 import akka.cluster.ClusterEvent.CurrentClusterState
@@ -309,8 +309,8 @@ class ClusterHttpManagementRoutesSpec
 //        )
 //        val configClusterHttpManager = ConfigFactory.parseString(
 //          """
-//            |akka.cluster.http.management.hostname = "127.0.0.1"
-//            |akka.cluster.http.management.port = 20100
+//            |akka.management.http.hostname = "127.0.0.1"
+//            |akka.management.http.port = 20100
 //          """.stripMargin
 //        )
 //

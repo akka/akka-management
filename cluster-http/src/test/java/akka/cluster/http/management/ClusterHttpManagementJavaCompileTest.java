@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-package akka.cluster.http.management;
+package akka.management.http;
 
 import akka.actor.ActorSystem;
 import akka.cluster.Cluster;

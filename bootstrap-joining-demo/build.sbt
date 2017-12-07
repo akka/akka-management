@@ -12,6 +12,21 @@ dockerEntrypoint ++= Seq(
 //  "-Dakka.io.dns.async-dns.resolv-conf=on"
 )
 
+/*
+libraryDependencies += Seq(
+  // 1) we want to use akka-management
+  "akka-management",
+
+  // 2) we want to use the bootstrap
+  cluster-bootstrap
+
+  // 3) the initial contact points should be located via DNS:
+  akka-discovery-dns
+
+  // extra)
+  // "cluster-http" // optional, if you want to inspect the cluster as well
+*/
+
 dockerCommands :=
   dockerCommands.value.flatMap {
     case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))

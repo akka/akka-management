@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-package akka.cluster.http.management
+package akka.management.http
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -41,8 +41,8 @@ class MultiDcSpec
       val portB = SocketUtil.temporaryServerAddress().getPort
       val dcA = ConfigFactory.parseString(
         s"""
-           |akka.cluster.http.management.hostname = "127.0.0.1"
-           |akka.cluster.http.management.port = $httpPortA
+           |akka.management.http.hostname = "127.0.0.1"
+           |akka.management.http.port = $httpPortA
            |akka.cluster.seed-nodes = ["akka.tcp://MultiDcSystem@127.0.0.1:$portA"]
            |akka.cluster.multi-data-center.self-data-center = "DC-A"
            |akka.remote.netty.tcp.port = $portA

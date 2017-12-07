@@ -11,7 +11,7 @@ import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
-import akka.cluster.http.management._
+import akka.management.http._
 import akka.stream.scaladsl.Source
 import com.typesafe.config.ConfigFactory
 
