@@ -156,7 +156,7 @@ To enable SSL you need to provide an `SSLContext`. You can find more information
 Scala
 :   ```
     val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
-    
+    //...
     val management = AkkaManagement(system)
     management.setHttpsContext(https)
     management.start()
@@ -165,7 +165,7 @@ Scala
 Java
 :   ```
     HttpsConnectionContext https = ConnectionContext.https(sslContext);
-    
+    //...
     AkkaManagement management = AkkaManagement.get(system);
     management.setHttpsContext(https);
     management.start();

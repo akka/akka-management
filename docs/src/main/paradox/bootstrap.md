@@ -11,9 +11,9 @@ particularity well in environments like Kubernetes or Mesos where DNS records ar
 Please note that unlike many solutions that have been proposed by the wider community, this solution does NOT require
 any additional system like etcd/zookeeper/consul to be run along side the Akka cluster in order to discover the seed-nodes.
 
-## The Akka DNS Bootstrap
+## Akka Cluster Bootstrap Process explained
 
-The Akka DNS Bootstrap process is composed of two phases. First, a minimum number of Contact Points (by default at least 
+The Akka Cluster Bootstrap process is composed of two phases. First, a minimum number of Contact Points (by default at least 
 2) need to be gathered. Currently it will look for `akka.cluster.bootstrap.contact-point-discovery.service-name` appended
 with `akka.cluster.bootstrap.contact-point-discovery.service-namespace` (if present) A records in DNS. In Kubernetes managed 
 systems these would be available by default and list all `Pods` in a given `Service`. Those addresses are then contacted,
@@ -56,8 +56,6 @@ In summary, the process is as follows:
      until all nodes have joined the cluster.
  
 
-TODO: We aim to use SRV records here, but A works fine as well. The impl should try SRV and fallback to A if none available.
-
 ### Specific edge-cases explained
 
 TODO: There are specific very hard to cause edge cases in the self-join. It is important to realise that using a consistent 
@@ -99,89 +97,89 @@ is strictly defined and is as follows:
 
 ### Kubernetes example
 
-In Kubernetes, one would deploy an Akka Cluster as a single Headless Service, which can be configured as follows:
+In Kubernetes, one would deploy an Akka Cluster as a single [Headless Service](https://kubernetes.io/docs/concepts/services-networking/service/#headless-services).
 
-TODO: explain why headless
+An example application using docker and prepared to be deployed to kubernetes is provided in Akka Management's github repository 
+as sub-project [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo).
 
-TODO: explain all the ports we expose
+Rather than configuring the Dockerfile directly, we used the sbt-native-packager to package the application as docker container.
+See the `build.sbt` file for more details, and the `kubernetes/akka-cluster.yml` file for the service configuration, which is:
 
-TODO: Don't paste the example but link to sources.
+@@snip [akka-cluster.yml](../../../../bootstrap-joining-demo/kubernetes/akka-cluster.yml) 
 
-
-```
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: appka
-  name: appka
-spec:
-  replicas: 4
-  selector:
-    matchLabels:
-      app: appka
-  template:
-    metadata:
-      labels:
-        app: appka
-    spec:
-      containers:
-      - name: appka
-        image: ktoso/akka-management-joining-demo:1.3.3.7
-        imagePullPolicy: Never
-        env:
-        - name: HOST_NAME
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: status.podIP
-        livenessProbe:
-          tcpSocket:
-#            port: 2551
-            port: 19999
-        ports:
-        # akka remoting
-        - name: remoting
-          containerPort: 2551
-          protocol: TCP
-        # akka-management bootstrap
-        - name: bootstrap
-          containerPort: 8558
-          protocol: TCP
-        # external http
-        - name: http
-          containerPort: 8080
-          protocol: TCP
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: appka-service
-spec:
-  # by setting the clusterIp to None we are a "headless service"
-  # and thus the svc ("service") DNS record for the single IP but the IPs of all nodes that we select
-  #
-  # In other words:
-  #  $ kubectl exec -it $POD -- nslookup appka-service.default.svc.cluster.local
-  #  Server:		10.0.0.10
-  #  Address:	10.0.0.10#53
-  #
-  #  Name:	appka-service.default.svc.cluster.local
-  #  Address: 172.17.0.7
-  #  Name:	appka-service.default.svc.cluster.local
-  #  Address: 172.17.0.8
-  #  Name:	appka-service.default.svc.cluster.local
-  #  Address: 172.17.0.9
-  #  Name:	appka-service.default.svc.cluster.local
-  #  Address: 172.17.0.6
-  clusterIP: None
-  selector:
-    app: appka
-  ports:
-  - protocol: TCP
-    port: 8558
-    targetPort: 8558
+In order to run the example you can build it via:
 
 ```
+sbt shell
+> project bootstrap-joining-demo
+> docker:publishLocal
+```
 
-TODO: complete this example with a demo sample output?
+Next, you'll want to run the example using [minikube](https://github.com/kubernetes/minikube) (or a real kubernetes system),
+which you can do by typing:
+
+```
+# 1) make sure you have installed `minikube` (see link above)
+```
+
+```
+# 2) make sure minikube is running
+$ minikube start
+Starting local Kubernetes v1.8.0 cluster...
+Starting VM...
+Getting VM IP address...
+Moving files into cluster...
+Setting up certs...
+Connecting to cluster...
+Setting up kubeconfig...
+Starting cluster components...
+Kubectl is now configured to use the cluster.
+```
+
+```
+# 3) make sure your shell is configured to target minikube cluster
+$ eval $(minikube docker-env) 
+```
+
+```
+# 4) Publish the application docker image locally:
+$ sbt shell
+...
+> project bootstrap-joining-demo
+... 
+> docker:publishLocal 
+...
+[info] Successfully tagged ktoso/akka-management-bootstrap-joining-demo:1.3.3.7
+[info] Built image ktoso/akka-management-bootstrap-joining-demo:1.3.3.7
+[success] Total time: 25 s, completed Dec 8, 2017 7:47:05 PM
+```
+
+Once the image is published, you can deploy it onto the kubernetes cluster by calling:
+
+@@snip [kube-create.sh](../../../../bootstrap-joining-demo/kube-create.sh) 
+
+This will create and start running a number of Pods hosting the application. The application nodes will proceed with 
+forming the cluster using the DNS bootstrap method. In order to observe the logs during the cluster formation you can 
+pick one of the pods and simply issue the kubectl logs command on it, like this:
+
+```
+$ POD=$(kubectl get pods | grep appka | grep Running | head -n1 | awk '{ print $1 }'); echo $POD
+appka-6bfdf47ff6-l7cpb
+
+$ kubectl logs $POD -f
+...
+[INFO] [12/08/2017 10:57:52.678] [main] [akka.remote.Remoting] Starting remoting
+...
+[INFO] [12/08/2017 10:57:53.597] [main] [akka.remote.Remoting] Remoting started; listening on addresses :[akka.tcp://Appka@172.17.0.2:2552]
+...
+[INFO] [12/08/2017 10:58:00.558] [main] [ClusterHttpManagement(akka://Appka)] Bound akka-management HTTP endpoint to: 172.17.0.2:19999
+[INFO] [12/08/2017 10:58:00.559] [main] [ClusterBootstrap(akka://Appka)] Initiating bootstrap procedure using akka.discovery.akka-dns method...
+...
+[INFO] [12/08/2017 10:58:04.747] [Appka-akka.actor.default-dispatcher-2] [akka.tcp://Appka@172.17.0.2:2552/system/headlessServiceDnsBootstrap] Initiating new cluster, self-joining [akka.tcp://Appka@172.17.0.2:2552], as this node has the LOWEST address out of: [List(ResolvedTarget(172.17.0.2,None), ResolvedTarget(172.17.0.6,None), ResolvedTarget(172.17.0.4,None), ResolvedTarget(172.17.0.3,None))]! Other nodes are expected to locate this cluster via continued contact-point probing.
+[INFO] [12/08/2017 10:58:04.796] [Appka-akka.actor.default-dispatcher-15] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.2:2552] - Node [akka.tcp://Appka@172.17.0.2:2552] is JOINING, roles [dc-default]
+[INFO] [12/08/2017 10:58:04.894] [Appka-akka.actor.default-dispatcher-15] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.2:2552] - Leader is moving node [akka.tcp://Appka@172.17.0.2:2552] to [Up]
+[INFO] [12/08/2017 10:58:04.920] [Appka-akka.actor.default-dispatcher-16] [akka.tcp://Appka@172.17.0.2:2552/user/$a] Cluster akka.tcp://Appka@172.17.0.2:2552 >>> MemberUp(Member(address = akka.tcp://Appka@172.17.0.2:2552, status = Up))
+...
+```
+
+Which concludes the short demo of cluster bootstrap in kubernetes using the DNS discovery mechanism.

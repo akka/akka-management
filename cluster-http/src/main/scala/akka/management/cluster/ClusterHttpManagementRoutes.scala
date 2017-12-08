@@ -126,18 +126,20 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
    * the specified path `pathPrefixName`.
    */
   def apply(cluster: Cluster): Route =
-    concat(
-      pathPrefix("members") {
-        concat(
-          pathEndOrSingleSlash {
-            routeGetMembers(cluster) ~ routePostMembers(cluster)
-          },
-          routesMember(cluster)
-        )
-      },
-      pathPrefix("shards" / Remaining) { shardRegionName =>
-        routeGetShardInfo(cluster, shardRegionName)
-      }
-    )
+    pathPrefix("cluster") {
+      concat(
+        pathPrefix("members") {
+          concat(
+            pathEndOrSingleSlash {
+              routeGetMembers(cluster) ~ routePostMembers(cluster)
+            },
+            routesMember(cluster)
+          )
+        },
+        pathPrefix("shards" / Remaining) { shardRegionName =>
+          routeGetShardInfo(cluster, shardRegionName)
+        }
+      )
+    }
 
 }
