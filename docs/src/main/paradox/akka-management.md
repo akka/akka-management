@@ -70,7 +70,7 @@ The management endpoint has a number of settings which can be set before invokin
 `AkkaManagement(system).start()`.
 
 
-## Configuration
+## Basic Configuration
 
 Note that 
 
@@ -116,26 +116,24 @@ Java
     AkkaManagement.get(actorSystem2).start();
     ```
 
-It is also possible to modify the root path of the API (no root path by default). Provide your desired path when starting:
+It is also possible to modify the base path of the API, by setting the appropriate value in application conf: 
 
-Scala
+application.conf
 :   ```
-    ClusterHttpManagement(cluster, "myClusterName").start()
+    akka.management.http.base-path = "myClusterName"
+    // resulting
     ```
 
-Java
-:   ```
-    ClusterHttpManagement.create(cluster, "myClusterName").start();
-    ```
-
-In this example, with this configuration, then the cluster management apis will be exposed at `/myClusterName/members`, `/myClusterName/shards/{name}`, etc.
+In this example, with this configuration, then the akka management routes will will be exposed at under the `/myClusterName/...`,
+base path. For example, when using Akka Cluster Management routes the members information would then be available under
+`/myClusterName/shards/{name}` etc.
 
 
-## Security
+## Configuring Security
 
 @@@ note
 
-This module does not provide security by default. It's the developer's choice to add security to this API.
+HTTPS is not enabled by default as additional configuration from the developer is required This module does not provide security by default. It's the developer's choice to add security to this API.
 
 @@@
 
@@ -143,91 +141,92 @@ The non-secured usage of the module is as follows:
 
 Scala
 :   ```
-    ClusterHttpManagement(cluster).start()
+    AkkaManagement(system).start()
     ```
 
 Java
 :   ```
-    ClusterHttpManagement.create(cluster).start();
+    AkkaManagement.get(system).start();
     ```
 
-### Enabling SSL for Cluster HTTP Management
+### Enabling TLS/SSL (HTTPS) for Cluster HTTP Management
 
 To enable SSL you need to provide an `SSLContext`. You can find more information about it in @extref[Server side https support](akka-http-docs:scala/http/server-side-https-support)
 
 Scala
 :   ```
     val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
-    ClusterHttpManagement(cluster, https).start()
+    
+    val management = AkkaManagement(system)
+    management.setHttpsContext(https)
+    management.start()
     ```
 
 Java
 :   ```
     HttpsConnectionContext https = ConnectionContext.https(sslContext);
-    ClusterHttpManagement.create(cluster, https).start();
+    
+    AkkaManagement management = AkkaManagement.get(system);
+    management.setHttpsContext(https);
+    management.start();
     ```
+    
+You can also refer to [AkkaManagementHttpEndpointSpec](https://github.com/akka/akka-management/blob/119ad1871c3907c2ca528720361b8ccb20234c55/management/src/test/scala/akka/management/http/AkkaManagementHttpEndpointSpec.scala#L124-L148) where a full example configuring the HTTPS context is shown.
 
-### Enabling Basic Authentication for Cluster HTTP Management
+### Enabling Basic Authentication
 
-To enable Basic Authentication you need to provide an authenticator. You can find more information in @extref:[Authenticate Basic Async directive](akka-http-docs:scala/http/routing-dsl/directives/security-directives/authenticateBasicAsync)
+To enable Basic Authentication you need to provide an authenticator object before starting the management extension. 
+You can find more information in @extref:[Authenticate Basic Async directive](akka-http-docs:scala/http/routing-dsl/directives/security-directives/authenticateBasicAsync)
 
 Scala
 :   ```
     def myUserPassAuthenticator(credentials: Credentials): Future[Option[String]] =
       credentials match {
-        case p @ Credentials.Provided(id) =>
+        case p @ Credentials.Provided(id) ⇒
           Future {
             // potentially
             if (p.verify("p4ssw0rd")) Some(id)
             else None
           }
-        case _ => Future.successful(None)
+        case _ ⇒ Future.successful(None)
       }
-    ...
-    ClusterHttpManagement(cluster, myUserPassAuthenticator(_)).start()  
+    // ...
+    val management = AkkaManagement(system)
+    management.setAsyncAuthenticator(myUserPassAuthenticator)
+    management.start()  
     ```
 
 Java
 :   ```
-    ClusterHttpManagement.create(cluster, myUserPassAuthenticator).start();
+    final Function<Optional<ProvidedCredentials>, CompletionStage<Optional<String>>> 
+      myUserPassAuthenticator = opt -> {
+        if (opt.filter(c -> (c != null) && c.verify("p4ssw0rd")).isPresent()) {
+          return CompletableFuture.completedFuture(Optional.of(opt.get().identifier()));
+        } else {
+          return CompletableFuture.completedFuture(Optional.empty());
+        }
+      };
+    // ... 
+    management.setAsyncAuthenticator(myUserPassAuthenticator);
+    management.start();
     ```
 
-### Enabling SSL and Basic Authentication for Cluster HTTP Management
+@@@ note
+  You can combine the two security options in order to enable HTTPS as well as basic authentication. 
+  In order to do this, invoke both `setAsyncAuthenticator` as well as `setHttpsContext` *before* calling `start()`.
+@@@
 
-To enable SSL and Basic Authentication you need to provide both an `SSLContext` and an authenticator.
+## Stopping Akka Management
+
+In a dynamic environment you might stop instances of Akka Management, for example if you don't want to free up resources
+taken by the HTTP server serving the Management routes. 
+
+You can do so by calling `stop()` on @scaladoc[AkkaManagement](akka.management.http.AkkaManagement). 
+This method return a `Future[Done]` to inform when the server has been stopped.
 
 Scala
 :   ```
-    def myUserPassAuthenticator(credentials: Credentials): Future[Option[String]] =
-      credentials match {
-        case p @ Credentials.Provided(id) =>
-          Future {
-            // potentially
-            if (p.verify("p4ssw0rd")) Some(id)
-            else None
-          }
-        case _ => Future.successful(None)
-      }
-    ...
-    val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
-    ClusterHttpManagement(cluster, myUserPassAuthenticator(_), https).start()
-    ```
-
-Java
-:   ```
-    HttpsConnectionContext https = ConnectionContext.https(sslContext);
-    ClusterHttpManagement.create(cluster, myUserPassAuthenticator, https).start();
-    ```
-
-## Stopping Cluster HTTP Management
-
-In a dynamic environment you might want to start and stop multiple instances of HTTP Cluster Management.
-You can do so by calling `stop()` on @scaladoc[ClusterHttpManagement](akka.management.http.ClusterHttpManagement). This method return a `Future[Done]` to inform when the
-module has been stopped.
-
-Scala
-:   ```
-    val httpClusterManagement = ClusterHttpManagement(cluster)
+    val httpClusterManagement = AkkaManagement(system)
     httpClusterManagement.start()
     //...
     val bindingFuture = httpClusterManagement.stop()
@@ -236,7 +235,7 @@ Scala
 
 Java
 :   ```
-    ClusterHttpManagement httpClusterManagement = ClusterHttpManagement.create(cluster);
+    AkkaManagement httpClusterManagement = AkkaManagement.create(system);
     httpClusterManagement.start();
     //...
     httpClusterManagement.stop();
