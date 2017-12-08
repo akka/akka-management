@@ -6,7 +6,7 @@ This management extension exposes different operations to manage nodes in a clus
 
 The operations exposed are comparable to the Command Line Management tool or the JMX interface `akka-cluster` provides.
 
-## Preparing your project for Cluster HTTP Management
+## Dependencies
 
 The Akka Cluster HTTP Management is a separate jar file. 
 Make sure to include it along with the core akka-management library in your project::

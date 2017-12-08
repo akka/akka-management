@@ -11,6 +11,49 @@ particularity well in environments like Kubernetes or Mesos where DNS records ar
 Please note that unlike many solutions that have been proposed by the wider community, this solution does NOT require
 any additional system like etcd/zookeeper/consul to be run along side the Akka cluster in order to discover the seed-nodes.
 
+## Dependencies
+
+The Akka Bootstrap extension consiste of modular parts which handle steps of the bootstrap process.
+In order to use it you will want to depend on `akka-management-cluster-bootstrap` and a specific `akka-discovery` 
+implementation you'd like to use for the discovery process. 
+
+For example, you might depend on the DNS discovery and bootstrap extensions:
+
+sbt
+:   @@@vars
+    ```scala
+    libraryDependencies += "com.lightbend.akka" %% "akka-management-cluster-bootstrap" % "$version$"
+    libraryDependencies += "com.lightbend.akka" %% "akka-discovery-dns"                % "$version$"
+    ```
+    @@@
+
+Maven
+:   @@@vars
+    ```xml
+    <dependency>
+      <groupId>com.lightbend.akka</groupId>
+      <artifactId>akka-management-cluster-bootstrap_$scala.binaryVersion$</artifactId>
+      <version>$version$</version>
+    </dependency>
+    <dependency>
+      <groupId>com.lightbend.akka</groupId>
+      <artifactId>akka-discovery-dns_$scala.binaryVersion$</artifactId>
+      <version>$version$</version>
+    </dependency>
+    ```
+    @@@
+
+Gradle
+:   @@@vars
+    ```gradle
+    dependencies {
+      compile group: "com.lightbend.akka", name: "akka-management-cluster-bootstrap_$scala.binaryVersion$", version: "$version$"
+      compile group: "com.lightbend.akka", name: "akka-discovery-dns_$scala.binaryVersion$", version: "$version$"
+    }
+    ```
+    @@@
+
+
 ## Akka Cluster Bootstrap Process explained
 
 The Akka Cluster Bootstrap process is composed of two phases. First, a minimum number of Contact Points (by default at least 
@@ -102,8 +145,9 @@ In Kubernetes, one would deploy an Akka Cluster as a single [Headless Service](h
 An example application using docker and prepared to be deployed to kubernetes is provided in Akka Management's github repository 
 as sub-project [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo).
 
-Rather than configuring the Dockerfile directly, we used the sbt-native-packager to package the application as docker container.
-See the `build.sbt` file for more details, and the `kubernetes/akka-cluster.yml` file for the service configuration, which is:
+Rather than configuring the Dockerfile directly, we used the [sbt-native-packager](http://sbt-native-packager.readthedocs.io/en/stable/) 
+to package the application as docker container. See the `build.sbt` file for more details, and the `kubernetes/akka-cluster.yml` 
+file for the service configuration, which is:
 
 @@snip [akka-cluster.yml](../../../../bootstrap-joining-demo/kubernetes/akka-cluster.yml) 
 
