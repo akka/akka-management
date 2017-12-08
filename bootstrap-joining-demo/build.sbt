@@ -18,13 +18,13 @@ libraryDependencies += Seq(
   "akka-management",
 
   // 2) we want to use the bootstrap
-  cluster-bootstrap
+  "akka-management-cluster-bootstrap",
 
   // 3) the initial contact points should be located via DNS:
-  akka-discovery-dns
+  "akka-discovery-dns",
 
   // extra)
-  // "cluster-http" // optional, if you want to inspect the cluster as well
+  // ""akka-management-cluster-http" // optional, if you want to inspect the cluster as well
 */
 
 dockerCommands :=

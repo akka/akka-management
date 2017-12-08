@@ -66,16 +66,34 @@ store would not help with these as well. The race exists regardless of how we ob
 ### Discussion: Rationale for avoidance of external (consistent) data-store for seed-nodes
 
 TODO: explain that those only provide the illusion of safety, as races can still happen in the "self join",
-even if a consistent data-store is used. It is only about probability of the issue happening, and with our sollution
+even if a consistent data-store is used. It is only about probability of the issue happening, and with our solution
 we're as good as the same without the need for external stores other than DNS.
 
 TODO: explain that by forcing users to run a consensus cluster in order to even join members to another cluster is much 
 operational overhead, and not actually required.
 
-TODO: explain that a consistency picking datastore is NOT optimal for systems which need to contact such store to JOIN
+TODO: explain that a consistency picking data-store is NOT optimal for systems which need to contact such store to JOIN
 a cluster. After all, you want to join new nodes perhaps when the system is under much load and even the consensus system
 could then be overloaded -- causing you to be unable to join new nodes! By embracing a truly peer-to-peer joining model,
 we can even join nodes (yes, safely) during intense traffic and avoid having one more system that could break. 
+
+## Joining mechanism precedence
+
+As Akka Cluster allows nodes to join to a cluster using a few methods it is the precedence of each method
+is strictly defined and is as follows:
+
+- If configured `akka.cluster.seed-nodes` (in your `application.conf`) are non-empty, those nodes will be joined, and bootstrap will NOT execute even if `start()` is called (a warning will be logged though).
+- If an explicit `cluster.join` or `cluster.joinSeedNodes` is invokes before the bootstrap completes that
+ joining would take precedence over the bootstrap. *This is however **not** recommended to mix multiple
+ joining methods like this. Stick to one joining mechanism to avoid surprising behaviour during cluster
+ formation.*
+- The Cluster Bootstrap mechanism takes some time to complete, but eventually issues a `join`.
+
+@@@ warning
+  It is NOT recommended to mix various joining mechanisms. Pick one mechanism and stick to it in order to
+  avoid any surprises during cluster formation. E.g. do NOT set `akka.cluster.seed-nodes` if you are going
+  to be using the Bootstrap mechanism. 
+@@@
 
 ## Examples
 

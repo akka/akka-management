@@ -16,6 +16,7 @@ import akka.http.scaladsl.server.{ Directive, Directives, Route, RouteResult }
 import akka.management.http.{ ManagementRouteProvider, ManagementRouteProviderSettings }
 import akka.stream.ActorMaterializer
 
+import scala.collection.immutable
 import scala.concurrent.{ Future, Promise }
 import scala.util.{ Failure, Success, Try }
 
@@ -35,7 +36,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   private implicit val materializer = ActorMaterializer()
   import system.dispatcher
 
-  private val routeProviders: List[ManagementRouteProvider] = loadRouteProviders()
+  private val routeProviders: immutable.Seq[ManagementRouteProvider] = loadRouteProviders()
 
   /**
    * Set async authenticator to be used for management routes.
@@ -54,7 +55,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
    * Set this to `akka.http.[javadsl|scaladsl].HttpsConnectionContext` to bind the server using HTTPS.
    * Refer to the Akka HTTP documentation for details about configuring HTTPS for it.
    */
-  def setHttpsContext(context: HttpsConnectionContext) =
+  def setHttpsContext(context: HttpsConnectionContext): Unit =
     _connectionContext = context.asInstanceOf[akka.http.scaladsl.ConnectionContext]
   private[this] var _connectionContext: akka.http.scaladsl.ConnectionContext = Http().defaultServerHttpContext
 
@@ -69,12 +70,11 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
     val serverBindingPromise = Promise[Http.ServerBinding]()
     if (bindingFuture.compareAndSet(null, serverBindingPromise.future)) {
 
-      // val protocol = "http" // TODO https?
       val hostname = settings.Http.Hostname
       val port = settings.Http.Port
 
       // port is on purpose never inferred from protocol, because this HTTP endpoint is not the "main" one for the app
-      val protocol = if (settings.Http.isHttps) "https" else "http"
+      val protocol = if (_connectionContext.isSecure) "https" else "http"
       val selfBaseUri = Uri(s"$protocol://$hostname:$port/${settings.Http.BasePath}")
       val providerSettings = ManagementRouteProviderSettingsImpl(selfBaseUri)
 
@@ -122,7 +122,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
         case _ ⇒ inner
       }
 
-    val combinedRoutes: List[Route] = routeProviders.map { provider =>
+    val combinedRoutes = routeProviders.map { provider =>
       log.info("Including HTTP management routes for {}", Logging.simpleName(provider))
       provider.routes(providerSettings)
     }
@@ -148,7 +148,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
       stopFuture
     }
 
-  private def loadRouteProviders(): List[ManagementRouteProvider] = {
+  private def loadRouteProviders(): immutable.Seq[ManagementRouteProvider] = {
     val dynamicAccess = system.dynamicAccess
 
     // since often the providers are akka extensions, we initialize them here as the ActorSystem would otherwise

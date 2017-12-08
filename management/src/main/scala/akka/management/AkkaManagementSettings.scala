@@ -6,7 +6,9 @@ package akka.management
 import java.net.InetAddress
 
 import com.typesafe.config.Config
+
 import scala.collection.JavaConverters._
+import scala.collection.immutable
 
 final class AkkaManagementSettings(val config: Config) {
   private val managementConfig = config.getConfig("akka.management")
@@ -26,12 +28,10 @@ final class AkkaManagementSettings(val config: Config) {
       p
     }
 
-    def isHttps = false // FIXME
-
     val BasePath: Option[String] =
       Option(cc.getString("base-path")).flatMap(it ⇒ if (it.trim == "") None else Some(it))
 
-    val RouteProviders: List[String] = cc.getStringList("route-providers").asScala.toList
+    val RouteProviders: immutable.Seq[String] = cc.getStringList("route-providers").asScala.toList
 
   }
 

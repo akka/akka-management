@@ -20,7 +20,6 @@ class HttpContactPointRoutesSpec
     s"""
     akka {
       remote {
-        enabled-transports = ["akka.remote.netty.tcp"]
         netty.tcp {
           hostname = "127.0.0.1"
           port = ${SocketUtil.temporaryServerAddress("127.0.0.1").getPort}

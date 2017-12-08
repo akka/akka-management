@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
 import akka.annotation.InternalApi
+import akka.cluster.Cluster
 import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
 import akka.discovery.ServiceDiscovery
 import akka.event.Logging
@@ -60,7 +61,13 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   }
 
   def start(): Unit =
-    if (bootstrapStep.compareAndSet(NotRunning, Initializing)) {
+    if (Cluster(system).settings.SeedNodes.nonEmpty) {
+      log.warning(
+          "Application is configured with specific `akka.cluster.seed-nodes`: {}, bailing out of the bootstrap process! " +
+          "If you want to use the automatic bootstrap mechanism, make sure to NOT set explicit seed nodes in the configuration. " +
+          "This node will attempt to join the configured seed nodes.",
+          Cluster(system).settings.SeedNodes.mkString("[", ", ", "]"))
+    } else if (bootstrapStep.compareAndSet(NotRunning, Initializing)) {
       log.info("Initiating bootstrap procedure using {} method...", settings.contactPointDiscovery.discoveryMethod)
 
       // TODO this could be configured as well, depending on how we want to bootstrap
