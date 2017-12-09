@@ -29,9 +29,14 @@ Bootstrap, which on one hand does contributes routes to Akka Management, however
 does not start unless `ClusterBootstrap().start()` is invoked, which allows the user to decide when exactly
 it is ready and wants to start joining an existing cluster.
 
+![project structure](images/structure.png)
+
 ## Dependencies
 
-Akka Management is a separate jar file. Make sure that you have the following dependency in your project::
+The main Akka Management dependency is called `akka-management`. By itself however it does not provide any capabilities,
+and you have to combine it with the management extension libraries that you want to make use of (e.g. cluster http management,
+or cluster bootstrap). This design choice was made to make users able to include only the minimal set of features that they 
+actually want to use (and load) in their project.
 
 sbt
 :   @@@vars
