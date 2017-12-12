@@ -56,7 +56,7 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
       val bootstrap = ClusterBootstrap(system)
 
       // we KNOW this await is safe, since we set the value before we bind the HTTP things even
-      val selfContactPoint = Try(Await.result(bootstrap.selfContactPoint, 1.second)).getOrElse(throw new Exception(
+      val selfContactPoint = Try(Await.result(bootstrap.selfContactPoint, 10.second)).getOrElse(throw new Exception(
             "Bootstrap.selfContactPoint was NOT set! This is required for the bootstrap to work! " +
             "If binding bootstrap routes manually and not via akka-management"))
 
