@@ -155,6 +155,8 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
     settings.Http.RouteProviders map { fqcn ⇒
       dynamicAccess.getObjectFor[ManagementRouteProvider](fqcn) recoverWith {
         case _ ⇒ dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, Nil)
+      } recoverWith {
+        case _ ⇒ dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
       } match {
         case Success(p: ExtensionIdProvider) ⇒
           system.registerExtension(p.lookup()).asInstanceOf[ManagementRouteProvider]
