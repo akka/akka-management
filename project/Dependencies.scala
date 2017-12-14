@@ -27,7 +27,8 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test",
       "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "test",
       "junit"             % "junit"                               % JUnitVersion    % "test",
-      "org.mockito"       % "mockito-all"                         % "1.10.19"       % "test"  // Common Public License 1.0
+      "org.mockito"       % "mockito-all"                         % "1.10.19"       % "test",  // Common Public License 1.0
+      "org.scalamock"     %% "scalamock"                          % "4.0.0"         % "test"
     )
   )
 
