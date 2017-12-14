@@ -160,14 +160,19 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
       } recoverWith {
         case _ ⇒
           dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
+      } recoverWith {
+        case _ ⇒
+          dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, Nil)
+      } recoverWith {
+        case _ ⇒
+          dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
       } match {
         case Success(p: ExtensionIdProvider) ⇒
           val extension = system.registerExtension(p.lookup())
           extension.asInstanceOf[ManagementRouteProvider]
 
-        case Success(p: ExtensionId[_]) ⇒
-          val extension = system.registerExtension(p)
-          extension.asInstanceOf[ManagementRouteProvider]
+        case Success(p: ManagementRouteProvider) ⇒
+          p
 
         case Success(_) ⇒
           throw new RuntimeException(s"[$fqcn] is not an 'ExtensionIdProvider' or 'ExtensionId'")

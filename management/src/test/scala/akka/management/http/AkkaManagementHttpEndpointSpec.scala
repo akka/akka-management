@@ -22,7 +22,7 @@ import org.scalatest.{ Matchers, WordSpecLike }
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 
-object HttpManagementEndpointSpecRoutes extends ManagementRouteProvider with Directives {
+class HttpManagementEndpointSpecRoutes extends ManagementRouteProvider with Directives {
   override def routes(settings: ManagementRouteProviderSettings): Route =
     complete("hello world")
 }

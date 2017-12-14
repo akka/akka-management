@@ -70,7 +70,8 @@ class MultiDcSpec
           .futureValue
 
         eventually {
-          val response = Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:$httpPortA/members")).futureValue
+          val response =
+            Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:$httpPortA/cluster/members")).futureValue
           response.status should equal(StatusCodes.OK)
           val members = Unmarshal(response.entity).to[ClusterMembers].futureValue
           members.members.size should equal(2)
