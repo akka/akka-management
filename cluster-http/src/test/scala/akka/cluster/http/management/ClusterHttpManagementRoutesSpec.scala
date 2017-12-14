@@ -4,19 +4,27 @@
 package akka.cluster.http.management
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
-import akka.actor.{ Actor, Address, Props }
+import akka.actor.{ Actor, ActorSystem, Address, ExtendedActorSystem, Props }
 import akka.cluster.ClusterEvent.CurrentClusterState
+import akka.cluster.InternalClusterAction.LeaderActionsTick
 import akka.cluster.MemberStatus.{ Joining, Up }
 import akka.cluster._
-import akka.cluster.sharding.ShardRegion
-import akka.http.scaladsl.model.{ FormData, StatusCodes }
+import akka.cluster.http.management.ClusterHttpManagementRoutesSpec.TestShardedActor
+import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.cluster._
+import akka.management.http.ManagementRouteProviderSettings
+import akka.util.Timeout
+import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.{ Matchers, WordSpecLike }
 
 import scala.collection.immutable._
+import scala.concurrent.Await
 
 class ClusterHttpManagementRoutesSpec
     extends WordSpecLike
@@ -293,72 +301,77 @@ class ClusterHttpManagementRoutesSpec
 
     "return shard region details" when {
 
-//      // FIXME
-//      "calling GET /cluster/shard_regions/{name}" in {
-//        val config = ConfigFactory.parseString(
-//          """
-//            |akka.cluster {
-//            |  auto-down-unreachable-after = 0s
-//            |  periodic-tasks-initial-delay = 120 seconds // turn off scheduled tasks
-//            |  publish-stats-interval = 0 s # always, when it happens
-//            |  failure-detector.implementation-class = akka.cluster.FailureDetectorPuppet
-//            |  sharding.state-store-mode = ddata
-//            |}
-//            |akka.actor.provider = "cluster"
-//            |akka.remote.log-remote-lifecycle-events = off
-//            |akka.remote.netty.tcp.port = 0
-//          """.stripMargin
-//        )
-//        val configClusterHttpManager = ConfigFactory.parseString(
-//          """
-//            |akka.management.http.hostname = "127.0.0.1"
-//            |akka.management.http.port = 20100
-//          """.stripMargin
-//        )
-//
-//        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager))
-//        val cluster = Cluster(system)
-//        val selfAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
-//        cluster.join(selfAddress)
-//        cluster.clusterCore ! LeaderActionsTick
-//
-//        val name = "TestShardRegion"
-//        val shardRegion = ClusterSharding(system).start(
-//          name,
-//          TestShardedActor.props,
-//          ClusterShardingSettings(system),
-//          TestShardedActor.extractEntityId,
-//          TestShardedActor.extractShardId
-//        )
-//        val initializeEntityActorAsk = shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String]
-//        Await.result(initializeEntityActorAsk, 3.seconds)
-//
-//        val clusterHttpManagement = ClusterHttpManagement(cluster)
-//        clusterHttpManagement.start()
-//
-//        val responseGetShardDetailsFuture = Http().singleRequest(
-//          HttpRequest(uri = s"http://127.0.0.1:20100/shards/$name")
-//        )
-//        val responseGetShardDetails = Await.result(responseGetShardDetailsFuture, 1.second)
-//        responseGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
-//        responseGetShardDetails.status shouldEqual StatusCodes.OK
-//        val unmarshaledGetShardDetails = Await.result(
-//          Unmarshal(responseGetShardDetails.entity).to[ShardDetails],
-//          1.second
-//        )
-//        unmarshaledGetShardDetails shouldEqual ShardDetails(Seq(ShardRegionInfo("ShardId", 1)))
-//
-//        val responseInvalidGetShardDetailsFuture = Http().singleRequest(
-//          HttpRequest(uri = s"http://127.0.0.1:20100/shards/ThisShardRegionDoesNotExist")
-//        )
-//        val responseInvalidGetShardDetails = Await.result(responseInvalidGetShardDetailsFuture, 1.second)
-//        responseInvalidGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
-//        responseInvalidGetShardDetails.status shouldEqual StatusCodes.NotFound
-//
-//        val bindingFuture = clusterHttpManagement.stop()
-//        Await.ready(bindingFuture, 5.seconds)
-//        system.terminate()
-//      }
+      "calling GET /cluster/shard_regions/{name}" in {
+        import scala.concurrent.duration._
+        import akka.pattern.ask
+
+        val config = ConfigFactory.parseString(
+          """
+            |akka.cluster {
+            |  auto-down-unreachable-after = 0s
+            |  periodic-tasks-initial-delay = 120 seconds // turn off scheduled tasks
+            |  publish-stats-interval = 0 s # always, when it happens
+            |  failure-detector.implementation-class = akka.cluster.FailureDetectorPuppet
+            |  sharding.state-store-mode = ddata
+            |}
+            |akka.actor.provider = "cluster"
+            |akka.remote.log-remote-lifecycle-events = off
+            |akka.remote.netty.tcp.port = 0
+          """.stripMargin
+        )
+        val configClusterHttpManager = ConfigFactory.parseString(
+          """
+            |akka.management.http.hostname = "127.0.0.1"
+            |akka.management.http.port = 20100
+          """.stripMargin
+        )
+
+        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager))
+        val cluster = Cluster(system)
+        val selfAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
+        cluster.join(selfAddress)
+        cluster.clusterCore ! LeaderActionsTick
+
+        val name = "TestShardRegion"
+        val shardRegion = ClusterSharding(system).start(
+          name,
+          TestShardedActor.props,
+          ClusterShardingSettings(system),
+          TestShardedActor.extractEntityId,
+          TestShardedActor.extractShardId
+        )
+        val initializeEntityActorAsk = shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String]
+        Await.result(initializeEntityActorAsk, 3.seconds)
+
+        val clusterHttpManagement = ClusterHttpManagement(system)
+        val settings = new ManagementRouteProviderSettings {
+          override def selfBaseUri: Uri = "http://127.0.0.1:20100"
+        }
+        val binding =
+          Await.result(Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100), 3.seconds)
+
+        val responseGetShardDetailsFuture = Http().singleRequest(
+          HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")
+        )
+        val responseGetShardDetails = Await.result(responseGetShardDetailsFuture, 1.second)
+        responseGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
+        responseGetShardDetails.status shouldEqual StatusCodes.OK
+        val unmarshaledGetShardDetails = Await.result(
+          Unmarshal(responseGetShardDetails.entity).to[ShardDetails],
+          1.second
+        )
+        unmarshaledGetShardDetails shouldEqual ShardDetails(Seq(ShardRegionInfo("ShardId", 1)))
+
+        val responseInvalidGetShardDetailsFuture = Http().singleRequest(
+          HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/ThisShardRegionDoesNotExist")
+        )
+        val responseInvalidGetShardDetails = Await.result(responseInvalidGetShardDetailsFuture, 1.second)
+        responseInvalidGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
+        responseInvalidGetShardDetails.status shouldEqual StatusCodes.NotFound
+
+        Await.ready(binding.unbind(), 5.seconds)
+        system.terminate()
+      }
     }
   }
 }
