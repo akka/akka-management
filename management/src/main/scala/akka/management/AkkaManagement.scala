@@ -153,20 +153,21 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
 
     // since often the providers are akka extensions, we initialize them here as the ActorSystem would otherwise
     settings.Http.RouteProviders map { fqcn ⇒
-      dynamicAccess.getObjectFor[ManagementRouteProvider](fqcn) recoverWith {
-        case _ ⇒ dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, Nil)
+      log.warning(s"CREATING ${fqcn}")
+
+      dynamicAccess.getObjectFor[ExtensionIdProvider](fqcn) recoverWith {
+        case _ ⇒ dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, Nil)
       } recoverWith {
         case _ ⇒
-          dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
+          dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
       } match {
         case Success(p: ExtensionIdProvider) ⇒
-          system.registerExtension(p.lookup()).asInstanceOf[ManagementRouteProvider]
+          val extension = system.registerExtension(p.lookup())
+          extension.asInstanceOf[ManagementRouteProvider]
 
         case Success(p: ExtensionId[_]) ⇒
-          system.registerExtension(p).asInstanceOf[ManagementRouteProvider]
-
-        case Success(p: ManagementRouteProvider) ⇒
-          p
+          val extension = system.registerExtension(p)
+          extension.asInstanceOf[ManagementRouteProvider]
 
         case Success(_) ⇒
           throw new RuntimeException(s"[$fqcn] is not an 'ExtensionIdProvider' or 'ExtensionId'")

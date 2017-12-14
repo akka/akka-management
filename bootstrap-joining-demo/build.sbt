@@ -43,7 +43,7 @@ dockerCommands += Cmd("USER", "root")
 // use ++= to merge a sequence with an existing sequence
 //
 // ENABLE THESE IF YOU WANT TO MANUALLY DO DNSLOOKUPS IN THE CONTAINER (FOR DEBUGGING)
-dockerCommands ++= Seq(
-  ExecCmd("RUN", "apt-get", "update"),
-  ExecCmd("RUN", "apt-get", "install", "-y", "dnsutils")
-)
+//dockerCommands ++= Seq(
+//  ExecCmd("RUN", "apt-get", "update"),
+//  ExecCmd("RUN", "apt-get", "install", "-y", "dnsutils")
+//)

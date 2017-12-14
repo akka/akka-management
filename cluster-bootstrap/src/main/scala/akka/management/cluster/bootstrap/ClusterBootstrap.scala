@@ -56,6 +56,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   private[this] val _selfContactPointUri: Promise[Uri] = Promise()
 
   override def routes(routeProviderSettings: ManagementRouteProviderSettings): Route = {
+    log.info(s"Got self contact point address: ${routeProviderSettings.selfBaseUri}")
     this.setSelfContactPoint(routeProviderSettings.selfBaseUri)
     new HttpClusterBootstrapRoutes(settings).routes
   }
@@ -96,8 +97,8 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
    * @return true if successfully set, false otherwise (i.e. was set already)
    */
   @InternalApi
-  def setSelfContactPoint(baseUri: Uri): Boolean =
-    _selfContactPointUri.trySuccess(baseUri)
+  def setSelfContactPoint(baseUri: Uri): Unit =
+    _selfContactPointUri.success(baseUri)
 
   /** INTERNAL API */
   private[akka] def selfContactPoint: Future[Uri] =
@@ -106,6 +107,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 }
 
 object ClusterBootstrap extends ExtensionId[ClusterBootstrap] with ExtensionIdProvider {
+
   override def lookup: ClusterBootstrap.type = ClusterBootstrap
 
   override def get(system: ActorSystem): ClusterBootstrap = super.get(system)
