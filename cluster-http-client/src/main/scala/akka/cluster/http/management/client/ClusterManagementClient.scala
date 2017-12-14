@@ -1,14 +1,17 @@
+/*
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ */
 package akka.cluster.http.management.client
 
 import akka.actor.ActorSystem
-import akka.cluster.http.management.{ClusterHttpManagementJsonProtocol, ClusterMember, ClusterMembers}
+import akka.cluster.http.management.{ ClusterHttpManagementJsonProtocol, ClusterMember, ClusterMembers }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri.Path
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.{ ActorMaterializer, Materializer }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait ClusterManagementClient extends ClusterHttpManagementJsonProtocol {
 
@@ -33,7 +36,7 @@ trait ClusterManagementClient extends ClusterHttpManagementJsonProtocol {
 }
 
 class AkkaClusterManagementClient(val baseUri: Uri)(implicit val system: ActorSystem, val ec: ExecutionContext)
-  extends ClusterManagementClient {
+    extends ClusterManagementClient {
   override private[akka] implicit val materializer = ActorMaterializer()
 
   override def responder = Http().singleRequest(_)
