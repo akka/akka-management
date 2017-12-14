@@ -5,13 +5,23 @@ lazy val `akka-management` = project
   .settings(unidocSettings)
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
-  .aggregate(`cluster-http`, docs)
+  .aggregate(`cluster-http`, `cluster-http-client`, docs)
 
 lazy val `cluster-http` = project
   .in(file("cluster-http"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-cluster-http",
+    Dependencies.ClusterHttp,
+    resolvers += Resolver.bintrayRepo("hajile", "maven")
+  )
+
+lazy val `cluster-http-client` = project
+  .in(file("cluster-http-client"))
+  .enablePlugins(AutomateHeaderPlugin)
+    .dependsOn(`cluster-http`)
+  .settings(
+    name := "akka-management-cluster-http-client",
     Dependencies.ClusterHttp,
     resolvers += Resolver.bintrayRepo("hajile", "maven")
   )
