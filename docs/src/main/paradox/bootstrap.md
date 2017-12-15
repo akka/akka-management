@@ -79,25 +79,47 @@ of them should perform this join. We make this decision by sorting the known add
 will notice and start joining this node. Now the process just explained in the previous paragraph, referred to as "epidemic 
 joining" continues until all nodes have joined the cluster. 
 
-In summary, the process is as follows:
- - find Contact Points using DNS
- - start probing each of the Contact Points for their known seed-nodes
- - a) Cluster already exists
-   - if any of the Contact Points returns known seed-nodes, join them immediately
-   - the node is now part of the cluster, mission complete
-   - each time a node is added to the cluster, it is included in the seed-nodes (with a maximum limit of a few nodes),
-     which causes the joining to be spread out to the nodes which are already part of the cluster. They also start 
-     advertising see-nodes, so if a new node contacts any of those fresly joined nodes, they join the same cluster.
- - b) No cluster exists:
-   - if none of the contact points returns any seed nodes
-   - nodes will after a timeout realise they should form a new cluster, 
-     and will decide that the "lowest" address should join itself. 
-   - this deterministic decision causes one of the nodes to join itself, and start advertising itself in it's Contact Point 
-     as seed-node
-   - other nodes notice this via contact point probing and join this node
-   - from here the process explained in "Cluster already exists" continues as explained in the "epidemic joining" process,
-     until all nodes have joined the cluster.
- 
+### Case 1: "Initial" Bootstrap process
+
+The bootstrap process can be roughly explained in two situations, one being when no cluster exists in the deployment
+at all yet (which we call the "initial bootstrap) and the other case being when a cluster already exists and we're 
+simply adding new nodes to it wanting them to discover and join that cluster.
+
+First we explain the Initial Bootstrap. Both cases need to discover neighbouring nodes, which they do via Akka Discovery,
+which we recommend (and implement) with DNS, though you may use alternative lookup methods if you want. The bootstrap 
+process will then start probing those nodes Contact Points (which are HTTP endpoints, exposed via Akka Management by the
+Bootstrap Management Extension) for known seeds to join. Since no cluster exists yet, the seed node replies will be 
+empty from all contact points. Once at least `akka.management.cluster.bootstrap.required-contact-point-nr` nodes are
+discovered and `akka.management.cluster.bootstrap.stable-margin` time has passed, the nodes will decide that it is time 
+to confidently (enough) form a new cluster. The node with the "lowest" contact point address will decide to join itself,
+and other nodes are expecting this awaiting a seed-node address to appear in the contact point probing responses.
+
+Once the lowest addressed node has joined itself, it has formed a new cluster, and therefore starts returning itself
+as seed-node in its Contact Point response. Other nodes notice this and will join it, growing the existing cluster.
+
+The illustration below may be of help in visualising this process:
+
+![project structure](images/bootstrap-forming-cluster.png)
+
+The reason to not use Akka's remoting in the contact point probing itself is to in the future enable upgrades semi-automatic between even not wire compatible binary versions or protocols (e.g. moving from a classic remoting based system to an artery based one), or even advanced deployment patterns.
+
+### Case 1: Bootstrap process, with existing cluster
+
+The Bootstrap process in face of an existing cluster in a deployment is very simple, and actually if you read through
+Case 1, you already seen it in action.
+
+The process starts the same way for a new node being started and wanting to discovery which cluster it should join.
+It discovers its neighbours using Akka Discovery (e.g. by DNS), and starts probing their contact points.
+As a cluster exists already, at-least-one node will return a non-empty seed-node list in its contact point reply.
+The being bootstraped node immediately decides to join that seed-node, as that simply indicated that a cluster exists 
+and the new node should be joining it. This marks the end of the process.
+
+The observant reader may have noticed, that this is exactly what all nodes in Case 1 were doing as well, yet in that case
+the additional decision of one node joining "itself" was made, kicking off the entire epidemic joining process from
+there on.
+
+![project structure](images/bootstrap-existing-cluster.png)
+
 
 ### Specific edge-cases explained
 
