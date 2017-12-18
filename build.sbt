@@ -1,30 +1,86 @@
 import java.nio.file.Paths
 
-lazy val `akka-management` = project
+// root
+lazy val `akka-management-root` = project
   .in(file("."))
   .settings(unidocSettings)
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
-  .aggregate(`cluster-http`, docs)
+  .aggregate(
+    `akka-discovery`,
+    `akka-discovery-dns`,
+    `akka-management`,
+    `cluster-http`,
+    `cluster-bootstrap`,
+    docs)
 
+// interfaces and extension for Discovery
+lazy val `akka-discovery` = project
+  .in(file("discovery"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery",
+    Dependencies.Discovery
+  )
+
+// DNS implementation of discovery, default and works well for Kubernetes among other things
+lazy val `akka-discovery-dns` = project
+  .in(file("discovery-dns"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-dns",
+    Dependencies.DiscoveryDns
+  )
+  .dependsOn(`akka-discovery`)
+
+// gathers all enabled routes and serves them (HTTP or otherwise)
+lazy val `akka-management` = project
+  .in(file("management"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-management",
+    Dependencies.ManagementHttp
+  )
+
+// cluster management http routes, expose information and operations about the cluster
 lazy val `cluster-http` = project
   .in(file("cluster-http"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-cluster-http",
-    Dependencies.ClusterHttp,
-    resolvers += Resolver.bintrayRepo("hajile", "maven")
+    Dependencies.ClusterHttp
   )
+  .dependsOn(`akka-management`)
 
-lazy val `joining-demo` = project
-  .in(file("joining-demo"))
+// cluster bootstraping
+lazy val `cluster-bootstrap` = project
+  .in(file("cluster-bootstrap"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "akka-management-joining-demo",
+    name := "akka-management-cluster-bootstrap",
+    Dependencies.ClusterBootstrap
+  )
+  .dependsOn(`akka-management`, `akka-discovery`)
+
+// TODO I was thinking about introducing a module called akka-management-cluster-bootstrap-dns which does not do anything,
+// except pull together the 2 modules of cluster bootstrap and akka discovery dns so it's only 1 dependency you need to pick.
+// I was thinking it would be nice to have "hello world bootstrap in the smallest number of steps" so that would reduce 2 deps into 1.
+
+// demo of the bootstrap
+lazy val `bootstrap-joining-demo` = project
+  .in(file("bootstrap-joining-demo"))
+  .enablePlugins(NoPublish)
+  .disablePlugins(BintrayPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-management-bootstrap-joining-demo",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
-  ).dependsOn(`cluster-http`)
+  ).dependsOn(`akka-management`, `cluster-http`, `akka-discovery-dns`, `cluster-bootstrap`)
 
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project
@@ -42,7 +98,7 @@ lazy val docs = project
       "extref.akka-http-docs.base_url" -> s"http://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s.html",
       "extref.java-api.base_url" -> "https://docs.oracle.com/javase/8/docs/api/index.html?%s.html",
       "scaladoc.akka.base_url" -> s"http://doc.akka.io/api/akka/${Dependencies.AkkaVersion}",
-      "scaladoc.akka.cluster.http.management.base_url" -> {
+      "scaladoc.akka.management.http.base_url" -> {
         if (isSnapshot.value) Paths.get((target in paradox in Compile).value.getPath).relativize(Paths.get(unidocTask.value.head.getPath)).toString
         else s"http://developer.lightbend.com/docs/api/akka-management/${version.value}"
       },
