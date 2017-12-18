@@ -21,6 +21,7 @@ lazy val `akka-discovery` = project
   .settings(unidocSettings)
   .settings(
     name := "akka-discovery",
+    organization := "com.lightbend.akka",
     Dependencies.Discovery
   )
 
@@ -31,6 +32,7 @@ lazy val `akka-discovery-dns` = project
   .settings(unidocSettings)
   .settings(
     name := "akka-discovery-dns",
+    organization := "com.lightbend.akka",
     Dependencies.DiscoveryDns
   )
   .dependsOn(`akka-discovery`)
