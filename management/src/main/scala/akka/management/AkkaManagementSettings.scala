@@ -18,7 +18,8 @@ final class AkkaManagementSettings(val config: Config) {
 
     val Hostname: String = {
       val hostname = cc.getString("hostname")
-      if (hostname == "") InetAddress.getLocalHost.getHostAddress
+      if (hostname == "<hostname>") InetAddress.getLocalHost.getHostAddress
+      else if (hostname.trim() == "") InetAddress.getLocalHost.getHostAddress
       else hostname
     }
 

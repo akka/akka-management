@@ -46,7 +46,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
         discovery
 
       case otherDiscoveryMechanism ⇒
-        val implClazz = system.settings.config.getString(otherDiscoveryMechanism + ".impl")
+        val implClazz = system.settings.config.getString(otherDiscoveryMechanism + ".class")
         log.info("Bootstrap using [{}] discovery mechanism, instantiating [{}]", otherDiscoveryMechanism, implClazz)
         system.dynamicAccess
           .createInstanceFor[SimpleServiceDiscovery](implClazz, List(classOf[ActorSystem] → system))

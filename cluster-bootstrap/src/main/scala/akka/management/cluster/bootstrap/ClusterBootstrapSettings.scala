@@ -12,19 +12,28 @@ import com.typesafe.config.Config
 import scala.concurrent.duration.{ FiniteDuration, _ }
 
 final class ClusterBootstrapSettings(config: Config) {
+  private implicit class HasDefined(val config: Config) {
+    def hasDefined(key: String): Boolean =
+      config.hasPath(key) &&
+      config.getString(key).trim.nonEmpty &&
+      config.getString(key) != s"<$key>"
+  }
+
   private val bootConfig = config.getConfig("akka.management.cluster.bootstrap")
 
   object contactPointDiscovery {
     private val discoveryConfig: Config = bootConfig.getConfig("contact-point-discovery")
 
     val serviceName: Option[String] =
-      if (discoveryConfig.hasPath("service-name")) Some(discoveryConfig.getString("service-name")) else None
+      if (discoveryConfig.hasDefined("service-name")) Some(discoveryConfig.getString("service-name"))
+      else None
 
     val serviceNamespace: Option[String] =
-      if (discoveryConfig.hasPath("service-namespace")) Some(discoveryConfig.getString("service-namespace")) else None
+      if (discoveryConfig.hasDefined("service-namespace")) Some(discoveryConfig.getString("service-namespace"))
+      else None
 
     def effectiveName(system: ActorSystem): String =
-      if (discoveryConfig.hasPath("effective-name")) {
+      if (discoveryConfig.hasDefined("effective-name")) {
         discoveryConfig.getString("effective-name")
       } else {
         val service = serviceName match {
@@ -47,9 +56,6 @@ final class ClusterBootstrapSettings(config: Config) {
       discoveryConfig.getDuration("interval", TimeUnit.MILLISECONDS).millis
 
     val requiredContactPointsNr: Int = discoveryConfig.getInt("required-contact-point-nr")
-    require(requiredContactPointsNr >= 2,
-      "Number of contact points must be greater than 1. " +
-      "For 'single node clusters' simply avoid using the seed bootstraping process, and issue a self-join manually.")
 
     val resolveTimeout: FiniteDuration = discoveryConfig.getDuration("resolve-timeout", TimeUnit.MILLISECONDS).millis
 

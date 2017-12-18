@@ -42,7 +42,7 @@ class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
           cluster.jmx.multi-mbeans-in-same-jvm = on
 
           # this can be referred to in tests to use the mock discovery implementation
-          mock-dns.impl = "akka.discovery.MockDiscovery"
+          mock-dns.class = "akka.discovery.MockDiscovery"
 
           cluster.http.management.port = $managementPort
           remote.netty.tcp.port = $remotingPort
@@ -95,8 +95,7 @@ class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
 
         val bootstrap = ClusterBootstrap(system)
         val routes = new HttpClusterBootstrapRoutes(bootstrap.settings).routes
-        bootstrap
-          .setSelfContactPoint(s"http://127.0.0.1:$contactPointPort") // FIXME how can we set this in akka-management
+        bootstrap.setSelfContactPoint(s"http://127.0.0.1:$contactPointPort")
         Http().bindAndHandle(RouteResult.route2HandlerFlow(routes), "127.0.0.1", contactPointPort)
       }
 

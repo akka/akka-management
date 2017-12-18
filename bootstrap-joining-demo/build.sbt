@@ -5,11 +5,6 @@ enablePlugins(JavaServerAppPackaging)
 dockerEntrypoint ++= Seq(
   """-Dakka.remote.netty.tcp.hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")"""",
   """-Dakka.management.http.hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")""""
-// THIS WOULD ONLY BE NEEDED IF WE USED THE ASYNC-DNS CODE
-//,
-//  "-Dakka.io.dns.resolver=async-dns",
-//  "-Dakka.io.dns.async-dns.resolve-srv=true",
-//  "-Dakka.io.dns.async-dns.resolv-conf=on"
 )
 
 /*

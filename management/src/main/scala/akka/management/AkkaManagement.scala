@@ -38,6 +38,8 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
 
   private val routeProviders: immutable.Seq[ManagementRouteProvider] = loadRouteProviders()
 
+  private[this] val runningUri = new AtomicReference[Uri]
+
   /**
    * Set async authenticator to be used for management routes.
    *
@@ -45,7 +47,13 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
    * Do not call concurrently.
    */
   def setAsyncAuthenticator(auth: AsyncAuthenticator[String]): Unit =
-    _asyncAuthenticator = Option(auth)
+    if (runningUri.get() eq null) {
+      _asyncAuthenticator = Option(auth)
+    } else
+      throw new IllegalStateException(
+          "Attempted to set authenticator AFTER start() was called, so this call has no effect! " +
+          "You are running WITHOUT authentication enabled! Make sure to call setAsyncAuthenticator BEFORE calling start().")
+
   // FIXME replace with config object and withs?
   private[this] var _asyncAuthenticator: Option[AsyncAuthenticator[String]] = None
 
@@ -56,7 +64,12 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
    * Refer to the Akka HTTP documentation for details about configuring HTTPS for it.
    */
   def setHttpsContext(context: HttpsConnectionContext): Unit =
-    _connectionContext = context.asInstanceOf[akka.http.scaladsl.ConnectionContext]
+    if (runningUri.get() eq null) {
+      _connectionContext = context.asInstanceOf[akka.http.scaladsl.ConnectionContext]
+    } else
+      throw new IllegalStateException(
+          "Attempted to set HTTPS Context AFTER start() was called, so this call has no effect! " +
+          "You are running Akka Management over PLAIN HTTP! Make sure to call `setHttpsContext` BEFORE calling `start()`.")
   private[this] var _connectionContext: akka.http.scaladsl.ConnectionContext = Http().defaultServerHttpContext
 
   private val bindingFuture = new AtomicReference[Future[Http.ServerBinding]]()
@@ -139,22 +152,23 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
     }
   }
 
-  def stop(): Future[Done] =
-    if (bindingFuture.get() == null) {
+  def stop(): Future[Done] = {
+    val binding = bindingFuture.get()
+
+    if (binding == null) {
       Future.successful(Done)
-    } else {
-      val stopFuture = bindingFuture.get().flatMap(_.unbind()).map(_ => Done)
+    } else if (bindingFuture.compareAndSet(binding, null)) {
+      val stopFuture = binding.flatMap(_.unbind()).map(_ => Done)
       bindingFuture.set(null)
       stopFuture
-    }
+    } else stop() // retry, CAS was not successful, someone else completed the stop()
+  }
 
   private def loadRouteProviders(): immutable.Seq[ManagementRouteProvider] = {
     val dynamicAccess = system.dynamicAccess
 
     // since often the providers are akka extensions, we initialize them here as the ActorSystem would otherwise
     settings.Http.RouteProviders map { fqcn ⇒
-      log.warning(s"CREATING ${fqcn}")
-
       dynamicAccess.getObjectFor[ExtensionIdProvider](fqcn) recoverWith {
         case _ ⇒ dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, Nil)
       } recoverWith {

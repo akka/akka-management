@@ -36,9 +36,11 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
     }
   }
 
-  val routes =
-    toStrictEntity(1.second) { // always drain everything
-      (get & path("bootstrap" / "seed-nodes"))(routeGetSeedNodes)
+  val routes: Route =
+    (get & path("bootstrap" / "seed-nodes")) {
+      toStrictEntity(1.second) { // always drain everything
+        routeGetSeedNodes
+      }
     }
 
   private def log(implicit sys: ActorSystem): LoggingAdapter =

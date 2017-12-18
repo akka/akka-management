@@ -89,8 +89,7 @@ class ClusterHttpManagementRoutesSpec
     }
 
     "join a member" when {
-      "callin" +
-      "g POST /cluster/members with form field 'memberAddress'" in {
+      "calling POST /cluster/members with form field 'memberAddress'" in {
         val address = "akka.tcp://Main@hostname.com:3311"
         val urlEncodedForm = FormData(Map("address" → address))
 

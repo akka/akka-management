@@ -26,7 +26,7 @@ class DiscoveryConfigurationSpec extends WordSpec with Matchers {
       val className = classOf[FakeTestDiscovery].getCanonicalName
 
       val sys = ActorSystem("example", ConfigFactory.parseString(s"""
-          akka.discovery.impl = $className
+          akka.discovery.method = $className
         """.stripMargin).withFallback(ConfigFactory.load()))
 
       ServiceDiscovery(sys).discovery.getClass.getCanonicalName should ===(className)

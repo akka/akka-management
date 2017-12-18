@@ -35,6 +35,10 @@ object Dependencies {
       "io.spray"          %% "spray-json"                         % SprayJsonVersion                  // ApacheV2
     )
 
+    val AkkaCluster = Seq(
+      "com.typesafe.akka" %% "akka-cluster"                       % AkkaVersion
+    )
+
     val AkkaSharding = Seq(
       "com.typesafe.akka" %% "akka-cluster"                       % AkkaVersion,
       "com.typesafe.akka" %% "akka-cluster-sharding"              % AkkaVersion
@@ -79,7 +83,7 @@ object Dependencies {
 
   val ClusterBootstrap = Seq(
     libraryDependencies ++=
-      DependencyGroups.AkkaSharding ++
+      DependencyGroups.AkkaCluster ++
       DependencyGroups.AkkaHttpCore ++
       DependencyGroups.AkkaTesting ++ Seq(
       "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test"

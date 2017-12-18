@@ -7,46 +7,55 @@ package akka.management.cluster.bootstrap.contactpoint
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 
+import java.util.Locale
+
 import akka.actor.{ ActorSystem, Address }
 import akka.cluster.Cluster
-import akka.cluster.ClusterEvent.{ ClusterDomainEvent, CurrentClusterState, MemberUp }
 import akka.discovery.MockDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
-import akka.testkit.{ SocketUtil, TestKit, TestProbe }
-import com.typesafe.config.{ Config, ConfigFactory }
-import org.scalatest.{ Matchers, WordSpecLike }
+import akka.testkit.{ SocketUtil, TestKit }
+import com.typesafe.config.ConfigFactory
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
 
-class ClusterBootstrapExistingSeedNodesSpec extends WordSpecLike with Matchers {
+class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
+    extends TestKit(system)
+    with WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll {
 
-  "Cluster Bootstrap" should {
+  def this() {
+    this(ActorSystem("ClusterBootstrapExistingSeedNodesSpec"))
+  }
 
-    var remotingPorts = Map.empty[String, Int]
-    var contactPointPorts = Map.empty[String, Int]
+  val systemName = Logging.simpleName(classOf[ClusterBootstrapExistingSeedNodesSpec]) + "System"
 
-    // sneaky marker object:
-    val JoinYourself: List[Address] = List(null, null, null)
+  var remotingPorts = Map.empty[String, Int]
+  var contactPointPorts = Map.empty[String, Int]
 
-    def newSystem(id: String, seedNodes: List[Address]) = {
-      val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
-      val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+  // sneaky marker object:
+  val JoinYourself: List[Address] = List(null, null, null)
 
-      info(s"System [$id]:   remoting port: $remotingPort")
+  def newSystem(id: String, seedNodes: List[Address]) = {
+    val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+    val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
 
-      contactPointPorts = contactPointPorts.updated(id, managementPort)
-      remotingPorts = remotingPorts.updated(id, remotingPort)
+    info(s"System [$id]:   remoting port: $remotingPort")
 
-      val seeds = (seedNodes match {
-        case JoinYourself ⇒ List(s"akka.tcp://System@127.0.0.1:${remotingPort}")
-        case _ ⇒ seedNodes.map(_.toString)
-      }).mkString("""["""", """", """", """"] """)
+    contactPointPorts = contactPointPorts.updated(id, managementPort)
+    remotingPorts = remotingPorts.updated(id, remotingPort)
 
-      val config = ConfigFactory.parseString(s"""
+    val seeds = (seedNodes match {
+      case JoinYourself ⇒ List(s"akka.tcp://${systemName}@127.0.0.1:${remotingPort}")
+      case _ ⇒ seedNodes.map(_.toString)
+    }).mkString("""["""", """", """", """"] """)
+
+    val config = ConfigFactory.parseString(s"""
         akka {
           loglevel = INFO
 
@@ -58,7 +67,7 @@ class ClusterBootstrapExistingSeedNodesSpec extends WordSpecLike with Matchers {
           remote.netty.tcp.port = $remotingPort
 
           # this can be referred to in tests to use the mock discovery implementation
-          mock-dns.impl = "akka.discovery.MockDiscovery"
+          mock-dns.class = "akka.discovery.MockDiscovery"
 
           management {
 
@@ -77,30 +86,24 @@ class ClusterBootstrapExistingSeedNodesSpec extends WordSpecLike with Matchers {
         }
         """.stripMargin).withFallback(ConfigFactory.load())
 
-      ActorSystem("System", config)
-    }
+    ActorSystem(systemName, config)
+  }
 
-    val systemA = newSystem("A", seedNodes = JoinYourself)
-    val clusterA = Cluster(systemA)
+  val systemA = newSystem("A", seedNodes = JoinYourself)
+  val clusterA = Cluster(systemA)
 
-    // system B is expected to join system A, since seed-node conf trumps the bootstrap mechanism
-    val systemB = newSystem("B", seedNodes = List(clusterA.selfAddress))
-    val clusterB = Cluster(systemB)
+  // system B is expected to join system A, since seed-node conf trumps the bootstrap mechanism
+  val systemB = newSystem("B", seedNodes = List(clusterA.selfAddress))
+  val clusterB = Cluster(systemB)
 
-    val systemNein = newSystem("Nein", seedNodes = JoinYourself)
-    val clusterNein = Cluster(systemNein)
+  val systemNein = newSystem("Nein", seedNodes = JoinYourself)
+  val clusterNein = Cluster(systemNein)
 
-    val bootstrapA = ClusterBootstrap(systemA)
-    val bootstrapB = ClusterBootstrap(systemB)
-    val bootstrapNein = ClusterBootstrap(systemNein)
+  val bootstrapA = ClusterBootstrap(systemA)
+  val bootstrapB = ClusterBootstrap(systemB)
+  val bootstrapNein = ClusterBootstrap(systemNein)
 
-    val name = "system.svc.cluster.local"
-    MockDiscovery.set(name,
-      Resolved(name,
-        List(
-          // we yield the Nein system here, because we want to see that the configured seed-node is joined, and NOT the discovered one
-          ResolvedTarget(clusterB.selfAddress.host.get, contactPointPorts.get("Nein"))
-        )))
+  "Cluster Bootstrap" should {
 
     "start listening with the http contact-points on all systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {
@@ -126,29 +129,32 @@ class ClusterBootstrapExistingSeedNodesSpec extends WordSpecLike with Matchers {
       bootstrapB.start()
       bootstrapNein.start()
 
-      val pB = TestProbe()(systemA)
-      pB.awaitAssert {
-        clusterB.subscribe(pB.ref, classOf[MemberUp])
-        val stateB = pB.expectMsgType[CurrentClusterState]
-        stateB.members.size should ===(2)
-        stateB.members.map(_.uniqueAddress.address.port) should ===(Set(clusterA.selfAddress.port,
-            clusterB.selfAddress.port))
+      awaitAssert {
+        val members = clusterB.state.members
+        members.size should ===(2)
+        members.map(_.uniqueAddress.address.port) should ===(Set(clusterA.selfAddress.port, clusterB.selfAddress.port))
       }
 
-      val pNein = TestProbe()(systemA)
-      pNein.awaitAssert {
-        clusterNein.subscribe(pNein.ref, classOf[MemberUp])
-        val stateNein = pNein.expectMsgType[CurrentClusterState]
-        stateNein.members.size should ===(1)
-        stateNein.members.map(_.uniqueAddress.address.port) should ===(Set(clusterNein.selfAddress.port))
+      awaitAssert {
+        val members = clusterNein.state.members
+        members.size should ===(1)
+        members.map(_.uniqueAddress.address.port) should ===(Set(clusterNein.selfAddress.port))
       }
     }
 
     "terminate all systems" in {
       try TestKit.shutdownActorSystem(systemA, 3.seconds)
       finally try TestKit.shutdownActorSystem(systemB, 3.seconds)
+      finally try TestKit.shutdownActorSystem(systemNein, 3.seconds)
+      finally try MockDiscovery.remove(s"${systemName.toLowerCase(Locale.ROOT)}.svc.cluster.local")
     }
 
+  }
+
+  override def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system, 5.seconds)
+    TestKit.shutdownActorSystem(systemA, 5.seconds)
+    TestKit.shutdownActorSystem(systemB, 5.seconds)
   }
 
 }

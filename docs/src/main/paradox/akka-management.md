@@ -18,13 +18,13 @@ as a "plugin" to `akka-management` itself.
 
 Libraries (referred to as "management extensions") can contribute to the exposed HTTP routes by 
 appending to the `akka.management.http.route-providers` list. The core `AkkaManagement` extension
-then collects all the routes and serves them together under the management HTTP endpoint. This is in order
-to avoid having to start multiple HTTP servers for each additional extension, and also, it allows
+then collects all the routes and serves them together under the management HTTP server. This is in order
+to avoid having to start an additional HTTP server for each additional extension, and also, it allows
 easy extension of routes served by including libraries that offer new capabilities (such as health-checks or
 cluster information etc).
 
-Management extensions those nature is "active" (as in, they "do something proactively") are not to be
-started automatically, and should be still invoked by the user. One example of that is the Cluster
+Management extensions whose nature is "active" (as in, they "do something proactively") should not be
+started automatically, but instead be started manually by the user. One example of that is the Cluster
 Bootstrap, which on one hand does contributes routes to Akka Management, however the bootstraping process
 does not start unless `ClusterBootstrap().start()` is invoked, which allows the user to decide when exactly
 it is ready and wants to start joining an existing cluster.
@@ -40,7 +40,7 @@ actually want to use (and load) in their project.
 
 sbt
 :   @@@vars
-    ```scala
+    ```
     libraryDependencies += "com.lightbend.akka" %% "akka-management" % "$version$"
     ```
     @@@
@@ -69,10 +69,22 @@ And in addition to that, include all of the dependencies for the features you'd 
 like `akka-management-bootstrap` etc. Refer to each extensions documentation page to learn about how
 to configure and use it.
 
-# Configuring the management endpoint
+## Basic usage
 
-The management endpoint has a number of settings which can be set before invoking 
-`AkkaManagement(system).start()`.
+Remember that Akka Management does not start automatically and the routes will only be exposed once you trigger:
+
+Scala
+:   ```
+    AkkaManagement(system).start()
+    ```
+
+Java
+:   ```
+    AkkaManagement.get(system).start();
+    ```
+    
+This is in order to allow users to prepare anything else they might want to prepare or start before exposing routes for 
+the bootstrap joining process and other purposes.
 
 
 ## Basic Configuration
@@ -81,8 +93,10 @@ Note that
 
 You can configure hostname and port to use for the HTTP Cluster management by overriding the following:
 
+    ```
     akka.management.http.hostname = "127.0.0.1"
     akka.management.http.port = 19999
+    ```
 
 However, those are the values by default. In case you are running multiple cluster instances within the same JVM these
 configuration parameters should allow you to expose different cluster management APIs by modifying the port:

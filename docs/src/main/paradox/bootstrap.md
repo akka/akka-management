@@ -13,11 +13,11 @@ any additional system like etcd/zookeeper/consul to be run along side the Akka c
 
 ## Dependencies
 
-The Akka Bootstrap extension consiste of modular parts which handle steps of the bootstrap process.
-In order to use it you will want to depend on `akka-management-cluster-bootstrap` and a specific `akka-discovery` 
+The Akka Bootstrap extension consists of modular parts which handle steps of the bootstrap process.
+n order to use it you need to depend on `akka-management-cluster-bootstrap` and a specific `akka-discovery` 
 implementation you'd like to use for the discovery process. 
 
-For example, you might depend on the DNS discovery and bootstrap extensions:
+For example, you might choose to use the DNS discovery and bootstrap extensions:
 
 sbt
 :   @@@vars
@@ -53,11 +53,17 @@ Gradle
     ```
     @@@
 
+You also have to explicitly configure it to be used as the default implementation in your `application.conf`:
+
+```
+akka.discovery.method = akka-dns 
+```
+
 
 ## Akka Cluster Bootstrap Process explained
 
-The Akka Cluster Bootstrap process is composed of two phases. First, a minimum number of Contact Points (by default at least 
-2) need to be gathered. Currently it will look for `akka.cluster.bootstrap.contact-point-discovery.service-name` appended
+The Akka Cluster Bootstrap process is composed of two phases. First, a minimum number of Contact Points need to be gathered. 
+Currently it will look for `akka.cluster.bootstrap.contact-point-discovery.service-name` appended
 with `akka.cluster.bootstrap.contact-point-discovery.service-namespace` (if present) A records in DNS. In Kubernetes managed 
 systems these would be available by default and list all `Pods` in a given `Service`. Those addresses are then contacted,
 in what is referred to the Contact Point Probing procedure. Note that at this point the node has not joined any cluster yet.
@@ -79,13 +85,38 @@ of them should perform this join. We make this decision by sorting the known add
 will notice and start joining this node. Now the process just explained in the previous paragraph, referred to as "epidemic 
 joining" continues until all nodes have joined the cluster. 
 
-### Case 1: "Initial" Bootstrap process
-
 The bootstrap process can be roughly explained in two situations, one being when no cluster exists in the deployment
 at all yet (which we call the "initial bootstrap) and the other case being when a cluster already exists and we're 
 simply adding new nodes to it wanting them to discover and join that cluster.
 
-First we explain the Initial Bootstrap. Both cases need to discover neighbouring nodes, which they do via Akka Discovery,
+Short description of the bootstrap process:
+
+- New node is started, we call it "X",
+- The node discovers its "neighbours" using akka-discovery (e.g. using DNS),
+  - This is NOT enough to safely join or form a cluster, some initial negotiation between the nodes must take place.
+- The node starts to probe the Contact Points of the discovered nodes
+- Case 1) None of the contacted nodes return any seed nodes during the probing process,
+  - The `no-seeds-stable-margin` timeout passes, and no discovery changes are are observed as well
+  - The nodes all decide (autonomously) that no cluster exists, and a new one should be formed,
+    they know all their addresses, and decide that the "lowest" sorted address is to start forming the cluster,
+  - The lowest address node (e.g. "A") notices the same, and makes the decision to *join itself*,
+  - Other nodes, including X, will notice that A has started returning *itself* as a seed-node in the Contact Point responses,
+  - Any node, including X, immediately joins such seed node that it has observed in the Contact Point process.
+  - Nodes continue probing the other nodes, and eventually will notice any of the existing nodes that are part of the cluster,
+    and immediately join it. This phase is referred to as "epidemic joining".
+  - Eventually all nodes have joined the same cluster, the process is complete.
+- Case 2) A cluster exists already, and when probing the various nodes node X will receive at least one seed-node address,
+from the contact points. 
+  - The node joins any discovered (via Contact Points probing) seed-node and immediately becomes part of the cluster.
+  - The process is complete, the node has successfully joined the "right" cluster.
+    - Notice that this phase is exactly the same as the "epidemic joining" in the more complicated Case 1 when a new 
+    cluster has to be formed.
+
+In the next sections we explain the process in more detail.
+
+### Case 1: "Initial" Bootstrap process
+
+Both cases need to discover neighbouring nodes, which they do via Akka Discovery,
 which we recommend (and implement) with DNS, though you may use alternative lookup methods if you want. The bootstrap 
 process will then start probing those nodes Contact Points (which are HTTP endpoints, exposed via Akka Management by the
 Bootstrap Management Extension) for known seeds to join. Since no cluster exists yet, the seed node replies will be 
@@ -101,9 +132,9 @@ The illustration below may be of help in visualising this process:
 
 ![project structure](images/bootstrap-forming-cluster.png)
 
-The reason to not use Akka's remoting in the contact point probing itself is to in the future enable upgrades semi-automatic between even not wire compatible binary versions or protocols (e.g. moving from a classic remoting based system to an artery based one), or even advanced deployment patterns.
+The reason to not use Akka's remoting in the contact point probing itself is to in the future enable upgrades semi-automatic between even not wire compatible binary versions or protocols (e.g. moving from a classic remoting based system to an artery based one), or even more advanced deployment patterns.
 
-### Case 1: Bootstrap process, with existing cluster
+### Case 2: Bootstrap process, with existing cluster
 
 The Bootstrap process in face of an existing cluster in a deployment is very simple, and actually if you read through
 Case 1, you already seen it in action.
@@ -123,22 +154,37 @@ there on.
 
 ### Specific edge-cases explained
 
-TODO: There are specific very hard to cause edge cases in the self-join. It is important to realise that using a consistent 
-store would not help with these as well. The race exists regardless of how we obtain the list of nodes.
+It is important to realise no *dynamic and automatic* cluster joining solution provides 100% safety, however the process
+presented here is very close to it. Please note that the often used claim of using a consistent data store for the 
+seed-nodes also is not 100% safe (sic!), since races could occur between the node having discovered a node from the strongly 
+consistent store and attempting the join operation.
 
-### Discussion: Rationale for avoidance of external (consistent) data-store for seed-nodes
+The here proposed solution is prone to very few and rather rare races. Built-in protection against the race cases exists
+in the form of the stable timeout, which means that if any changes are being observed in discovery, the decision making
+is delayed until the observation is stable again. This prevents initiating joining while discovery is still inconsistent.
 
-TODO: explain that those only provide the illusion of safety, as races can still happen in the "self join",
-even if a consistent data-store is used. It is only about probability of the issue happening, and with our solution
-we're as good as the same without the need for external stores other than DNS.
+Note also that the bootstrap process does NOT rely on full consistency of the discovery mechanism when adding new nodes 
+to an existing cluster. This is very desirable, since this situation usually occurs when dynamically scaling up due to 
+increased load on your service, and some services may indeed not be fully consistent then. However, the Akka Cluster 
+membership protocol IS strongly consistent, and it is the source of truth with regards what the cluster is consisting of,
+and no external system can have more reliable information about this (since it could be outdated). This is why the 
+Contact Point probing mechanism exists, and even if discovery would only return *partial* or even *different set of nodes
+for each lookup* the probing would allow the node still to join all the right nodes, thanks to how Akka Cluster's membership
+and gossip protocols work. Summing up, the bootstrap mechanism works well for adding nodes to the system, even under load,
+even if the DNS system is not completely consistent. 
 
-TODO: explain that by forcing users to run a consensus cluster in order to even join members to another cluster is much 
-operational overhead, and not actually required.
+If however we are talking about an inconsistent DNS lookup response during the Initial Bootstrap, the nodes will be delayed
+forming the cluster as they expect the lookups to be consistent, this is checked by the stable-margin configuration option.
 
-TODO: explain that a consistency picking data-store is NOT optimal for systems which need to contact such store to JOIN
-a cluster. After all, you want to join new nodes perhaps when the system is under much load and even the consensus system
-could then be overloaded -- causing you to be unable to join new nodes! By embracing a truly peer-to-peer joining model,
-we can even join nodes (yes, safely) during intense traffic and avoid having one more system that could break. 
+For complete safety of the Initial Bootstrap it is recommended to set the `akka.cluster.bootstrap.required-contact-point-nr` 
+setting to the exact number of nodes the initial startup of the cluster will be done. For example, if starting a cluster with
+4 nodes initially, and later scaling it out to many more nodes, be sure to set this setting to `4` for additional safety of
+the initial joining, even in face of an flaky discovery mechanism!
+
+@@@ note
+  It *is* crucial for the nodes to have a consistent view of their neighbours for the Initial Bootstrap.
+@@@
+
 
 ## Joining mechanism precedence
 
@@ -148,8 +194,7 @@ is strictly defined and is as follows:
 - If configured `akka.cluster.seed-nodes` (in your `application.conf`) are non-empty, those nodes will be joined, and bootstrap will NOT execute even if `start()` is called (a warning will be logged though).
 - If an explicit `cluster.join` or `cluster.joinSeedNodes` is invokes before the bootstrap completes that
  joining would take precedence over the bootstrap. *This is however **not** recommended to mix multiple
- joining methods like this. Stick to one joining mechanism to avoid surprising behaviour during cluster
- formation.*
+ joining methods like this.*
 - The Cluster Bootstrap mechanism takes some time to complete, but eventually issues a `join`.
 
 @@@ warning

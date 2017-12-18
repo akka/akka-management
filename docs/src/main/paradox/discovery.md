@@ -19,7 +19,7 @@ TODO: Discussion about DNS vs other key-value stores.
 
 ## Akka DNS Discovery
 
-The simplest, and also most natural form of service discovery is to use DNS as the source of truth regarding available 
+The most natural form of service discovery is to use DNS as the source of truth regarding available 
 services. In the simplest version, we query for a service name -- which each cluster manager, such as Kubernetes, Mesos 
 or others define using their own naming schemes, and expect to get back a list of IPs that are related to this service.
 

@@ -10,38 +10,58 @@ import com.typesafe.config.{ Config, ConfigException, ConfigRenderOptions }
 final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Extension {
   private val log = Logging(system, getClass)
 
-  private lazy val _simpleImplClassConf =
-    try system.settings.config.getString("akka.discovery.impl")
-    catch {
-      case ex: ConfigException.Missing ⇒
+  private implicit class HasDefined(val config: Config) {
+    def hasDefined(key: String): Boolean =
+      config.hasPath(key) &&
+      config.getString(key).trim.nonEmpty &&
+      config.getString(key) != s"<$key>"
+  }
+
+  private lazy val _simpleImplMethod =
+    system.settings.config.getString("akka.discovery.method") match {
+      case "<method>" ⇒
         throw new IllegalArgumentException("No default service discovery implementation configured in " +
-          "`akka.discovery.impl`. Did you forget to depend on an implementation library such as `akka-discovery-dns`? You may also want to " +
-          "configure the implementation to be used explicitly in your application.conf")
+          "`akka.discovery.method`. Make sure to configure this setting to your preferred implementation such as 'akka-dns' in your application.conf (from the akka-discovery-dns module).")
+      case method ⇒ method
     }
+
   private lazy val _simpleImpl = {
-    val i = system.dynamicAccess
-      .createInstanceFor[SimpleServiceDiscovery](_simpleImplClassConf, (classOf[ExtendedActorSystem] → system) :: Nil)
-      .recoverWith {
-        case _ ⇒
-          system.dynamicAccess.createInstanceFor[SimpleServiceDiscovery](_simpleImplClassConf,
-            (classOf[ActorSystem] → system) :: Nil)
-      }
-      .recoverWith {
-        case _ ⇒ system.dynamicAccess.createInstanceFor[SimpleServiceDiscovery](_simpleImplClassConf, Nil)
-      }
+    val config = system.settings.config
+    val dynamic = system.dynamicAccess
+
+    def classNameFromConfig(path: String): String =
+      if (config.hasPath(path)) config.getString(path)
+      else "<nope>"
+
+    def create(clazzName: String) =
+      dynamic
+        .createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ExtendedActorSystem] → system) :: Nil)
+        .recoverWith {
+          case _ ⇒
+            dynamic.createInstanceFor[SimpleServiceDiscovery](_simpleImplMethod,
+              (classOf[ActorSystem] → system) :: Nil)
+        }
+        .recoverWith {
+          case _ ⇒
+            dynamic.createInstanceFor[SimpleServiceDiscovery](_simpleImplMethod, Nil)
+        }
+
+    val i = create("akka.discovery." + _simpleImplMethod + ".class").recoverWith {
+      case _ ⇒ create(_simpleImplMethod + ".class")
+    }.recoverWith { case _ ⇒ create(_simpleImplMethod) }
 
     i.getOrElse(
       throw new IllegalArgumentException(
-          s"Illegal `akka.discovery.impl` value (${_simpleImplClassConf}) or incompatible class! " +
+          s"Illegal `akka.discovery.impl` value (${_simpleImplMethod}) or incompatible class! " +
           "The implementation class MUST extend akka.discovery.SimpleServiceDiscovery and take an ExtendedActorSystem as constructor argument.",
           i.failed.get)
     )
   }
 
   /**
-   * Expose [[SimpleServiceDiscovery]] as configured in `akka.discovery.impl`
+   * Default [[SimpleServiceDiscovery]] as configured in `akka.discovery.method`.
    *
-   * Could throw an [[IllegalArgumentException]] at first usage if the configured implementation class is illegal.
+   * Could throw an [[IllegalArgumentException]] if the configured implementation class is illegal.
    */
   // FIXME better name?
   def discovery: SimpleServiceDiscovery = _simpleImpl
