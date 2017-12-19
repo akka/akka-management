@@ -38,21 +38,26 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
         .createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ExtendedActorSystem] → system) :: Nil)
         .recoverWith {
           case _ ⇒
-            dynamic.createInstanceFor[SimpleServiceDiscovery](_simpleImplMethod,
-              (classOf[ActorSystem] → system) :: Nil)
+            dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ActorSystem] → system) :: Nil)
         }
         .recoverWith {
           case _ ⇒
-            dynamic.createInstanceFor[SimpleServiceDiscovery](_simpleImplMethod, Nil)
+            dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, Nil)
         }
 
-    val i = create("akka.discovery." + _simpleImplMethod + ".class").recoverWith {
-      case _ ⇒ create(_simpleImplMethod + ".class")
-    }.recoverWith { case _ ⇒ create(_simpleImplMethod) }
+    // format: OFF
+    val i = create {
+      classNameFromConfig("akka.discovery." + _simpleImplMethod + ".class")
+    }.recoverWith {
+      case _ ⇒ create(classNameFromConfig(_simpleImplMethod + ".class"))
+    }.recoverWith {
+      case _ ⇒ create(_simpleImplMethod) // so perhaps, it is a classname?
+    }
+    // format: ON
 
     i.getOrElse(
       throw new IllegalArgumentException(
-          s"Illegal `akka.discovery.impl` value (${_simpleImplMethod}) or incompatible class! " +
+          s"Illegal `akka.discovery.method` value '${_simpleImplMethod}' or incompatible class! " +
           "The implementation class MUST extend akka.discovery.SimpleServiceDiscovery and take an ExtendedActorSystem as constructor argument.",
           i.failed.get)
     )
