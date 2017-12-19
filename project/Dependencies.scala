@@ -67,6 +67,12 @@ object Dependencies {
       )
   )
 
+  val DiscoveryKubernetesApi = Seq(
+    libraryDependencies ++=
+      DependencyGroups.AkkaActor ++
+      DependencyGroups.AkkaHttp
+  )
+
   val ManagementHttp = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaHttp ++
