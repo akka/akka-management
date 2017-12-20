@@ -9,6 +9,7 @@ lazy val `akka-management-root` = project
   .aggregate(
     `akka-discovery`,
     `akka-discovery-dns`,
+    `akka-discovery-kubernetes-api`,
     `akka-management`,
     `cluster-http`,
     `cluster-bootstrap`,
@@ -34,6 +35,18 @@ lazy val `akka-discovery-dns` = project
     name := "akka-discovery-dns",
     organization := "com.lightbend.akka",
     Dependencies.DiscoveryDns
+  )
+  .dependsOn(`akka-discovery`)
+
+// K8s API implementation of discovery, allows formation to work even when readiness/health checks are failing
+lazy val `akka-discovery-kubernetes-api` = project
+  .in(file("discovery-kubernetes-api"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-kubernetes-api",
+    organization := "com.lightbend.akka",
+    Dependencies.DiscoveryKubernetesApi
   )
   .dependsOn(`akka-discovery`)
 

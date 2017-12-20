@@ -1,0 +1,1057 @@
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": {
+    "selfLink": "/api/v1/namespaces/default/pods",
+    "resourceVersion": "16042"
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "akka-cluster-tooling-example-v0-1-0-7f854bcc78-dvm9q",
+        "generateName": "akka-cluster-tooling-example-v0-1-0-7f854bcc78-",
+        "namespace": "default",
+        "selfLink": "/api/v1/namespaces/default/pods/akka-cluster-tooling-example-v0-1-0-7f854bcc78-dvm9q",
+        "uid": "5fe7a41b-da9a-11e7-b064-0800270d668b",
+        "resourceVersion": "6523",
+        "creationTimestamp": "2017-12-06T15:30:22Z",
+        "labels": {
+          "appName": "akka-cluster-tooling-example",
+          "appNameVersion": "akka-cluster-tooling-example-v0-1-0",
+          "pod-template-hash": "3941067734"
+        },
+        "annotations": {
+          "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"default\",\"name\":\"akka-cluster-tooling-example-v0-1-0-7f854bcc78\",\"uid\":\"5fdc6a1c-da9a-11e7-b064-0800270d668b\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"3173\"}}\n"
+        },
+        "ownerReferences": [
+          {
+            "apiVersion": "extensions/v1beta1",
+            "kind": "ReplicaSet",
+            "name": "akka-cluster-tooling-example-v0-1-0-7f854bcc78",
+            "uid": "5fdc6a1c-da9a-11e7-b064-0800270d668b",
+            "controller": true,
+            "blockOwnerDeletion": true
+          }
+        ]
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "default-token-zkgn4",
+            "secret": {
+              "secretName": "default-token-zkgn4",
+              "defaultMode": 420
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "akka-cluster-tooling-example",
+            "image": "akka-cluster-tooling-example/akka-cluster-tooling-example:0.1.0",
+            "ports": [
+              {
+                "name": "akka-remote",
+                "containerPort": 10000,
+                "protocol": "TCP"
+              },
+              {
+                "name": "akka-mgmt-http",
+                "containerPort": 10001,
+                "protocol": "TCP"
+              },
+              {
+                "name": "http",
+                "containerPort": 10002,
+                "protocol": "TCP"
+              }
+            ],
+            "env": [
+              {
+                "name": "JAVA_OPTS",
+                "value": "-Drp.service-discovery.ask-timeout=1ms"
+              },
+              {
+                "name": "RP_APP_NAME",
+                "value": "akka-cluster-tooling-example"
+              },
+              {
+                "name": "RP_APP_TYPE",
+                "value": "basic"
+              },
+              {
+                "name": "RP_APP_VERSION",
+                "value": "0.1.0"
+              },
+              {
+                "name": "RP_ENDPOINTS",
+                "value": "AKKA_REMOTE,AKKA_MGMT_HTTP,HTTP"
+              },
+              {
+                "name": "RP_ENDPOINTS_COUNT",
+                "value": "3"
+              },
+              {
+                "name": "RP_ENDPOINT_0_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_0_BIND_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_0_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_0_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_1_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_1_BIND_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_1_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_1_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_2_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_2_BIND_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_ENDPOINT_2_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_2_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_BIND_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_BIND_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_BIND_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_JAVA_OPTS",
+                "value": "-Dconfig.resource=rp-application.conf -Dakka.cluster.bootstrap.contact-point-discovery.effective-name=akka-cluster-tooling-example -Dakka.cluster.bootstrap.contact-point-discovery.required-contact-point-nr=3"
+              },
+              {
+                "name": "RP_KUBERNETES_POD_IP",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_KUBERNETES_POD_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.name"
+                  }
+                }
+              },
+              {
+                "name": "RP_MODULES",
+                "value": "akka-cluster-bootstrapping,common,service-discovery"
+              },
+              {
+                "name": "RP_PLATFORM",
+                "value": "kubernetes"
+              }
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+              {
+                "name": "default-token-zkgn4",
+                "readOnly": true,
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+              }
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "serviceAccountName": "default",
+        "serviceAccount": "default",
+        "nodeName": "minikube",
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler"
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2017-12-06T15:30:22Z"
+          },
+          {
+            "type": "Ready",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2017-12-06T17:36:57Z"
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2017-12-06T15:30:22Z"
+          }
+        ],
+        "hostIP": "192.168.99.109",
+        "podIP": "172.17.0.4",
+        "startTime": "2017-12-06T15:30:22Z",
+        "containerStatuses": [
+          {
+            "name": "akka-cluster-tooling-example",
+            "state": {
+              "running": {
+                "startedAt": "2017-12-06T17:36:57Z"
+              }
+            },
+            "lastState": {
+              "terminated": {
+                "exitCode": 137,
+                "reason": "Error",
+                "startedAt": "2017-12-06T15:30:24Z",
+                "finishedAt": "2017-12-06T17:36:50Z",
+                "containerID": "docker://294b22a68ac2d91f64586ad349f5c4012bce5e3d0a51197ee21451b7eada0617"
+              }
+            },
+            "ready": true,
+            "restartCount": 1,
+            "image": "akka-cluster-tooling-example/akka-cluster-tooling-example:0.1.0",
+            "imageID": "docker://sha256:db3827171cfd7cea96f35e75e9df30e198f25b66a8e75e8167b09ad9e1a18c10",
+            "containerID": "docker://d805076f4737166117229aaa4eaf5e7eb974da0b4c781b2f6ec126d5046a4c3f"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    },
+    {
+      "metadata": {
+        "name": "akka-cluster-tooling-example-v0-1-0-7f854bcc78-m8dqb",
+        "generateName": "akka-cluster-tooling-example-v0-1-0-7f854bcc78-",
+        "namespace": "default",
+        "selfLink": "/api/v1/namespaces/default/pods/akka-cluster-tooling-example-v0-1-0-7f854bcc78-m8dqb",
+        "uid": "5fe22476-da9a-11e7-b064-0800270d668b",
+        "resourceVersion": "6520",
+        "creationTimestamp": "2017-12-06T15:30:22Z",
+        "labels": {
+          "appNameVersion": "akka-cluster-tooling-example-v0-1-0",
+          "pod-template-hash": "3941067734",
+          "appName": "akka-cluster-tooling-example"
+        },
+        "annotations": {
+          "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"default\",\"name\":\"akka-cluster-tooling-example-v0-1-0-7f854bcc78\",\"uid\":\"5fdc6a1c-da9a-11e7-b064-0800270d668b\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"3173\"}}\n"
+        },
+        "ownerReferences": [
+          {
+            "apiVersion": "extensions/v1beta1",
+            "kind": "ReplicaSet",
+            "name": "akka-cluster-tooling-example-v0-1-0-7f854bcc78",
+            "uid": "5fdc6a1c-da9a-11e7-b064-0800270d668b",
+            "controller": true,
+            "blockOwnerDeletion": true
+          }
+        ]
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "default-token-zkgn4",
+            "secret": {
+              "secretName": "default-token-zkgn4",
+              "defaultMode": 420
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "akka-cluster-tooling-example",
+            "image": "akka-cluster-tooling-example/akka-cluster-tooling-example:0.1.0",
+            "ports": [
+              {
+                "name": "akka-remote",
+                "containerPort": 10000,
+                "protocol": "TCP"
+              },
+              {
+                "name": "akka-mgmt-http",
+                "containerPort": 10001,
+                "protocol": "TCP"
+              },
+              {
+                "name": "http",
+                "containerPort": 10002,
+                "protocol": "TCP"
+              }
+            ],
+            "env": [
+              {
+                "name": "JAVA_OPTS",
+                "value": "-Drp.service-discovery.ask-timeout=1ms"
+              },
+              {
+                "name": "RP_APP_NAME",
+                "value": "akka-cluster-tooling-example"
+              },
+              {
+                "name": "RP_APP_TYPE",
+                "value": "basic"
+              },
+              {
+                "name": "RP_APP_VERSION",
+                "value": "0.1.0"
+              },
+              {
+                "name": "RP_ENDPOINTS",
+                "value": "AKKA_REMOTE,AKKA_MGMT_HTTP,HTTP"
+              },
+              {
+                "name": "RP_ENDPOINTS_COUNT",
+                "value": "3"
+              },
+              {
+                "name": "RP_ENDPOINT_0_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_0_BIND_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_0_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_0_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_1_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_1_BIND_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_1_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_1_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_2_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_2_BIND_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_ENDPOINT_2_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_2_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_BIND_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_BIND_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_BIND_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_JAVA_OPTS",
+                "value": "-Dconfig.resource=rp-application.conf -Dakka.cluster.bootstrap.contact-point-discovery.effective-name=akka-cluster-tooling-example -Dakka.cluster.bootstrap.contact-point-discovery.required-contact-point-nr=3"
+              },
+              {
+                "name": "RP_KUBERNETES_POD_IP",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_KUBERNETES_POD_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.name"
+                  }
+                }
+              },
+              {
+                "name": "RP_MODULES",
+                "value": "akka-cluster-bootstrapping,common,service-discovery"
+              },
+              {
+                "name": "RP_PLATFORM",
+                "value": "kubernetes"
+              }
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+              {
+                "name": "default-token-zkgn4",
+                "readOnly": true,
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+              }
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "serviceAccountName": "default",
+        "serviceAccount": "default",
+        "nodeName": "minikube",
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler"
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2017-12-06T15:30:22Z"
+          },
+          {
+            "type": "Ready",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2017-12-06T17:36:57Z"
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2017-12-06T15:30:22Z"
+          }
+        ],
+        "hostIP": "192.168.99.109",
+        "podIP": "172.17.0.6",
+        "startTime": "2017-12-06T15:30:22Z",
+        "containerStatuses": [
+          {
+            "name": "akka-cluster-tooling-example",
+            "state": {
+              "running": {
+                "startedAt": "2017-12-06T17:36:57Z"
+              }
+            },
+            "lastState": {
+              "terminated": {
+                "exitCode": 137,
+                "reason": "Error",
+                "startedAt": "2017-12-06T15:30:24Z",
+                "finishedAt": "2017-12-06T17:36:50Z",
+                "containerID": "docker://b5880747113029524ba902c561df5637f45b73a225bab52e8ed0395588432101"
+              }
+            },
+            "ready": true,
+            "restartCount": 1,
+            "image": "akka-cluster-tooling-example/akka-cluster-tooling-example:0.1.0",
+            "imageID": "docker://sha256:db3827171cfd7cea96f35e75e9df30e198f25b66a8e75e8167b09ad9e1a18c10",
+            "containerID": "docker://ba80f96ce994517bc2d49d2930923c54b818bdd3a1aa8e60e42944e8ac4bf730"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    },
+    {
+      "metadata": {
+        "name": "akka-cluster-tooling-example-v0-1-0-7f854bcc78-xncvj",
+        "generateName": "akka-cluster-tooling-example-v0-1-0-7f854bcc78-",
+        "namespace": "default",
+        "selfLink": "/api/v1/namespaces/default/pods/akka-cluster-tooling-example-v0-1-0-7f854bcc78-xncvj",
+        "uid": "5fe6b0c7-da9a-11e7-b064-0800270d668b",
+        "resourceVersion": "6593",
+        "creationTimestamp": "2017-12-06T15:30:22Z",
+        "labels": {
+          "pod-template-hash": "3941067734",
+          "appName": "akka-cluster-tooling-example",
+          "appNameVersion": "akka-cluster-tooling-example-v0-1-0"
+        },
+        "annotations": {
+          "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"default\",\"name\":\"akka-cluster-tooling-example-v0-1-0-7f854bcc78\",\"uid\":\"5fdc6a1c-da9a-11e7-b064-0800270d668b\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"3173\"}}\n"
+        },
+        "ownerReferences": [
+          {
+            "apiVersion": "extensions/v1beta1",
+            "kind": "ReplicaSet",
+            "name": "akka-cluster-tooling-example-v0-1-0-7f854bcc78",
+            "uid": "5fdc6a1c-da9a-11e7-b064-0800270d668b",
+            "controller": true,
+            "blockOwnerDeletion": true
+          }
+        ]
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "default-token-zkgn4",
+            "secret": {
+              "secretName": "default-token-zkgn4",
+              "defaultMode": 420
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "akka-cluster-tooling-example",
+            "image": "akka-cluster-tooling-example/akka-cluster-tooling-example:0.1.0",
+            "ports": [
+              {
+                "name": "akka-remote",
+                "containerPort": 10000,
+                "protocol": "TCP"
+              },
+              {
+                "name": "akka-mgmt-http",
+                "containerPort": 10001,
+                "protocol": "TCP"
+              },
+              {
+                "name": "http",
+                "containerPort": 10002,
+                "protocol": "TCP"
+              }
+            ],
+            "env": [
+              {
+                "name": "JAVA_OPTS",
+                "value": "-Drp.service-discovery.ask-timeout=1ms"
+              },
+              {
+                "name": "RP_APP_NAME",
+                "value": "akka-cluster-tooling-example"
+              },
+              {
+                "name": "RP_APP_TYPE",
+                "value": "basic"
+              },
+              {
+                "name": "RP_APP_VERSION",
+                "value": "0.1.0"
+              },
+              {
+                "name": "RP_ENDPOINTS",
+                "value": "AKKA_REMOTE,AKKA_MGMT_HTTP,HTTP"
+              },
+              {
+                "name": "RP_ENDPOINTS_COUNT",
+                "value": "3"
+              },
+              {
+                "name": "RP_ENDPOINT_0_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_0_BIND_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_0_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_0_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_1_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_1_BIND_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_1_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_1_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_2_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_2_BIND_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_ENDPOINT_2_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_2_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_BIND_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_MGMT_HTTP_PORT",
+                "value": "10001"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_BIND_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_AKKA_REMOTE_PORT",
+                "value": "10000"
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_BIND_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_BIND_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_HOST",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_ENDPOINT_HTTP_PORT",
+                "value": "10002"
+              },
+              {
+                "name": "RP_JAVA_OPTS",
+                "value": "-Dconfig.resource=rp-application.conf -Dakka.cluster.bootstrap.contact-point-discovery.effective-name=akka-cluster-tooling-example -Dakka.cluster.bootstrap.contact-point-discovery.required-contact-point-nr=3"
+              },
+              {
+                "name": "RP_KUBERNETES_POD_IP",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "RP_KUBERNETES_POD_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.name"
+                  }
+                }
+              },
+              {
+                "name": "RP_MODULES",
+                "value": "akka-cluster-bootstrapping,common,service-discovery"
+              },
+              {
+                "name": "RP_PLATFORM",
+                "value": "kubernetes"
+              }
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+              {
+                "name": "default-token-zkgn4",
+                "readOnly": true,
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+              }
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "serviceAccountName": "default",
+        "serviceAccount": "default",
+        "nodeName": "minikube",
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler"
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2017-12-06T15:30:22Z"
+          },
+          {
+            "type": "Ready",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2017-12-06T17:37:17Z"
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2017-12-06T15:30:22Z"
+          }
+        ],
+        "hostIP": "192.168.99.109",
+        "podIP": "172.17.0.7",
+        "startTime": "2017-12-06T15:30:22Z",
+        "containerStatuses": [
+          {
+            "name": "akka-cluster-tooling-example",
+            "state": {
+              "running": {
+                "startedAt": "2017-12-06T17:37:16Z"
+              }
+            },
+            "lastState": {
+              "terminated": {
+                "exitCode": 137,
+                "reason": "Error",
+                "startedAt": "2017-12-06T15:30:24Z",
+                "finishedAt": "2017-12-06T17:36:50Z",
+                "containerID": "docker://c516ab6640a1a67d6f24337025930812ec73f08a1ba1ae2a3533c6645a751d31"
+              }
+            },
+            "ready": true,
+            "restartCount": 1,
+            "image": "akka-cluster-tooling-example/akka-cluster-tooling-example:0.1.0",
+            "imageID": "docker://sha256:db3827171cfd7cea96f35e75e9df30e198f25b66a8e75e8167b09ad9e1a18c10",
+            "containerID": "docker://075e85c889ffd715849f8d683702623790c44f93beeea5711a63a8b6ef9e5272"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    }
+  ]
+}

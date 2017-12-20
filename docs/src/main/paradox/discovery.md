@@ -58,7 +58,7 @@ And configure it to be used as default discovery implementation in your `applica
 
 ```
 akka.discovery {
-  impl = akka.discovery.akka-dns
+  method = akka-dns
 }
 ```
 
@@ -118,6 +118,105 @@ The "lowest" address (since in this case we assume they all listen on the same m
 An improved way of DNS discovery are `SRV` records, which are not yet supported by `akka-discovery-dns`,
 but would then allow the nodes to also advertise which port they are listening on instead of having to assume a shared 
 known port (which in the case of the akka management routes is `19999`).
+
+## Kubernetes API
+
+Another discovery implementation provided is one that uses the Kubernetes API. Instead of doing a DNS lookup,
+it sends a request to the Kubernetes service API to find the other pods. This method allows you to define health
+and readiness checks that don't affect the discovery method. Configuration options are provided to adjust
+the namespace, label selector, and port name that are used in the pod selection process.
+
+### Dependencies and usage
+
+Using `akka-discovery-kubernetes-api` is very simple, as you simply need to depend on the library::
+
+sbt
+:   @@@vars
+    ```scala
+    libraryDependencies += "com.lightbend.akka" %% "akka-discovery-kubernetes-api" % "$version$"
+    ```
+    @@@
+
+Maven
+:   @@@vars
+    ```xml
+    <dependency>
+      <groupId>com.lightbend.akka</groupId>
+      <artifactId>akka-discovery-kubernetes-api_$scala.binaryVersion$</artifactId>
+      <version>$version$</version>
+    </dependency>
+    ```
+    @@@
+
+Gradle
+:   @@@vars
+    ```gradle
+    dependencies {
+      compile group: "com.lightbend.akka", name: "akka-discovery-kubernetes-api_$scala.binaryVersion$", version: "$version$"
+    }
+    ```
+    @@@
+    
+And configure it to be used as default discovery implementation in your `application.conf`:
+
+```
+akka.discovery {
+  method = kubernetes-api
+}
+```
+
+To find other pods, this method needs to know how they are labeled, what the name of the Akka Management port is, and
+what namespace they reside in. Below, you'll find the default configuration. It can be customized by changing these
+values in your `application.conf`.
+
+```
+akka.discovery {
+  kubernetes-api {
+    pod-namespace = "default"
+
+    # %s will be replaced with the configured effective name, which defaults to
+    # the actor system name
+    pod-label-selector = "app=%s"
+
+    pod-port-name = "akka-mgmt-http"
+  }
+}
+```
+
+This configuration complements the following Deployment specification:
+
+```
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: example
+  name: example
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      containers:
+      - name: example
+        image: example/image:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        # akka remoting
+        - name: remoting
+          containerPort: 2551
+          protocol: TCP
+        # akka-management bootstrap
+        - name: akka-mgmt-http
+          containerPort: 19999
+          protocol: TCP
+```
+
 
 ## How to contribute implementations
 
