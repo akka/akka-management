@@ -38,32 +38,11 @@ and you have to combine it with the management extension libraries that you want
 or cluster bootstrap). This design choice was made to make users able to include only the minimal set of features that they 
 actually want to use (and load) in their project.
 
-sbt
-:   @@@vars
-    ```
-    libraryDependencies += "com.lightbend.akka" %% "akka-management" % "$version$"
-    ```
-    @@@
-
-Maven
-:   @@@vars
-    ```xml
-    <dependency>
-      <groupId>com.lightbend.akka</groupId>
-      <artifactId>akka-management_$scala.binaryVersion$</artifactId>
-      <version>$version$</version>
-    </dependency>
-    ```
-    @@@
-
-Gradle
-:   @@@vars
-    ```gradle
-    dependencies {
-      compile group: "com.lightbend.akka", name: "akka-management_$scala.binaryVersion$", version: "$version$"
-    }
-    ```
-    @@@
+@@dependency[sbt,Gradle,Maven] {
+  group="com.lightbend.akka.management"
+  artifact="akka-management"
+  version="$version$"
+}
 
 And in addition to that, include all of the dependencies for the features you'd like to use,
 like `akka-management-bootstrap` etc. Refer to each extensions documentation page to learn about how
@@ -140,7 +119,6 @@ It is also possible to modify the base path of the API, by setting the appropria
 application.conf
 :   ```
     akka.management.http.base-path = "myClusterName"
-    // resulting
     ```
 
 In this example, with this configuration, then the akka management routes will will be exposed at under the `/myClusterName/...`,

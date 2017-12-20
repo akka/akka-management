@@ -22,8 +22,8 @@ For example, you might choose to use the DNS discovery and bootstrap extensions:
 sbt
 :   @@@vars
     ```scala
-    libraryDependencies += "com.lightbend.akka" %% "akka-management-cluster-bootstrap" % "$version$"
-    libraryDependencies += "com.lightbend.akka" %% "akka-discovery-dns"                % "$version$"
+    libraryDependencies += "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % "$version$"
+    libraryDependencies += "com.lightbend.akka.discovery" %% "akka-discovery-dns"                % "$version$"
     ```
     @@@
 
@@ -31,12 +31,12 @@ Maven
 :   @@@vars
     ```xml
     <dependency>
-      <groupId>com.lightbend.akka</groupId>
+      <groupId>com.lightbend.akka.management</groupId>
       <artifactId>akka-management-cluster-bootstrap_$scala.binaryVersion$</artifactId>
       <version>$version$</version>
     </dependency>
     <dependency>
-      <groupId>com.lightbend.akka</groupId>
+      <groupId>com.lightbend.akka.discovery</groupId>
       <artifactId>akka-discovery-dns_$scala.binaryVersion$</artifactId>
       <version>$version$</version>
     </dependency>
@@ -47,8 +47,8 @@ Gradle
 :   @@@vars
     ```gradle
     dependencies {
-      compile group: "com.lightbend.akka", name: "akka-management-cluster-bootstrap_$scala.binaryVersion$", version: "$version$"
-      compile group: "com.lightbend.akka", name: "akka-discovery-dns_$scala.binaryVersion$", version: "$version$"
+      compile group: "com.lightbend.akka.management", name: "akka-management-cluster-bootstrap_$scala.binaryVersion$", version: "$version$"
+      compile group: "com.lightbend.akka.discovery", name: "akka-discovery-dns_$scala.binaryVersion$", version: "$version$"
     }
     ```
     @@@
@@ -59,6 +59,8 @@ You also have to explicitly configure it to be used as the default implementatio
 akka.discovery.method = akka-dns 
 ```
 
+Be sure to read about the @ref[alternative discovery methods](discovery.md) that Akka provides, such that you
+can pick the one most fitting to your cluster manager or runtime -- such as Kubernetes, Mesos or other cloud or tool specific methods.
 
 ## Akka Cluster Bootstrap Process explained
 
@@ -93,24 +95,24 @@ Short description of the bootstrap process:
 
 - New node is started, we call it "X",
 - The node discovers its "neighbours" using akka-discovery (e.g. using DNS),
-  - This is NOT enough to safely join or form a cluster, some initial negotiation between the nodes must take place.
+    - This is NOT enough to safely join or form a cluster, some initial negotiation between the nodes must take place.
 - The node starts to probe the Contact Points of the discovered nodes
 - Case 1) None of the contacted nodes return any seed nodes during the probing process,
-  - The `no-seeds-stable-margin` timeout passes, and no discovery changes are are observed as well
-  - The nodes all decide (autonomously) that no cluster exists, and a new one should be formed,
-    they know all their addresses, and decide that the "lowest" sorted address is to start forming the cluster,
-  - The lowest address node (e.g. "A") notices the same, and makes the decision to *join itself*,
-  - Other nodes, including X, will notice that A has started returning *itself* as a seed-node in the Contact Point responses,
-  - Any node, including X, immediately joins such seed node that it has observed in the Contact Point process.
-  - Nodes continue probing the other nodes, and eventually will notice any of the existing nodes that are part of the cluster,
-    and immediately join it. This phase is referred to as "epidemic joining".
-  - Eventually all nodes have joined the same cluster, the process is complete.
+    - The `no-seeds-stable-margin` timeout passes, and no discovery changes are are observed as well
+    - The nodes all decide (autonomously) that no cluster exists, and a new one should be formed,
+      they know all their addresses, and decide that the "lowest" sorted address is to start forming the cluster,
+    - The lowest address node (e.g. "A") notices the same, and makes the decision to *join itself*,
+    - Other nodes, including X, will notice that A has started returning *itself* as a seed-node in the Contact Point responses,
+    - Any node, including X, immediately joins such seed node that it has observed in the Contact Point process.
+    - Nodes continue probing the other nodes, and eventually will notice any of the existing nodes that are part of the cluster,
+      and immediately join it. This phase is referred to as "epidemic joining".
+    - Eventually all nodes have joined the same cluster, the process is complete.
 - Case 2) A cluster exists already, and when probing the various nodes node X will receive at least one seed-node address,
 from the contact points. 
-  - The node joins any discovered (via Contact Points probing) seed-node and immediately becomes part of the cluster.
-  - The process is complete, the node has successfully joined the "right" cluster.
-    - Notice that this phase is exactly the same as the "epidemic joining" in the more complicated Case 1 when a new 
-    cluster has to be formed.
+    - The node joins any discovered (via Contact Points probing) seed-node and immediately becomes part of the cluster.
+    - The process is complete, the node has successfully joined the "right" cluster.
+        - Notice that this phase is exactly the same as the "epidemic joining" in the more complicated Case 1 when a new 
+          cluster has to be formed.
 
 In the next sections we explain the process in more detail.
 

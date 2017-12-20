@@ -13,11 +13,13 @@ If you're looking for a way to discover Actors in a Cluster, you may want to loo
 pattern from Akka Typed instead. Since it provides a more fine-tuned towards Actors mechanism of
 doing the discovery.
 
-# Implementations
+## Discovery Method trade-offs
 
-TODO: Discussion about DNS vs other key-value stores.
+We recommend using the DNS implementation as good default choice, and if an implementation
+is available for your specific cloud provider or runtime (such as Kubernetes or Mesos etc),
+you can pick those likely gain some additional benefits, read their docs section for details.
 
-## Akka DNS Discovery
+## Discovery Method: Akka DNS Discovery
 
 The most natural form of service discovery is to use DNS as the source of truth regarding available 
 services. In the simplest version, we query for a service name -- which each cluster manager, such as Kubernetes, Mesos 
@@ -25,35 +27,14 @@ or others define using their own naming schemes, and expect to get back a list o
 
 ### Dependencies and usage
 
-Using `akka-discovery-dns` is very simple, as you simply need to depend on the library::
+Using `akka-discovery-dns` is very simple, as you simply need to depend on the library:
 
-sbt
-:   @@@vars
-    ```scala
-    libraryDependencies += "com.lightbend.akka" %% "akka-discovery-dns" % "$version$"
-    ```
-    @@@
+@@dependency[sbt,Gradle,Maven] {
+  group="com.lightbend.akka.discovery"
+  artifact="akka-discovery-dns_2.12"
+  version="$version$"
+}
 
-Maven
-:   @@@vars
-    ```xml
-    <dependency>
-      <groupId>com.lightbend.akka</groupId>
-      <artifactId>akka-discovery-dns_$scala.binaryVersion$</artifactId>
-      <version>$version$</version>
-    </dependency>
-    ```
-    @@@
-
-Gradle
-:   @@@vars
-    ```gradle
-    dependencies {
-      compile group: "com.lightbend.akka", name: "akka-discovery-dns_$scala.binaryVersion$", version: "$version$"
-    }
-    ```
-    @@@
-    
 And configure it to be used as default discovery implementation in your `application.conf`:
 
 ```
@@ -65,22 +46,21 @@ akka.discovery {
 From there on, you can use the generic API that hides the fact which discovery method is being used by calling::
 
 Scala
-```
-import akka.discovery.ServiceDiscovery
-
-val system = ActorSystem("Example")
-// ... 
-val discovery = ServiceDiscovery(system).discovery
-```
+:   ```
+    import akka.discovery.ServiceDiscovery
+    val system = ActorSystem("Example")
+    // ... 
+    val discovery = ServiceDiscovery(system).discovery
+    ```
 
 Java
-```
-import akka.discovery.ServiceDiscovery;
-
-ActorSystem system = ActorSystem.create("Example");
-// ... 
-SimpleServiceDiscovery discovery = ServiceDiscovery.get(system).discovery();
-```
+:   ```
+    import akka.discovery.ServiceDiscovery;
+    
+    ActorSystem system = ActorSystem.create("Example");
+    // ... 
+    SimpleServiceDiscovery discovery = ServiceDiscovery.get(system).discovery();
+    ```
 
 ### Mechanism explanation
 
@@ -119,7 +99,7 @@ An improved way of DNS discovery are `SRV` records, which are not yet supported 
 but would then allow the nodes to also advertise which port they are listening on instead of having to assume a shared 
 known port (which in the case of the akka management routes is `19999`).
 
-## Kubernetes API
+## Discovery Method: Kubernetes API
 
 Another discovery implementation provided is one that uses the Kubernetes API. Instead of doing a DNS lookup,
 it sends a request to the Kubernetes service API to find the other pods. This method allows you to define health
@@ -130,33 +110,12 @@ the namespace, label selector, and port name that are used in the pod selection 
 
 Using `akka-discovery-kubernetes-api` is very simple, as you simply need to depend on the library::
 
-sbt
-:   @@@vars
-    ```scala
-    libraryDependencies += "com.lightbend.akka" %% "akka-discovery-kubernetes-api" % "$version$"
-    ```
-    @@@
+@@dependency[sbt,Gradle,Maven] {
+  group="com.lightbend.akka.discovery"
+  artifact="akka-discovery-kubernetes-api"
+  version="$version$"
+}
 
-Maven
-:   @@@vars
-    ```xml
-    <dependency>
-      <groupId>com.lightbend.akka</groupId>
-      <artifactId>akka-discovery-kubernetes-api_$scala.binaryVersion$</artifactId>
-      <version>$version$</version>
-    </dependency>
-    ```
-    @@@
-
-Gradle
-:   @@@vars
-    ```gradle
-    dependencies {
-      compile group: "com.lightbend.akka", name: "akka-discovery-kubernetes-api_$scala.binaryVersion$", version: "$version$"
-    }
-    ```
-    @@@
-    
 And configure it to be used as default discovery implementation in your `application.conf`:
 
 ```

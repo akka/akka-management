@@ -9,8 +9,8 @@ Support for some protocols is provided out of the box and others are provided as
 
   - [Akka Management](akka-management.md)
   - [Akka Cluster Bootstrap](bootstrap.md)
+  - [Akka Discovery](discovery.md)
   - [Akka Cluster Management (HTTP)](cluster-http-management.md)
   - [Akka Cluster Management (JMX)](cluster-jmx-management.md)
-  - [Akka Discovery](discovery.md)
 
 @@@

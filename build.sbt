@@ -22,7 +22,7 @@ lazy val `akka-discovery` = project
   .settings(unidocSettings)
   .settings(
     name := "akka-discovery",
-    organization := "com.lightbend.akka",
+    organization := "com.lightbend.akka.discovery",
     Dependencies.Discovery
   )
 
@@ -33,7 +33,7 @@ lazy val `akka-discovery-dns` = project
   .settings(unidocSettings)
   .settings(
     name := "akka-discovery-dns",
-    organization := "com.lightbend.akka",
+    organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryDns
   )
   .dependsOn(`akka-discovery`)
@@ -45,7 +45,7 @@ lazy val `akka-discovery-kubernetes-api` = project
   .settings(unidocSettings)
   .settings(
     name := "akka-discovery-kubernetes-api",
-    organization := "com.lightbend.akka",
+    organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryKubernetesApi
   )
   .dependsOn(`akka-discovery`)
@@ -95,7 +95,13 @@ lazy val `bootstrap-joining-demo` = project
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
-  ).dependsOn(`akka-management`, `cluster-http`, `akka-discovery-dns`, `cluster-bootstrap`)
+  ).dependsOn(
+    `akka-management`,
+    `cluster-http`,
+    `akka-discovery-dns`,
+    `cluster-bootstrap`,
+    `akka-discovery-kubernetes-api`
+  )
 
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project
