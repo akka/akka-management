@@ -145,7 +145,7 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
     case InitiateBootstraping ⇒
       val serviceName = settings.contactPointDiscovery.effectiveName(context.system)
 
-      log.info("Locating service members, via DNS lookup: {}", serviceName)
+      log.info("Locating service members; Lookup: {}", serviceName)
       discovery.lookup(serviceName, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
 
       context become bootstraping(serviceName, sender())
