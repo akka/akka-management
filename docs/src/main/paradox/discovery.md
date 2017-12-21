@@ -172,7 +172,7 @@ spec:
           protocol: TCP
         # akka-management bootstrap
         - name: akka-mgmt-http
-          containerPort: 19999
+          containerPort: 8558
           protocol: TCP
 ```
 
