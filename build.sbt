@@ -50,6 +50,18 @@ lazy val `akka-discovery-kubernetes-api` = project
   )
   .dependsOn(`akka-discovery`)
 
+// AWS implementation of discovery
+lazy val `akka-discovery-aws` = project
+  .in(file("discovery-aws"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-aws",
+    organization := "com.lightbend.akka.discovery",
+    Dependencies.DiscoveryAws
+  )
+  .dependsOn(`akka-discovery`)
+
 // gathers all enabled routes and serves them (HTTP or otherwise)
 lazy val `akka-management` = project
   .in(file("management"))
