@@ -176,6 +176,50 @@ spec:
           protocol: TCP
 ```
 
+## Discovery Method: AWS API - EC2 Tag-Based Discovery
+
+If you're an AWS user, you can use tags to simply mark the instances that belong to the same cluster. Use a tag that
+has "service" as the key and set the value to be the name of your service. Note that this implementation is adequate
+for users running service clusters on *vanilla* EC2 instances. If you're using Amazon EKS (Amazon Elastic Container 
+Service for Kubernetes) or plain Amazon ECS, then this is not the right choice and you may want to use 
+the @ref:['Kubernetes API'-based discovery method](discovery.md#discovery-method-kubernetes-api) or some other solution.
+
+Screenshot of two tagged EC2 instances:
+
+![EC2 instances](images/discovery-aws-ec2-tagged-instances.png)
+
+Note the tag **service** -> *products-api*. 
+
+### Dependencies and usage
+
+This is a separate JAR file:
+
+@@dependency[sbt,Gradle,Maven] {
+  group="com.lightbend.akka.discovery"
+  artifact="akka-discovery-aws-api"
+  version="$version$"
+}
+
+And in your `application.conf`:
+
+```
+akka.discovery {
+  method = aws-api-ec2-tag-based
+}
+```
+
+Notes:
+
+* Since the implementation uses the Amazon EC2 API, you'll need to make sure that AWS credentials are provided.
+The simplest way to do this is to create a IAM role that includes permissions for Amazon EC2 API access.
+Attach this IAM role to the instances that make up the cluster. See the docs for
+[IAM Roles for Amazon EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html).
+
+* In general, for the EC2 instances to "talk to each other" (necessary for forming a cluster), they need to be in the
+same security group and [the proper rules have to be set](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-other-instances).
+
+* The implementation, at this time, does not filter based on region or instance type etc.
+
 
 ## How to contribute implementations
 
@@ -183,4 +227,4 @@ Contributions to alternative data-stores or service-discovery APIs built-in to s
 are happily accepted. Please open an issue on the github issue tracker to discuss the integration
 you'd like to contribute first.
 
-An implementation should keep its configuration in the `akka.discovery`
+An implementation should keep its configuration under `akka.discovery`.

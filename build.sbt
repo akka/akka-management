@@ -10,6 +10,7 @@ lazy val `akka-management-root` = project
     `akka-discovery`,
     `akka-discovery-dns`,
     `akka-discovery-kubernetes-api`,
+    `akka-discovery-aws-api`,
     `akka-management`,
     `cluster-http`,
     `cluster-bootstrap`,
@@ -47,6 +48,18 @@ lazy val `akka-discovery-kubernetes-api` = project
     name := "akka-discovery-kubernetes-api",
     organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryKubernetesApi
+  )
+  .dependsOn(`akka-discovery`)
+
+// AWS implementation of discovery
+lazy val `akka-discovery-aws-api` = project
+  .in(file("discovery-aws-api"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-aws-api",
+    organization := "com.lightbend.akka.discovery",
+    Dependencies.DiscoveryAwsApi
   )
   .dependsOn(`akka-discovery`)
 
