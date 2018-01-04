@@ -180,8 +180,12 @@ spec:
 
 If you're an AWS user, you can use tags to simply mark the instances that belong to the same cluster. Use a tag that
 has "service" as the key and set the value to be the name of your service. Note that this implementation is adequate
-for users running service clusters on *vanilla* EC2 instances. If you're using Amazon EKS or Amazon ECS, this is not
-the right choice.
+for users running service clusters on *vanilla* EC2 instances. If you're using Amazon EKS (Amazon Elastic Container 
+Service for Kubernetes) or plain Amazon ECS, then this is not the right choice and you may want to use 
+the @ref:['Kubernetes API'-based discovery method](discovery.md#discovery-method-kubernetes-api) or some other solution.
+
+Screenshot of two tagged instances:
+
 
 ### Dependencies and usage
 
