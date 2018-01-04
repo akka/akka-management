@@ -1,13 +1,13 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-package akka.discovery.aws
+package akka.discovery.aws.ec2
 
 import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
-import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter }
+import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
