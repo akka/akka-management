@@ -184,8 +184,11 @@ for users running service clusters on *vanilla* EC2 instances. If you're using A
 Service for Kubernetes) or plain Amazon ECS, then this is not the right choice and you may want to use 
 the @ref:['Kubernetes API'-based discovery method](discovery.md#discovery-method-kubernetes-api) or some other solution.
 
-Screenshot of two tagged instances:
+Screenshot of two tagged EC2 instances:
 
+![EC2 instances](images/discovery-aws-ec2-tagged-instances.png)
+
+Note the tag **service** -> *products-api*. 
 
 ### Dependencies and usage
 
@@ -224,4 +227,4 @@ Contributions to alternative data-stores or service-discovery APIs built-in to s
 are happily accepted. Please open an issue on the github issue tracker to discuss the integration
 you'd like to contribute first.
 
-An implementation should keep its configuration in the `akka.discovery`
+An implementation should keep its configuration under `akka.discovery`.
