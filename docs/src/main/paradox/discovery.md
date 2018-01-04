@@ -204,7 +204,7 @@ And in your `application.conf`:
 
 ```
 akka.discovery {
-  method = aws-ec2-tag-based
+  method = aws-api-ec2-tag-based
 }
 ```
 

@@ -59,7 +59,7 @@ lazy val `akka-discovery-aws-api` = project
   .settings(
     name := "akka-discovery-aws-api",
     organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryAwsEc2
+    Dependencies.DiscoveryAwsApi
   )
   .dependsOn(`akka-discovery`)
 
