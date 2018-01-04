@@ -176,7 +176,7 @@ spec:
           protocol: TCP
 ```
 
-## Discovery Method: AWS EC2 Discovery
+## Discovery Method: AWS API - EC2 Tag-Based Discovery
 
 If you're an AWS user, you can use tags to simply mark the instances that belong to the same cluster. Use a tag that
 has "service" as the key and set the value to be the name of your service. Note that this implementation is adequate
@@ -196,7 +196,7 @@ This is a separate JAR file:
 
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
-  artifact="akka-discovery-aws-ec2"
+  artifact="akka-discovery-aws-api"
   version="$version$"
 }
 
