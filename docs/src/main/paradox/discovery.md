@@ -185,7 +185,7 @@ the right choice.
 
 ### Dependencies and usage
 
-Using `akka-discovery-aws-ec2` is very simple, as you simply need to depend on the library:
+This is a separate JAR file:
 
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
