@@ -179,16 +179,26 @@ spec:
 ## Discovery Method: AWS API - EC2 Tag-Based Discovery
 
 If you're an AWS user, you can use tags to simply mark the instances that belong to the same cluster. Use a tag that
-has "service" as the key and set the value to be the name of your service. Note that this implementation is adequate
-for users running service clusters on *vanilla* EC2 instances. If you're using Amazon EKS (Amazon Elastic Container 
-Service for Kubernetes) or plain Amazon ECS, then this is not the right choice and you may want to use 
-the @ref:['Kubernetes API'-based discovery method](discovery.md#discovery-method-kubernetes-api) or some other solution.
-
+has "service" as the key and set the value equal to your `akka.cluster.bootstrap.contact-point-discovery.service-name` 
+defined in `application.conf`.
+ 
 Screenshot of two tagged EC2 instances:
 
 ![EC2 instances](images/discovery-aws-ec2-tagged-instances.png)
 
 Note the tag **service** -> *products-api*. 
+ 
+Note that this implementation is adequate for users running service clusters on *vanilla* EC2 instances. These
+instances can be created and tagged manually, or created via an auto-scaling group. If they are created via an ASG,
+they can be tagged automatically on creation. Simply add the tag to the auto-scaling group configuration and 
+ensure the "Tag New Instances" option is checked.
+
+This implementation can also work with ECS / EKS with host-based networking, if your cluster is fully tagged and you're
+deploying one container per cluster member. If you're using Amazon EKS (Amazon Elastic Container Service for 
+Kubernetes), then you may want to use 
+the @ref:['Kubernetes API'-based discovery method](discovery.md#discovery-method-kubernetes-api) instead.
+
+
 
 ### Dependencies and usage
 
