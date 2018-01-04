@@ -176,6 +176,43 @@ spec:
           protocol: TCP
 ```
 
+## Discovery Method: AWS EC2 Discovery
+
+If you're an AWS user, you can use tags to simply mark the instances that belong to the same cluster. Use a tag that
+has "service" as the key and set the value to be the name of your service. Note that this implementation is adequate
+for users running service clusters on *vanilla* EC2 instances. If you're using Amazon EKS or Amazon ECS, this is not
+the right choice.
+
+### Dependencies and usage
+
+Using `akka-discovery-aws-ec2` is very simple, as you simply need to depend on the library:
+
+@@dependency[sbt,Gradle,Maven] {
+  group="com.lightbend.akka.discovery"
+  artifact="akka-discovery-aws-ec2"
+  version="$version$"
+}
+
+And in your `application.conf`:
+
+```
+akka.discovery {
+  method = aws-ec2-tag-based
+}
+```
+
+Notes:
+
+* Since the implementation uses the Amazon EC2 API, you'll need to make sure that AWS credentials are provided.
+The simplest way to do this is to create a IAM role that includes permissions for Amazon EC2 API access.
+Attach this IAM role to the instances that make up the cluster. See the docs for
+[IAM Roles for Amazon EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html).
+
+* In general, for the EC2 instances to "talk to each other" (necessary for forming a cluster), they need to be in the
+same security group and [the proper rules have to be set](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-other-instances).
+
+* The implementation, at this time, does not filter based on region or instance type etc.
+
 
 ## How to contribute implementations
 

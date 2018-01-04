@@ -35,8 +35,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
       ec2Client
         .describeInstances(request)
         .getReservations
-        .asScala
-        .toList
+        .asScala.toList
         .flatMap(_.getInstances.asScala.toList)
         .map(_.getPrivateIpAddress)
         .map(ip => ResolvedTarget(ip, None))
