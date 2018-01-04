@@ -5,9 +5,9 @@ package akka.discovery.aws.ec2
 
 import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
-import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter}
+import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -37,7 +37,8 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
       ec2Client
         .describeInstances(request)
         .getReservations
-        .asScala.toList
+        .asScala
+        .toList
         .flatMap(_.getInstances.asScala.toList)
         .map(_.getPrivateIpAddress)
         .map(ip => ResolvedTarget(ip, None))
