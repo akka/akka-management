@@ -32,6 +32,8 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     // pretty quick call on EC2, not worried about blocking
     Future {
+      // TODO: handle pagination (in rare case you get hundreds of instances, the results of this call come
+      // paginated and the user of the API has to call describeInstances again, with the nextToken
       ec2Client
         .describeInstances(request)
         .getReservations
