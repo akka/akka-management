@@ -1,14 +1,13 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.discovery.aws
 
 import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
-import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter}
+import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -25,8 +24,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
 
-    val request = new DescribeInstancesRequest().withFilters(tagFilter)
-        .withFilters(runningInstancesFilter)
+    val request = new DescribeInstancesRequest().withFilters(tagFilter).withFilters(runningInstancesFilter)
 
     implicit val timeout = resolveTimeout
 
@@ -34,7 +32,11 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     // pretty quick call on EC2, not worried about blocking
     Future {
-      ec2Client.describeInstances(request).getReservations.asScala.toList
+      ec2Client
+        .describeInstances(request)
+        .getReservations
+        .asScala
+        .toList
         .flatMap(_.getInstances.asScala.toList)
         .map(_.getPrivateIpAddress)
         .map(ip => ResolvedTarget(ip, None))

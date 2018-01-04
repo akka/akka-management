@@ -10,6 +10,7 @@ lazy val `akka-management-root` = project
     `akka-discovery`,
     `akka-discovery-dns`,
     `akka-discovery-kubernetes-api`,
+    `akka-discovery-aws`,
     `akka-management`,
     `cluster-http`,
     `cluster-bootstrap`,
