@@ -51,7 +51,7 @@ Scala
     val system = ActorSystem("Example")
     // ... 
     val discovery = ServiceDiscovery(system).discovery
-    result: Future[Resolved] = discovery.lookup("service-name", resolveTimeout = 500 milliseconds)
+    val result: Future[Resolved] = discovery.lookup("service-name", resolveTimeout = 500 milliseconds)
     ```
 
 Java
