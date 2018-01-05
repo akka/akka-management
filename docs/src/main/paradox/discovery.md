@@ -51,15 +51,16 @@ Scala
     val system = ActorSystem("Example")
     // ... 
     val discovery = ServiceDiscovery(system).discovery
+    result: Future[Resolved] = discovery.lookup("service-name", resolveTimeout = 500 milliseconds)
     ```
 
 Java
 :   ```
-    import akka.discovery.ServiceDiscovery;
-    
+    import akka.discovery.ServiceDiscovery; 
     ActorSystem system = ActorSystem.create("Example");
     // ... 
     SimpleServiceDiscovery discovery = ServiceDiscovery.get(system).discovery();
+    Future<SimpleServiceDiscovery.Resolved> result = discovery.lookup("service-name", Duration.create("500 millis"));
     ```
 
 ### Mechanism explanation
