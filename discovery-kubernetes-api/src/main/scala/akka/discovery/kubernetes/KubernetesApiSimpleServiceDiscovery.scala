@@ -23,10 +23,15 @@ import JsonFormat._
 import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 
 object KubernetesApiSimpleServiceDiscovery {
-  private[kubernetes] def targets(podList: PodList, name: String, portName: String): Seq[ResolvedTarget] =
+
+  /**
+   * Finds relevant targets given a pod list. Note that this doesn't filter by name as it is the job of the selector
+   * to do that.
+   */
+  private[kubernetes] def targets(podList: PodList, portName: String): Seq[ResolvedTarget] =
     for {
       item <- podList.items
-      container <- item.spec.containers.find(_.name == name)
+      container <- item.spec.containers
       port <- container.ports.find(_.name == portName)
       ip <- item.status.podIP
     } yield ResolvedTarget(ip, Some(port.containerPort))
@@ -68,7 +73,7 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
 
       podList <- Unmarshal(entity).to[PodList]
 
-    } yield Resolved(name, targets(podList, name, settings.podPortName))
+    } yield Resolved(name, targets(podList, settings.podPortName))
 
   private def apiToken() =
     FileIO.fromPath(Paths.get(settings.apiTokenPath)).runFold("")(_ + _.utf8String).recover { case _: Throwable => "" }
