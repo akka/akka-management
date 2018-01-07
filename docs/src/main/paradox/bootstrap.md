@@ -212,13 +212,13 @@ is strictly defined and is as follows:
 In Kubernetes, one would deploy an Akka Cluster as a single [Headless Service](https://kubernetes.io/docs/concepts/services-networking/service/#headless-services).
 
 An example application using docker and prepared to be deployed to kubernetes is provided in Akka Management's github repository 
-as sub-project [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo).
+as sub-project [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/kubernetes-api).
 
 Rather than configuring the Dockerfile directly, we used the [sbt-native-packager](http://sbt-native-packager.readthedocs.io/en/stable/) 
 to package the application as docker container. See the `build.sbt` file for more details, and the `kubernetes/akka-cluster.yml` 
 file for the service configuration, which is:
 
-@@snip [akka-cluster.yml](../../../../bootstrap-joining-demo/kubernetes/akka-cluster.yml) 
+@@snip [akka-cluster.yml](../../../../bootstrap-joining-demo/kubernetes-api/kubernetes/akka-cluster.yml) 
 
 In order to run the example you can build it via:
 
@@ -269,7 +269,7 @@ $ sbt shell
 
 Once the image is published, you can deploy it onto the kubernetes cluster by calling:
 
-@@snip [kube-create.sh](../../../../bootstrap-joining-demo/kube-create.sh) 
+@@snip [kube-create.sh](../../../../bootstrap-joining-demo/kubernetes-api/kube-create.sh) 
 
 This will create and start running a number of Pods hosting the application. The application nodes will proceed with 
 forming the cluster using the DNS bootstrap method. In order to observe the logs during the cluster formation you can 

@@ -99,12 +99,12 @@ lazy val `cluster-bootstrap` = project
 
 // demo of the bootstrap
 lazy val `bootstrap-joining-demo` = project
-  .in(file("bootstrap-joining-demo"))
+  .in(file("bootstrap-joining-demo/kubernetes-api"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "akka-management-bootstrap-joining-demo",
+    name := "akka-management-bootstrap-joining-demo-kubernetes-api",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
