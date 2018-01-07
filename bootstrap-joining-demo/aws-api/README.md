@@ -73,14 +73,28 @@ Tag instances with tag "service" -> "products-api".
 ![tagging instances](screenshots/discovery-aws-ec2-tagged-instances.png)
 
 
-Step 8: Run !
--------------
+Step 8: Run and validate the cluster !
+--------------------------------------
 
-Now transfer (via scp, for example) the package zip file to your EC2 instances. 
+Transfer (via scp, for example) the package zip file to your EC2 instances. 
 Unzip the package and run the app like this on each instance:
 
+```
+$ unzip bootstrap-joining-demo-aws-api-1.0.zip
+$ cd bootstrap-joining-demo-aws-api-1.0/bin
+$ MY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`
+$ ./bootstrap-joining-demo-aws-api -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP
+```
 
- 
+Follow the logs and watch for signs of successful cluster formation (e.g., a welcome message from one of the nodes). 
 
+Open a second terminal session to one of the EC2 instance:
 
+```
+$ MY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`
+$ curl -XGET http://$MY_IP:19999/cluster/members | python -mjson.tool
+```
 
+You should see two members with status equal to 'Up' and no unreachable members.
+
+Congrats.
