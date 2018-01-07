@@ -258,12 +258,12 @@ $ eval $(minikube docker-env)
 # 4) Publish the application docker image locally:
 $ sbt shell
 ...
-> project bootstrap-joining-demo
+> project bootstrap-joining-demo-kubernetes-api
 ... 
 > docker:publishLocal 
 ...
-[info] Successfully tagged ktoso/akka-management-bootstrap-joining-demo:1.3.3.7
-[info] Built image ktoso/akka-management-bootstrap-joining-demo:1.3.3.7
+[info] Successfully tagged ktoso/akka-management-bootstrap-joining-demo-kubernetes-api:1.3.3.7
+[info] Built image ktoso/akka-management-bootstrap-joining-demo-kubernetes-api:1.3.3.7
 [success] Total time: 25 s, completed Dec 8, 2017 7:47:05 PM
 ```
 
