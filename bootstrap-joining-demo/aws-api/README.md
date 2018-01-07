@@ -26,7 +26,7 @@ Step 3: Attach IAM Role
 Go back to the EC2 view of the AWS Management Console and attach the newly created role to each and every EC2 instance you
 launched in Step 1. See screenshot below to see how to do this.
 
-![attaching a IAM role to an EC2 instance](/screenshots/attach-iam-role.png)
+![attaching a IAM role to an EC2 instance](screenshots/attach-iam-role.png)
 
 Step 4: Create Security Group
 -----------------------------
@@ -43,7 +43,7 @@ Then, add two custom TCP rules (for ports 19999, 2551) using a custom source: th
 
 See the screenshot below.
 
-![creating a security group](/screenshots/create-security-group.png)
+![creating a security group](screenshots/create-security-group.png)
 
 Step 5: Attach Security Group
 -----------------------------
@@ -70,7 +70,7 @@ Step 7: Tag Instances
 
 Tag instances with tag "service" -> "products-api".
 
-![tagging instances](/screenshots/discovery-aws-ec2-tagged-instances.png)
+![tagging instances](screenshots/discovery-aws-ec2-tagged-instances.png)
 
 
 Step 8: Run !
