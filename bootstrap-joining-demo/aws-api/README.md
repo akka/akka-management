@@ -1,6 +1,11 @@
 Your Akka Cluster on Vanilla EC2 using Tag Based Discovery
 ==========================================================
 
+----------------------------------------------------------
+Note:
+These steps can be easily automated via Cloud Formation or 
+Python / shell scripts etc.
+----------------------------------------------------------
 
 Step 1: Launch Instances
 ------------------------
