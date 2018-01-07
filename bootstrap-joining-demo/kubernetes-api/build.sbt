@@ -36,7 +36,9 @@ dockerUsername := Some("ktoso")
 dockerCommands += Cmd("USER", "root")
 
 // use ++= to merge a sequence with an existing sequence
-dockerCommands ++= Seq(
-  ExecCmd("RUN", "apt-get", "update"),
-  ExecCmd("RUN", "apt-get", "install", "-y", "dnsutils")
-)
+//
+// ENABLE THESE IF YOU WANT TO MANUALLY DO DNSLOOKUPS IN THE CONTAINER (FOR DEBUGGING)
+// dockerCommands ++= Seq(
+//  ExecCmd("RUN", "apt-get", "update"),
+//  ExecCmd("RUN", "apt-get", "install", "-y", "dnsutils")
+// )
