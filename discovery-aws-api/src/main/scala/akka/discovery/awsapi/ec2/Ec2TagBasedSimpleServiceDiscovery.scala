@@ -3,6 +3,8 @@
  */
 package akka.discovery.awsapi.ec2
 
+import java.util
+
 import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
@@ -24,7 +26,23 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
 
-    val request = new DescribeInstancesRequest().withFilters(tagFilter).withFilters(runningInstancesFilter)
+    val otherFiltersString =
+      system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based").getString("filters")
+
+    val otherFilters: util.List[Filter] = otherFiltersString
+      .split(";")
+      .map(kv => kv.split("="))
+      .toList
+      .map(kv => {
+        assert(kv.length == 2, "failed to parse one of the key-value pairs in filters")
+        new Filter(kv(0), List(kv(1)).asJava)
+      })
+      .asJava
+
+    val request = new DescribeInstancesRequest()
+      .withFilters(tagFilter)
+      .withFilters(runningInstancesFilter)
+      .withFilters(otherFilters)
 
     implicit val timeout = resolveTimeout
 
