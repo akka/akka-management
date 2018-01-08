@@ -98,13 +98,13 @@ lazy val `cluster-bootstrap` = project
 // I was thinking it would be nice to have "hello world bootstrap in the smallest number of steps" so that would reduce 2 deps into 1.
 
 // demo of the bootstrap
-lazy val `bootstrap-joining-demo` = project
-  .in(file("bootstrap-joining-demo"))
+lazy val `bootstrap-joining-demo-kubernetes-api` = project
+  .in(file("bootstrap-joining-demo/kubernetes-api"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "akka-management-bootstrap-joining-demo",
+    name := "akka-management-bootstrap-joining-demo-kubernetes-api",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
