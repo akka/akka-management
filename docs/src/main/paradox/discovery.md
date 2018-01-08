@@ -180,17 +180,17 @@ spec:
 ## Discovery Method: AWS API - EC2 Tag-Based Discovery
 
 If you're an AWS user, you can use tags to simply mark the instances that belong to the same cluster. Use a tag that
-has "service" as the key and set the value equal to your `akka.cluster.bootstrap.contact-point-discovery.service-name` 
-defined in `application.conf`.
+has "service" as the key and set the value equal to the name of your service (same value as `akka.cluster.bootstrap.contact-point-discovery.service-name` 
+defined in `application.conf`, if you're using this module for bootstrapping your Akka cluster).
  
 Screenshot of two tagged EC2 instances:
 
 ![EC2 instances](images/discovery-aws-ec2-tagged-instances.png)
 
-Note the tag **service** -> *products-api*. 
+Note the tag **service** -> *products-api*. It's set on both instances. 
  
 Note that this implementation is adequate for users running service clusters on *vanilla* EC2 instances. These
-instances can be created and tagged manually, or created via an auto-scaling group. If they are created via an ASG,
+instances can be created and tagged manually, or created via an auto-scaling group (ASG). If they are created via an ASG,
 they can be tagged automatically on creation. Simply add the tag to the auto-scaling group configuration and 
 ensure the "Tag New Instances" option is checked.
 
@@ -198,8 +198,6 @@ This implementation can also work with ECS / EKS with host-based networking, if 
 deploying one container per cluster member. If you're using Amazon EKS (Amazon Elastic Container Service for 
 Kubernetes), then you may want to use 
 the @ref:['Kubernetes API'-based discovery method](discovery.md#discovery-method-kubernetes-api) instead.
-
-
 
 ### Dependencies and usage
 
@@ -229,8 +227,19 @@ Attach this IAM role to the instances that make up the cluster. See the docs for
 * In general, for the EC2 instances to "talk to each other" (necessary for forming a cluster), they need to be in the
 same security group and [the proper rules have to be set](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-other-instances).
 
-* The implementation, at this time, does not filter based on region or instance type etc.
+* You can set additional filters (by instance type, region, other tags etc.) in your `application.conf`, in the
+`akka.discovery.aws-api-ec2-tag-based.filters` key. The filters have to be `key=value` pairs separated by the semicolon
+character. For example, `akka.discovery.aws-api-ec2-tag-based.filters="instance-type=m1.small;tag:purpose=production"`.
 
+* This module does not support running multiple Akka nodes (i.e. multiple JVMs) per EC2 instance. 
+
+* You can change the default tag key from "service" to something else. This can be done via `application.conf`, by 
+setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else. 
+
+Demo:
+
+* A working demo app is available in the [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api) 
+folder.
 
 ## How to contribute implementations
 
