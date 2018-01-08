@@ -7,9 +7,9 @@ import java.util
 
 import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
-import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter}
+import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -26,16 +26,17 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
 
-    val otherFiltersString = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based").getString("filters")
+    val otherFiltersString =
+      system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based").getString("filters")
 
-    val otherFilters: util.List[Filter] = otherFiltersString.split(";")
+    val otherFilters: util.List[Filter] = otherFiltersString
+      .split(";")
       .map(kv => kv.split("="))
       .toList
       .map(kv => {
         assert(kv.length == 2, "failed to parse one of the key-value pairs in filters")
         new Filter(kv(0), List(kv(1)).asJava)
-      }
-      )
+      })
       .asJava
 
     val request = new DescribeInstancesRequest()
