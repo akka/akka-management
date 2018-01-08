@@ -227,14 +227,26 @@ Attach this IAM role to the instances that make up the cluster. See the docs for
 * In general, for the EC2 instances to "talk to each other" (necessary for forming a cluster), they need to be in the
 same security group and [the proper rules have to be set](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-other-instances).
 
-* You can set additional filters (by instance type, region, other tags etc.) in your `application.conf`, in the
-`akka.discovery.aws-api-ec2-tag-based.filters` key. The filters have to be `key=value` pairs separated by the semicolon
-character. For example, `akka.discovery.aws-api-ec2-tag-based.filters="instance-type=m1.small;tag:purpose=production"`.
+* You can set additional filters (by instance type, region, other tags etc.) in your application.conf file, in the
+`akka.discovery.aws-api-ec2-tag-based.filters` key. The filters have to be key=value pairs separated by the semicolon
+character. For example: 
+    ```
+    akka {
+      discovery {
+        aws-api-ec2-tag-based {
+          filters = "instance-type=m1.small;tag:purpose=production"
+        }
+      }
+    }
+    ```
 
 * This module does not support running multiple Akka nodes (i.e. multiple JVMs) per EC2 instance. 
 
 * You can change the default tag key from "service" to something else. This can be done via `application.conf`, by 
 setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else. 
+    ```
+    akka.discovery.aws-api-ec2-tag-based.tag-key = "akka-cluster"
+    ```
 
 Demo:
 
