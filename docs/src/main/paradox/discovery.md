@@ -187,7 +187,7 @@ Screenshot of two tagged EC2 instances:
 
 ![EC2 instances](images/discovery-aws-ec2-tagged-instances.png)
 
-Note the tag **service** -> *products-api*. It's set on both instances. 
+Note the tag **service** -> *products-api*. It is set on both instances. 
  
 Note that this implementation is adequate for users running service clusters on *vanilla* EC2 instances. These
 instances can be created and tagged manually, or created via an auto-scaling group (ASG). If they are created via an ASG,
