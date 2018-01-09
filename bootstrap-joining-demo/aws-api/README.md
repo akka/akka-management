@@ -5,7 +5,7 @@ Note: these steps can be easily automated via Cloud Formation or
 Python / shell scripts etc.
 
 Examine the source code
--------------------------------
+-----------------------
 Examine the source code. See how simple it is: there is no hardcoding
 of seed node IPs or host names in the application.conf file.
 
