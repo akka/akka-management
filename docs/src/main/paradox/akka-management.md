@@ -40,7 +40,7 @@ actually want to use (and load) in their project.
 
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.management"
-  artifact="akka-management"
+  artifact="akka-management_$scala.binaryVersion$"
   version="$version$"
 }
 
