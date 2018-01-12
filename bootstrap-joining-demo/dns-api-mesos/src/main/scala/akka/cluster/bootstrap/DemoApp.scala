@@ -24,7 +24,7 @@ object DemoApp extends App {
   implicit val mat = ActorMaterializer()
   implicit val cluster = Cluster(system)
 
-  log.info(s"Started [$system], cluster.selfAddress = ${cluster.selfAddress}")
+  log.info("Started [{}], cluster.selfAddress = {}", system, cluster.selfAddress)
 
   AkkaManagement(system).start()
   ClusterBootstrap(system).start()
@@ -41,6 +41,6 @@ class ClusterWatcher extends Actor with ActorLogging {
   implicit val cluster = Cluster(context.system)
 
   override def receive = {
-    case msg ⇒ log.info(s"Cluster ${cluster.selfAddress} >>> " + msg)
+    case msg ⇒ log.info("Cluster {} >>> {}", msg, cluster.selfAddress)
   }
 }
