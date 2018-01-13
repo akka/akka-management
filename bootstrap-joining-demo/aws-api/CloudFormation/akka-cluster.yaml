@@ -33,6 +33,17 @@ Resources:
       KeyName: {"Ref": "KeyPair"}
       SecurityGroups:
         - Ref: AkkaClusterSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
+          sudo yum -y install sbt
+          sudo yum -y install git
+          git clone https://github.com/akka/akka-management.git
+          cd akka-management/bootstrap-joining-demo/aws-api/
+          sbt compile
+          MY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`
+          sbt run -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP
   AkkaAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
