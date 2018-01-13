@@ -8,15 +8,50 @@ Parameters:
     Default: 0.0.0.0/0
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  InstanceCount:
+    Description: Number of EC2 instances for your Akka Cluster (must be between 2 and 50)
+    Type: Number
+    Default: 3
+    MinValue: 2
+    MaxValue: 50
+    ConstraintDescription: Must be a number between 2 and 50
+  InstanceType:
+      Description: Instance type to launch EC2 instances.
+      Type: String
+      Default: t2.micro
+      AllowedValues: [ t2.micro, t2.small, t2.medium, t2.large ]
+  KeyPair:
+      Description: "Key Pair (for SSH access)"
+      Type: AWS::EC2::KeyPair::KeyName
 Resources:
-
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: ami-33e3c856
+      IamInstanceProfile: {"Ref": "IAMInstanceProfile"}
+      InstanceType: {"Ref": "InstanceType"}
+      KeyName: {"Ref": "KeyPair"}
+      SecurityGroups:
+        - Ref: AkkaClusterSecurityGroup
+  AkkaAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchConfigurationName: {"Ref": "LaunchConfiguration"}
+      AvailabilityZones:
+        Fn::GetAZs: ""
+      MinSize: {"Ref": "InstanceCount"}
+      MaxSize: {"Ref": "InstanceCount"}
+      DesiredCapacity: {"Ref": "InstanceCount"}
+      Tags:
+        - Key: service
+          Value: products-api
+          PropagateAtLaunch: true
   IAMInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
       Roles:
         - Ref: EC2ReadOnlyRole
-
   EC2ReadOnlyPolicy:
     Type: 'AWS::IAM::Policy'
     Properties:
@@ -30,7 +65,6 @@ Resources:
            Action:
             - "ec2:DescribeInstances"
            Resource: "*"
-
   EC2ReadOnlyRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -43,7 +77,6 @@ Resources:
             Principal:
               Service:
                 - ec2.amazonaws.com
-
   AkkaClusterSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -53,7 +86,6 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: {"Ref": "SSHLocation"}
-
   AkkaClusterSecurityGroupIngressForPeers2551:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -62,7 +94,6 @@ Resources:
       FromPort: 2551
       ToPort: 2551
       SourceSecurityGroupName: {"Ref": "AkkaClusterSecurityGroup"}
-
   AkkaClusterSecurityGroupIngressForPeers19999:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
