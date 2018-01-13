@@ -1,5 +1,5 @@
 DNS lookup example
-===
+==================
 
 Build and publish docker image into the local repo.
 `sbt docker:publishLocal`
@@ -11,6 +11,6 @@ Push image into DockerHub
 `docker push <dockerhub-id>/bootstrap-joining-demo-dns-api:1.0`
 
 Mesosphere DC/OS
-===
+================
 
 Use `mesos.host-mode.json` service description.
