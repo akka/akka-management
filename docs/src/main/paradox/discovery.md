@@ -113,7 +113,7 @@ Using `akka-discovery-kubernetes-api` is very simple, as you simply need to depe
 
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
-  artifact="akka-discovery-kubernetes-api"
+  artifact="akka-discovery-kubernetes-api_2.12"
   version="$version$"
 }
 
@@ -192,7 +192,7 @@ This is a separate JAR file:
 
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
-  artifact="akka-discovery-marathon-api"
+  artifact="akka-discovery-marathon-api_2.12"
   version="$version$"
 }
 
@@ -250,7 +250,7 @@ This is a separate JAR file:
 
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
-  artifact="akka-discovery-aws-api"
+  artifact="akka-discovery-aws-api_2.12"
   version="$version$"
 }
 
