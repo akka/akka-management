@@ -100,7 +100,7 @@ private[dns] class HttpContactPointBootstrap(
 
     case response @ SeedNodes(node, members) ⇒
       if (members.isEmpty) {
-        if (clusterNotObservedWithinDeadline && settings.allowFormation) {
+        if (clusterNotObservedWithinDeadline && settings.formNewCluster) {
           permitParentToFormClusterIfPossible()
 
           // if we are not the lowest address, we won't join ourselves,
