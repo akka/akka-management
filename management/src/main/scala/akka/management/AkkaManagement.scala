@@ -86,6 +86,9 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
       val hostname = settings.Http.Hostname
       val port = settings.Http.Port
 
+      val effectiveBindHostname = settings.Http.EffectiveBindHostname
+      val effectiveBindPort = settings.Http.EffectiveBindPort
+
       // port is on purpose never inferred from protocol, because this HTTP endpoint is not the "main" one for the app
       val protocol = if (_connectionContext.isSecure) "https" else "http"
       val selfBaseUri = Uri(s"$protocol://$hostname:$port/${settings.Http.BasePath}")
@@ -101,16 +104,18 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
           // ----
           // FIXME -- think about the style of how we want to make these available
 
+          log.info("Binding Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
+
           val serverFutureBinding =
             Http().bindAndHandle(
               RouteResult.route2HandlerFlow(routes),
-              hostname,
-              port,
+              effectiveBindHostname,
+              effectiveBindPort,
               connectionContext = this._connectionContext
             )
 
           serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { _ =>
-            log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", hostname, port)
+            log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
             selfUriPromise.success(selfBaseUri).future
           }
 

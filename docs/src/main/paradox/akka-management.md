@@ -114,6 +114,19 @@ Java
     AkkaManagement.get(actorSystem2).start();
     ```
 
+When running akka nodes behind NATs or inside docker containers in bridge mode, 
+it's necessary to set different hostname and port number to bind for the HTTP Server for Http Cluster Management:
+
+application.conf
+:   ```
+    akka.management.http.hostname = ${HOST} //Get hostname from environmental variable HOST
+    akka.management.port = 19999
+    akka.management.port = ${?PORT_19999} //Get port from environmental variable PORT_19999 if it's defined, otherwise 19999
+
+    akka.management.http.bind-hostname = 0.0.0.0
+    akka.management.http.bind-port = 19999    
+    ```  
+
 It is also possible to modify the base path of the API, by setting the appropriate value in application conf: 
 
 application.conf

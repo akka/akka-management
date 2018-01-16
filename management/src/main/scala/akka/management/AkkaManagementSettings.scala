@@ -25,8 +25,21 @@ final class AkkaManagementSettings(val config: Config) {
 
     val Port: Int = {
       val p = cc.getInt("port")
-      require(p >= 0, s"akka.management.http.port MUST be > 0 (was ${p})")
+      require(0 to 65535 contains p, s"akka.management.http.port must be 0 through 65535 (was ${p})")
       p
+    }
+
+    val EffectiveBindHostname: String = cc.getString("bind-hostname") match {
+      case "" ⇒ Hostname
+      case value ⇒ value
+    }
+
+    val EffectiveBindPort: Int = cc.getString("bind-port") match {
+      case "" ⇒ Port
+      case value ⇒
+        val p = value.toInt
+        require(0 to 65535 contains p, s"akka.management.http.bind-port must be 0 through 65535 (was ${p})")
+        p
     }
 
     val BasePath: Option[String] =
