@@ -73,6 +73,12 @@ object Dependencies {
       DependencyGroups.AkkaHttp
   )
 
+  val DiscoveryMarathonApi = Seq(
+    libraryDependencies ++=
+      DependencyGroups.AkkaActor ++
+        DependencyGroups.AkkaHttp
+  )
+
   val DiscoveryAwsApi = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++ Seq("com.amazonaws" % "aws-java-sdk-ec2" % "1.11.257")
