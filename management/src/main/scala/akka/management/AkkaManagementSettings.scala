@@ -29,12 +29,12 @@ final class AkkaManagementSettings(val config: Config) {
       p
     }
 
-    val BindHostname: String = cc.getString("bind-hostname") match {
+    val EffectiveBindHostname: String = cc.getString("bind-hostname") match {
       case "" ⇒ Hostname
       case value ⇒ value
     }
 
-    val BindPort: Int = cc.getString("bind-port") match {
+    val EffectiveBindPort: Int = cc.getString("bind-port") match {
       case "" ⇒ Port
       case value ⇒
         val p = value.toInt
