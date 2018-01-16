@@ -13,6 +13,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Directives.{ authenticateBasicAsync, pathPrefix, rawPathPrefix, AsyncAuthenticator }
 import akka.http.scaladsl.server.{ Directive, Directives, Route, RouteResult }
+import akka.http.scaladsl.settings.ServerSettings
 import akka.management.http.{ ManagementRouteProvider, ManagementRouteProviderSettings }
 import akka.stream.ActorMaterializer
 
@@ -111,7 +112,8 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
               RouteResult.route2HandlerFlow(routes),
               effectiveBindHostname,
               effectiveBindPort,
-              connectionContext = this._connectionContext
+              connectionContext = this._connectionContext,
+              settings = ServerSettings(system).withRemoteAddressHeader(true)
             )
 
           serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { _ =>
