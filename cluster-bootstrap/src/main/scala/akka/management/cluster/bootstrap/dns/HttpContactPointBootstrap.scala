@@ -100,7 +100,7 @@ private[dns] class HttpContactPointBootstrap(
 
     case response @ SeedNodes(node, members) ⇒
       if (members.isEmpty) {
-        if (clusterNotObservedWithinDeadline) {
+        if (clusterNotObservedWithinDeadline && settings.formNewCluster) {
           permitParentToFormClusterIfPossible()
 
           // if we are not the lowest address, we won't join ourselves,
@@ -113,17 +113,10 @@ private[dns] class HttpContactPointBootstrap(
           scheduleNextContactPointProbing()
         }
       } else {
-        notifyParentNoSeedNodesWereFoundWithinDeadline(response)
-        // we notified the parent that it may join itself if it is the designated node,
-        // since we did not observe any existing cluster. However, in case this node
-        // can't join itself (it's not the lowest address), some other node will --
-        // so we continue probing.
-        //
-        // Summing up, one of the following will happen:
-        // A) this node is allowed to join itself, and does so, and stops this probing actor -- our job is done.
-        // B) some other node triggers the same process and joins itself
-        //    - in which case we'll notice seed-nodes in our probing sooner or later!
-        scheduleNextContactPointProbing()
+        // we have seed nodes, so we notify the parent. Our job is then done -- the parent
+        // will join the cluster
+
+        notifyParentSeedNodesWereFoundWithinDeadline(response)
       }
   }
 
@@ -137,7 +130,7 @@ private[dns] class HttpContactPointBootstrap(
     context.parent ! HeadlessServiceDnsBootstrap.Protocol.NoSeedNodesObtainedWithinDeadline(baseUri)
   }
 
-  private def notifyParentNoSeedNodesWereFoundWithinDeadline(members: SeedNodes): Unit = {
+  private def notifyParentSeedNodesWereFoundWithinDeadline(members: SeedNodes): Unit = {
     log.info("Found existing cluster, {} returned seed-nodes: {}", members.selfNode, members.seedNodes)
 
     val seedAddresses = members.seedNodes.map(_.node)

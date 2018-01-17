@@ -178,7 +178,7 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
     case NoSeedNodesObtainedWithinDeadline(contactPoint) ⇒
       log.info(
           "Contact point [{}] exceeded stable margin with no seed-nodes in sight. " +
-          "Considering weather this node is allowed to JOIN itself to initiate a new cluster.", contactPoint)
+          "Considering whether this node is allowed to JOIN itself to initiate a new cluster.", contactPoint)
 
       onNoSeedNodesObtainedWithinStableDeadline(contactPoint)
   }

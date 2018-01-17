@@ -21,6 +21,8 @@ final class ClusterBootstrapSettings(config: Config) {
 
   private val bootConfig = config.getConfig("akka.management.cluster.bootstrap")
 
+  val formNewCluster: Boolean = bootConfig.getBoolean("form-new-cluster")
+
   object contactPointDiscovery {
     private val discoveryConfig: Config = bootConfig.getConfig("contact-point-discovery")
 
