@@ -13,4 +13,14 @@ Push image into DockerHub
 Mesosphere DC/OS
 ================
 
-Use `mesos.host-mode.json` service description.
+Host mode
+---------
+Use `marathon/app.host-mode.json` service description.
+
+Bridge mode
+-----------
+
+Use `marathon/app.bridge-mode.json` service description.
+
+Please note, `discovery-dns` extension doesn't support DNS SRV lookup at the moment, thus a fixed HTTP management host port provided.
+

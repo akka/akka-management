@@ -5,7 +5,7 @@ version := "1.0"
 
 scalaVersion := "2.12.4"
 
-val akkaManagementVersion = "0.8.0"
+val akkaManagementVersion = "0.9.0"
 
 libraryDependencies += "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % akkaManagementVersion
 
