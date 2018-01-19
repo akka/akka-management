@@ -51,9 +51,6 @@ deploy:
     repo: akka/akka-management
 
 env:
-  - CHANGE_MINIKUBE_NONE_USER=true
-
-env:
   global:
     - CHANGE_MINIKUBE_NONE_USER: true
     # encrypt with: travis encrypt WHITESOURCE_KEY=...
