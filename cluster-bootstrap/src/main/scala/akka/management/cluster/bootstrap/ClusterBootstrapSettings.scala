@@ -19,6 +19,9 @@ final class ClusterBootstrapSettings(config: Config) {
       config.getString(key) != s"<$key>"
   }
 
+  val managementBasePath: Option[String] =
+    Option(config.getString("akka.management.http.base-path")).filter(_.trim.nonEmpty)
+
   private val bootConfig = config.getConfig("akka.management.cluster.bootstrap")
 
   val formNewCluster: Boolean = bootConfig.getBoolean("form-new-cluster")

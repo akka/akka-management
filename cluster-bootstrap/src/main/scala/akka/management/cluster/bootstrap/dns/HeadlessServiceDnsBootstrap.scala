@@ -209,7 +209,8 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
 
     observation.observedContactPoints.foreach { contactPoint ⇒
       val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
-      val baseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint.host), targetPort))
+      val rawBaseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint.host), targetPort))
+      val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
       ensureProbing(baseUri)
     }
   }

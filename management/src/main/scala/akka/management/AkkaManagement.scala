@@ -92,7 +92,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
 
       // port is on purpose never inferred from protocol, because this HTTP endpoint is not the "main" one for the app
       val protocol = if (_connectionContext.isSecure) "https" else "http"
-      val selfBaseUri = Uri(s"$protocol://$hostname:$port/${settings.Http.BasePath}")
+      val selfBaseUri = Uri(s"$protocol://$hostname:$port${settings.Http.BasePath.fold("")("/" + _)}")
       val providerSettings = ManagementRouteProviderSettingsImpl(selfBaseUri)
 
       val combinedRoutes: Try[Route] = prepareCombinedRoutes(settings, providerSettings)
