@@ -26,12 +26,11 @@ spec:
               fieldPath: status.podIP
         livenessProbe:
           tcpSocket:
-#            port: 2551
-            port: 19999
+            port: 8080
         ports:
         # akka remoting
         - name: remoting
-          containerPort: 2551
+          containerPort: 2552
           protocol: TCP
         # akka-management bootstrap
         - name: bootstrap
