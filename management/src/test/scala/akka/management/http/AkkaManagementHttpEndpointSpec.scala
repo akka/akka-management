@@ -7,12 +7,11 @@ import java.io.InputStream
 import java.security.{ KeyStore, SecureRandom }
 import javax.net.ssl.{ KeyManagerFactory, SSLContext, TrustManagerFactory }
 
-import akka.actor.{ ActorSystem, ExtendedActorSystem }
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
-import akka.http.scaladsl.model.{ ContentTypes, HttpRequest, StatusCodes }
+import akka.http.scaladsl.model.{ HttpRequest, StatusCodes }
 import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.server.{ Directives, Route }
-import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.{ ConnectionContext, Http, HttpsConnectionContext }
 import akka.management.AkkaManagement
 import akka.stream.ActorMaterializer
@@ -50,7 +49,6 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
 
         implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
         implicit val materializer = ActorMaterializer()
-        import system.dispatcher
 
         val management = AkkaManagement(system)
         management.settings.Http.RouteProviders should contain("akka.management.http.HttpManagementEndpointSpecRoutes")
@@ -123,7 +121,6 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
 
         implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
         implicit val materializer = ActorMaterializer()
-        import system.dispatcher
 
         val password: Array[Char] = "password".toCharArray // do not store passwords in code, read them from somewhere safe!
 
