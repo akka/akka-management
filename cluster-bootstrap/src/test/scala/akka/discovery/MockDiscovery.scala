@@ -5,11 +5,10 @@ package akka.discovery
 
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.actor.{ ActorSystem, ExtendedActorSystem }
+import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.discovery.SimpleServiceDiscovery.Resolved
 import akka.event.Logging
-import akka.io.{ Dns, IO }
 
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration

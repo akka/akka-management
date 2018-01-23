@@ -5,7 +5,7 @@ package akka.discovery
 
 import akka.actor._
 import akka.event.Logging
-import com.typesafe.config.{ Config, ConfigException, ConfigRenderOptions }
+import com.typesafe.config.Config
 
 final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Extension {
   private val log = Logging(system, getClass)

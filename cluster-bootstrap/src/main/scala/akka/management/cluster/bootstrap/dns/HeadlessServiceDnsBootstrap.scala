@@ -9,15 +9,15 @@ import akka.actor.Status.Failure
 import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Address, DeadLetterSuppression, Props, Timers }
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
+import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.http.scaladsl.model.Uri
 import akka.management.cluster.bootstrap.{ ClusterBootstrap, ClusterBootstrapSettings }
-import akka.util.PrettyDuration
 import akka.pattern.pipe
+import akka.util.PrettyDuration
 
 import scala.collection.immutable
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 
