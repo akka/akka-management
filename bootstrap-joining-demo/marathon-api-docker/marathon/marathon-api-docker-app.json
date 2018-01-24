@@ -1,0 +1,57 @@
+{
+  "id": "/products-api",
+  "instances": 2,
+  "labels": {
+    "ACTOR_SYSTEM_NAME": "marathon-api-docker-app-label"
+  },
+  "cpus": 0.1,
+  "mem": 512,
+  "disk": 0,
+  "gpus": 0,
+  "constraints": [],
+  "fetch": [],
+  "storeUrls": [],
+  "backoffSeconds": 1,
+  "backoffFactor": 1.15,
+  "maxLaunchDelaySeconds": 3600,
+  "container": {
+    "type": "DOCKER",
+    "volumes": [],
+    "docker": {
+      "image": "occo6er/bootstrap-joining-demo-marathon-api-docker:1.0",
+      "network": "BRIDGE",
+      "portMappings": [
+        {
+          "containerPort": 2551,
+          "hostPort": 0,
+          "servicePort": 10205,
+          "protocol": "udp,tcp",
+          "name": "remoting"
+        },
+        {
+          "containerPort": 19999,
+          "hostPort": 0,
+          "servicePort": 10206,
+          "protocol": "tcp",
+          "name": "akkamgmthttp"
+        }
+      ],
+      "privileged": false,
+      "parameters": [],
+      "forcePullImage": true
+    }
+  },
+  "healthChecks": [],
+  "readinessChecks": [],
+  "dependencies": [],
+  "upgradeStrategy": {
+    "minimumHealthCapacity": 1,
+    "maximumOverCapacity": 1
+  },
+  "unreachableStrategy": {
+    "inactiveAfterSeconds": 300,
+    "expungeAfterSeconds": 600
+  },
+  "killSelection": "YOUNGEST_FIRST",
+  "requirePorts": true
+}
