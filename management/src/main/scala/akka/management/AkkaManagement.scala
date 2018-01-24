@@ -13,6 +13,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Directives.{ authenticateBasicAsync, pathPrefix, rawPathPrefix, AsyncAuthenticator }
 import akka.http.scaladsl.server.{ Directive, Directives, Route, RouteResult }
+import akka.http.scaladsl.settings.ServerSettings
 import akka.management.http.{ ManagementRouteProvider, ManagementRouteProviderSettings }
 import akka.stream.ActorMaterializer
 
@@ -86,9 +87,12 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
       val hostname = settings.Http.Hostname
       val port = settings.Http.Port
 
+      val effectiveBindHostname = settings.Http.EffectiveBindHostname
+      val effectiveBindPort = settings.Http.EffectiveBindPort
+
       // port is on purpose never inferred from protocol, because this HTTP endpoint is not the "main" one for the app
       val protocol = if (_connectionContext.isSecure) "https" else "http"
-      val selfBaseUri = Uri(s"$protocol://$hostname:$port/${settings.Http.BasePath}")
+      val selfBaseUri = Uri(s"$protocol://$hostname:$port${settings.Http.BasePath.fold("")("/" + _)}")
       val providerSettings = ManagementRouteProviderSettingsImpl(selfBaseUri)
 
       val combinedRoutes: Try[Route] = prepareCombinedRoutes(settings, providerSettings)
@@ -101,16 +105,19 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
           // ----
           // FIXME -- think about the style of how we want to make these available
 
+          log.info("Binding Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
+
           val serverFutureBinding =
             Http().bindAndHandle(
               RouteResult.route2HandlerFlow(routes),
-              hostname,
-              port,
-              connectionContext = this._connectionContext
+              effectiveBindHostname,
+              effectiveBindPort,
+              connectionContext = this._connectionContext,
+              settings = ServerSettings(system).withRemoteAddressHeader(true)
             )
 
           serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { _ =>
-            log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", hostname, port)
+            log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
             selfUriPromise.success(selfBaseUri).future
           }
 

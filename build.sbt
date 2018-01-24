@@ -10,6 +10,7 @@ lazy val `akka-management-root` = project
     `akka-discovery`,
     `akka-discovery-dns`,
     `akka-discovery-kubernetes-api`,
+    `akka-discovery-marathon-api`,
     `akka-discovery-aws-api`,
     `akka-management`,
     `cluster-http`,
@@ -48,6 +49,18 @@ lazy val `akka-discovery-kubernetes-api` = project
     name := "akka-discovery-kubernetes-api",
     organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryKubernetesApi
+  )
+  .dependsOn(`akka-discovery`)
+
+// Marathon API implementation of discovery, allows port discovery and formation to work even when readiness/health checks are failing
+lazy val `akka-discovery-marathon-api` = project
+  .in(file("discovery-marathon-api"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-marathon-api",
+    organization := "com.lightbend.akka.discovery",
+    Dependencies.DiscoveryMarathonApi
   )
   .dependsOn(`akka-discovery`)
 

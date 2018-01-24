@@ -1,0 +1,34 @@
+{
+  "id": "/bootstrap-joining-demo-marathon-api-0.1.0",
+  "cmd": "./bootstrap-joining-demo-marathon-api-0.1.0/bin/bootstrap-joining-demo-marathon-api -java-home $(echo $(pwd)/jre*) -Dakka.remote.netty.tcp.hostname=$HOST -Dakka.remote.netty.tcp.port=$PORT_AKKAREMOTE -Dakka.management.http.hostname=$HOST -Dakka.management.http.port=$PORT_AKKAMGMTHTTP",
+  "cpus": 1.0,
+  "mem": 512,
+  "instances": 2,
+  "labels": {
+    "ACTOR_SYSTEM_NAME": "my-system"
+  },
+  "portDefinitions": [
+    {
+      "port": 0,
+      "name": "akkaremote"
+    },
+    {
+      "port": 0,
+      "name": "akkamgmthttp"
+    }
+  ],
+  "fetch": [
+    {
+      "uri": "http://yourwebserver.example.com/bootstrap-joining-demo-marathon-api-0.1.0.tgz",
+      "extract": true,
+      "executable": false,
+      "cache": false
+    },
+    {
+      "uri": "https://downloads.mesosphere.com/java/jre-8u121-linux-x64.tar.gz",
+      "extract": true,
+      "executable": false,
+      "cache": true
+    }
+  ]
+}

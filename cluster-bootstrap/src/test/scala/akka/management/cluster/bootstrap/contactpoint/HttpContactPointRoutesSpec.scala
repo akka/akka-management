@@ -3,7 +3,6 @@
  */
 package akka.management.cluster.bootstrap.contactpoint
 
-import akka.cluster.ClusterEvent.ClusterDomainEvent
 import akka.cluster.{ Cluster, ClusterEvent }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings

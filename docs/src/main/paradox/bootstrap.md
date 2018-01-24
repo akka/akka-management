@@ -114,6 +114,11 @@ from the contact points.
         - Notice that this phase is exactly the same as the "epidemic joining" in the more complicated Case 1 when a new 
           cluster has to be formed.
 
+Additionally, a setting is provided, `akka.cluster.bootstrap.form-new-cluster` that can be disabled to only allow the
+node to join existing clusters (Case 2 above). This can be used to provide additional safety during the typical deployment
+as it is relatively rare that no cluster exists. It can be specified in your `application.conf` or provided as an
+argument to the process itself via `-Dakka.cluster.bootstrap.form-new-cluster=<true|false>`. By default, it is enabled.
+
 In the next sections we explain the process in more detail.
 
 ### Case 1: "Initial" Bootstrap process

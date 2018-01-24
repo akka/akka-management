@@ -9,15 +9,15 @@ import akka.actor.Status.Failure
 import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Address, DeadLetterSuppression, Props, Timers }
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
+import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.http.scaladsl.model.Uri
 import akka.management.cluster.bootstrap.{ ClusterBootstrap, ClusterBootstrapSettings }
-import akka.util.PrettyDuration
 import akka.pattern.pipe
+import akka.util.PrettyDuration
 
 import scala.collection.immutable
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 
@@ -178,7 +178,7 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
     case NoSeedNodesObtainedWithinDeadline(contactPoint) ⇒
       log.info(
           "Contact point [{}] exceeded stable margin with no seed-nodes in sight. " +
-          "Considering weather this node is allowed to JOIN itself to initiate a new cluster.", contactPoint)
+          "Considering whether this node is allowed to JOIN itself to initiate a new cluster.", contactPoint)
 
       onNoSeedNodesObtainedWithinStableDeadline(contactPoint)
   }
@@ -209,7 +209,8 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
 
     observation.observedContactPoints.foreach { contactPoint ⇒
       val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
-      val baseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint.host), targetPort))
+      val rawBaseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint.host), targetPort))
+      val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
       ensureProbing(baseUri)
     }
   }

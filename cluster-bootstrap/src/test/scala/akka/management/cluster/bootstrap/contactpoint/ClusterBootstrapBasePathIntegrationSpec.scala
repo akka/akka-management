@@ -1,0 +1,100 @@
+/*
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ */
+package akka.management.cluster.bootstrap.contactpoint
+
+import akka.actor.ActorSystem
+import akka.cluster.Cluster
+import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
+import akka.discovery.MockDiscovery
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.management.AkkaManagement
+import akka.management.cluster.bootstrap.ClusterBootstrap
+import akka.testkit.{ SocketUtil, TestKit, TestProbe }
+import com.typesafe.config.{ Config, ConfigFactory }
+import org.scalatest.{ Matchers, WordSpecLike }
+
+import scala.concurrent.duration._
+
+/**
+ * This test ensures that the client and server both respect the base-path setting and thus that the boostrapping
+ * process works correctly when this setting is specified.
+ */
+class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers {
+
+  "Cluster Bootstrap" should {
+    val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+    val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+
+    val config =
+      ConfigFactory.parseString(s"""
+        akka {
+          loglevel = INFO
+
+          cluster.jmx.multi-mbeans-in-same-jvm = on
+
+          cluster.http.management.port = $managementPort
+          remote.netty.tcp.port = $remotingPort
+
+          mock-dns.class = "akka.discovery.MockDiscovery"
+
+          management {
+            cluster.bootstrap {
+              contact-point-discovery {
+                discovery-method = akka.mock-dns
+                service-namespace = "svc.cluster.local"
+                required-contact-point-nr = 1
+              }
+            }
+
+            http {
+              hostname = "127.0.0.1"
+              base-path = "test"
+              port = $managementPort
+            }
+          }
+        }
+        """.stripMargin).withFallback(ConfigFactory.load())
+
+    val systemA = ActorSystem("basepathsystem", config)
+
+    val clusterA = Cluster(systemA)
+
+    val managementA = AkkaManagement(systemA)
+
+    val bootstrapA = ClusterBootstrap(systemA)
+
+    // prepare the "mock DNS"
+    val name = "basepathsystem.svc.cluster.local"
+    MockDiscovery.set(name,
+      Resolved(name,
+        List(
+          ResolvedTarget("127.0.0.1", Some(managementPort))
+        )))
+
+    "start listening with the http contact-points on system" in {
+      managementA.start()
+
+      bootstrapA.start()
+    }
+
+    "join self, thus forming new cluster (happy path)" in {
+      bootstrapA.discovery.getClass should ===(classOf[MockDiscovery])
+
+      bootstrapA.start()
+
+      val pA = TestProbe()(systemA)
+      clusterA.subscribe(pA.ref, classOf[MemberUp])
+
+      pA.expectMsgType[CurrentClusterState]
+      val up1 = pA.expectMsgType[MemberUp](30.seconds)
+      info("" + up1)
+    }
+
+    "terminate system" in {
+      TestKit.shutdownActorSystem(systemA, 3.seconds)
+    }
+
+  }
+
+}
