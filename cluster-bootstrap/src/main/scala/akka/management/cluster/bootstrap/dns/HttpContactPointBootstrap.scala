@@ -80,9 +80,9 @@ private[dns] class HttpContactPointBootstrap(
   private val existingClusterNotObservedWithinDeadline: Deadline = settings.contactPoint.noSeedsStableMargin.fromNow
 
   /**
-    * If probing keeps failing until the deadline triggers, we notify the parent,
-    * such that it rediscover again.
-    */
+   * If probing keeps failing until the deadline triggers, we notify the parent,
+   * such that it rediscover again.
+   */
   private val existingProbingKeepFailingWithinDeadline: Deadline = settings.contactPoint.probingFailureTimeout.fromNow
 
   override def preStart(): Unit =
