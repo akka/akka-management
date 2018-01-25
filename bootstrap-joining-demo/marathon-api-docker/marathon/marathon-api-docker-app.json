@@ -4,7 +4,7 @@
   "labels": {
     "ACTOR_SYSTEM_NAME": "marathon-api-docker-app-label"
   },
-  "cpus": 0.1,
+  "cpus": 0.25,
   "mem": 512,
   "disk": 0,
   "gpus": 0,
@@ -18,7 +18,7 @@
     "type": "DOCKER",
     "volumes": [],
     "docker": {
-      "image": "occo6er/bootstrap-joining-demo-marathon-api-docker:1.0",
+      "image": "$DOCKER_USER/akka-management-bootstrap-joining-demo-marathon-api-docker:1.0",
       "network": "BRIDGE",
       "portMappings": [
         {

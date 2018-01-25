@@ -62,19 +62,23 @@ see `bootstrap-joining-demo/marathon-api-docker/marathon/marathon-api-docker-app
 ...
 ```
 
-Build
------
+How to Build
+------------
 
-Build and publish docker image into the local repo.
-`sbt docker:publishLocal`
+1. Set DOCKER_USER env variable and authenticated to your docker hub account:
 
-Set your $DOCKER_HUB_ID:
-`export DOCKER_HUB_ID=<your docker hub id>`
+`export DOCKER_USER=<your-docker-hub-account>`
 
-Tag built image:
-`docker tag bootstrap-joining-demo-marathon-api-docker:1.0 $DOCKER_HUB_ID/bootstrap-joining-demo-marathon-api-docker:1.0`
+2. In order to build and publish this example into your docker hub repo run next command from `akka-management` work folder
 
-Push image into DockerHub 
-`docker push $DOCKER_HUB_ID/bootstrap-joining-demo-marathon-api-docker:1.0`
+`sbt bootstrap-joining-demo-marathon-api-docker/docker:publish`
 
+How to Deploy
+-------------
+
+Use next template for Marathon application descriptor. 
+
+`bootstrap-joining-demo/marathon-api-docker/marathon/marathon-api-docker-app.json`
+
+> NOTE: Make sure to substitute $DOCKER_USER in it to point to your docker hub repo.
 
