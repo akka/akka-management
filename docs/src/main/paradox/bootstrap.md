@@ -215,7 +215,7 @@ is strictly defined and is as follows:
 When using the bootstrap module, there are some underlying Akka Cluster settings that should be specified to ensure
 that your deployment is robust.
 
-Since the target environments for this module are dynamic, that is, instances can come and go, failure needs to be dealt
+Since the target environments for this module are dynamic, that is, instances can come and go, failure needs to be
 considered. The following configuration will result in your application being shut down after 40 seconds if it is unable to
 join the discovered seed nodes. In this case, the orchestrator (i.e. Kubernetes or Marathon) will restart your node
 and the operation will (presumably) eventually succeed. You'll want to specify the following in your `application.conf` file:
