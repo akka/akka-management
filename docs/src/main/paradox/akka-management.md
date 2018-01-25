@@ -68,14 +68,12 @@ the bootstrap joining process and other purposes.
 
 ## Basic Configuration
 
-Note that 
-
 You can configure hostname and port to use for the HTTP Cluster management by overriding the following:
 
-    ```
-    akka.management.http.hostname = "127.0.0.1"
-    akka.management.http.port = 19999
-    ```
+```
+akka.management.http.hostname = "127.0.0.1"
+akka.management.http.port = 19999
+```
 
 However, those are the values by default. In case you are running multiple cluster instances within the same JVM these
 configuration parameters should allow you to expose different cluster management APIs by modifying the port:
@@ -119,15 +117,16 @@ it's necessary to set different hostname and port number to bind for the HTTP Se
 
 application.conf
 :   ```
-    akka.management.http.hostname = ${HOST} //Get hostname from environmental variable HOST
-    akka.management.port = 19999
-    akka.management.port = ${?PORT_19999} //Get port from environmental variable PORT_19999 if it's defined, otherwise 19999
-
-    akka.management.http.bind-hostname = 0.0.0.0
-    akka.management.http.bind-port = 19999    
+  // Get hostname from environmental variable HOST
+  akka.management.http.hostname = ${HOST} 
+  akka.management.port = 19999
+  // Get port from environmental variable PORT_19999 if it's defined, otherwise 19999
+  akka.management.port = ${?PORT_19999} 
+  akka.management.http.bind-hostname = 0.0.0.0
+  akka.management.http.bind-port = 19999    
     ```  
 
-It is also possible to modify the base path of the API, by setting the appropriate value in application conf: 
+It is also possible to modify the base path of the API, by setting the appropriate value in application.conf: 
 
 application.conf
 :   ```
