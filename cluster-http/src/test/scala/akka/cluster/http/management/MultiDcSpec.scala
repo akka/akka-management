@@ -8,7 +8,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, StatusCodes, Uri }
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.cluster.{ ClusterHttpManagement, ClusterHttpManagementJsonProtocol, ClusterMembers }
-import akka.management.http.ManagementRouteProviderSettings
 import akka.stream.ActorMaterializer
 import akka.testkit.SocketUtil
 import com.typesafe.config.ConfigFactory
