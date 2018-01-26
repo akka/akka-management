@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: appka
+        actorSystemName: appka
     spec:
       containers:
       - name: appka
@@ -37,7 +38,7 @@ spec:
           containerPort: 8558
           protocol: TCP
         # external http
-        - name: http
+        - name: akka-mgmt-http
           containerPort: 19999
           protocol: TCP
 ---
