@@ -38,7 +38,7 @@ spec:
           protocol: TCP
         # external http
         - name: http
-          containerPort: 19999
+          containerPort: 8080
           protocol: TCP
 ---
 kind: Service
