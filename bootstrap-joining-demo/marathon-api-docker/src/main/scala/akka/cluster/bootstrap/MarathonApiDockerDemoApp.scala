@@ -23,3 +23,4 @@ object MarathonApiDockerDemoApp extends App {
   ClusterBootstrap(system).start()
 
 }
+
