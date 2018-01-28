@@ -11,3 +11,8 @@ libraryDependencies += "com.lightbend.akka.management" % "akka-management-cluste
 
 libraryDependencies += "com.lightbend.akka.discovery" % "akka-discovery-aws-api_2.12" % "0.8.0"
 
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "test"
+
+libraryDependencies += "com.amazonaws" % "aws-java-sdk-cloudformation" % "1.11.271" % "test"
+
+

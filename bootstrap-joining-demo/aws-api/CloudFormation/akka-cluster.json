@@ -178,9 +178,7 @@
         "IpProtocol": "tcp",
         "FromPort": 19999,
         "ToPort": 19999,
-        "SourceSecurityGroupName": {
-          "Ref": "AkkaClusterSecurityGroup"
-        }
+        "CidrIp": "0.0.0.0/0"
       }
     }
   }
