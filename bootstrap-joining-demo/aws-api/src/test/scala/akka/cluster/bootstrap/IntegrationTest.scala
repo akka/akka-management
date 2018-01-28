@@ -38,8 +38,13 @@ class IntegrationTest extends FunSuite with Eventually with IntegrationPatience 
       )
     }
 
+    // now we should have a real cluster of EC2 instances
+
     // continue by doing a describe instances request on the auto scaling group
-    // use a HTTP client to query instance:1999/cluster/members
+    // will result in a list of IPS
+
+    // use a HTTP client to query each IP:19999/cluster/members
+    // make sure the cluster is well formed (no unreachable members, everyone can see everyone etc.)
 
   }
 
