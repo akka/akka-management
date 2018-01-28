@@ -210,6 +210,26 @@ is strictly defined and is as follows:
   to be using the Bootstrap mechanism. 
 @@@
 
+## Recommended Configuration
+
+When using the bootstrap module, there are some underlying Akka Cluster settings that should be specified to ensure
+that your deployment is robust.
+
+Since the target environments for this module are dynamic, that is, instances can come and go, failure needs to be
+considered. The following configuration will result in your application being shut down after 40 seconds if it is unable to
+join the discovered seed nodes. In this case, the orchestrator (i.e. Kubernetes or Marathon) will restart your node
+and the operation will (presumably) eventually succeed. You'll want to specify the following in your `application.conf` file:
+
+```hocon
+akka.cluster.shutdown-after-unsuccessful-join-seed-nodes = 40s
+```
+
+Additionally, nodes can crash causing cluster members to become unreachable. This is a tricky problem as it is not
+possible to distinguish between a network partition and a node failure. To rectify this in an automated manner,
+Lightbend provides [Split Brain Resolver](https://developer.lightbend.com/docs/akka-commercial-addons/current/split-brain-resolver.html)
+as a feature of the Lightbend Subscription. This module has a number of strategies that can ensure that the cluster
+continues to function during network partitions and node failures.
+
 ## Examples
 
 ### Kubernetes example
