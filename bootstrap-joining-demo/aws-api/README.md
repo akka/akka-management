@@ -3,7 +3,7 @@ Your Akka Cluster on Vanilla EC2 using Tag Based Discovery
 
 Note: these steps can be easily automated via CloudFormation or 
 Python / shell scripts etc. In fact, a simple CloudFormation script is provided
-[here](CloudFormation).  
+[here](src/main/resources/CloudFormation).  
 
 Examine the source code
 -----------------------

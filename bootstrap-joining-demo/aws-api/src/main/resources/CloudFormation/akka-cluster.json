@@ -178,7 +178,7 @@
         "IpProtocol": "tcp",
         "FromPort": 19999,
         "ToPort": 19999,
-        "CidrIp": "0.0.0.0/0"
+        "CidrIp": {"Ref": "SSHLocation"}
       }
     }
   }
