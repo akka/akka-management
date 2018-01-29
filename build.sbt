@@ -129,6 +129,24 @@ lazy val `bootstrap-joining-demo-kubernetes-api` = project
     `akka-discovery-kubernetes-api`
   )
 
+lazy val `bootstrap-joining-demo-marathon-api-docker` = project
+  .in(file("bootstrap-joining-demo/marathon-api-docker"))
+  .enablePlugins(NoPublish)
+  .disablePlugins(BintrayPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-management-bootstrap-joining-demo-marathon-api-docker",
+    skip in publish := true,
+    sources in (Compile, doc) := Seq.empty,
+    whitesourceIgnore := true
+  ).dependsOn(
+    `akka-management`,
+    `cluster-http`,
+    `akka-discovery-dns`,
+    `cluster-bootstrap`,
+    `akka-discovery-marathon-api`
+  )
+
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project
   .in(file("docs"))

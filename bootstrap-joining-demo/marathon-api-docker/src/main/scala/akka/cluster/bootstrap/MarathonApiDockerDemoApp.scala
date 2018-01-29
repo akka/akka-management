@@ -15,7 +15,7 @@ import akka.management.http._
 import akka.stream.scaladsl.Source
 import com.typesafe.config.ConfigFactory
 
-object DemoApp extends App {
+object MarathonApiDockerDemoApp extends App {
 
   implicit val system = ActorSystem("simple")
 
@@ -23,3 +23,4 @@ object DemoApp extends App {
   ClusterBootstrap(system).start()
 
 }
+
