@@ -99,7 +99,7 @@ private[dns] class HttpContactPointBootstrap(
         .flatMap(res ⇒ Unmarshal(res).to[SeedNodes])
         .pipeTo(self)
 
-    case failure @ Status.Failure(cause) =>
+    case Status.Failure(cause) =>
       log.error("Probing {} failed due to {}", probeRequest.uri, cause.getMessage)
       if (probingKeepFailingWithinDeadline) {
         log.error("Overdue of probing-failure-timeout, stop probing, signaling that it's failed")
