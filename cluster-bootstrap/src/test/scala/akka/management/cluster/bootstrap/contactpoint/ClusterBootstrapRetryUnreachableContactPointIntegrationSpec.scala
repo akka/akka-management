@@ -5,7 +5,7 @@ package akka.management.cluster.bootstrap.contactpoint
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
-import akka.cluster.ClusterEvent.{ ClusterDomainEvent, CurrentClusterState, MemberUp }
+import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
 import akka.discovery.MockDiscovery
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.http.scaladsl.Http
@@ -18,22 +18,26 @@ import org.scalatest.{ Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
 
-class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
+class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSpecLike with Matchers {
 
   "Cluster Bootstrap" should {
 
     var remotingPorts = Map.empty[String, Int]
     var contactPointPorts = Map.empty[String, Int]
+    var unreachablePorts = Map.empty[String, Int]
 
     def config(id: String): Config = {
       val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
       val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+      val unreachablePort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
 
-      info(s"System [$id]: management port: $managementPort")
-      info(s"System [$id]:   remoting port: $remotingPort")
+      info(s"System [$id]:  management port: $managementPort")
+      info(s"System [$id]:    remoting port: $remotingPort")
+      info(s"System [$id]: unreachable port: $unreachablePort")
 
       contactPointPorts = contactPointPorts.updated(id, managementPort)
       remotingPorts = remotingPorts.updated(id, remotingPort)
+      unreachablePorts = unreachablePorts.updated(id, unreachablePort)
 
       ConfigFactory.parseString(s"""
         akka {
@@ -65,28 +69,39 @@ class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
         """.stripMargin).withFallback(ConfigFactory.load())
     }
 
-    val systemA = ActorSystem("System", config("A"))
-    val systemB = ActorSystem("System", config("B"))
-    val systemC = ActorSystem("System", config("C"))
+    val systemA = ActorSystem("SystemUnreachableNodes", config("A"))
+    val systemB = ActorSystem("SystemUnreachableNodes", config("B"))
 
     val clusterA = Cluster(systemA)
     val clusterB = Cluster(systemB)
-    val clusterC = Cluster(systemC)
 
     val bootstrapA = ClusterBootstrap(systemA)
     val bootstrapB = ClusterBootstrap(systemB)
-    val bootstrapC = ClusterBootstrap(systemC)
 
-    // prepare the "mock DNS"
-    val name = "system.svc.cluster.local"
-    MockDiscovery.set(name,
-      () =>
+    // prepare the "mock DNS" - this resolves to unreachable addresses for the first three
+    // times it is called, thus testing that discovery is called multiple times and
+    // that formation will eventually succeed once discovery returns reachable addresses
+
+    var called = 0
+
+    val name = "systemunreachablenodes.svc.cluster.local"
+
+    MockDiscovery.set(name, { () =>
+      called += 1
+
+      if (called > 3)
         Resolved(name,
           List(
             ResolvedTarget(clusterA.selfAddress.host.get, contactPointPorts.get("A")),
-            ResolvedTarget(clusterB.selfAddress.host.get, contactPointPorts.get("B")),
-            ResolvedTarget(clusterC.selfAddress.host.get, contactPointPorts.get("C"))
-          )))
+            ResolvedTarget(clusterB.selfAddress.host.get, contactPointPorts.get("B"))
+          ))
+      else
+        Resolved(name,
+          List(
+            ResolvedTarget(clusterA.selfAddress.host.get, unreachablePorts.get("A")),
+            ResolvedTarget(clusterB.selfAddress.host.get, unreachablePorts.get("B"))
+          ))
+    })
 
     "start listening with the http contact-points on 3 systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {
@@ -102,28 +117,27 @@ class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
 
       start(systemA, contactPointPorts("A"))
       start(systemB, contactPointPorts("B"))
-      start(systemC, contactPointPorts("C"))
     }
 
-    "join three DNS discovered nodes by forming new cluster (happy path)" in {
+    "eventually join three discovered nodes by forming new cluster" in {
       bootstrapA.discovery.getClass should ===(classOf[MockDiscovery])
 
       bootstrapA.start()
       bootstrapB.start()
-      bootstrapC.start()
 
       val pA = TestProbe()(systemA)
       clusterA.subscribe(pA.ref, classOf[MemberUp])
 
       pA.expectMsgType[CurrentClusterState]
-      val up1 = pA.expectMsgType[MemberUp](30.seconds)
+      val up1 = pA.expectMsgType[MemberUp](45.seconds)
       info("" + up1)
+
+      called >= 3 shouldBe true
     }
 
     "terminate all systems" in {
       try TestKit.shutdownActorSystem(systemA, 3.seconds)
-      finally try TestKit.shutdownActorSystem(systemB, 3.seconds)
-      finally TestKit.shutdownActorSystem(systemC, 3.seconds)
+      finally TestKit.shutdownActorSystem(systemB, 3.seconds)
     }
 
   }
