@@ -75,8 +75,11 @@ akka.management.http.hostname = "127.0.0.1"
 akka.management.http.port = 19999
 ```
 
-However, those are the values by default. In case you are running multiple cluster instances within the same JVM these
-configuration parameters should allow you to expose different cluster management APIs by modifying the port:
+Note that the default value for hostname is `InetAddress.getLocalHost.getHostAddress`, which may or may not evaluate to
+`127.0.0.1`.
+
+In case you are running multiple cluster instances within the same JVM these configuration parameters should allow you
+to expose different cluster management APIs by modifying the port:
 
 Scala
 :   ```
