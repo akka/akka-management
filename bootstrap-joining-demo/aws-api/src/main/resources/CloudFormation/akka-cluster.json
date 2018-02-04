@@ -21,10 +21,9 @@
     "InstanceType": {
       "Description": "Instance type to launch EC2 instances.",
       "Type": "String",
-      "Default": "t2.medium",
+      "Default": "m3.medium",
       "AllowedValues": [
-        "t2.medium",
-        "t2.large"
+        "m3.medium"
       ]
     },
     "KeyPair": {
