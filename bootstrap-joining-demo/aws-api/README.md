@@ -10,16 +10,11 @@ Examine the source code
 Examine the source code. See how simple it is: there is no hardcoding
 of seed node IPs or host names in the application.conf file.
 
-Examine the source code
------------------------
-Examine the source code. See how simple it is: there is no hardcoding
-of seed node IPs or host names in the application.conf file.
-
 Step 1: Launch Instances
 ------------------------
 
 From the AWS Management Console, provision a few EC2 instances (you'll need at least 2). Recommended image: Ubuntu Server 16.04 
-(AMI ID: ami-26ebbc5c). As for the instance type, this demo app runs fine even on t1.micro instances. As for the security group, 
+(AMI ID: ami-33e3c856 in region ). As for the instance type, this demo app runs fine even on t1.micro instances. As for the security group, 
 for now, just select the default one and make sure you allow yourself ssh access to your instances. Once the instances are ready, 
 ssh into them - you'll need to install Java 8. You can use this [guide](https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-get-on-ubuntu-16-04).
 

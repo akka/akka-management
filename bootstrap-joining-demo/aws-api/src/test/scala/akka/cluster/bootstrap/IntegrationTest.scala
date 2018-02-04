@@ -4,6 +4,8 @@
 
 package akka.cluster.bootstrap
 
+import java.util.UUID
+
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
 import com.amazonaws.services.cloudformation.model._
 import org.scalatest.FunSuite
@@ -11,22 +13,23 @@ import org.scalatest.concurrent.{Eventually, IntegrationPatience}
 
 class IntegrationTest extends FunSuite with Eventually with IntegrationPatience {
 
-  val stackName = "AkkaManagementIntegrationTestEC2TagBased"
+  val stackName = s"AkkaManagementIntegrationTestEC2TagBased-${UUID.randomUUID().toString.substring(0, 6)}"
 
   test("Integration Test for EC2 Tag Based Discovery") {
 
     val template = scala.io.Source.fromResource("CloudFormation/akka-cluster.json").mkString
 
-    val client = AmazonCloudFormationClientBuilder.defaultClient()
+    val client = AmazonCloudFormationClientBuilder.standard().withRegion("us-east-1").build()
 
     val createStackRequest = new CreateStackRequest()
+      .withCapabilities("CAPABILITY_IAM")
       .withStackName(stackName)
       .withTemplateBody(template)
       .withParameters(
         new Parameter().withParameterKey("SSHLocation").withParameterValue("0.0.0.0/0"),
         new Parameter().withParameterKey("InstanceCount").withParameterValue("3"),
         new Parameter().withParameterKey("InstanceType").withParameterValue("t2.large"),
-        new Parameter().withParameterKey("KeyPair").withParameterValue("")
+        new Parameter().withParameterKey("KeyPair").withParameterValue("none")
       )
 
     val describeStacksRequest = new DescribeStacksRequest()

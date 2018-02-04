@@ -29,24 +29,24 @@
     },
     "KeyPair": {
       "Description": "Key Pair (for SSH access)",
-      "Type": "AWS::EC2::KeyPair::KeyName",
-      "AllowedPattern": ".+"
+      "Type": "String"
     }
+  },
+  "Conditions": {
+    "HasKeyPair": {"Fn::Not": [{"Fn::Equals": ["none", {"Ref": "KeyPair"}]}]}
   },
   "Resources": {
     "LaunchConfiguration": {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
-        "ImageId": "ami-33e3c856",
+        "ImageId": "ami-97785bed",
         "IamInstanceProfile": {
           "Ref": "IAMInstanceProfile"
         },
         "InstanceType": {
           "Ref": "InstanceType"
         },
-        "KeyName": {
-          "Ref": "KeyPair"
-        },
+        "KeyName": {"Fn::If": ["HasKeyPair", {"Ref": "KeyPair"}, {"Ref": "AWS::NoValue"}]},
         "SecurityGroups": [
           {
             "Ref": "AkkaClusterSecurityGroup"
