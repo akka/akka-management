@@ -1,5 +1,7 @@
 enablePlugins(JavaAppPackaging)
 
+packageName in Universal := "app" // should produce app.zip
+
 val akkaManagementVersion = SettingKey[String]("akkaManagementVersion", "Akka Management Version")
 
 akkaManagementVersion := version.value.split('+')(0)  // replace with latest version
@@ -17,5 +19,3 @@ libraryDependencies += "com.lightbend.akka.discovery" % "akka-discovery-aws-api_
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "test"
 
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-cloudformation" % "1.11.271" % "test"
-
-
