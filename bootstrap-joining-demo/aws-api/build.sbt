@@ -19,3 +19,6 @@ libraryDependencies += "com.lightbend.akka.discovery" % "akka-discovery-aws-api_
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "test"
 
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-cloudformation" % "1.11.271" % "test"
+
+libraryDependencies += "com.amazonaws" % "aws-java-sdk-autoscaling" % "1.11.271" % "test"
+

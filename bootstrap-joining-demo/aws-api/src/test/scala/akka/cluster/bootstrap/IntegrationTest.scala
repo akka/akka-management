@@ -14,6 +14,8 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import akka.util.ByteString
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
 import com.amazonaws.services.cloudformation.model._
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
+import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter, Instance, Reservation}
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
@@ -33,19 +35,102 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
   import system.dispatcher
 
+  import collection.JavaConverters._
+
   private val bucket = System.getenv("BUCKET") // bucket where zip file resulting from sbt universal:packageBin is stored
+
+  private val region = "us-east-1"
 
   private val log = Logging(system, classOf[IntegrationTest])
 
   private val stackName = s"AkkaManagementIntegrationTestEC2TagBased-${UUID.randomUUID().toString.substring(0, 6)}"
 
-  private val awsCfClient = AmazonCloudFormationClientBuilder.standard().withRegion("us-east-1").build()
+  private val awsCfClient = AmazonCloudFormationClientBuilder.standard().withRegion(region).build()
 
+  private val awsEc2Client = AmazonEC2ClientBuilder.standard().withRegion(region).build()
+
+  // Patience settings for the part where we wait for the CloudFormation script to complete
   private val createStackPatience: PatienceConfig =
     PatienceConfig(
       timeout = scaled(Span(6 * 60, Seconds)),
       interval = scaled(Span(30, Seconds))
     )
+
+  // Patience settings for the actual Akka part
+  private val clusterFormPatience: PatienceConfig =
+    PatienceConfig(
+      timeout = scaled(Span(4 * 60, Seconds)),
+      interval = scaled(Span(4, Seconds))
+    )
+
+
+  private var clusterIps: List[String] = List()
+
+  override def beforeAll(): Unit = {
+
+    log.info("setting up infrastructure using CloudFormation")
+
+    val template = readTemplateFromResourceFolder("CloudFormation/akka-cluster.json")
+
+    val myIp: String = s"$getMyIp/32"
+
+    val createStackRequest = new CreateStackRequest()
+      .withCapabilities("CAPABILITY_IAM")
+      .withStackName(stackName)
+      .withTemplateBody(template)
+      .withParameters(
+        new Parameter().withParameterKey("Build").withParameterValue(s"https://s3.amazonaws.com/$bucket/app.zip"),
+        new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
+        new Parameter().withParameterKey("InstanceCount").withParameterValue("2"),
+        new Parameter().withParameterKey("InstanceType").withParameterValue("m3.xlarge"),
+        new Parameter().withParameterKey("KeyPair").withParameterValue("s")
+      )
+
+    awsCfClient.createStack(createStackRequest)
+
+    val describeStacksRequest = new DescribeStacksRequest().withStackName(stackName)
+
+    var dsr: DescribeStacksResult = null
+
+    def conditions: Boolean = (dsr.getStacks.size() == 1) && {
+      val stack = dsr.getStacks.get(0)
+      stack.getStackStatus == StackStatus.CREATE_COMPLETE.toString &&
+        stack.getOutputs.size() >= 1 &&
+        stack.getOutputs.asScala.exists(_.getOutputKey == "AutoScalingGroupName")
+    }
+
+    implicit val patienceConfig: PatienceConfig = createStackPatience
+
+    eventually {
+
+      log.info("CloudFormation stack name is {}, waiting for a CREATE_COMPLETE", stackName)
+
+      dsr = awsCfClient.describeStacks(describeStacksRequest)
+
+      assert(conditions)
+
+    }
+
+    if (conditions) {
+
+      log.info("got CREATE_COMPLETE, trying to obtain IPs of EC2 instances launched")
+
+      val asgName = dsr.getStacks.get(0).getOutputs.asScala.find(_.getOutputKey == "AutoScalingGroupName").get.getOutputValue
+
+      clusterIps = awsEc2Client
+        .describeInstances(new DescribeInstancesRequest().withFilters(new Filter("tag:aws:autoscaling:groupName", List(asgName).asJava)))
+        .getReservations
+        .asScala
+        .flatMap((r: Reservation) => r.getInstances.asScala.map((instance: Instance) => instance.getPublicIpAddress))
+        .toList
+
+
+      log.info("EC2 instances launched have the following public IPs {}", clusterIps.mkString(", "))
+
+    }
+
+
+  }
 
   private def readTemplateFromResourceFolder(path: String): String = scala.io.Source.fromResource(path).mkString
 
@@ -55,45 +140,6 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
     Await.result(myIp, atMost = 2 seconds)
   }
 
-  override def beforeAll(): Unit = {
-
-    log.info("setting up infrastructure using CloudFormation")
-
-    val template = readTemplateFromResourceFolder("CloudFormation/akka-cluster.json")
-
-    val myIp: String = getMyIp + "/32"
-
-    val createStackRequest = new CreateStackRequest()
-      .withCapabilities("CAPABILITY_IAM")
-      .withStackName(stackName)
-      .withTemplateBody(template)
-      .withParameters(
-        new Parameter().withParameterKey("Build").withParameterValue(s"https://s3.amazonaws.com/${bucket}/app.zip"),
-        new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
-        new Parameter().withParameterKey("InstanceCount").withParameterValue("2"),
-        new Parameter().withParameterKey("InstanceType").withParameterValue("m3.medium"),
-        new Parameter().withParameterKey("KeyPair").withParameterValue("s")
-      )
-
-    val describeStacksRequest = new DescribeStacksRequest()
-      .withStackName(stackName)
-
-    val createStackResult: CreateStackResult = awsCfClient.createStack(createStackRequest)
-
-    var describeStacksResult: DescribeStacksResult = null
-
-    implicit val patienceConfig = createStackPatience
-
-    eventually {
-      describeStacksResult = awsCfClient.describeStacks(describeStacksRequest)
-      log.info("CloudFormation stack name is {}, waiting for a CREATE_COMPLETE", stackName)
-      assert(describeStacksResult.getStacks.size() == 1)
-      assert(describeStacksResult.getStacks.get(0).getStackStatus == StackStatus.CREATE_COMPLETE.toString,
-        "possible issue with the CloudFormation script"
-      )
-    }
-
-  }
 
   test("Integration Test for EC2 Tag Based Discovery") {
 
@@ -105,7 +151,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
     // we use a HTTP client to query each IP:19999/cluster/members
     // we make sure the cluster is well formed (no unreachable members, everyone can see everyone etc.)
 
-    assert( 1 == 1 )
+    assert(1 == 1)
 
   }
 

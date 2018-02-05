@@ -25,9 +25,9 @@
     "InstanceType": {
       "Description": "Instance type to launch EC2 instances.",
       "Type": "String",
-      "Default": "m3.medium",
+      "Default": "m3.xlarge",
       "AllowedValues": [
-        "m3.medium"
+        "m3.medium", "m3.xlarge", "m3.2xlarge"
       ]
     },
     "KeyPair": {
@@ -211,6 +211,14 @@
           "Ref": "AkkaClusterSecurityGroup"
         }
       }
+    }
+  },
+  "Outputs" : {
+    "AutoScalingGroupName": {
+      "Value": {
+        "Ref": "AkkaAutoScalingGroup"
+      },
+      "Description": "ASG name"
     }
   }
 }
