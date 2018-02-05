@@ -33,6 +33,8 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
   import system.dispatcher
 
+  private val bucket = System.getenv("BUCKET") // bucket where zip file resulting from sbt universal:packageBin is stored
+
   private val log = Logging(system, classOf[IntegrationTest])
 
   private val stackName = s"AkkaManagementIntegrationTestEC2TagBased-${UUID.randomUUID().toString.substring(0, 6)}"
@@ -66,7 +68,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
       .withStackName(stackName)
       .withTemplateBody(template)
       .withParameters(
-        new Parameter().withParameterKey("Build").withParameterValue("https://s3.amazonaws.com/4resume/app.zip"),
+        new Parameter().withParameterKey("Build").withParameterValue(s"https://s3.amazonaws.com/${bucket}/app.zip"),
         new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
         new Parameter().withParameterKey("InstanceCount").withParameterValue("2"),
         new Parameter().withParameterKey("InstanceType").withParameterValue("m3.medium"),
