@@ -1,5 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 Parameters:
+  Build:
+    Description: zip file obtained from running
+    Type: String
   SSHLocation:
     Description: The IP address range that can be used to SSH to the EC2 instances
     Type: String
@@ -16,75 +19,99 @@ Parameters:
     MaxValue: 50
     ConstraintDescription: Must be a number between 2 and 50
   InstanceType:
-      Description: Instance type to launch EC2 instances.
-      Type: String
-      Default: t2.medium
-      AllowedValues: [ t2.medium, t2.large ]
+    Description: Instance type to launch EC2 instances.
+    Type: String
+    Default: m3.medium
+    AllowedValues:
+      - m3.medium
   KeyPair:
-      Description: "Key Pair (for SSH access)"
-      Type: AWS::EC2::KeyPair::KeyName
-      AllowedPattern: ".+"
+    Description: Key Pair (for SSH access). Use 'none' to disable SSH access.
+    Type: String
+Conditions:
+  HasKeyPair: !Not
+    - !Equals
+      - none
+      - !Ref KeyPair
 Resources:
   LaunchConfiguration:
-    Type: AWS::AutoScaling::LaunchConfiguration
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:
       ImageId: ami-97785bed
-      IamInstanceProfile: {"Ref": "IAMInstanceProfile"}
-      InstanceType: {"Ref": "InstanceType"}
-      KeyName: {"Ref": "KeyPair"}
+      IamInstanceProfile: !Ref IAMInstanceProfile
+      InstanceType: !Ref InstanceType
+      KeyName: !If
+        - HasKeyPair
+        - !Ref KeyPair
+        - !Ref 'AWS::NoValue'
       SecurityGroups:
-        - Ref: AkkaClusterSecurityGroup
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash -xe
-          curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
-          sudo yum -y install sbt
-          sudo yum -y install git
-          git clone https://github.com/akka/akka-management.git
-          cd akka-management/bootstrap-joining-demo/aws-api/
-          sbt compile
-          MY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`
-          sbt run -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP &
+        - !Ref AkkaClusterSecurityGroup
+      UserData: !Base64
+        'Fn::Join':
+          - ''
+          - - |
+              #!/bin/bash -xe
+            - |
+              sudo yum install -y java-1.8.0
+            - |
+              sudo yum remove -y java-1.7.0-openjdk
+            - 'wget '
+            - !Ref Build
+            - |+
+
+            - |
+              unzip app.zip
+            - |
+              cd app
+            - |
+              cd bin
+            - |
+              MY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`
+            - >-
+              ./bootstrap-joining-demo-aws-api
+              -Dakka.management.http.hostname=$MY_IP
+              -Dakka.remote.netty.tcp.hostname=$MY_IP &
   AkkaAutoScalingGroup:
-    Type: AWS::AutoScaling::AutoScalingGroup
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
     Properties:
-      LaunchConfigurationName: {"Ref": "LaunchConfiguration"}
-      AvailabilityZones:
-        Fn::GetAZs: ""
-      MinSize: {"Ref": "InstanceCount"}
-      MaxSize: {"Ref": "InstanceCount"}
-      DesiredCapacity: {"Ref": "InstanceCount"}
+      LaunchConfigurationName: !Ref LaunchConfiguration
+      AvailabilityZones: !GetAZs ''
+      MinSize: !Ref InstanceCount
+      MaxSize: !Ref InstanceCount
+      DesiredCapacity: !Ref InstanceCount
       Tags:
         - Key: service
           Value: products-api
           PropagateAtLaunch: true
+        - Key: purpose
+          Value: demo
+          PropagateAtLaunch: true
   IAMInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
+    Type: 'AWS::IAM::InstanceProfile'
     Properties:
       Path: /
       Roles:
-        - Ref: EC2ReadOnlyRole
+        - !Ref EC2ReadOnlyRole
   EC2ReadOnlyPolicy:
     Type: 'AWS::IAM::Policy'
     Properties:
       Roles:
-        - Ref: EC2ReadOnlyRole
+        - !Ref EC2ReadOnlyRole
       PolicyName: EC2ReadOnlyPolicy
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
-           Effect: "Allow"
-           Action:
-            - "ec2:DescribeInstances"
-           Resource: "*"
+          Effect: Allow
+          Action:
+            - 'ec2:DescribeInstances'
+          Resource: '*'
   EC2ReadOnlyRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      Path: "/"
+      Path: /
       AssumeRolePolicyDocument:
         Statement:
           - Action:
-            - sts:AssumeRole
+              - 'sts:AssumeRole'
             Effect: Allow
             Principal:
               Service:
@@ -97,20 +124,29 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: {"Ref": "SSHLocation"}
+          CidrIp: !Ref SSHLocation
   AkkaClusterSecurityGroupIngressForPeers2551:
-    Type: AWS::EC2::SecurityGroupIngress
+    Type: 'AWS::EC2::SecurityGroupIngress'
     Properties:
-      GroupName: {"Ref": "AkkaClusterSecurityGroup"}
+      GroupName: !Ref AkkaClusterSecurityGroup
       IpProtocol: tcp
       FromPort: 2551
       ToPort: 2551
-      SourceSecurityGroupName: {"Ref": "AkkaClusterSecurityGroup"}
-  AkkaClusterSecurityGroupIngressForPeers19999:
-    Type: AWS::EC2::SecurityGroupIngress
+      SourceSecurityGroupName: !Ref AkkaClusterSecurityGroup
+  AkkaClusterSecurityGroupIngressForOutsiders19999:
+    Type: 'AWS::EC2::SecurityGroupIngress'
     Properties:
-      GroupName: {"Ref": "AkkaClusterSecurityGroup"}
+      GroupName: !Ref AkkaClusterSecurityGroup
       IpProtocol: tcp
       FromPort: 19999
       ToPort: 19999
-      CidrIp: {"Ref": "SSHLocation"}
+      CidrIp: !Ref SSHLocation
+  AkkaClusterSecurityGroupIngressForPeers19999:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupName: !Ref AkkaClusterSecurityGroup
+      IpProtocol: tcp
+      FromPort: 19999
+      ToPort: 19999
+      SourceSecurityGroupName: !Ref AkkaClusterSecurityGroup
+
