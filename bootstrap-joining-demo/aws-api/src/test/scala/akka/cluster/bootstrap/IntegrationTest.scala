@@ -72,7 +72,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
         new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
         new Parameter().withParameterKey("InstanceCount").withParameterValue("2"),
         new Parameter().withParameterKey("InstanceType").withParameterValue("m3.medium"),
-        new Parameter().withParameterKey("KeyPair").withParameterValue("none")
+        new Parameter().withParameterKey("KeyPair").withParameterValue("s")
       )
 
     val describeStacksRequest = new DescribeStacksRequest()

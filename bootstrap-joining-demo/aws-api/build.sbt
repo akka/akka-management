@@ -4,7 +4,7 @@ packageName in Universal := "app" // should produce app.zip
 
 val akkaManagementVersion = SettingKey[String]("akkaManagementVersion", "Akka Management Version")
 
-akkaManagementVersion := "latest.release" 
+akkaManagementVersion := "latest.integration"
 
 name := "bootstrap-joining-demo-aws-api"
 
