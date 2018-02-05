@@ -32,17 +32,17 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
     val otherFilters: util.List[Filter] =
       otherFiltersString match {
         case "" => List[Filter]().asJava
-        case value => otherFiltersString
-          .split(";")
-          .map(kv => kv.split("="))
-          .toList
-          .map(kv => {
-            assert(kv.length == 2, "failed to parse one of the key-value pairs in filters")
-            new Filter(kv(0), List(kv(1)).asJava)
-          })
-          .asJava
+        case value =>
+          otherFiltersString
+            .split(";")
+            .map(kv => kv.split("="))
+            .toList
+            .map(kv => {
+              assert(kv.length == 2, "failed to parse one of the key-value pairs in filters")
+              new Filter(kv(0), List(kv(1)).asJava)
+            })
+            .asJava
       }
-
 
     val request = new DescribeInstancesRequest()
       .withFilters(tagFilter)
