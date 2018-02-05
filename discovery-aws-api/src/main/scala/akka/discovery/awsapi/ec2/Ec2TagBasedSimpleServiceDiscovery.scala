@@ -64,7 +64,8 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
         .toList
         .flatMap(_.getInstances.asScala.toList)
         .map(_.getPrivateIpAddress)
-        .map(ip => ResolvedTarget(ip, None))
+        .filter(ip => ip != null) // have observed behaviour where the IP address is null
+        .map((ip: String) => ResolvedTarget(ip, None))
     }.map(Resolved(name, _))
 
   }
