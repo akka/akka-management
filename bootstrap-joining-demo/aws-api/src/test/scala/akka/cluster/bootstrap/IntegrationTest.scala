@@ -52,7 +52,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
   private def getMyIp: String = {
     val myIp: Future[String] = http.singleRequest(HttpRequest(uri = "http://checkip.amazonaws.com")).flatMap(r => r.entity.dataBytes.runFold(ByteString(""))(_ ++ _)
       .map(_.utf8String).map(_.filter(_ >= ' ')))
-    Await.result(myIp, 2 seconds)
+    Await.result(myIp, atMost = 2 seconds)
   }
 
   override def beforeAll(): Unit = {
