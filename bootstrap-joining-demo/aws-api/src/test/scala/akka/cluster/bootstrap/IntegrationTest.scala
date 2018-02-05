@@ -66,6 +66,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
       .withStackName(stackName)
       .withTemplateBody(template)
       .withParameters(
+        new Parameter().withParameterKey("Build").withParameterValue("https://s3.amazonaws.com/4resume/app.zip"),
         new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
         new Parameter().withParameterKey("InstanceCount").withParameterValue("2"),
         new Parameter().withParameterKey("InstanceType").withParameterValue("m3.medium"),
