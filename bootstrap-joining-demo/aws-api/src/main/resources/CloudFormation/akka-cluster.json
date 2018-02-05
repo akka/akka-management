@@ -27,7 +27,7 @@
       ]
     },
     "KeyPair": {
-      "Description": "Key Pair (for SSH access)",
+      "Description": "Key Pair (for SSH access). Use 'none' to disable SSH access.",
       "Type": "String"
     }
   },
@@ -53,7 +53,7 @@
         ],
         "UserData": {
           "Fn::Base64": {
-            "Fn::Sub": "#!/bin/bash -xe\ncurl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo\nsudo yum -y install sbt\nsudo yum -y install git\ngit clone https://github.com/akka/akka-management.git\ncd akka-management/bootstrap-joining-demo/aws-api/\nsbt compile\nMY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`\nsbt run -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP &\n"
+            "Fn::Sub": "#!/bin/bash -xe\nsudo yum install -y java-1.8.0\nsudo yum remove -y java-1.7.0-openjdk\ncurl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo\nsudo yum -y install sbt\nsudo yum -y install git\ngit clone https://github.com/akka/akka-management.git\ncd akka-management/bootstrap-joining-demo/aws-api/\nsbt compile\nMY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`\nsbt run -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP &\n"
           }
         }
       }

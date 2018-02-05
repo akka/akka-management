@@ -1,15 +1,18 @@
 enablePlugins(JavaAppPackaging)
-name := "bootstrap-joining-demo-aws-api"
 
-version := "1.0"
+val akkaManagementVersion = SettingKey[String]("akkaManagementVersion", "Akka Management Version")
+
+akkaManagementVersion := version.value.split('+')(0)  // replace with latest version
+
+name := "bootstrap-joining-demo-aws-api"
 
 scalaVersion := "2.12.4"
 
-libraryDependencies += "com.lightbend.akka.management" % "akka-management-cluster-bootstrap_2.12" % "0.8.0"
+libraryDependencies += "com.lightbend.akka.management" % "akka-management-cluster-bootstrap_2.12" % akkaManagementVersion.value
 
-libraryDependencies += "com.lightbend.akka.management" % "akka-management-cluster-http_2.12" % "0.8.0"
+libraryDependencies += "com.lightbend.akka.management" % "akka-management-cluster-http_2.12" % akkaManagementVersion.value
 
-libraryDependencies += "com.lightbend.akka.discovery" % "akka-discovery-aws-api_2.12" % "0.8.0"
+libraryDependencies += "com.lightbend.akka.discovery" % "akka-discovery-aws-api_2.12" % akkaManagementVersion.value
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "test"
 

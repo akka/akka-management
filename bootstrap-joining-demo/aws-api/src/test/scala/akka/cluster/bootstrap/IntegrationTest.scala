@@ -83,7 +83,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
     eventually {
       describeStacksResult = awsCfClient.describeStacks(describeStacksRequest)
-      log.info("CloudFormation stack name is {}, waiting for CREATE_COMPLETE", stackName)
+      log.info("CloudFormation stack name is {}, waiting for a CREATE_COMPLETE", stackName)
       assert(describeStacksResult.getStacks.size() == 1)
       assert(describeStacksResult.getStacks.get(0).getStackStatus == StackStatus.CREATE_COMPLETE.toString,
         "possible issue with the CloudFormation script"
@@ -109,7 +109,8 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
   override def afterAll(): Unit = {
     log.info("tearing down infrastructure")
     // TODO: what happens if this fails ? Can we add some retries ?
-    awsCfClient.deleteStack(new DeleteStackRequest().withStackName(stackName))
+    // awsCfClient.deleteStack(new DeleteStackRequest().withStackName(stackName))
+    system.terminate()
   }
 
 }

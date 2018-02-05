@@ -13,6 +13,7 @@ object DemoApp extends App {
   implicit val system = ActorSystem("simple")
 
   AkkaManagement(system).start()
+
   ClusterBootstrap(system).start()
 
 }
