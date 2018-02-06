@@ -17,14 +17,13 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
 import com.amazonaws.services.cloudformation.model._
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
 import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter, Instance, Reservation}
-import org.scalatest.concurrent.Eventually
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
-
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
-
 import spray.json._
+
+import scala.concurrent.Future
 
 trait HttpClient {
 
@@ -44,13 +43,14 @@ trait HttpClient {
 
 }
 
-class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll with HttpClient with ClusterHttpManagementJsonProtocol {
-
-  import system.dispatcher
+class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll with ScalaFutures
+  with HttpClient with ClusterHttpManagementJsonProtocol {
 
   import collection.JavaConverters._
 
   private val log = Logging(system, classOf[IntegrationTest])
+
+  private val instanceCount = 2
 
   private val bucket = System.getenv("BUCKET") // bucket where zip file resulting from sbt universal:packageBin is stored
 
@@ -70,14 +70,15 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
     )
 
   // Patience settings for the actual Akka part
-  private val clusterFormPatience: PatienceConfig =
+  private val clusterBootstrapPatience: PatienceConfig =
     PatienceConfig(
       timeout = scaled(Span(4 * 60, Seconds)),
       interval = scaled(Span(4, Seconds))
     )
 
+  private var clusterPublicIps: List[String] = List()
 
-  private var clusterIps: List[String] = List()
+  private var clusterPrivateIps: List[String] = List()
 
   override def beforeAll(): Unit = {
 
@@ -94,7 +95,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
       .withParameters(
         new Parameter().withParameterKey("Build").withParameterValue(s"https://s3.amazonaws.com/$bucket/app.zip"),
         new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
-        new Parameter().withParameterKey("InstanceCount").withParameterValue("2"),
+        new Parameter().withParameterKey("InstanceCount").withParameterValue(instanceCount.toString),
         new Parameter().withParameterKey("InstanceType").withParameterValue("m3.xlarge"),
         new Parameter().withParameterKey("KeyPair").withParameterValue("s")
       )
@@ -130,15 +131,18 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
       val asgName = dsr.getStacks.get(0).getOutputs.asScala.find(_.getOutputKey == "AutoScalingGroupName").get.getOutputValue
 
-      clusterIps = awsEc2Client
+      val ips: List[(String, String)] = awsEc2Client
         .describeInstances(new DescribeInstancesRequest().withFilters(new Filter("tag:aws:autoscaling:groupName", List(asgName).asJava)))
         .getReservations
         .asScala
-        .flatMap((r: Reservation) => r.getInstances.asScala.map((instance: Instance) => instance.getPublicIpAddress))
+        .flatMap((r: Reservation) => r.getInstances.asScala.map((instance: Instance) => (instance.getPublicIpAddress, instance.getPrivateIpAddress)))
         .toList
-        .filter(_ != null) // TODO: investigate whether there are edge cases that may makes this necessary
+        .filter(ips => ips._1 !=null && ips._2 !=null) // TODO: investigate whether there are edge cases that may makes this necessary
 
-      log.info("EC2 instances launched have the following public IPs {}", clusterIps.mkString(", "))
+      clusterPublicIps = ips.map(_._1)
+      clusterPrivateIps = ips.map(_._2)
+
+      log.info("EC2 instances launched have the following public IPs {}", clusterPublicIps.mkString(", "))
 
     }
 
@@ -148,24 +152,35 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
   private def getMyIp: String = {
     val myIp: Future[(Int, String)] = httpGetRequest("http://checkip.amazonaws.com")
-    Await.result(myIp.map(_._2), atMost = 2 seconds)
+    val httpCallTimeout = Timeout(Span(3, Seconds))
+    myIp.futureValue(httpCallTimeout)._2
   }
 
   test("Integration Test for EC2 Tag Based Discovery") {
 
-    implicit val patienceConfig: PatienceConfig = clusterFormPatience
+    implicit val patienceConfig: PatienceConfig = clusterBootstrapPatience
+    val httpCallTimeout = Timeout(Span(3, Seconds))
+
+    val expectedNodes: Set[String] = clusterPrivateIps.map(ip => s"akka.tcp://demo@$ip:2551").toSet
+
     eventually {
+
       log.info("querying the Cluster Http Management interface of each node, eventually we should see a well formed cluster")
-      clusterIps.foreach {
-        nodeIp => {
-          // TODO: use ScalaTest syntax sugar for Futures
-          val result = Await.result(httpGetRequest(s"http://$nodeIp:19999/cluster/members"), atMost = 3 seconds)
+
+      clusterPublicIps.foreach {
+        nodeIp: String => {
+
+          val result = httpGetRequest(s"http://$nodeIp:19999/cluster/members").futureValue(httpCallTimeout)
           assert(result._1 == 200)
           assert(result._2.nonEmpty)
 
           val clusterMembers = result._2.parseJson.convertTo[ClusterMembers]
+
+          assert(clusterMembers.members.size == instanceCount)
+          assert(clusterMembers.members.count(_.status == "Up") == instanceCount)
+          assert(clusterMembers.members.map(_.node) == expectedNodes)
+
           assert(clusterMembers.unreachable.isEmpty)
-          assert(clusterMembers.members.size == 2)
           assert(clusterMembers.leader.isDefined)
           assert(clusterMembers.oldest.isDefined)
 

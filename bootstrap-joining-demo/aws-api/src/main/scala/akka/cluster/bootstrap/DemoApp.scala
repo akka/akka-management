@@ -10,7 +10,7 @@ import akka.management.cluster.bootstrap.ClusterBootstrap
 
 object DemoApp extends App {
 
-  implicit val system = ActorSystem("simple")
+  implicit val system = ActorSystem("demo")
 
   AkkaManagement(system).start()
 
