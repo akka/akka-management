@@ -10,6 +10,7 @@ import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
+import akka.management.cluster.{ClusterHttpManagementJsonProtocol, ClusterMembers}
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import akka.util.ByteString
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
@@ -22,6 +23,8 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+
+import spray.json._
 
 trait HttpClient {
 
@@ -41,7 +44,7 @@ trait HttpClient {
 
 }
 
-class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll with HttpClient {
+class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll with HttpClient with ClusterHttpManagementJsonProtocol {
 
   import system.dispatcher
 
@@ -159,6 +162,13 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
           val result = Await.result(httpGetRequest(s"http://$nodeIp:19999/cluster/members"), atMost = 3 seconds)
           assert(result._1 == 200)
           assert(result._2.nonEmpty)
+
+          val clusterMembers = result._2.parseJson.convertTo[ClusterMembers]
+          assert(clusterMembers.unreachable.isEmpty)
+          assert(clusterMembers.members.size == 2)
+          assert(clusterMembers.leader.isDefined)
+          assert(clusterMembers.oldest.isDefined)
+
         }
       }
     }

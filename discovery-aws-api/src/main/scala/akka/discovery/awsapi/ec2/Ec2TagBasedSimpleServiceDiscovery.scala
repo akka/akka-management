@@ -49,7 +49,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
       .withFilters(runningInstancesFilter)
       .withFilters(otherFilters)
 
-    implicit val timeout = resolveTimeout
+    implicit val timeout: FiniteDuration = resolveTimeout
 
     import system.dispatcher
 
