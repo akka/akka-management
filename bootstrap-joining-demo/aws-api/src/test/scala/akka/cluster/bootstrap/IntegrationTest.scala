@@ -25,9 +25,19 @@ import scala.concurrent.{Await, Future}
 
 trait HttpClient {
 
-  final implicit val system: ActorSystem = ActorSystem("simple")
-  final implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
-  final val http = Http(system)
+  implicit val system: ActorSystem = ActorSystem("simple")
+
+  implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
+
+  val http = Http(system)
+
+  import system.dispatcher
+
+  def httpGetRequest(url: String): Future[(Int, String)] = {
+    http.singleRequest(HttpRequest(uri = url))
+      .flatMap(r => r.entity.dataBytes.runFold(ByteString(""))(_ ++ _)
+      .map(_.utf8String).map(_.filter(_ >= ' ')).map(body => (r.status.intValue(), body)))
+  }
 
 }
 
@@ -37,11 +47,11 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
   import collection.JavaConverters._
 
+  private val log = Logging(system, classOf[IntegrationTest])
+
   private val bucket = System.getenv("BUCKET") // bucket where zip file resulting from sbt universal:packageBin is stored
 
   private val region = "us-east-1"
-
-  private val log = Logging(system, classOf[IntegrationTest])
 
   private val stackName = s"AkkaManagementIntegrationTestEC2TagBased-${UUID.randomUUID().toString.substring(0, 6)}"
 
@@ -123,42 +133,41 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
         .asScala
         .flatMap((r: Reservation) => r.getInstances.asScala.map((instance: Instance) => instance.getPublicIpAddress))
         .toList
-
+        .filter(_ != null) // TODO: investigate whether there are edge cases that may makes this necessary
 
       log.info("EC2 instances launched have the following public IPs {}", clusterIps.mkString(", "))
 
     }
-
 
   }
 
   private def readTemplateFromResourceFolder(path: String): String = scala.io.Source.fromResource(path).mkString
 
   private def getMyIp: String = {
-    val myIp: Future[String] = http.singleRequest(HttpRequest(uri = "http://checkip.amazonaws.com")).flatMap(r => r.entity.dataBytes.runFold(ByteString(""))(_ ++ _)
-      .map(_.utf8String).map(_.filter(_ >= ' ')))
-    Await.result(myIp, atMost = 2 seconds)
+    val myIp: Future[(Int, String)] = httpGetRequest("http://checkip.amazonaws.com")
+    Await.result(myIp.map(_._2), atMost = 2 seconds)
   }
-
 
   test("Integration Test for EC2 Tag Based Discovery") {
 
-    // here we have a real cluster of EC2 instances
-
-    // continue by doing a describe instances request on the auto scaling group
-    // will result in a list of IPs
-
-    // we use a HTTP client to query each IP:19999/cluster/members
-    // we make sure the cluster is well formed (no unreachable members, everyone can see everyone etc.)
-
-    assert(1 == 1)
-
+    implicit val patienceConfig: PatienceConfig = clusterFormPatience
+    eventually {
+      log.info("querying the Cluster Http Management interface of each node, eventually we should see a well formed cluster")
+      clusterIps.foreach {
+        nodeIp => {
+          // TODO: use ScalaTest syntax sugar for Futures
+          val result = Await.result(httpGetRequest(s"http://$nodeIp:19999/cluster/members"), atMost = 3 seconds)
+          assert(result._1 == 200)
+          assert(result._2.nonEmpty)
+        }
+      }
+    }
   }
 
   override def afterAll(): Unit = {
     log.info("tearing down infrastructure")
     // TODO: what happens if this fails ? Can we add some retries ?
-    // awsCfClient.deleteStack(new DeleteStackRequest().withStackName(stackName))
+    awsCfClient.deleteStack(new DeleteStackRequest().withStackName(stackName))
     system.terminate()
   }
 
