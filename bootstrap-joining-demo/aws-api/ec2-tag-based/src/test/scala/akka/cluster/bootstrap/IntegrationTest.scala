@@ -65,15 +65,16 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
   // Patience settings for the part where we wait for the CloudFormation script to complete
   private val createStackPatience: PatienceConfig =
     PatienceConfig(
-      timeout = scaled(Span(6 * 60, Seconds)),
+      timeout = scaled(Span(10 * 60, Seconds)),
       interval = scaled(Span(30, Seconds))
     )
 
-  // Patience settings for the actual Akka part
+  // Patience settings. Once the CloudFormation stack has CREATE_COMPLETE status, the EC2 instances are
+  // still "initializing" (seems to take a long time)
   private val clusterBootstrapPatience: PatienceConfig =
     PatienceConfig(
-      timeout = scaled(Span(4 * 60, Seconds)),
-      interval = scaled(Span(4, Seconds))
+      timeout = scaled(Span(8 * 60, Seconds)),
+      interval = scaled(Span(3, Seconds))
     )
 
   private var clusterPublicIps: List[String] = List()
@@ -97,7 +98,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
         new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
         new Parameter().withParameterKey("InstanceCount").withParameterValue(instanceCount.toString),
         new Parameter().withParameterKey("InstanceType").withParameterValue("m3.xlarge"),
-        new Parameter().withParameterKey("KeyPair").withParameterValue("s")
+        new Parameter().withParameterKey("KeyPair").withParameterValue("none")
       )
 
     awsCfClient.createStack(createStackRequest)
