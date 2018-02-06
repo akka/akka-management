@@ -47,7 +47,7 @@ script:
   - kubectl cluster-info 
   - kubectl run travis-example --image=redis
   - kubectl get deployment
-  - if [ ${TRAVIS_SCALA_VERSION:0:4} == "2.12" ] ; then ./aws-api-aws-api-ec2-tag-based.sh ; else echo not running integration tests for aws-api-ec2-tag-based; fi
+  - if [ ${TRAVIS_SCALA_VERSION:0:4} == "2.12" ] ; then ./aws-api-ec2-tag-based.sh ; else echo not running integration tests for aws-api-ec2-tag-based; fi
 
 deploy:
   provider: script
