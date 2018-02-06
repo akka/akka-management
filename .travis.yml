@@ -46,7 +46,7 @@ script:
   - kubectl cluster-info 
   - kubectl run travis-example --image=redis
   - kubectl get deployment
-  # ./integration-testing.sh
+  - ./integration-testing.sh
 
 deploy:
   provider: script
