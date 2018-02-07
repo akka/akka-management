@@ -65,16 +65,16 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
   // Patience settings for the part where we wait for the CloudFormation script to complete
   private val createStackPatience: PatienceConfig =
     PatienceConfig(
-      timeout = scaled(Span(10 * 60, Seconds)),
-      interval = scaled(Span(30, Seconds))
+      timeout = scaled(Span(8 * 60, Seconds)),
+      interval = scaled(Span(2, Seconds))
     )
 
   // Patience settings. Once the CloudFormation stack has CREATE_COMPLETE status, the EC2 instances are
   // still "initializing" (seems to take a long time)
   private val clusterBootstrapPatience: PatienceConfig =
     PatienceConfig(
-      timeout = scaled(Span(8 * 60, Seconds)),
-      interval = scaled(Span(3, Seconds))
+      timeout = scaled(Span(6 * 60, Seconds)),
+      interval = scaled(Span(1, Seconds))
     )
 
   private var clusterPublicIps: List[String] = List()
