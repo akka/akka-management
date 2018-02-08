@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: appka
+        actorSystemName: appka
     spec:
       containers:
       - name: appka
@@ -26,20 +27,19 @@ spec:
               fieldPath: status.podIP
         livenessProbe:
           tcpSocket:
-#            port: 2551
             port: 19999
         ports:
         # akka remoting
         - name: remoting
-          containerPort: 2551
+          containerPort: 2552
           protocol: TCP
         # akka-management bootstrap
         - name: bootstrap
           containerPort: 8558
           protocol: TCP
         # external http
-        - name: http
-          containerPort: 8080
+        - name: akka-mgmt-http
+          containerPort: 19999
           protocol: TCP
 ---
 kind: Service

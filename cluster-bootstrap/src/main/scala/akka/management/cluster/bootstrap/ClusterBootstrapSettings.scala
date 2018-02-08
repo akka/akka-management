@@ -75,6 +75,9 @@ final class ClusterBootstrapSettings(config: Config) {
     val noSeedsStableMargin: FiniteDuration =
       contactPointConfig.getDuration("no-seeds-stable-margin", TimeUnit.MILLISECONDS).millis
 
+    val probingFailureTimeout: FiniteDuration =
+      contactPointConfig.getDuration("probing-failure-timeout", TimeUnit.MILLISECONDS).millis
+
     val probeInterval: FiniteDuration =
       contactPointConfig.getDuration("probe-interval", TimeUnit.MILLISECONDS).millis
 

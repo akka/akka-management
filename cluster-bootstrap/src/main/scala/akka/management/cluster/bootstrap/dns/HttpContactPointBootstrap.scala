@@ -79,6 +79,12 @@ private[dns] class HttpContactPointBootstrap(
    */
   private val existingClusterNotObservedWithinDeadline: Deadline = settings.contactPoint.noSeedsStableMargin.fromNow
 
+  /**
+   * If probing keeps failing until the deadline triggers, we notify the parent,
+   * such that it rediscover again.
+   */
+  private val existingProbingKeepFailingWithinDeadline: Deadline = settings.contactPoint.probingFailureTimeout.fromNow
+
   override def preStart(): Unit =
     self ! Internal.ProbeNow()
 
@@ -95,8 +101,14 @@ private[dns] class HttpContactPointBootstrap(
 
     case Status.Failure(cause) =>
       log.error("Probing {} failed due to {}", probeRequest.uri, cause.getMessage)
-      // keep probing, hoping the request will eventually succeed
-      scheduleNextContactPointProbing()
+      if (probingKeepFailingWithinDeadline) {
+        log.error("Overdue of probing-failure-timeout, stop probing, signaling that it's failed")
+        context.parent ! HeadlessServiceDnsBootstrap.Protocol.ProbingFailed(cause)
+        context.stop(self)
+      } else {
+        // keep probing, hoping the request will eventually succeed
+        scheduleNextContactPointProbing()
+      }
 
     case response @ SeedNodes(node, members) ⇒
       if (members.isEmpty) {
@@ -122,6 +134,9 @@ private[dns] class HttpContactPointBootstrap(
 
   private def clusterNotObservedWithinDeadline: Boolean =
     existingClusterNotObservedWithinDeadline.isOverdue()
+
+  private def probingKeepFailingWithinDeadline: Boolean =
+    existingProbingKeepFailingWithinDeadline.isOverdue()
 
   private def permitParentToFormClusterIfPossible(): Unit = {
     log.debug("No seed-nodes obtained from {} within stable margin [{}], may want to initiate the cluster myself...",

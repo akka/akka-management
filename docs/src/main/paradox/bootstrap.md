@@ -65,8 +65,8 @@ can pick the one most fitting to your cluster manager or runtime -- such as Kube
 ## Akka Cluster Bootstrap Process explained
 
 The Akka Cluster Bootstrap process is composed of two phases. First, a minimum number of Contact Points need to be gathered. 
-Currently it will look for `akka.cluster.bootstrap.contact-point-discovery.service-name` appended
-with `akka.cluster.bootstrap.contact-point-discovery.service-namespace` (if present) A records in DNS. In Kubernetes managed 
+Currently it will look for `akka.management.cluster.bootstrap.contact-point-discovery.service-name` appended
+with `akka.management.cluster.bootstrap.contact-point-discovery.service-namespace` (if present) A records in DNS. In Kubernetes managed
 systems these would be available by default and list all `Pods` in a given `Service`. Those addresses are then contacted,
 in what is referred to the Contact Point Probing procedure. Note that at this point the node has not joined any cluster yet.
 The Contact Points are contacted using an alternative protocol which does not need membership, such as HTTP by default.
@@ -77,7 +77,7 @@ once it has completed joining, also start advertising those seed nodes using its
 has not yet joined, but is probing this node, would get this information and join the existing cluster.
 
 In the case no cluster exists yet -- the initial bootstrap of a cluster -- nodes will keep probing one another for a while
-(`akka.cluster.bootstrap.contact-point.no-seeds-stable-margin`) and once that time margin passes, they will decide that 
+(`akka.management.cluster.bootstrap.contact-point.no-seeds-stable-margin`) and once that time margin passes, they will decide that
 no cluster exists, and one of the seen nodes should join *itself* to become the first node of a new cluster. It is of utmost
 importance that only one node joins itself, so this decision has to be made deterministically. Since we know the addresses
 of all Contact Points, and the contact points relate 1:1 to a Akka Remoting (Akka Cluster) address of the given node,
@@ -114,10 +114,10 @@ from the contact points.
         - Notice that this phase is exactly the same as the "epidemic joining" in the more complicated Case 1 when a new 
           cluster has to be formed.
 
-Additionally, a setting is provided, `akka.cluster.bootstrap.form-new-cluster` that can be disabled to only allow the
+Additionally, a setting is provided, `akka.management.cluster.bootstrap.form-new-cluster` that can be disabled to only allow the
 node to join existing clusters (Case 2 above). This can be used to provide additional safety during the typical deployment
 as it is relatively rare that no cluster exists. It can be specified in your `application.conf` or provided as an
-argument to the process itself via `-Dakka.cluster.bootstrap.form-new-cluster=<true|false>`. By default, it is enabled.
+argument to the process itself via `-Dakka.management.cluster.bootstrap.form-new-cluster=<true|false>`. By default, it is enabled.
 
 In the next sections we explain the process in more detail.
 
@@ -183,7 +183,7 @@ even if the DNS system is not completely consistent.
 If however we are talking about an inconsistent DNS lookup response during the Initial Bootstrap, the nodes will be delayed
 forming the cluster as they expect the lookups to be consistent, this is checked by the stable-margin configuration option.
 
-For complete safety of the Initial Bootstrap it is recommended to set the `akka.cluster.bootstrap.required-contact-point-nr` 
+For complete safety of the Initial Bootstrap it is recommended to set the `akka.management.cluster.bootstrap.required-contact-point-nr`
 setting to the exact number of nodes the initial startup of the cluster will be done. For example, if starting a cluster with
 4 nodes initially, and later scaling it out to many more nodes, be sure to set this setting to `4` for additional safety of
 the initial joining, even in face of an flaky discovery mechanism!
