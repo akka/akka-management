@@ -24,7 +24,7 @@ class JsonFormatSpec extends WordSpec with Matchers {
                   Container(
                     "akka-cluster-tooling-example",
                     List(Port("akka-remote", 10000), Port("akka-mgmt-http", 10001), Port("http", 10002))))),
-              Status(Some("172.17.0.4"))),
+              Status(Some("172.17.0.4")), Metadata(deletionTimestamp = None)),
 
             Item(
               Spec(
@@ -32,7 +32,7 @@ class JsonFormatSpec extends WordSpec with Matchers {
                   Container(
                     "akka-cluster-tooling-example",
                     List(Port("akka-remote", 10000), Port("akka-mgmt-http", 10001), Port("http", 10002))))),
-              Status(Some("172.17.0.6"))),
+              Status(Some("172.17.0.6")), Metadata(deletionTimestamp = None)),
 
             Item(
               Spec(
@@ -40,9 +40,10 @@ class JsonFormatSpec extends WordSpec with Matchers {
                   Container(
                     "akka-cluster-tooling-example",
                     List(Port("akka-remote", 10000), Port("akka-mgmt-http", 10001), Port("http", 10002))))),
-              Status(Some("172.17.0.7")))))
+              Status(Some("172.17.0.7")), Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z")))))
     }
   }
+
 
   private def resourceAsString(name: String): String =
     Source
