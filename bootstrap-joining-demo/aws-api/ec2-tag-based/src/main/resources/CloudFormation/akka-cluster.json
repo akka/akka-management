@@ -2,7 +2,7 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Parameters": {
     "Build": {
-      "Description": "zip file obtained from running",
+      "Description": "URL of zip file obtained from running sbt universal:packageBin",
       "Type": "String"
     },
     "SSHLocation": {
@@ -23,7 +23,7 @@
       "ConstraintDescription": "Must be a number between 2 and 50"
     },
     "InstanceType": {
-      "Description": "Instance type to launch EC2 instances.",
+      "Description": "Instance type",
       "Type": "String",
       "Default": "m3.xlarge",
       "AllowedValues": [
@@ -32,6 +32,10 @@
     },
     "KeyPair": {
       "Description": "Key Pair (for SSH access). Use 'none' to disable SSH access.",
+      "Type": "String"
+    },
+    "Purpose" : {
+      "Description": "Purpose tag (i.e. development, staging, production, demo)",
       "Type": "String"
     }
   },
@@ -61,6 +65,7 @@
               "sudo yum install -y java-1.8.0\n",
               "sudo yum remove -y java-1.7.0-openjdk\n",
               "wget ", {"Ref": "Build"}, "\n",
+              "export PURPOSE=", {"Ref": "Purpose"}, "\n",
               "unzip app.zip\n",
               "cd app\n",
               "cd bin\n",
@@ -97,7 +102,7 @@
           },
           {
             "Key": "purpose",
-            "Value": "demo",
+            "Value": {"Ref": "Purpose"},
             "PropagateAtLaunch": true
           }
         ]

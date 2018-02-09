@@ -98,7 +98,9 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
         new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
         new Parameter().withParameterKey("InstanceCount").withParameterValue(instanceCount.toString),
         new Parameter().withParameterKey("InstanceType").withParameterValue("m3.xlarge"),
-        new Parameter().withParameterKey("KeyPair").withParameterValue("none")
+        new Parameter().withParameterKey("KeyPair").withParameterValue("none"),
+        new Parameter().withParameterKey("Purpose")
+          .withParameterValue("demo" + Option(System.getenv("TRAVIS_SCALA_VERSION")).map(v => "-" + v).getOrElse(""))
       )
 
     awsCfClient.createStack(createStackRequest)
