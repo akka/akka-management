@@ -36,7 +36,8 @@
     },
     "Purpose" : {
       "Description": "Purpose tag (i.e. development, staging, production, demo)",
-      "Type": "String"
+      "Type": "String",
+      "Default": "demo"
     }
   },
   "Conditions": {
