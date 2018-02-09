@@ -48,15 +48,17 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
   import collection.JavaConverters._
 
+  private val buildId = UUID.randomUUID().toString.substring(0, 6)
+
   private val log = Logging(system, classOf[IntegrationTest])
 
-  private val instanceCount = 2
+  private val instanceCount = 3
 
   private val bucket = System.getenv("BUCKET") // bucket where zip file resulting from sbt universal:packageBin is stored
 
   private val region = "us-east-1"
 
-  private val stackName = s"AkkaManagementIntegrationTestEC2TagBased-${UUID.randomUUID().toString.substring(0, 6)}"
+  private val stackName = s"AkkaManagementIntegrationTestEC2TagBased-${buildId}"
 
   private val awsCfClient = AmazonCloudFormationClientBuilder.standard().withRegion(region).build()
 
@@ -65,16 +67,16 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
   // Patience settings for the part where we wait for the CloudFormation script to complete
   private val createStackPatience: PatienceConfig =
     PatienceConfig(
-      timeout = scaled(Span(8 * 60, Seconds)),
-      interval = scaled(Span(2, Seconds))
+      timeout = scaled(Span(12 * 60, Seconds)),
+      interval = scaled(Span(3, Seconds))
     )
 
   // Patience settings. Once the CloudFormation stack has CREATE_COMPLETE status, the EC2 instances are
   // still "initializing" (seems to take a long time)
   private val clusterBootstrapPatience: PatienceConfig =
     PatienceConfig(
-      timeout = scaled(Span(6 * 60, Seconds)),
-      interval = scaled(Span(1, Seconds))
+      timeout = scaled(Span(8 * 60, Seconds)),
+      interval = scaled(Span(2, Seconds))
     )
 
   private var clusterPublicIps: List[String] = List()
@@ -100,7 +102,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
         new Parameter().withParameterKey("InstanceType").withParameterValue("m3.xlarge"),
         new Parameter().withParameterKey("KeyPair").withParameterValue("none"),
         new Parameter().withParameterKey("Purpose")
-          .withParameterValue("demo" + Option(System.getenv("TRAVIS_SCALA_VERSION")).map(v => "-" + v).getOrElse(""))
+          .withParameterValue("demo" + "-" + buildId + Option(System.getenv("TRAVIS_SCALA_VERSION")).map(v => "-" + v).getOrElse(""))
       )
 
     awsCfClient.createStack(createStackRequest)
