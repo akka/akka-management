@@ -48,7 +48,8 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
   import collection.JavaConverters._
 
-  private val buildId = UUID.randomUUID().toString.substring(0, 6)
+  private val buildId: String = System.getenv("BUILD_ID")
+  assert(buildId != null, "BUILD_ID environment variable has to be defined")
 
   private val log = Logging(system, classOf[IntegrationTest])
 
@@ -96,13 +97,13 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
       .withStackName(stackName)
       .withTemplateBody(template)
       .withParameters(
-        new Parameter().withParameterKey("Build").withParameterValue(s"https://s3.amazonaws.com/$bucket/app.zip"),
+        new Parameter().withParameterKey("Build").withParameterValue(s"https://s3.amazonaws.com/$bucket/${buildId}/app.zip"),
         new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
         new Parameter().withParameterKey("InstanceCount").withParameterValue(instanceCount.toString),
         new Parameter().withParameterKey("InstanceType").withParameterValue("m3.xlarge"),
         new Parameter().withParameterKey("KeyPair").withParameterValue("none"),
         new Parameter().withParameterKey("Purpose")
-          .withParameterValue("demo" + "-" + buildId + Option(System.getenv("TRAVIS_SCALA_VERSION")).map(v => "-" + v).getOrElse(""))
+          .withParameterValue("demo" + "-" + buildId)
       )
 
     awsCfClient.createStack(createStackRequest)
