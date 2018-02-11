@@ -59,7 +59,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
   private val region = "us-east-1"
 
-  private val stackName = s"AkkaManagementIntegrationTestEC2TagBased-${buildId}"
+  private val stackName = s"AkkaManagementIntegrationTestEC2TagBased-${buildId.replace(".","-")}"
 
   private val awsCfClient = AmazonCloudFormationClientBuilder.standard().withRegion(region).build()
 
