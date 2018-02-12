@@ -14,7 +14,7 @@ any additional system like etcd/zookeeper/consul to be run along side the Akka c
 ## Dependencies
 
 The Akka Bootstrap extension consists of modular parts which handle steps of the bootstrap process.
-n order to use it you need to depend on `akka-management-cluster-bootstrap` and a specific `akka-discovery` 
+In order to use it you need to depend on `akka-management-cluster-bootstrap` and a specific `akka-discovery` 
 implementation you'd like to use for the discovery process. 
 
 For example, you might choose to use the DNS discovery and bootstrap extensions:
@@ -98,7 +98,7 @@ Short description of the bootstrap process:
     - This is NOT enough to safely join or form a cluster, some initial negotiation between the nodes must take place.
 - The node starts to probe the Contact Points of the discovered nodes
 - Case 1) None of the contacted nodes return any seed nodes during the probing process,
-    - The `no-seeds-stable-margin` timeout passes, and no discovery changes are are observed as well
+    - The `no-seeds-stable-margin` timeout passes, and no discovery changes are observed as well
     - The nodes all decide (autonomously) that no cluster exists, and a new one should be formed,
       they know all their addresses, and decide that the "lowest" sorted address is to start forming the cluster,
     - The lowest address node (e.g. "A") notices the same, and makes the decision to *join itself*,
