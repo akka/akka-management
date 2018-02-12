@@ -14,7 +14,7 @@ any additional system like etcd/zookeeper/consul to be run along side the Akka c
 ## Dependencies
 
 The Akka Bootstrap extension consists of modular parts which handle steps of the bootstrap process.
-n order to use it you need to depend on `akka-management-cluster-bootstrap` and a specific `akka-discovery` 
+In order to use it you need to depend on `akka-management-cluster-bootstrap` and a specific `akka-discovery` 
 implementation you'd like to use for the discovery process. 
 
 For example, you might choose to use the DNS discovery and bootstrap extensions:
