@@ -3,24 +3,43 @@
  */
 package akka.cluster.bootstrap
 
-import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
-import akka.cluster.ClusterEvent.ClusterDomainEvent
-import akka.cluster.{ Cluster, ClusterEvent }
+import akka.actor.ActorSystem
+import akka.cluster.{ Cluster, MemberStatus }
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives._
 import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
-import akka.management.http._
-import akka.stream.scaladsl.Source
-import com.typesafe.config.ConfigFactory
 
 object MarathonApiDockerDemoApp extends App {
+  implicit val system = ActorSystem("my-system")
+  implicit val materializer = ActorMaterializer()
 
-  implicit val system = ActorSystem("simple")
+  val cluster = Cluster(system)
+
+  def isReady() = {
+    val selfNow = cluster.selfMember
+
+    selfNow.status == MemberStatus.Up
+  }
+
+  def isHealthy() = {
+    isReady()
+  }
+
+  val route =
+    concat(
+      path("ping")(complete("pong!")),
+      path("healthy")(complete(if (isHealthy()) StatusCodes.OK else StatusCodes.ServiceUnavailable)),
+      path("ready")(complete(if (isReady()) StatusCodes.OK else StatusCodes.ServiceUnavailable)))
 
   AkkaManagement(system).start()
   ClusterBootstrap(system).start()
 
+  Http().bindAndHandle(
+    route,
+    sys.env.get("HOST").getOrElse("127.0.0.1"),
+    sys.env.get("PORT_HTTP").map(_.toInt).getOrElse(8080))
 }
 

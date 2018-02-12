@@ -1,5 +1,5 @@
 {
-  "id": "/products-api",
+  "id": "/bootstrap-joining-demo-marathon-api-docker",
   "instances": 2,
   "labels": {
     "ACTOR_SYSTEM_NAME": "marathon-api-docker-app-label"
@@ -22,6 +22,13 @@
       "network": "BRIDGE",
       "portMappings": [
         {
+          "containerPort": 8080,
+          "hostPort": 0,
+          "servicePort": 10204,
+          "protocol": "tcp",
+          "name": "http"
+        },
+        {
           "containerPort": 2551,
           "hostPort": 0,
           "servicePort": 10205,
@@ -41,12 +48,32 @@
       "forcePullImage": true
     }
   },
-  "healthChecks": [],
-  "readinessChecks": [],
+  "readinessChecks": [{
+    "path": "/ready",
+    "portName": "http",
+    "protocol": "HTTP",
+    "gracePeriodSeconds": 300,
+    "intervalSeconds": 10,
+    "timeoutSeconds": 5,
+    "maxConsecutiveFailures": 3,
+    "ignoreHttp1xx": false
+  }],
+  "healthChecks": [
+    {
+      "path": "/healthy",
+      "portName": "http",
+      "protocol": "HTTP",
+      "gracePeriodSeconds": 300,
+      "intervalSeconds": 10,
+      "timeoutSeconds": 5,
+      "maxConsecutiveFailures": 3,
+      "ignoreHttp1xx": false
+    }
+  ],
   "dependencies": [],
   "upgradeStrategy": {
-    "minimumHealthCapacity": 1,
-    "maximumOverCapacity": 1
+    "maximumOverCapacity": 0,
+    "minimumHealthCapacity": 0.5
   },
   "unreachableStrategy": {
     "inactiveAfterSeconds": 300,
