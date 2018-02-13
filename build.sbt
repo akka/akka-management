@@ -113,6 +113,7 @@ lazy val `cluster-bootstrap` = project
 // demo of the bootstrap
 lazy val `bootstrap-joining-demo-kubernetes-api` = project
   .in(file("bootstrap-joining-demo/kubernetes-api"))
+  .configs(IntegrationTest)
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
