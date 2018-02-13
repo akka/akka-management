@@ -121,7 +121,8 @@ lazy val `bootstrap-joining-demo-kubernetes-api` = project
     name := "akka-management-bootstrap-joining-demo-kubernetes-api",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true
+    whitesourceIgnore := true,
+    Defaults.itSettings
   ).dependsOn(
     `akka-management`,
     `cluster-http`,
