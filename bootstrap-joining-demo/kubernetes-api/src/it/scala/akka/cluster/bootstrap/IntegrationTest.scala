@@ -4,8 +4,6 @@
 
 package akka.cluster.bootstrap
 
-import java.util.UUID
-
 import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
@@ -13,10 +11,6 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.management.cluster.{ClusterHttpManagementJsonProtocol, ClusterMembers}
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import akka.util.ByteString
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
-import com.amazonaws.services.cloudformation.model._
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
-import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter, Instance, Reservation}
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
@@ -46,14 +40,27 @@ trait HttpClient {
 class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll with ScalaFutures
   with HttpClient with ClusterHttpManagementJsonProtocol {
 
-  import collection.JavaConverters._
-
   private val log = Logging(system, classOf[IntegrationTest])
+
+  private val expectedPodCount = 4
 
   private var clusterPublicIps: List[String] = List()
 
   private var clusterPrivateIps: List[String] = List()
 
+  // Patience settings for the part where we wait for the Kubernetes to create the deployment
+  private val createDeploymentPatience: PatienceConfig =
+    PatienceConfig(
+      timeout = scaled(Span(60, Seconds)),
+      interval = scaled(Span(1, Seconds))
+    )
+
+  // Patience settings for the actual Akka part (once Kubernetes finishes setting up the deployment)
+  private val clusterBootstrapPatience: PatienceConfig =
+  PatienceConfig(
+    timeout = scaled(Span(60, Seconds)),
+    interval = scaled(Span(1, Seconds))
+  )
 
   override def beforeAll(): Unit = {
 
@@ -64,12 +71,12 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
   }
 
 
-  test("Integration Test for Kubernetes Integration") {
+  test("Integration Test for the Kubernetes Integration") {
 
     implicit val patienceConfig: PatienceConfig = clusterBootstrapPatience
     val httpCallTimeout = Timeout(Span(3, Seconds))
 
-    val expectedNodes: Set[String] = clusterPrivateIps.map(ip => s"akka.tcp://demo@$ip:2551").toSet
+    val expectedNodes: Set[String] = clusterPrivateIps.map(ip => s"akka.tcp://Appka@$ip:2551").toSet
 
     eventually {
 
@@ -84,8 +91,8 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
           val clusterMembers = result._2.parseJson.convertTo[ClusterMembers]
 
-          assert(clusterMembers.members.size == instanceCount)
-          assert(clusterMembers.members.count(_.status == "Up") == instanceCount)
+          assert(clusterMembers.members.size == expectedPodCount)
+          assert(clusterMembers.members.count(_.status == "Up") == expectedPodCount)
           assert(clusterMembers.members.map(_.node) == expectedNodes)
 
           assert(clusterMembers.unreachable.isEmpty)
