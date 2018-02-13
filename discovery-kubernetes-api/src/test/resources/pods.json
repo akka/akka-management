@@ -713,6 +713,7 @@
         "uid": "5fe6b0c7-da9a-11e7-b064-0800270d668b",
         "resourceVersion": "6593",
         "creationTimestamp": "2017-12-06T15:30:22Z",
+        "deletionTimestamp": "2017-12-06T16:30:22Z",
         "labels": {
           "pod-template-hash": "3941067734",
           "appName": "akka-cluster-tooling-example",
