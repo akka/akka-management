@@ -122,7 +122,8 @@ lazy val `bootstrap-joining-demo-kubernetes-api` = project
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
-    Defaults.itSettings
+    Defaults.itSettings,
+    libraryDependencies += Dependencies.scalatest % "it"
   ).dependsOn(
     `akka-management`,
     `cluster-http`,

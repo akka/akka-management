@@ -9,11 +9,13 @@ object Dependencies {
   val JUnitVersion = "4.12"
   val SprayJsonVersion = "1.3.3"
 
+  lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.1"
+
   // val akkaDns = "2.4.2" // external lib
 
   val Common = Seq(
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.1" % "it, test" // ApacheV2
+      scalatest % "test" // ApacheV2
     )
   )
 
@@ -45,10 +47,10 @@ object Dependencies {
     )
 
     val AkkaTesting = Seq(
-      "com.typesafe.akka" %% "akka-testkit"                       % AkkaVersion     % "it, test",
-      "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "it, test",
-      "junit"             % "junit"                               % JUnitVersion    % "it, test",
-      "org.mockito"       % "mockito-all"                         % "1.10.19"       % "it, test"  // Common Public License 1.0
+      "com.typesafe.akka" %% "akka-testkit"                       % AkkaVersion     % "test",
+      "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "test",
+      "junit"             % "junit"                               % JUnitVersion    % "test",
+      "org.mockito"       % "mockito-all"                         % "1.10.19"       % "test"  // Common Public License 1.0
     )
   }
 
@@ -94,7 +96,7 @@ object Dependencies {
       DependencyGroups.AkkaSharding ++
       DependencyGroups.AkkaHttpCore ++
       DependencyGroups.AkkaTesting ++ Seq(
-      "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "it, test"
+      "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test"
     )
   )
 
@@ -103,7 +105,7 @@ object Dependencies {
       DependencyGroups.AkkaCluster ++
       DependencyGroups.AkkaHttpCore ++
       DependencyGroups.AkkaTesting ++ Seq(
-      "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "it, test"
+      "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test"
     )
   )
 
