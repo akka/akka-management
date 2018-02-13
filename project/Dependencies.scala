@@ -75,6 +75,14 @@ object Dependencies {
       DependencyGroups.AkkaHttp
   )
 
+  val BootstrapJoiningDemoKubernetesApi = Seq(
+    libraryDependencies ++=
+      Seq(
+        Dependencies.scalatest % "it",
+        "io.kubernetes" % "client-java" % "0.2" % "it" // ApacheV2
+      )
+  )
+
   val DiscoveryMarathonApi = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
