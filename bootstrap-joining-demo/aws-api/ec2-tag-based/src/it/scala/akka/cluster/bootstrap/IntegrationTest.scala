@@ -1,26 +1,23 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster.bootstrap
-
-import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
-import akka.management.cluster.{ClusterHttpManagementJsonProtocol, ClusterMembers}
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import akka.management.cluster.{ ClusterHttpManagementJsonProtocol, ClusterMembers }
+import akka.stream.{ ActorMaterializer, ActorMaterializerSettings }
 import akka.util.ByteString
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
 import com.amazonaws.services.cloudformation.model._
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
-import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter, Instance, Reservation}
+import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter, Instance, Reservation }
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import org.scalatest.time.{Seconds, Span}
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.time.{ Seconds, Span }
+import org.scalatest.{ BeforeAndAfterAll, FunSuite }
 import spray.json._
 
 import scala.concurrent.Future
@@ -35,16 +32,26 @@ trait HttpClient {
 
   import system.dispatcher
 
-  def httpGetRequest(url: String): Future[(Int, String)] = {
-    http.singleRequest(HttpRequest(uri = url))
-      .flatMap(r => r.entity.dataBytes.runFold(ByteString(""))(_ ++ _)
-      .map(_.utf8String).map(_.filter(_ >= ' ')).map(body => (r.status.intValue(), body)))
-  }
+  def httpGetRequest(url: String): Future[(Int, String)] =
+    http
+      .singleRequest(HttpRequest(uri = url))
+      .flatMap(
+          r =>
+            r.entity.dataBytes
+              .runFold(ByteString(""))(_ ++ _)
+              .map(_.utf8String)
+              .map(_.filter(_ >= ' '))
+              .map(body => (r.status.intValue(), body)))
 
 }
 
-class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll with ScalaFutures
-  with HttpClient with ClusterHttpManagementJsonProtocol {
+class IntegrationTest
+    extends FunSuite
+    with Eventually
+    with BeforeAndAfterAll
+    with ScalaFutures
+    with HttpClient
+    with ClusterHttpManagementJsonProtocol {
 
   import collection.JavaConverters._
 
@@ -59,7 +66,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
   private val region = "us-east-1"
 
-  private val stackName = s"AkkaManagementIntegrationTestEC2TagBased-${buildId.replace(".","-")}"
+  private val stackName = s"AkkaManagementIntegrationTestEC2TagBased-${buildId.replace(".", "-")}"
 
   private val awsCfClient = AmazonCloudFormationClientBuilder.standard().withRegion(region).build()
 
@@ -97,13 +104,14 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
       .withStackName(stackName)
       .withTemplateBody(template)
       .withParameters(
-        new Parameter().withParameterKey("Build").withParameterValue(s"https://s3.amazonaws.com/$bucket/${buildId}/app.zip"),
+        new Parameter()
+          .withParameterKey("Build")
+          .withParameterValue(s"https://s3.amazonaws.com/$bucket/${buildId}/app.zip"),
         new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
         new Parameter().withParameterKey("InstanceCount").withParameterValue(instanceCount.toString),
         new Parameter().withParameterKey("InstanceType").withParameterValue("m3.xlarge"),
         new Parameter().withParameterKey("KeyPair").withParameterValue("none"),
-        new Parameter().withParameterKey("Purpose")
-          .withParameterValue("demo" + "-" + buildId)
+        new Parameter().withParameterKey("Purpose").withParameterValue("demo" + "-" + buildId)
       )
 
     awsCfClient.createStack(createStackRequest)
@@ -115,8 +123,8 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
     def conditions: Boolean = (dsr.getStacks.size() == 1) && {
       val stack = dsr.getStacks.get(0)
       stack.getStackStatus == StackStatus.CREATE_COMPLETE.toString &&
-        stack.getOutputs.size() >= 1 &&
-        stack.getOutputs.asScala.exists(_.getOutputKey == "AutoScalingGroupName")
+      stack.getOutputs.size() >= 1 &&
+      stack.getOutputs.asScala.exists(_.getOutputKey == "AutoScalingGroupName")
     }
 
     implicit val patienceConfig: PatienceConfig = createStackPatience
@@ -135,15 +143,20 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
       log.info("got CREATE_COMPLETE, trying to obtain IPs of EC2 instances launched")
 
-      val asgName = dsr.getStacks.get(0).getOutputs.asScala.find(_.getOutputKey == "AutoScalingGroupName").get.getOutputValue
+      val asgName =
+        dsr.getStacks.get(0).getOutputs.asScala.find(_.getOutputKey == "AutoScalingGroupName").get.getOutputValue
 
       val ips: List[(String, String)] = awsEc2Client
-        .describeInstances(new DescribeInstancesRequest().withFilters(new Filter("tag:aws:autoscaling:groupName", List(asgName).asJava)))
+        .describeInstances(new DescribeInstancesRequest().withFilters(new Filter("tag:aws:autoscaling:groupName",
+              List(asgName).asJava)))
         .getReservations
         .asScala
-        .flatMap((r: Reservation) => r.getInstances.asScala.map((instance: Instance) => (instance.getPublicIpAddress, instance.getPrivateIpAddress)))
+        .flatMap((r: Reservation) =>
+            r.getInstances.asScala
+              .map((instance: Instance) => (instance.getPublicIpAddress, instance.getPrivateIpAddress)))
         .toList
-        .filter(ips => ips._1 !=null && ips._2 !=null) // TODO: investigate whether there are edge cases that may makes this necessary
+        .filter(ips =>
+            ips._1 != null && ips._2 != null) // TODO: investigate whether there are edge cases that may makes this necessary
 
       clusterPublicIps = ips.map(_._1)
       clusterPrivateIps = ips.map(_._2)
@@ -171,10 +184,11 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
     eventually {
 
-      log.info("querying the Cluster Http Management interface of each node, eventually we should see a well formed cluster")
+      log.info(
+          "querying the Cluster Http Management interface of each node, eventually we should see a well formed cluster")
 
-      clusterPublicIps.foreach {
-        nodeIp: String => {
+      clusterPublicIps.foreach { nodeIp: String =>
+        {
 
           val result = httpGetRequest(s"http://$nodeIp:19999/cluster/members").futureValue(httpCallTimeout)
           assert(result._1 == 200)

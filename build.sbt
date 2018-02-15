@@ -13,6 +13,7 @@ lazy val `akka-management-root` = project
     `akka-discovery-marathon-api`,
     `akka-discovery-aws-api`,
     `akka-management`,
+    `bootstrap-joining-demo-aws-api-ec2-tag-based`,
     `cluster-http`,
     `cluster-bootstrap`,
     docs)
@@ -127,6 +128,24 @@ lazy val `bootstrap-joining-demo-kubernetes-api` = project
     `akka-discovery-dns`,
     `cluster-bootstrap`,
     `akka-discovery-kubernetes-api`
+  )
+
+lazy val `bootstrap-joining-demo-aws-api-ec2-tag-based` = project
+    .in(file("bootstrap-joining-demo/aws-api/ec2-tag-based"))
+    .configs(IntegrationTest)
+    .enablePlugins(NoPublish)
+    .disablePlugins(BintrayPlugin)
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(
+      name := "akka-management-bootstrap-joining-demo-aws-api-ec2-tag-based",
+      skip in publish := true,
+      whitesourceIgnore := true,
+      Defaults.itSettings
+    ).dependsOn(
+      `akka-management`,
+      `cluster-http`,
+      `akka-discovery-aws-api`,
+      `cluster-bootstrap`
   )
 
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)

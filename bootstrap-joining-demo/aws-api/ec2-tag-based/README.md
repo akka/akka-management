@@ -2,8 +2,7 @@ Your Akka Cluster on Vanilla EC2 using Tag Based Discovery
 ==========================================================
 
 Note: these steps can be easily automated via CloudFormation or 
-Python / shell scripts etc. In fact, a simple CloudFormation script is provided
-[here](src/main/resources/CloudFormation).  
+Python / shell scripts etc. In fact, a simple CloudFormation script is provided [here](src/main/resources/CloudFormation).  
 
 Examine the source code
 -----------------------
@@ -63,13 +62,13 @@ Step 6: Package the App
 Compile and package the demo app.
 
 ```
-$ cd bootstrap-joining-demo
-$ cd aws-api
+$ cd akka-management 
 $ sbt
+> project bootstrap-joining-demo-aws-api-ec2-tag-based
 > universal:packageBin
 ```
 
-Now, in the `bootstrap-joining-demo/aws-api/target/universal` folder, you should have a
+Now, in the `bootstrap-joining-demo/aws-api/ec2-tag-based/target/universal` folder, you should have a
 `app.zip` file. 
 
 Step 7: Tag Instances
