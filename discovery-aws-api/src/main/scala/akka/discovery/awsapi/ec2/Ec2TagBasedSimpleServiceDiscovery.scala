@@ -18,18 +18,15 @@ import scala.concurrent.duration.FiniteDuration
 class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
   private[ec2] def parseFiltersString(filtersString: String): List[Filter] =
-    filtersString match {
-      case "" => List[Filter]()
-      case value =>
-        filtersString
-          .split(";")
-          .map(kv => kv.split("="))
-          .toList
-          .map(kv => {
-            assert(kv.length == 2, "failed to parse one of the key-value pairs in filters")
-            new Filter(kv(0), List(kv(1)).asJava)
-          })
-    }
+    filtersString
+      .split(";")
+      .filter(_.nonEmpty)
+      .map(kv => kv.split("="))
+      .toList
+      .map(kv => {
+        assert(kv.length == 2, "failed to parse one of the key-value pairs in filters")
+        new Filter(kv(0), List(kv(1)).asJava)
+      })
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] = {
 
@@ -42,7 +39,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     val otherFiltersString =
       system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based").getString("filters")
-
+    
     val otherFilters: util.List[Filter] = parseFiltersString(otherFiltersString).asJava
 
     val request = new DescribeInstancesRequest()
