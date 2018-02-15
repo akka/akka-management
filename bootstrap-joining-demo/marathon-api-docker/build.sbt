@@ -1,10 +1,16 @@
-enablePlugins(JavaServerAppPackaging)
+import com.typesafe.sbt.packager.docker._
 
-name := "bootstrap-joining-demo-marathon-api"
+name := "bootstrap-joining-demo-marathon-api-docker"
 
 version := "0.1.0"
 
 scalaVersion := "2.12.4"
+
+enablePlugins(JavaServerAppPackaging)
+
+version := "1.0"
+
+dockerUsername := sys.env.get("DOCKER_USER")
 
 val akkaManagementVersion = "0.10.0"
 

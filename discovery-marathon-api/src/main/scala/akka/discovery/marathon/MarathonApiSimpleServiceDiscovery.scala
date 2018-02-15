@@ -24,6 +24,15 @@ object MarathonApiSimpleServiceDiscovery {
    * to do that.
    */
   private[marathon] def targets(appList: AppList, portName: String): Seq[ResolvedTarget] = {
+    def dockerContainerPort(app: App) =
+      app.container
+        .flatMap(_.docker)
+        .flatMap(_.portMappings)
+        .getOrElse(Seq.empty)
+        .zipWithIndex
+        .find(_._1.name.contains(portName))
+        .map(_._2)
+
     def appContainerPort(app: App) =
       app.container
         .flatMap(_.portMappings)
@@ -37,7 +46,7 @@ object MarathonApiSimpleServiceDiscovery {
 
     // Tasks in the API don't have port names, so we have to look to the app to get the position we use
     def portIndex(app: App) =
-      appContainerPort(app).orElse(appPort(app))
+      dockerContainerPort(app) orElse appContainerPort(app) orElse appPort(app)
 
     for {
       app <- appList.apps

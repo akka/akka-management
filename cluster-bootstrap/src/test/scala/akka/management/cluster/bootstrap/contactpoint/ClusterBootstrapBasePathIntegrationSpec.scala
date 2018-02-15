@@ -67,10 +67,11 @@ class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers
     // prepare the "mock DNS"
     val name = "basepathsystem.svc.cluster.local"
     MockDiscovery.set(name,
-      Resolved(name,
-        List(
-          ResolvedTarget("127.0.0.1", Some(managementPort))
-        )))
+      () =>
+        Resolved(name,
+          List(
+            ResolvedTarget("127.0.0.1", Some(managementPort))
+          )))
 
     "start listening with the http contact-points on system" in {
       managementA.start()

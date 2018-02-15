@@ -14,7 +14,7 @@ any additional system like etcd/zookeeper/consul to be run along side the Akka c
 ## Dependencies
 
 The Akka Bootstrap extension consists of modular parts which handle steps of the bootstrap process.
-n order to use it you need to depend on `akka-management-cluster-bootstrap` and a specific `akka-discovery` 
+In order to use it you need to depend on `akka-management-cluster-bootstrap` and a specific `akka-discovery` 
 implementation you'd like to use for the discovery process. 
 
 For example, you might choose to use the DNS discovery and bootstrap extensions:
@@ -65,8 +65,8 @@ can pick the one most fitting to your cluster manager or runtime -- such as Kube
 ## Akka Cluster Bootstrap Process explained
 
 The Akka Cluster Bootstrap process is composed of two phases. First, a minimum number of Contact Points need to be gathered. 
-Currently it will look for `akka.cluster.bootstrap.contact-point-discovery.service-name` appended
-with `akka.cluster.bootstrap.contact-point-discovery.service-namespace` (if present) A records in DNS. In Kubernetes managed 
+Currently it will look for `akka.management.cluster.bootstrap.contact-point-discovery.service-name` appended
+with `akka.management.cluster.bootstrap.contact-point-discovery.service-namespace` (if present) A records in DNS. In Kubernetes managed
 systems these would be available by default and list all `Pods` in a given `Service`. Those addresses are then contacted,
 in what is referred to the Contact Point Probing procedure. Note that at this point the node has not joined any cluster yet.
 The Contact Points are contacted using an alternative protocol which does not need membership, such as HTTP by default.
@@ -77,7 +77,7 @@ once it has completed joining, also start advertising those seed nodes using its
 has not yet joined, but is probing this node, would get this information and join the existing cluster.
 
 In the case no cluster exists yet -- the initial bootstrap of a cluster -- nodes will keep probing one another for a while
-(`akka.cluster.bootstrap.contact-point.no-seeds-stable-margin`) and once that time margin passes, they will decide that 
+(`akka.management.cluster.bootstrap.contact-point.no-seeds-stable-margin`) and once that time margin passes, they will decide that
 no cluster exists, and one of the seen nodes should join *itself* to become the first node of a new cluster. It is of utmost
 importance that only one node joins itself, so this decision has to be made deterministically. Since we know the addresses
 of all Contact Points, and the contact points relate 1:1 to a Akka Remoting (Akka Cluster) address of the given node,
@@ -98,7 +98,7 @@ Short description of the bootstrap process:
     - This is NOT enough to safely join or form a cluster, some initial negotiation between the nodes must take place.
 - The node starts to probe the Contact Points of the discovered nodes
 - Case 1) None of the contacted nodes return any seed nodes during the probing process,
-    - The `no-seeds-stable-margin` timeout passes, and no discovery changes are are observed as well
+    - The `no-seeds-stable-margin` timeout passes, and no discovery changes are observed as well
     - The nodes all decide (autonomously) that no cluster exists, and a new one should be formed,
       they know all their addresses, and decide that the "lowest" sorted address is to start forming the cluster,
     - The lowest address node (e.g. "A") notices the same, and makes the decision to *join itself*,
@@ -114,10 +114,10 @@ from the contact points.
         - Notice that this phase is exactly the same as the "epidemic joining" in the more complicated Case 1 when a new 
           cluster has to be formed.
 
-Additionally, a setting is provided, `akka.cluster.bootstrap.form-new-cluster` that can be disabled to only allow the
+Additionally, a setting is provided, `akka.management.cluster.bootstrap.form-new-cluster` that can be disabled to only allow the
 node to join existing clusters (Case 2 above). This can be used to provide additional safety during the typical deployment
 as it is relatively rare that no cluster exists. It can be specified in your `application.conf` or provided as an
-argument to the process itself via `-Dakka.cluster.bootstrap.form-new-cluster=<true|false>`. By default, it is enabled.
+argument to the process itself via `-Dakka.management.cluster.bootstrap.form-new-cluster=<true|false>`. By default, it is enabled.
 
 In the next sections we explain the process in more detail.
 
@@ -183,7 +183,7 @@ even if the DNS system is not completely consistent.
 If however we are talking about an inconsistent DNS lookup response during the Initial Bootstrap, the nodes will be delayed
 forming the cluster as they expect the lookups to be consistent, this is checked by the stable-margin configuration option.
 
-For complete safety of the Initial Bootstrap it is recommended to set the `akka.cluster.bootstrap.required-contact-point-nr` 
+For complete safety of the Initial Bootstrap it is recommended to set the `akka.management.cluster.bootstrap.required-contact-point-nr`
 setting to the exact number of nodes the initial startup of the cluster will be done. For example, if starting a cluster with
 4 nodes initially, and later scaling it out to many more nodes, be sure to set this setting to `4` for additional safety of
 the initial joining, even in face of an flaky discovery mechanism!
@@ -209,6 +209,26 @@ is strictly defined and is as follows:
   avoid any surprises during cluster formation. E.g. do NOT set `akka.cluster.seed-nodes` if you are going
   to be using the Bootstrap mechanism. 
 @@@
+
+## Recommended Configuration
+
+When using the bootstrap module, there are some underlying Akka Cluster settings that should be specified to ensure
+that your deployment is robust.
+
+Since the target environments for this module are dynamic, that is, instances can come and go, failure needs to be
+considered. The following configuration will result in your application being shut down after 40 seconds if it is unable to
+join the discovered seed nodes. In this case, the orchestrator (i.e. Kubernetes or Marathon) will restart your node
+and the operation will (presumably) eventually succeed. You'll want to specify the following in your `application.conf` file:
+
+```hocon
+akka.cluster.shutdown-after-unsuccessful-join-seed-nodes = 40s
+```
+
+Additionally, nodes can crash causing cluster members to become unreachable. This is a tricky problem as it is not
+possible to distinguish between a network partition and a node failure. To rectify this in an automated manner,
+Lightbend provides [Split Brain Resolver](https://developer.lightbend.com/docs/akka-commercial-addons/current/split-brain-resolver.html)
+as a feature of the Lightbend Subscription. This module has a number of strategies that can ensure that the cluster
+continues to function during network partitions and node failures.
 
 ## Examples
 

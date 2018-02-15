@@ -9,9 +9,9 @@ or using configuration or key-value stores like zookeeper, consul etc.
 Akka's Service Discovery talks specifically about discovering hosts and ports that relate to some
 logical name of a service.
 
-If you're looking for a way to discover Actors in a Cluster, you may want to look at the Receptionist
-pattern from Akka Typed instead. Since it provides a more fine-tuned towards Actors mechanism of
-doing the discovery.
+If you're looking for a way to discover Actors in a Cluster, you may want to look at the [Receptionist
+pattern](https://doc.akka.io/docs/akka/current/actor-discovery-typed.html#receptionist) from Akka 
+Typed instead. Since it provides a more fine-tuned towards Actors mechanism of doing the discovery.
 
 ## Discovery Method trade-offs
 

@@ -13,6 +13,7 @@ object JsonFormat extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val containerFormat: JsonFormat[Container] = jsonFormat2(Container)
   implicit val specFormat: JsonFormat[Spec] = jsonFormat1(Spec)
   implicit val statusFormat: JsonFormat[Status] = jsonFormat1(Status)
-  implicit val itemFormat: JsonFormat[Item] = jsonFormat2(Item)
+  implicit val metaDataFormat: JsonFormat[Metadata] = jsonFormat1(Metadata)
+  implicit val itemFormat: JsonFormat[Item] = jsonFormat3(Item)
   implicit val podListFormat: RootJsonFormat[PodList] = jsonFormat1(PodList.apply)
 }

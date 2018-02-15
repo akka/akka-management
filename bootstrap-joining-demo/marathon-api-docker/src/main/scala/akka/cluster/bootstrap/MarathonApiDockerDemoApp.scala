@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster.bootstrap
 
 import akka.actor.ActorSystem
@@ -13,7 +12,7 @@ import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
 
-object DemoApp extends App {
+object MarathonApiDockerDemoApp extends App {
   implicit val system = ActorSystem("my-system")
   implicit val materializer = ActorMaterializer()
 
@@ -43,3 +42,4 @@ object DemoApp extends App {
     sys.env.get("HOST").getOrElse("127.0.0.1"),
     sys.env.get("PORT_HTTP").map(_.toInt).getOrElse(8080))
 }
+

@@ -10,6 +10,10 @@
   "portDefinitions": [
     {
       "port": 0,
+      "name": "http"
+    },
+    {
+      "port": 0,
       "name": "akkaremote"
     },
     {
@@ -17,6 +21,33 @@
       "name": "akkamgmthttp"
     }
   ],
+  "readinessChecks": [{
+    "path": "/ready",
+    "portName": "http",
+    "protocol": "HTTP",
+    "gracePeriodSeconds": 300,
+    "intervalSeconds": 10,
+    "timeoutSeconds": 5,
+    "maxConsecutiveFailures": 3,
+    "ignoreHttp1xx": false
+  }],
+  "healthChecks": [
+    {
+      "path": "/healthy",
+      "portName": "http",
+      "protocol": "HTTP",
+      "gracePeriodSeconds": 300,
+      "intervalSeconds": 10,
+      "timeoutSeconds": 5,
+      "maxConsecutiveFailures": 3,
+      "ignoreHttp1xx": false
+    }
+  ],
+  "upgradeStrategy": {
+    "maximumOverCapacity": 0,
+    "minimumHealthCapacity": 0.5
+  },
+  "killSelection": "YOUNGEST_FIRST",
   "fetch": [
     {
       "uri": "http://yourwebserver.example.com/bootstrap-joining-demo-marathon-api-0.1.0.tgz",
