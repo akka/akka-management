@@ -19,6 +19,8 @@ import spray.json._
 
 import scala.concurrent.Future
 
+import io.kubernetes.client.ApiClient
+
 trait HttpClient {
 
   implicit val system: ActorSystem = ActorSystem("simple")
@@ -66,7 +68,7 @@ class IntegrationTest extends FunSuite with Eventually with BeforeAndAfterAll wi
 
     log.info("setting up infrastructure")
 
-    ???
+    val client = new ApiClient()
 
   }
 
