@@ -147,6 +147,7 @@ lazy val `bootstrap-joining-demo-aws-api-ec2-tag-based` = project
       `cluster-http`,
       `akka-discovery-aws-api`,
       `cluster-bootstrap`
+  )
 
 lazy val `bootstrap-joining-demo-marathon-api-docker` = project
   .in(file("bootstrap-joining-demo/marathon-api-docker"))
