@@ -2,6 +2,8 @@
 
 echo Running integration test for kubernetes-api
 
+# travis should hire these
+echo docker username is $DOCKER_USERNAME and password is $DOCKER_PASSWORD
 docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
 sbt "bootstrap-joining-demo-kubernetes-api/docker:publishLocal"
 docker images
