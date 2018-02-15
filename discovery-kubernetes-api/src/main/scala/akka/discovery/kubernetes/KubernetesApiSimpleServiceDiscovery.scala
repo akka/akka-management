@@ -31,6 +31,7 @@ object KubernetesApiSimpleServiceDiscovery {
   private[kubernetes] def targets(podList: PodList, portName: String): Seq[ResolvedTarget] =
     for {
       item <- podList.items
+      if item.metadata.deletionTimestamp.isEmpty
       container <- item.spec.containers
       port <- container.ports.find(_.name == portName)
       ip <- item.status.podIP

@@ -39,6 +39,7 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
     ) extends DeadLetterSuppression
 
     final case class NoSeedNodesObtainedWithinDeadline(contactPoint: Uri) extends DeadLetterSuppression
+    final case class ProbingFailed(cause: Throwable) extends DeadLetterSuppression
 
     object Internal {
       final case class AttemptResolve(serviceName: String) extends DeadLetterSuppression
@@ -181,6 +182,10 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
           "Considering whether this node is allowed to JOIN itself to initiate a new cluster.", contactPoint)
 
       onNoSeedNodesObtainedWithinStableDeadline(contactPoint)
+
+    case ProbingFailed(ex) =>
+      log.info("Received signal that probing has failed, scheduling contact point re-discovery")
+      scheduleNextResolve(serviceName, settings.contactPointDiscovery.interval)
   }
 
   private def onContactPointsResolved(serviceName: String, contactPoints: immutable.Seq[ResolvedTarget]): Unit = {
