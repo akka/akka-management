@@ -83,7 +83,7 @@ class IntegrationTest
   // still "initializing" (seems to take a long time)
   private val clusterBootstrapPatience: PatienceConfig =
     PatienceConfig(
-      timeout = scaled(Span(8 * 60, Seconds)),
+      timeout = scaled(Span(12 * 60, Seconds)),
       interval = scaled(Span(2, Seconds))
     )
 
