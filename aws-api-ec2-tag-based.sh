@@ -2,8 +2,6 @@
 
 echo Running integration test for aws-api-ec2-tag-based
 
-# travis should hide this
-echo AWS_ACCESS_KEY_ID is $AWS_ACCESS_KEY_ID
 export BUILD_ID=$TRAVIS_JOB_NUMBER-$TRAVIS_JOB_ID
 
 sbt bootstrap-joining-demo-aws-api-ec2-tag-based/universal:packageBin
