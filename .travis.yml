@@ -47,7 +47,7 @@ script:
   - kubectl cluster-info 
   - kubectl run travis-example --image=redis
   - kubectl get deployment
-  - ./aws-api-ec2-tag-based.sh
+  - ./integration-test-scripts/aws-api-ec2-tag-based.sh
 
 deploy:
   provider: script

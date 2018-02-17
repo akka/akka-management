@@ -141,6 +141,7 @@ lazy val `bootstrap-joining-demo-aws-api-ec2-tag-based` = project
       name := "akka-management-bootstrap-joining-demo-aws-api-ec2-tag-based",
       skip in publish := true,
       whitesourceIgnore := true,
+      sources in (doc) := Seq.empty,
       Defaults.itSettings
     ).dependsOn(
       `akka-management`,

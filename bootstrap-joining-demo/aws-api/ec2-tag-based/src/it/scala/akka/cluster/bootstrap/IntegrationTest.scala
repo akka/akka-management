@@ -79,8 +79,9 @@ class IntegrationTest
       interval = scaled(Span(3, Seconds))
     )
 
-  // Patience settings. Once the CloudFormation stack has CREATE_COMPLETE status, the EC2 instances are
-  // still "initializing" (seems to take a long time)
+  // Patience settings for the actual cluster bootstrap part.
+  // Once the CloudFormation stack has CREATE_COMPLETE status, the EC2 instances are
+  // still "initializing" (seems to take a long time) so we add some additional patience for that.
   private val clusterBootstrapPatience: PatienceConfig =
     PatienceConfig(
       timeout = scaled(Span(12 * 60, Seconds)),
@@ -106,12 +107,12 @@ class IntegrationTest
       .withParameters(
         new Parameter()
           .withParameterKey("Build")
-          .withParameterValue(s"https://s3.amazonaws.com/$bucket/${buildId}/app.zip"),
+          .withParameterValue(s"https://s3.amazonaws.com/$bucket/$buildId/app.zip"),
         new Parameter().withParameterKey("SSHLocation").withParameterValue(myIp),
         new Parameter().withParameterKey("InstanceCount").withParameterValue(instanceCount.toString),
         new Parameter().withParameterKey("InstanceType").withParameterValue("m3.xlarge"),
         new Parameter().withParameterKey("KeyPair").withParameterValue("none"),
-        new Parameter().withParameterKey("Purpose").withParameterValue("demo" + "-" + buildId)
+        new Parameter().withParameterKey("Purpose").withParameterValue(s"demo-$buildId")
       )
 
     awsCfClient.createStack(createStackRequest)
@@ -179,6 +180,9 @@ class IntegrationTest
 
     implicit val patienceConfig: PatienceConfig = clusterBootstrapPatience
     val httpCallTimeout = Timeout(Span(3, Seconds))
+
+    assert(clusterPublicIps.size == instanceCount)
+    assert(clusterPrivateIps.size == instanceCount)
 
     val expectedNodes: Set[String] = clusterPrivateIps.map(ip => s"akka.tcp://demo@$ip:2551").toSet
 
