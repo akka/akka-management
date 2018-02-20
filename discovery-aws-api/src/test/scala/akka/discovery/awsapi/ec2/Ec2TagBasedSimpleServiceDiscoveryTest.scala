@@ -9,7 +9,6 @@ import org.scalatest.FunSuite
 
 class FiltersParsingTest extends FunSuite {
 
-
   import scala.collection.JavaConverters._
 
   test("empty string does not break parsing") {
