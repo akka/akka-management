@@ -10,12 +10,6 @@ jdk:
   - oraclejdk8
 
 before_script:
-  # Download things necessary for the various integration tests
-  # AWS tools (necessary for the aws-api-ec2-tag-based integration test)
-  - curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
-  - unzip awscli-bundle.zip
-  - ./awscli-bundle/install -b ~/bin/aws
-  - export PATH=~/bin:$PATH
   # Download kubectl, which is a requirement for using minikube.
   - export CHANGE_MINIKUBE_NONE_USER=true
   - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v1.8.0/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
@@ -43,7 +37,7 @@ script:
   - git diff --exit-code --color || { echo "[error] Unformatted code found. Please run 'test:compile' and commit the reformatted code."; false; } && sbt -J-XX:ReservedCodeCacheSize=128m ++$TRAVIS_SCALA_VERSION ";test"
   # check policies, if on master also upload
   - if [[ "$TRAVIS_SECURE_ENV_VARS" == "true" ]]; then if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_EVENT_TYPE" == "push" ]]; then sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate; else sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies; fi; fi
-  # Create example Redis deployment on Kubernetes
+  # Create example Redis deployment on Kubernetes.
   - kubectl cluster-info 
   - kubectl run travis-example --image=redis
   - kubectl get deployment
