@@ -7,20 +7,20 @@ import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
-import akka.management.cluster.{ ClusterHttpManagementJsonProtocol, ClusterMembers }
-import akka.stream.{ ActorMaterializer, ActorMaterializerSettings }
+import akka.management.cluster.{ClusterHttpManagementJsonProtocol, ClusterMembers}
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import akka.util.ByteString
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
 import com.amazonaws.services.cloudformation.model._
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
-import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter, Instance, Reservation }
-import org.scalatest.concurrent.PatienceConfiguration.Timeout
-import org.scalatest.concurrent.{ Eventually, ScalaFutures }
-import org.scalatest.time.{ Seconds, Span }
-import org.scalatest.{ BeforeAndAfterAll, FunSuite }
+import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter, Instance, Reservation}
+import org.scalatest.concurrent.PatienceConfiguration.{Interval, Timeout}
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.time.{Seconds, Span, SpanSugar}
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import spray.json._
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 
 trait HttpClient {
 
@@ -51,7 +51,9 @@ class IntegrationTest
     with BeforeAndAfterAll
     with ScalaFutures
     with HttpClient
-    with ClusterHttpManagementJsonProtocol {
+    with ClusterHttpManagementJsonProtocol
+    with SpanSugar
+{
 
   import collection.JavaConverters._
 
@@ -75,17 +77,17 @@ class IntegrationTest
   // Patience settings for the part where we wait for the CloudFormation script to complete
   private val createStackPatience: PatienceConfig =
     PatienceConfig(
-      timeout = scaled(Span(12 * 60, Seconds)),
-      interval = scaled(Span(3, Seconds))
+      timeout = 15 minutes,
+      interval = 10 seconds
     )
 
   // Patience settings for the actual cluster bootstrap part.
   // Once the CloudFormation stack has CREATE_COMPLETE status, the EC2 instances are
-  // still "initializing" (seems to take a long time) so we add some additional patience for that.
+  // still "initializing" (seems to take a very long time) so we add some additional patience for that.
   private val clusterBootstrapPatience: PatienceConfig =
     PatienceConfig(
-      timeout = scaled(Span(12 * 60, Seconds)),
-      interval = scaled(Span(2, Seconds))
+      timeout = 12 minutes,
+      interval = 5 seconds
     )
 
   private var clusterPublicIps: List[String] = List()
@@ -148,15 +150,14 @@ class IntegrationTest
         dsr.getStacks.get(0).getOutputs.asScala.find(_.getOutputKey == "AutoScalingGroupName").get.getOutputValue
 
       val ips: List[(String, String)] = awsEc2Client
-        .describeInstances(new DescribeInstancesRequest().withFilters(new Filter("tag:aws:autoscaling:groupName",
-              List(asgName).asJava)))
-        .getReservations
-        .asScala
-        .flatMap((r: Reservation) =>
-            r.getInstances.asScala
-              .map((instance: Instance) => (instance.getPublicIpAddress, instance.getPrivateIpAddress)))
-        .toList
-        .filter(ips =>
+        .describeInstances(new DescribeInstancesRequest()
+          .withFilters(new Filter("tag:aws:autoscaling:groupName", List(asgName).asJava)))
+          .getReservations
+          .asScala
+          .flatMap((r: Reservation) =>
+              r.getInstances.asScala.map(instance => (instance.getPublicIpAddress, instance.getPrivateIpAddress)))
+          .toList
+          .filter(ips =>
             ips._1 != null && ips._2 != null) // TODO: investigate whether there are edge cases that may makes this necessary
 
       clusterPublicIps = ips.map(_._1)
@@ -170,10 +171,13 @@ class IntegrationTest
 
   private def readTemplateFromResourceFolder(path: String): String = scala.io.Source.fromResource(path).mkString
 
+  // we need this in order to tell AWS to allow the machine running the integration test to connect to the EC2 instances'
+  // port 19999
   private def getMyIp: String = {
     val myIp: Future[(Int, String)] = httpGetRequest("http://checkip.amazonaws.com")
-    val httpCallTimeout = Timeout(Span(3, Seconds))
-    myIp.futureValue(httpCallTimeout)._2
+    val result = Await.result(myIp, atMost = 3 seconds)
+    assert(result._1 == 200, "http://checkip.amazonaws.com did not return 200 OK")
+    result._2
   }
 
   test("Integration Test for EC2 Tag Based Discovery") {
@@ -213,10 +217,15 @@ class IntegrationTest
     }
   }
 
+  // this will remove every resource created by the integration test from the AWS account
+  // this includes security rules, IAM roles, auto-scaling groups, EC2 instances etc.
   override def afterAll(): Unit = {
     log.info("tearing down infrastructure")
-    // TODO: what happens if this fails ? Can we add some retries ?
-    awsCfClient.deleteStack(new DeleteStackRequest().withStackName(stackName))
+    eventually(timeout = Timeout(3 minutes), interval = Interval(3 seconds)) {
+      // we put this into an an eventually block since we want to retry
+      // for a while, in case it throws an exception.
+      awsCfClient.deleteStack(new DeleteStackRequest().withStackName(stackName))
+    }
     system.terminate()
   }
 

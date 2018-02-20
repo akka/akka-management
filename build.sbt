@@ -107,7 +107,7 @@ lazy val `cluster-bootstrap` = project
   )
   .dependsOn(`akka-management`, `akka-discovery`)
 
-// TODO I was thinking about introducing a module called akka-management-cluster-bootstrap-dns which does not do anything,
+// TODO: I was thinking about introducing a module called akka-management-cluster-bootstrap-dns which does not do anything,
 // except pull together the 2 modules of cluster bootstrap and akka discovery dns so it's only 1 dependency you need to pick.
 // I was thinking it would be nice to have "hello world bootstrap in the smallest number of steps" so that would reduce 2 deps into 1.
 
@@ -141,7 +141,7 @@ lazy val `bootstrap-joining-demo-aws-api-ec2-tag-based` = project
       name := "akka-management-bootstrap-joining-demo-aws-api-ec2-tag-based",
       skip in publish := true,
       whitesourceIgnore := true,
-      sources in (doc) := Seq.empty,
+      sources in doc := Seq.empty,
       Defaults.itSettings
     ).dependsOn(
       `akka-management`,
