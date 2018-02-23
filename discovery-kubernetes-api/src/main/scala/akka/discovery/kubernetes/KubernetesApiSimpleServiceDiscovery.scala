@@ -72,7 +72,17 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
 
       entity <- response.entity.toStrict(resolveTimeout)
 
-      podList <- Unmarshal(entity).to[PodList]
+      podList <- {
+        val unmarshalled = Unmarshal(entity).to[PodList]
+
+        unmarshalled.failed.foreach { t =>
+          system.log.error("Failed to unmarshal Kubernetes API response status [{}]; check RBAC settings",
+            response.status.value)
+          system.log.debug("Kubernetes API entity: [{}]", entity.data.utf8String)
+        }
+
+        unmarshalled
+      }
 
     } yield Resolved(name, targets(podList, settings.podPortName))
 
