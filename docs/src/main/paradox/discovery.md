@@ -177,6 +177,44 @@ spec:
           protocol: TCP
 ```
 
+If your Kubernetes cluster has [Role-Based Access Control](https://kubernetes.io/docs/admin/authorization/rbac/) enabled,
+you'll also have to grant the Service Account that your pods run under access to list pods. The following configuration
+can be used as a starting point. It creates a `Role`, `pod-reader`, which grants access to query pod information. It
+then binds the default Service Account to the `Role` by creating a `RoleBinding`.
+Adjust as necessary.
+
+```yaml
+---
+#
+# Create a role, `pod-reader`, that can list pods and
+# bind the default service account in the `default` namespace
+# to that role.
+#
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-reader
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-pods
+subjects:
+# Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
+# For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
+- kind: User
+  name: system:serviceaccount:default:default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+```
+
 ## Discovery Method: Marathon API
 
 If you're a Mesos or DC/OS user, you can use the provided Marathon API implementation. You'll need to add a label
