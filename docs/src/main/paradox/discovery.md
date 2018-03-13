@@ -336,6 +336,10 @@ Demo:
 * A working demo app is available in the [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api) 
 folder.
 
+## Discovery Method: AWS API - ECS Discovery
+
+TODO...
+
 ## How to contribute implementations
 
 Contributions to alternative data-stores or service-discovery APIs built-in to specific cloud systems

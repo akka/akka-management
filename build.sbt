@@ -76,6 +76,18 @@ lazy val `akka-discovery-aws-api` = project
   )
   .dependsOn(`akka-discovery`)
 
+// Non-blocking AWS implementation of discovery
+lazy val `akka-discovery-aws-api-async` = project
+  .in(file("discovery-aws-api-async"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-aws-api-async",
+    organization := "com.lightbend.akka.discovery",
+    Dependencies.DiscoveryAwsApiAsync
+  )
+  .dependsOn(`akka-discovery`)
+
 // gathers all enabled routes and serves them (HTTP or otherwise)
 lazy val `akka-management` = project
   .in(file("management"))
