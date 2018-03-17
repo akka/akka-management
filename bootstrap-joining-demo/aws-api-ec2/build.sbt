@@ -1,5 +1,5 @@
 enablePlugins(JavaAppPackaging)
-name := "bootstrap-joining-demo-aws-api"
+name := "bootstrap-joining-demo-aws-api-ec2"
 
 version := "1.0"
 
