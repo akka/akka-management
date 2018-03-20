@@ -13,11 +13,11 @@ import akka.util.ByteString
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
 import com.amazonaws.services.cloudformation.model._
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
-import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter, Instance, Reservation}
+import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter, Reservation}
 import org.scalatest.concurrent.PatienceConfiguration.{Interval, Timeout}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.time.{Seconds, Span, SpanSugar}
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.{BeforeAndAfterAll, FunSuite, Matchers}
 import spray.json._
 
 import scala.concurrent.{Await, Future}
@@ -28,9 +28,9 @@ trait HttpClient {
 
   implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
 
-  val http = Http(system)
-
   import system.dispatcher
+
+  val http = Http(system)
 
   def httpGetRequest(url: String): Future[(Int, String)] =
     http
@@ -53,7 +53,7 @@ class IntegrationTest
     with HttpClient
     with ClusterHttpManagementJsonProtocol
     with SpanSugar
-{
+    with Matchers {
 
   import collection.JavaConverters._
 
@@ -138,7 +138,7 @@ class IntegrationTest
 
       dsr = awsCfClient.describeStacks(describeStacksRequest)
 
-      assert(conditions)
+      conditions shouldBe true
 
     }
 
@@ -185,32 +185,30 @@ class IntegrationTest
     implicit val patienceConfig: PatienceConfig = clusterBootstrapPatience
     val httpCallTimeout = Timeout(Span(3, Seconds))
 
-    assert(clusterPublicIps.size == instanceCount)
-    assert(clusterPrivateIps.size == instanceCount)
+    clusterPublicIps should have size instanceCount
+    clusterPrivateIps should have size instanceCount
 
     val expectedNodes: Set[String] = clusterPrivateIps.map(ip => s"akka.tcp://demo@$ip:2551").toSet
 
     eventually {
 
-      log.info(
-          "querying the Cluster Http Management interface of each node, eventually we should see a well formed cluster")
+      log.info("querying the Cluster Http Management interface of each node, eventually we should see a well formed cluster")
 
-      clusterPublicIps.foreach { nodeIp: String =>
-        {
+      clusterPublicIps.foreach { nodeIp: String => {
 
           val result = httpGetRequest(s"http://$nodeIp:19999/cluster/members").futureValue(httpCallTimeout)
-          assert(result._1 == 200)
-          assert(result._2.nonEmpty)
+          result._1 should === (200)
+          result._2 should not be 'empty
 
           val clusterMembers = result._2.parseJson.convertTo[ClusterMembers]
 
-          assert(clusterMembers.members.size == instanceCount)
-          assert(clusterMembers.members.count(_.status == "Up") == instanceCount)
-          assert(clusterMembers.members.map(_.node) == expectedNodes)
+          clusterMembers.members should have size instanceCount
+          clusterMembers.members.count(_.status == "Up") should === (instanceCount)
+          clusterMembers.members.map(_.node) should === (expectedNodes)
 
-          assert(clusterMembers.unreachable.isEmpty)
-          assert(clusterMembers.leader.isDefined)
-          assert(clusterMembers.oldest.isDefined)
+          clusterMembers.unreachable should be ('empty)
+          clusterMembers.leader shouldBe defined
+          clusterMembers.oldest shouldBe defined
 
         }
       }
