@@ -89,7 +89,7 @@ object Dependencies {
   val DiscoveryAwsApiAsync = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++ Seq(
-        "software.amazon.awssdk" % "ecs" % "2.0.0-preview-8",
+        "software.amazon.awssdk" % "ecs" % "2.0.0-preview-9",
         "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0")
   )
 
