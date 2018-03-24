@@ -184,6 +184,7 @@ then binds the default Service Account to the `Role` by creating a `RoleBinding`
 Adjust as necessary.
 
 ```yaml
+
 ---
 #
 # Create a role, `pod-reader`, that can list pods and
@@ -260,9 +261,27 @@ And in your `marathon.json`:
 }
 ```
 
-## Discovery Method: AWS API - EC2 Tag-Based Discovery
+## Discovery Method: AWS API
 
-If you're an AWS user, you can use tags to simply mark the instances that belong to the same cluster. Use a tag that
+If you're using EC2 directly _or_ you're using ECS with host mode networking
+_and_ you're deploying one container per cluster member, continue to
+@ref:['Discovery Method: AWS API - EC2 Tag-Based Discovery](discovery.md#discovery-method:-aws-api---ec2-tag-based-discovery)
+
+If you're using ECS with
+[awsvpcs](https://aws.amazon.com/blogs/compute/introducing-cloud-native-networking-for-ecs-containers/)
+mode networking (whether on EC2 or with Fargate), continue to
+@ref:['Discovery Method: AWS API - ECS Discovery](discovery.md#discovery-method:-aws-api---ecs-discovery)
+
+ECS with bridge mode networking is not supported.
+
+If you're using EKS, then you may want to use the
+@ref:['Kubernetes API'-based discovery method](discovery.md#discovery-method-kubernetes-api)
+instead.
+
+
+### Discovery Method: AWS API - EC2 Tag-Based Discovery
+
+You can use tags to simply mark the instances that belong to the same cluster. Use a tag that
 has "service" as the key and set the value equal to the name of your service (same value as `akka.cluster.bootstrap.contact-point-discovery.service-name` 
 defined in `application.conf`, if you're using this module for bootstrapping your Akka cluster).
  
@@ -277,12 +296,8 @@ instances can be created and tagged manually, or created via an auto-scaling gro
 they can be tagged automatically on creation. Simply add the tag to the auto-scaling group configuration and 
 ensure the "Tag New Instances" option is checked.
 
-This implementation can also work with ECS / EKS with host-based networking, if your cluster is fully tagged and you're
-deploying one container per cluster member. If you're using Amazon EKS (Amazon Elastic Container Service for 
-Kubernetes), then you may want to use 
-the @ref:['Kubernetes API'-based discovery method](discovery.md#discovery-method-kubernetes-api) instead.
 
-### Dependencies and usage
+#### Dependencies and usage
 
 This is a separate JAR file:
 
@@ -303,7 +318,7 @@ akka.discovery {
 Notes:
 
 * Since the implementation uses the Amazon EC2 API, you'll need to make sure that AWS credentials are provided.
-The simplest way to do this is to create a IAM role that includes permissions for Amazon EC2 API access.
+The simplest way to do this is to create an IAM role that includes permissions for Amazon EC2 API access.
 Attach this IAM role to the instances that make up the cluster. See the docs for
 [IAM Roles for Amazon EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html).
 
@@ -333,12 +348,121 @@ setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
 
 Demo:
 
-* A working demo app is available in the [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api) 
+* A working demo app is available in the [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api-ec2) 
 folder.
 
-## Discovery Method: AWS API - ECS Discovery
 
-TODO...
+### Discovery Method: AWS API - ECS Discovery
+
+If you're using ECS with
+[awsvpc](https://aws.amazon.com/blogs/compute/introducing-cloud-native-networking-for-ecs-containers/)
+mode networking, you can have all task instances of a given ECS service discover
+each other. If you're using this module for bootstrapping your Akka cluster that
+you'll do so by setting the value of
+`akka.cluster.bootstrap.contact-point-discovery.service-name` to that of the
+ECS service itself.
+ 
+Screenshot of two ECS task instances (the service name is
+`liquidity-application`):
+
+![ECS task instances](images/discovery-aws-ecs-task-instances.png)
+
+
+#### Dependencies and usage
+
+There are two "flavours" of the ECS Discovery module. Functionally they are
+identical; the difference is in which version of the AWS SDK they use. They are
+both provided so that you can choose which set of AWS SDK dependencies you're
+most comfortable with bringing in to your project.
+
+##### akka-discovery-aws-api
+
+This uses the mainstream AWS SDK. The advantage here is that if you've already
+got the mainstream AWS SDK as a dependency you're not now also bringing in the
+preview SDK. The disadvantage is that the mainstream SDK does blocking IO.
+
+@@dependency[sbt,Gradle,Maven] {
+  group="com.lightbend.akka.discovery"
+  artifact="akka-discovery-aws-api_2.12"
+  version="$version$"
+}
+
+And in your `application.conf`:
+
+```
+akka.discovery {
+  method = aws-api-ecs
+}
+```
+
+
+##### akka-discovery-aws-api-async
+
+This uses the preview AWS SDK. The advantage here is that the SDK does
+non-blocking IO, which you probably want. You might need to think carefully
+before using this though if you've already got the mainstream AWS SDK as a
+dependency.
+
+Once the async AWS SDK is out of preview it is likely that the
+`akka-discovery-aws-api` module will be discontinued in favour of
+`akka-discovery-aws-api-async`.
+
+@@dependency[sbt,Gradle,Maven] {
+  group="com.lightbend.akka.discovery"
+  artifact="akka-discovery-aws-api-async_2.12"
+  version="$version$"
+}
+
+And in your `application.conf`:
+
+```
+akka.discovery {
+  method = async-aws-api-ecs
+}
+```
+
+
+Notes:
+
+* Since the implementation uses the AWS ECS API, you'll need to make sure that
+  AWS credentials are provided. The simplest way to do this is to create an IAM
+  role that includes appropriate permissions for AWS ECS API access. Attach
+  this IAM role to the task definition of the ECS Service. See the docs for
+  [IAM Roles for Tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html).
+
+* In general, for the ECS task instances to "talk to each other" (necessary for
+  forming a cluster), they need to be in the same security group and the proper
+  rules have to be set. See the docs for
+  [Task Networking with the `awsvpc` Network Mode](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html).
+
+* akka-remote by default sets `akka.remote.netty.tcp.hostname` to the result of
+  `InetAddress.getLocalHost.getHostAddress`, and akka-management does the same
+  for `akka.management.http.hostname`. However,
+  `InetAddress.getLocalHost.getHostAddress` throws an exception when running in
+  awsvpc mode (because the container name cannot be resolved), so you will need
+  to set this explicitly. An alternative host address discovery method is
+  provided by both modules. The methods are
+  `EcsSimpleServiceDiscovery.getContainerAddress` and
+  `AsyncEcsSimpleServiceDiscovery.getContainerAddress` respectively, which you
+  should use to programmatically set both config hostnames.
+
+* Because ECS service discovery is only able to discover IP addresses (not ports
+  too) you'll need to set
+  `akka.management.cluster.bootstrap.contact-point.fallback-port = 19999`, where
+  19999 is whatever port you choose to bind akka-management to.  
+
+* The current implementation only supports discovery of service task instances
+  within the same region.
+
+Demo:
+
+* A working demo app is available in the
+  [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api-ecs) 
+  folder. It includes CloudFormation templates with minimal permissions w.r.t to
+  IAM policies and security group ingress, and so is a good starting point for
+  any deployment that integrates the
+  [principle of least privilege](https://en.wikipedia.org/wiki/Principle_of_least_privilege). 
+
 
 ## How to contribute implementations
 
