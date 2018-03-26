@@ -418,7 +418,7 @@ And in your `application.conf`:
 
 ```
 akka.discovery {
-  method = async-aws-api-ecs
+  method = aws-api-ecs-async
 }
 ```
 

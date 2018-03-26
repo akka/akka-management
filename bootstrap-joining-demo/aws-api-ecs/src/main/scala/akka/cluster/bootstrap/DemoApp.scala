@@ -27,7 +27,7 @@ object DemoApp {
              |    cluster.bootstrap.contact-point.fallback-port = 19999
              |    http.hostname = "${privateAddress.getHostAddress}"
              |  }
-             |  discovery.method = async-aws-api-ecs
+             |  discovery.method = aws-api-ecs-async
              |  remote.netty.tcp.hostname = "${privateAddress.getHostAddress}"
              |}
            """.stripMargin)
