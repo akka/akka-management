@@ -22,7 +22,7 @@ ECS (and thus in any region).
 
 **Note:**
 
-You'll need to have [SBT](https://www.scala-sbt.org/),
+You will need to have [SBT](https://www.scala-sbt.org/),
 [Docker](https://www.docker.com), and the [AWS CLI](https://aws.amazon.com/cli/)
 installed and configured.
 
