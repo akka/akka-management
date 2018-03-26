@@ -21,6 +21,7 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite, Matchers}
 import spray.json._
 
 import scala.concurrent.{Await, Future}
+import scala.language.postfixOps
 
 trait HttpClient {
 
@@ -30,23 +31,21 @@ trait HttpClient {
 
   import system.dispatcher
 
+  import scala.concurrent.duration._
+
   val http = Http(system)
 
-  def httpGetRequest(url: String): Future[(Int, String)] =
-    http
-      .singleRequest(HttpRequest(uri = url))
-      .flatMap(
-          r =>
-            r.entity.dataBytes
-              .runFold(ByteString(""))(_ ++ _)
-              .map(_.utf8String)
-              .map(_.filter(_ >= ' '))
-              .map(body => (r.status.intValue(), body)))
+  def httpGetRequest(url: String): Future[(Int, String)] = {
+    http.singleRequest(HttpRequest(uri = url))
+      .flatMap(r => r.entity.toStrict(3 seconds).map(s => r.status -> s))
+      .flatMap(t => t._2.dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String).map(_.filter(_ >= ' '))
+        .map(r => t._1.intValue() -> r))
+  }
 
 }
 
 class IntegrationTest
-    extends FunSuite
+  extends FunSuite
     with Eventually
     with BeforeAndAfterAll
     with ScalaFutures
@@ -85,10 +84,10 @@ class IntegrationTest
   // Once the CloudFormation stack has CREATE_COMPLETE status, the EC2 instances are
   // still "initializing" (seems to take a very long time) so we add some additional patience for that.
   private val clusterBootstrapPatience: PatienceConfig =
-    PatienceConfig(
-      timeout = 12 minutes,
-      interval = 5 seconds
-    )
+  PatienceConfig(
+    timeout = 12 minutes,
+    interval = 5 seconds
+  )
 
   private var clusterPublicIps: List[String] = List()
 
@@ -126,8 +125,8 @@ class IntegrationTest
     def conditions: Boolean = (dsr.getStacks.size() == 1) && {
       val stack = dsr.getStacks.get(0)
       stack.getStackStatus == StackStatus.CREATE_COMPLETE.toString &&
-      stack.getOutputs.size() >= 1 &&
-      stack.getOutputs.asScala.exists(_.getOutputKey == "AutoScalingGroupName")
+        stack.getOutputs.size() >= 1 &&
+        stack.getOutputs.asScala.exists(_.getOutputKey == "AutoScalingGroupName")
     }
 
     implicit val patienceConfig: PatienceConfig = createStackPatience
@@ -152,13 +151,13 @@ class IntegrationTest
       val ips: List[(String, String)] = awsEc2Client
         .describeInstances(new DescribeInstancesRequest()
           .withFilters(new Filter("tag:aws:autoscaling:groupName", List(asgName).asJava)))
-          .getReservations
-          .asScala
-          .flatMap((r: Reservation) =>
-              r.getInstances.asScala.map(instance => (instance.getPublicIpAddress, instance.getPrivateIpAddress)))
-          .toList
-          .filter(ips =>
-            ips._1 != null && ips._2 != null) // TODO: investigate whether there are edge cases that may makes this necessary
+        .getReservations
+        .asScala
+        .flatMap((r: Reservation) =>
+          r.getInstances.asScala.map(instance => (instance.getPublicIpAddress, instance.getPrivateIpAddress)))
+        .toList
+        .filter(ips =>
+          ips._1 != null && ips._2 != null) // TODO: investigate whether there are edge cases that may makes this necessary
 
       clusterPublicIps = ips.map(_._1)
       clusterPrivateIps = ips.map(_._2)
@@ -196,21 +195,21 @@ class IntegrationTest
 
       clusterPublicIps.foreach { nodeIp: String => {
 
-          val result = httpGetRequest(s"http://$nodeIp:19999/cluster/members").futureValue(httpCallTimeout)
-          result._1 should === (200)
-          result._2 should not be 'empty
+        val result = httpGetRequest(s"http://$nodeIp:19999/cluster/members").futureValue(httpCallTimeout)
+        result._1 should ===(200)
+        result._2 should not be 'empty
 
-          val clusterMembers = result._2.parseJson.convertTo[ClusterMembers]
+        val clusterMembers = result._2.parseJson.convertTo[ClusterMembers]
 
-          clusterMembers.members should have size instanceCount
-          clusterMembers.members.count(_.status == "Up") should === (instanceCount)
-          clusterMembers.members.map(_.node) should === (expectedNodes)
+        clusterMembers.members should have size instanceCount
+        clusterMembers.members.count(_.status == "Up") should ===(instanceCount)
+        clusterMembers.members.map(_.node) should ===(expectedNodes)
 
-          clusterMembers.unreachable should be ('empty)
-          clusterMembers.leader shouldBe defined
-          clusterMembers.oldest shouldBe defined
+        clusterMembers.unreachable should be('empty)
+        clusterMembers.leader shouldBe defined
+        clusterMembers.oldest shouldBe defined
 
-        }
+      }
       }
     }
   }
