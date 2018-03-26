@@ -29,14 +29,15 @@ installed and configured.
 
 # Step 1: Examine the source code
 
-Examine the source code. See how simple it is. There is no hard coding
-of seed node IPs or host names in the application config.
+Examine the source code; you'll notice the lack of need for manual
+configuration of IPs or host names for the cluster to form - the discovery
+mechanisms will do this for us.
 
 
 # Step 2: Create the ECR repository
 
-You can do this manually via the web console by creating an ECR repo called
-`bootstrap-joining-demo-aws-api-ecs`, _or_ by running the included
+You can do this manually via the web console by creating an ECR repository
+called `bootstrap-joining-demo-aws-api-ecs`, _or_ by running the included
 CloudFormation wrapper script:
 
 `./scripts/create-infrastucture.sh`
@@ -44,8 +45,8 @@ CloudFormation wrapper script:
 
 # Step 3: Build and publish the Docker image
 
-The easiest way to do this is by running the included script (which you read
-earlier, right?):
+You can do so by running the provided script. We suggest you read the script
+before executing it, to understand what's happening inside:
 
 `./scripts/publish-application.sh`
 
@@ -57,7 +58,7 @@ because this avoids the need to set `dockerRepository` within the SBT build
 
 # Step 4: Identify your subnet IDs
 
-The application stack configures the demo ECS service to launch with five task.
+The application stack configures the demo ECS service to launch with five task
 instances.
 
 Before you can create the cluster itself, you need to identify which subnets
@@ -69,15 +70,15 @@ you're looking for.
 
 ![Identifying subnet IDs](screenshots/identify-subnet-ids.png)
 
-For the purposes of the demo we'll assume you're using your default VPC (the
+For the purposes of the demo we will assume you are using your default VPC (the
 one AWS creates for you automatically), though this need not be the case.
 
-Make a note of the IDs of the subnets that your VPC has. You'll need them in
-the following format for CloudFormation:
+Assign the IDs of the subnets that your VPC has to an environment variable for
+use in step five. You'll need them in the following format for CloudFormation:
 
-`subnet-fd6f218a,subnet-2d73e606,subnet-9f2644c6,subnet-2c32b849,subnet-1eaa1512,subnet-a9e5dd93`
+`SUBNETS=subnet-fd6f218a,subnet-2d73e606,subnet-9f2644c6,subnet-2c32b849,subnet-1eaa1512,subnet-a9e5dd93`
 
-(don't use this literal value!)
+(Do not use this literal value!)
 
 
 # Step 5: Create and validate the cluster
@@ -87,7 +88,7 @@ the following format for CloudFormation:
 Again, the included wrapper script can be used for this (ultimately it
 just delegates to `aws cloudformation create-stack`):
 
-`./scripts/create-application.sh $subnetsIdentifiedInStepFour`
+`./scripts/create-application.sh $SUBNETS`
 
 
 ## Watch it form
@@ -96,7 +97,7 @@ The security group that the stack defines and associates with the task
 definition includes a rule to allow public access to port 19999 so that the
 formation of the cluster can be observed as follows:
 
-`watch -n 1 -c "curl http://$taskInstanceIp:19999/cluster/members/ | python
+`watch -n 1 -c "curl http://$TASK_INSTANCE_IP:19999/cluster/members/ | python
 -mjson.tool"`
 
 `$taskInstanceIp` should be replaced with the public IP of any of the five task
