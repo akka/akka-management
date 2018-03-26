@@ -9,16 +9,22 @@ networking is _not_ supported.
 **Note:**
 
 The provided CloudFormation application stack configures the task definition
-and service for use with Fargate. This is done in the interest of simplicity
-(it removes the need for the stack to also create a container instance).
-At the time of writing, Fargate is only available in the us-east-1 region.
-This is why the CloudFormation stacks and scripts have the region set to
-us-east-1.
+and service for use with [Fargate](https://aws.amazon.com/fargate/). This is
+done in the interest of simplicity (it removes the need for the stack to also
+create a container instance). At the time of writing, Fargate is only available
+in the us-east-1 region. This is why the CloudFormation stacks and scripts have
+the region set to us-east-1.
 
 However, the ECS Service Discovery is _not_ limited to use with Fargate. By
 removing the two Fargate configuration lines and adding a container-instance
 resource you can also run it with "classic" bring-your-own-container-instance
 ECS (and thus in any region).
+
+**Note:**
+
+You'll need to have [SBT](https://www.scala-sbt.org/),
+[Docker](https://www.docker.com), and the [AWS CLI](https://aws.amazon.com/cli/)
+installed and configured.
 
 
 # Step 1: Examine the source code
