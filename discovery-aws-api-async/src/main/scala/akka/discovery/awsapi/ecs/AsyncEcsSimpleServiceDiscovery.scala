@@ -23,10 +23,12 @@ import scala.concurrent.{ExecutionContext, Future}
 class AsyncEcsSimpleServiceDiscovery(system: ActorSystem)
     extends SimpleServiceDiscovery {
 
+  private[this] implicit val ec: ExecutionContext = system.dispatcher
+
+  private[this] val ecsClient = ECSAsyncClient.create()
+
   override def lookup(name: String,
-                      resolveTimeout: FiniteDuration): Future[Resolved] = {
-    val ecsClient = ECSAsyncClient.create()
-    implicit val ec: ExecutionContext = system.dispatcher
+                      resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
@@ -49,7 +51,7 @@ class AsyncEcsSimpleServiceDiscovery(system: ActorSystem)
         )
       )
     )
-  }
+
 }
 
 object AsyncEcsSimpleServiceDiscovery {

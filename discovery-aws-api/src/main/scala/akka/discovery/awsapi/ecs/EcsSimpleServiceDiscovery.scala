@@ -17,14 +17,16 @@ import com.amazonaws.services.ecs.{ AmazonECS, AmazonECSClientBuilder }
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 
 class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
-  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] = {
-    val ecsClient = AmazonECSClientBuilder.defaultClient()
-    import system.dispatcher
+  private[this] implicit val ec: ExecutionContext = system.dispatcher
+
+  private[this] val ecsClient = AmazonECSClientBuilder.defaultClient()
+
+  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
@@ -46,7 +48,7 @@ class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
         }
       )
     )
-  }
+
 }
 
 object EcsSimpleServiceDiscovery {
