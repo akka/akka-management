@@ -40,7 +40,7 @@ object DemoApp {
   private[this] def getPrivateAddressOrExit: InetAddress =
     AsyncEcsSimpleServiceDiscovery.getContainerAddress match {
       case Left(error) =>
-        Console.out.println(s"$error. Halting.")
+        System.err.println(s"$error. Halting.")
         sys.exit(1)
 
       case Right(value) =>
