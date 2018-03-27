@@ -18,29 +18,32 @@ class JsonFormatSpec extends WordSpec with Matchers {
         .podListFormat
         .read(data.parseJson) shouldBe PodList(
           List(
-            Item(
-              Spec(
-                List(
-                  Container(
-                    "akka-cluster-tooling-example",
-                    List(Port("akka-remote", 10000), Port("akka-mgmt-http", 10001), Port("http", 10002))))),
-              Status(Some("172.17.0.4")), Metadata(deletionTimestamp = None)),
+            Pod(
+              Some(
+                PodSpec(
+                  List(
+                    Container(
+                      "akka-cluster-tooling-example",
+                      Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("akka-mgmt-http"), 10001), ContainerPort(Some("http"), 10002))))))),
+                Some(PodStatus(Some("172.17.0.4"))), Some(Metadata(deletionTimestamp = None))),
 
-            Item(
-              Spec(
-                List(
-                  Container(
-                    "akka-cluster-tooling-example",
-                    List(Port("akka-remote", 10000), Port("akka-mgmt-http", 10001), Port("http", 10002))))),
-              Status(Some("172.17.0.6")), Metadata(deletionTimestamp = None)),
+            Pod(
+              Some(
+                PodSpec(
+                  List(
+                    Container(
+                      "akka-cluster-tooling-example",
+                      Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("akka-mgmt-http"), 10001), ContainerPort(Some("http"), 10002))))))),
+                Some(PodStatus(Some("172.17.0.6"))), Some(Metadata(deletionTimestamp = None))),
 
-            Item(
-              Spec(
-                List(
-                  Container(
-                    "akka-cluster-tooling-example",
-                    List(Port("akka-remote", 10000), Port("akka-mgmt-http", 10001), Port("http", 10002))))),
-              Status(Some("172.17.0.7")), Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z")))))
+            Pod(
+              Some(
+                PodSpec(
+                  List(
+                    Container(
+                      "akka-cluster-tooling-example",
+                      Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("akka-mgmt-http"), 10001), ContainerPort(Some("http"), 10002))))))),
+                  Some(PodStatus(Some("172.17.0.7"))), Some(Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z"))))))
     }
   }
 
