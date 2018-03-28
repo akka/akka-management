@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster.bootstrap
 
 import java.net.InetAddress
@@ -12,15 +11,14 @@ import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import com.typesafe.config.ConfigFactory
 
-object DemoApp {
+object EcsApiDemoApp {
 
   def main(args: Array[String]): Unit = {
     val privateAddress = getPrivateAddressOrExit
     val config = ConfigFactory
       .systemProperties()
       .withFallback(
-        ConfigFactory.parseString(
-          s"""
+        ConfigFactory.parseString(s"""
              |akka {
              |  actor.provider = "cluster"
              |  management {
