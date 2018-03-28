@@ -9,11 +9,11 @@ import spray.json._
 import PodList._
 
 object JsonFormat extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val portFormat: JsonFormat[Port] = jsonFormat2(Port)
+  implicit val containerPortFormat: JsonFormat[ContainerPort] = jsonFormat2(ContainerPort)
   implicit val containerFormat: JsonFormat[Container] = jsonFormat2(Container)
-  implicit val specFormat: JsonFormat[Spec] = jsonFormat1(Spec)
-  implicit val statusFormat: JsonFormat[Status] = jsonFormat1(Status)
-  implicit val metaDataFormat: JsonFormat[Metadata] = jsonFormat1(Metadata)
-  implicit val itemFormat: JsonFormat[Item] = jsonFormat3(Item)
+  implicit val podSpecFormat: JsonFormat[PodSpec] = jsonFormat1(PodSpec)
+  implicit val podStatusFormat: JsonFormat[PodStatus] = jsonFormat1(PodStatus)
+  implicit val metadataFormat: JsonFormat[Metadata] = jsonFormat1(Metadata)
+  implicit val podFormat: JsonFormat[Pod] = jsonFormat3(Pod)
   implicit val podListFormat: RootJsonFormat[PodList] = jsonFormat1(PodList.apply)
 }

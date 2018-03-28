@@ -31,10 +31,11 @@ object KubernetesApiSimpleServiceDiscovery {
   private[kubernetes] def targets(podList: PodList, portName: String): Seq[ResolvedTarget] =
     for {
       item <- podList.items
-      if item.metadata.deletionTimestamp.isEmpty
-      container <- item.spec.containers
-      port <- container.ports.find(_.name == portName)
-      ip <- item.status.podIP
+      if item.metadata.flatMap(_.deletionTimestamp).isEmpty
+      container <- item.spec.toVector.flatMap(_.containers)
+      port <- container.ports.getOrElse(Seq.empty).find(_.name.contains(portName))
+      itemStatus <- item.status
+      ip <- itemStatus.podIP
     } yield ResolvedTarget(ip, Some(port.containerPort))
 }
 
@@ -65,7 +66,11 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
     for {
       token <- apiToken()
 
-      request <- optionToFuture(podRequest(token, settings.podNamespace, name),
+      labelSelector = settings.podLabelSelector(name)
+
+      _ = system.log.info("Querying for pods with label selector: [{}]", labelSelector)
+
+      request <- optionToFuture(podRequest(token, settings.podNamespace, labelSelector),
         s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})")
 
       response <- http.singleRequest(request, httpsContext)
@@ -73,12 +78,13 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
       entity <- response.entity.toStrict(resolveTimeout)
 
       podList <- {
+        system.log.debug("Kubernetes API entity: [{}]", entity.data.utf8String)
+
         val unmarshalled = Unmarshal(entity).to[PodList]
 
         unmarshalled.failed.foreach { t =>
           system.log.error("Failed to unmarshal Kubernetes API response status [{}]; check RBAC settings",
             response.status.value)
-          system.log.debug("Kubernetes API entity: [{}]", entity.data.utf8String)
         }
 
         unmarshalled
@@ -92,14 +98,14 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
   private def optionToFuture[T](option: Option[T], failMsg: String): Future[T] =
     option.fold(Future.failed[T](new NoSuchElementException(failMsg)))(Future.successful)
 
-  private def podRequest(token: String, namespace: String, name: String) =
+  private def podRequest(token: String, namespace: String, labelSelector: String) =
     for {
       host <- sys.env.get(settings.apiServiceHostEnvName)
       portStr <- sys.env.get(settings.apiServicePortEnvName)
       port <- Try(portStr.toInt).toOption
     } yield {
       val path = Uri.Path.Empty / "api" / "v1" / "namespaces" / namespace / "pods"
-      val query = Uri.Query("labelSelector" -> settings.podLabelSelector(name))
+      val query = Uri.Query("labelSelector" -> labelSelector)
       val uri = Uri.from(scheme = "https", host = host, port = port).withPath(path).withQuery(query)
 
       HttpRequest(uri = uri, headers = Seq(Authorization(OAuth2BearerToken(token))))
