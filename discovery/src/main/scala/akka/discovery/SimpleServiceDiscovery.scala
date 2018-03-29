@@ -31,12 +31,27 @@ object SimpleServiceDiscovery {
     }
   }
 
+  object ResolvedTarget {
+    implicit val addressOrdering: Ordering[ResolvedTarget] = Ordering.fromLessThan[ResolvedTarget] { (a, b) ⇒
+      if (a eq b) false
+      else if (a.host != b.host) a.host.compareTo(b.host) < 0
+      else if (a.port != b.port) a.port.getOrElse(0) < b.port.getOrElse(0)
+      else false
+    }
+  }
+
   /** Resolved target host, with optional port and protocol spoken */
   final case class ResolvedTarget(host: String, port: Option[Int]) {
     def getPort: Optional[Int] = {
       import scala.compat.java8.OptionConverters._
       port.asJava
     }
+
+    override def toString(): String =
+      port match {
+        case Some(p) => s"$host:$port"
+        case None => host
+      }
   }
 }
 

@@ -87,6 +87,10 @@ final class ClusterBootstrapSettings(config: Config) {
     val httpMaxSeedNodesToExpose: Int = 5
   }
 
+  object joinDecider {
+    val implClass: String = bootConfig.getString("join-decider.class")
+  }
+
 }
 
 object ClusterBootstrapSettings {
