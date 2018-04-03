@@ -115,6 +115,8 @@ private[akka] final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDi
   private var lastContactsObservation: Option[DnsServiceContactsObservation] = None
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
 
+  private var decisionInProgress = false
+
   timers.startPeriodicTimer(ResolveTimerKey, ResolveTick, settings.contactPointDiscovery.interval)
   timers.startPeriodicTimer(DecideTimerKey, DecideTick, settings.contactPoint.probeInterval)
 
@@ -161,6 +163,7 @@ private[akka] final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDi
       decide()
 
     case d: JoinDecision =>
+      decisionInProgress = false
       d match {
         case KeepProbing => // continue scheduled lookups and probing of discovered contact points
         case JoinOtherSeedNodes(seedNodes) =>
@@ -248,20 +251,34 @@ private[akka] final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDi
       }
   }
 
-  private def decide(): Unit =
-    lastContactsObservation.foreach { contacts =>
-      val currentTime = timeNow()
+  private def decide(): Unit = {
+    if (decisionInProgress)
+      log.debug("Previous decision still in progress")
+    else {
+      lastContactsObservation.foreach { contacts =>
+        val currentTime = timeNow()
 
-      // filter out old observations, in case the probing failures are not triggered
-      def isObsolte(obs: SeedNodesObservation): Boolean =
-        Duration.between(obs.observedAt, currentTime).toMillis > settings.contactPoint.probingFailureTimeout.toMillis
+        // filter out old observations, in case the probing failures are not triggered
+        def isObsolte(obs: SeedNodesObservation): Boolean =
+          Duration.between(obs.observedAt, currentTime).toMillis > settings.contactPoint.probingFailureTimeout.toMillis
 
-      val seedObservations = seedNodesObservations.valuesIterator.filterNot(isObsolte).toSet
-      val info =
-        new SeedNodesInformation(currentTime, contacts.observedAt, contacts.observedContactPoints, seedObservations)
+        val seedObservations = seedNodesObservations.valuesIterator.filterNot(isObsolte).toSet
+        val info =
+          new SeedNodesInformation(currentTime, contacts.observedAt, contacts.observedContactPoints, seedObservations)
 
-      joinDecider.decide(info).recover { case _ => KeepProbing }.foreach(self ! _)
+        decisionInProgress = true
+
+        joinDecider
+          .decide(info)
+          .recover {
+            case e =>
+              log.error(e, "Join decision failed: {}", e)
+              KeepProbing
+          }
+          .foreach(self ! _)
+      }
     }
+  }
 
   protected def timeNow(): LocalDateTime =
     LocalDateTime.now()

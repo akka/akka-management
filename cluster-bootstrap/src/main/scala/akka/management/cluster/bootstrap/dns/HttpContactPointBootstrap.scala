@@ -5,7 +5,9 @@ package akka.management.cluster.bootstrap.dns
 
 import java.time.LocalDateTime
 import java.util.concurrent.ThreadLocalRandom
+import java.util.concurrent.TimeoutException
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import akka.actor.Actor
@@ -14,6 +16,7 @@ import akka.actor.DeadLetterSuppression
 import akka.actor.Props
 import akka.actor.Status
 import akka.actor.Timers
+import akka.pattern.after
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
@@ -73,6 +76,7 @@ private[dns] class HttpContactPointBootstrap(
 
   private val probeInterval = settings.contactPoint.probeInterval
   private val probeRequest = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
+  private val replyTimeout = Future.failed(new TimeoutException(s"Probing timeout of [$baseUri]"))
 
   /**
    * If probing keeps failing until the deadline triggers, we notify the parent,
@@ -91,13 +95,14 @@ private[dns] class HttpContactPointBootstrap(
       val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
       log.debug("Probing [{}] for seed nodes...", req.uri)
 
-      // FIXME will singleRequest timeout before probing-failure-timeout?
-      // I think that is important because otherwise we will not see the probe failure in time
-
-      http
+      val reply = http
         .singleRequest(probeRequest)
         .flatMap(_.entity.toStrict(1.second))
         .flatMap(res ⇒ Unmarshal(res).to[SeedNodes])
+
+      Future
+        .firstCompletedOf(List(reply,
+            after(settings.contactPoint.probingFailureTimeout, context.system.scheduler)(replyTimeout)))
         .pipeTo(self)
 
     case Status.Failure(cause) =>
