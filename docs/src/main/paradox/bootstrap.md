@@ -64,6 +64,10 @@ can pick the one most fitting to your cluster manager or runtime -- such as Kube
 
 ## Akka Cluster Bootstrap Process explained
 
+This section explains the default `JoinDecider` implementation. It is possible to replace the implementation with
+configuration property `akka.management.cluster.bootstrap.join-decider.class`. See `reference.conf` and API
+documentation.
+
 The Akka Cluster Bootstrap process is composed of two phases. First, a minimum number of Contact Points need to be gathered. 
 Currently it will look for `akka.management.cluster.bootstrap.contact-point-discovery.service-name` appended
 with `akka.management.cluster.bootstrap.contact-point-discovery.service-namespace` (if present) A records in DNS. In Kubernetes managed
@@ -77,7 +81,7 @@ once it has completed joining, also start advertising those seed nodes using its
 has not yet joined, but is probing this node, would get this information and join the existing cluster.
 
 In the case no cluster exists yet -- the initial bootstrap of a cluster -- nodes will keep probing one another for a while
-(`akka.management.cluster.bootstrap.contact-point.no-seeds-stable-margin`) and once that time margin passes, they will decide that
+(`akka.management.cluster.bootstrap.contact-point-discovery.stable-margin`) and once that time margin passes, they will decide that
 no cluster exists, and one of the seen nodes should join *itself* to become the first node of a new cluster. It is of utmost
 importance that only one node joins itself, so this decision has to be made deterministically. Since we know the addresses
 of all Contact Points, and the contact points relate 1:1 to a Akka Remoting (Akka Cluster) address of the given node,
@@ -101,8 +105,9 @@ simply adding new nodes to it wanting them to discover and join that cluster.
 - The node starts to probe the Contact Points of the discovered nodes (which are HTTP endpoints, exposed via
   Akka Management by the Bootstrap Management Extension) for known seeds to join.
 - Since no cluster exists yet, none of the contacted nodes return any seed nodes during the probing process.
-    - The `no-seeds-stable-margin` timeout passes, and no discovery changes are observed as well.
+    - The `stable-margin` timeout passes, and no discovery changes are observed as well.
     - At least `akka.management.cluster.bootstrap.required-contact-point-nr` nodes have been discovered.
+    - Communication with all discovered Contact Points have been confirmed via successful HTTP request-response.
     - The nodes all decide (autonomously) that no cluster exists, and a new one should be formed,
       they know all their addresses, and decide that the "lowest" sorted address is to start forming the cluster.
     - The lowest address node (e.g. "A") notices the same, and makes the decision to *join itself*.
