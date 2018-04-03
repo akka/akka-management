@@ -72,9 +72,6 @@ final class ClusterBootstrapSettings(config: Config) {
     // FIXME this has to be the same as the management one, we currently override this value when starting management, any better way?
     val fallbackPort = contactPointConfig.getInt("fallback-port")
 
-    val noSeedsStableMargin: FiniteDuration =
-      contactPointConfig.getDuration("no-seeds-stable-margin", TimeUnit.MILLISECONDS).millis
-
     val probingFailureTimeout: FiniteDuration =
       contactPointConfig.getDuration("probing-failure-timeout", TimeUnit.MILLISECONDS).millis
 

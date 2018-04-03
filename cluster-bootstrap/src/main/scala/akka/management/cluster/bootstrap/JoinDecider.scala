@@ -32,6 +32,28 @@ trait JoinDecider {
 
 }
 
+/**
+ * Full information about discovered contact points and found seed nodes.
+ *
+ * `contactPoints` contains all nodes that were returned from the discovery (e.g. DNS lookup).
+ *
+ * `seedNodesObservations` contains the replies from those contact points when probing them
+ * with the HTTP call. It only contains entries for the contact points that actually replied,
+ * i.e. were reachable and running. Each such `SeedNodesObservation` entry has the `seedNodes`
+ * (Akka Cluster addresses) that were returned from that contact point. That `Set` will be
+ * empty if the node replied but is not part of an existing cluster yet, i.e. it hasn't joined.
+ *
+ * There are also some timestamps that can be interesting. Note that `currentTime` is passed in
+ * to facilitate calculation of durations.
+ *
+ * `contactPointsChangedAt` is when the discovered contact points were last changed (e.g. via DNS lookup),
+ * e.g. 5 seconds ago means that subsequent lookup attempts (1 per second) after that were successful and
+ * returned the same set.
+ *
+ * `SeedNodesObservation.observedAt` was when that reply was received from that contact point.
+ * The entry is removed if no reply was received within the `probing-failure-timeout` meaning that it
+ * is unreachable or not running.
+ */
 final class SeedNodesInformation(val currentTime: LocalDateTime,
                                  val contactPointsChangedAt: LocalDateTime,
                                  val contactPoints: Set[ResolvedTarget],
@@ -43,6 +65,7 @@ final class SeedNodesInformation(val currentTime: LocalDateTime,
   def allSeedNodes: Set[Address] =
     seedNodesObservations.flatMap(_.seedNodes)
 
+  /** Java API */
   def getAllSeedNodes: java.util.Set[Address] =
     allSeedNodes.asJava
 
@@ -66,7 +89,9 @@ final class SeedNodesObservation(val observedAt: LocalDateTime,
     seedNodes.asJava
 }
 
-sealed trait JoinDecision
+sealed trait JoinDecision {
+  val asCompletedFuture: Future[JoinDecision] = Future.successful(this)
+}
 
 /**
  * Not ready to join yet, continue discovering contact points
@@ -78,8 +103,6 @@ case object KeepProbing extends JoinDecision {
    * Java API: get the singleton instance
    */
   def getInstance: JoinDecision = this
-
-  val asCompletedFuture: Future[JoinDecision] = Future.successful(KeepProbing)
 }
 
 /**
@@ -93,8 +116,6 @@ case object JoinSelf extends JoinDecision {
    * Java API: get the singleton instance
    */
   def getInstance: JoinDecision = this
-
-  val asCompletedFuture: Future[JoinDecision] = Future.successful(JoinSelf)
 }
 
 /**
@@ -107,15 +128,13 @@ final case class JoinOtherSeedNodes(seedNodes: Set[Address]) extends JoinDecisio
 
   /** Java API */
   def this(seedNodes: java.util.Set[Address]) = this(seedNodes.asScala.toSet)
-
-  def asCompletedFuture: Future[JoinDecision] = Future.successful(this)
 }
 
 /**
  * The decision of joining "self" is made by deterministically sorting the discovered service IPs
  * and picking the *lowest* address. Only the node with lowest address joins itself.
  *
- * If any of the contact-points returns a list of seed nodes it joins them immediately.
+ * If any of the contact-points returns a list of seed nodes it joins the existing cluster immediately.
  *
  * Joining "self" is only done when enough number of contact points have been discovered (`required-contact-point-nr`)
  * and there have been no changes to the discovered contact points during the `stable-margin`.
@@ -127,10 +146,12 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
 
   override def decide(info: SeedNodesInformation): Future[JoinDecision] =
     if (info.hasSeedNodes) {
-      JoinOtherSeedNodes(info.allSeedNodes.take(5)).asCompletedFuture
-    } else if (info.contactPoints.size < settings.contactPointDiscovery.requiredContactPointsNr) {
-      log.info("Discovered [{}] contact points, which is less than the required [{}], retrying",
-        info.contactPoints.size, settings.contactPointDiscovery.requiredContactPointsNr)
+      val seeds = joinOtherSeedNodes(info)
+      if (seeds.isEmpty) KeepProbing.asCompletedFuture else JoinOtherSeedNodes(seeds).asCompletedFuture
+    } else if (!hasEnoughContactPoints(info)) {
+      log.info("Discovered [{}] contact points, confirmed [{}], which is less than the required [{}], retrying",
+        info.contactPoints.size, info.seedNodesObservations.size,
+        settings.contactPointDiscovery.requiredContactPointsNr)
       KeepProbing.asCompletedFuture
     } else if (!isPastStableMargin(info)) {
       log.debug(
@@ -141,7 +162,10 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
     } else {
       // no seed nodes
       val contactPointsWithoutSeedNodesObservations =
-        info.contactPoints -- info.seedNodesObservations.map(_.contactPoint)
+        if (isConfirmedCommunicationWithAllContactPointsRequired(info))
+          info.contactPoints -- info.seedNodesObservations.map(_.contactPoint)
+        else
+          Set.empty[ResolvedTarget]
       if (contactPointsWithoutSeedNodesObservations.isEmpty) {
         // got info from all contact points as expected
         if (isAllowedToJoinSelf(info))
@@ -171,13 +195,40 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
 
     }
 
-  // FIXME Do we really need settings.contactPoint.noSeedsStableMargin? Isn't the stable-margin enough?
-  // It has been probing all known contact points for that duration
+  /**
+   * May be overridden by subclass to extract the nodes to use as seed nodes when joining
+   * existing cluster. `info.allSeedNodes` contains all existing nodes.
+   * If the returned `Set` is empty it will continue probing.
+   */
+  protected def joinOtherSeedNodes(info: SeedNodesInformation): Set[Address] =
+    info.allSeedNodes.take(5)
 
-  private def isPastStableMargin(info: SeedNodesInformation): Boolean = {
+  /**
+   * May be overridden by subclass to decide if enough contact points have been discovered.
+   * `info.contactPoints.size` is the number of discovered (e.g. via DNS lookup) contact points
+   * and `info.seedNodesObservations.size` is the number that has been confirmed that they are
+   * reachable and running.
+   */
+  protected def hasEnoughContactPoints(info: SeedNodesInformation): Boolean =
+    info.seedNodesObservations.size >= settings.contactPointDiscovery.requiredContactPointsNr
+
+  /**
+   * May be overridden by subclass to decide if the set of discovered contact points is stable.
+   * `info.contactPointsChangedAt` was the time when the discovered contact points were changed
+   * last time. Subsequent lookup attempts after that returned the same contact points.
+   */
+  protected def isPastStableMargin(info: SeedNodesInformation): Boolean = {
     val contactPointsChanged = Duration.between(info.contactPointsChangedAt, info.currentTime)
     contactPointsChanged.toMillis >= settings.contactPointDiscovery.stableMargin.toMillis
   }
+
+  /**
+   * May be overridden by subclass to allow joining self even though some of the discovered
+   * contact points have not been confirmed (unreachable or not running).
+   * `hasEnoughContactPoints` and `isPastStableMargin` must still be fulfilled.
+   */
+  protected def isConfirmedCommunicationWithAllContactPointsRequired(info: SeedNodesInformation): Boolean =
+    true
 
   private def isAllowedToJoinSelf(info: SeedNodesInformation): Boolean = {
     val bootstrap = ClusterBootstrap(system)
@@ -202,7 +253,12 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
   /**
    * Contact point with the "lowest" contact point address,
    * it is expected to join itself if no other cluster is found in the deployment.
+   *
+   * May be overridden by subclass for example if another sort order is desired.
    */
-  private def lowestAddressContactPoint(info: SeedNodesInformation): Option[ResolvedTarget] =
-    info.contactPoints.toList.sorted.headOption
+  protected def lowestAddressContactPoint(info: SeedNodesInformation): Option[ResolvedTarget] = {
+    // Note that we are using info.seedNodesObservations and not info.contactPoints here, but that
+    // is the same when isConfirmedCommunicationWithAllContactPointsRequired == true
+    info.seedNodesObservations.toList.map(_.contactPoint).sorted.headOption
+  }
 }
