@@ -24,7 +24,8 @@ object ClusterHttpManagement extends ExtensionId[ClusterHttpManagement] with Ext
 final class ClusterHttpManagement(system: ExtendedActorSystem) extends ManagementRouteProvider {
 
   private val cluster = Cluster(system)
-  private val settings = new ClusterHttpManagementSettings(system.settings.config)
+
+  val settings = new ClusterHttpManagementSettings(system.settings.config)
 
   /** Routes to be exposed by Akka cluster management */
   override def routes(routeProviderSettings: ManagementRouteProviderSettings): Route =
