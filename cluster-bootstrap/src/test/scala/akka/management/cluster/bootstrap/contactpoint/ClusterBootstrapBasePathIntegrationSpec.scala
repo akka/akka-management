@@ -11,7 +11,7 @@ import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.ConfigFactory
 import org.scalatest.{ Matchers, WordSpecLike }
 
 import scala.concurrent.duration._

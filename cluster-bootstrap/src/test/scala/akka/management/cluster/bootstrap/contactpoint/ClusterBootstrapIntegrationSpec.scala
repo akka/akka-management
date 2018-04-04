@@ -5,7 +5,7 @@ package akka.management.cluster.bootstrap.contactpoint
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
-import akka.cluster.ClusterEvent.{ ClusterDomainEvent, CurrentClusterState, MemberUp }
+import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
 import akka.discovery.MockDiscovery
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.http.scaladsl.Http

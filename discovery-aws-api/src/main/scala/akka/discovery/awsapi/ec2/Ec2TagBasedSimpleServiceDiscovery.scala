@@ -31,6 +31,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     val otherFilters: util.List[Filter] = otherFiltersString
       .split(";")
+      .filter(_.nonEmpty)
       .map(kv => kv.split("="))
       .toList
       .map(kv => {
@@ -43,8 +44,6 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
       .withFilters(tagFilter)
       .withFilters(runningInstancesFilter)
       .withFilters(otherFilters)
-
-    implicit val timeout = resolveTimeout
 
     import system.dispatcher
 
