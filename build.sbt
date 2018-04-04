@@ -76,6 +76,18 @@ lazy val `akka-discovery-aws-api` = project
   )
   .dependsOn(`akka-discovery`)
 
+// Non-blocking AWS implementation of discovery
+lazy val `akka-discovery-aws-api-async` = project
+  .in(file("discovery-aws-api-async"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-aws-api-async",
+    organization := "com.lightbend.akka.discovery",
+    Dependencies.DiscoveryAwsApiAsync
+  )
+  .dependsOn(`akka-discovery`)
+
 // gathers all enabled routes and serves them (HTTP or otherwise)
 lazy val `akka-management` = project
   .in(file("management"))
@@ -145,6 +157,29 @@ lazy val `bootstrap-joining-demo-marathon-api-docker` = project
     `akka-discovery-dns`,
     `cluster-bootstrap`,
     `akka-discovery-marathon-api`
+  )
+
+lazy val `bootstrap-joining-demo-aws-api-ecs` = project
+  .in(file("bootstrap-joining-demo/aws-api-ecs"))
+  .enablePlugins(NoPublish)
+  .disablePlugins(BintrayPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-management-bootstrap-joining-demo-aws-api-ecs",
+    skip in publish := true,
+    sources in (Compile, doc) := Seq.empty,
+    whitesourceIgnore := true
+  ).dependsOn(
+    `akka-management`,
+    `cluster-http`,
+    `cluster-bootstrap`,
+    `akka-discovery-aws-api-async`
+  )
+  .enablePlugins(JavaAppPackaging, AshScriptPlugin, DockerPlugin)
+  .settings(
+    dockerBaseImage := "openjdk:8-jre-alpine",
+    packageName in Docker := "bootstrap-joining-demo-aws-api-ecs",
+    version in Docker := "1.0"
   )
 
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)

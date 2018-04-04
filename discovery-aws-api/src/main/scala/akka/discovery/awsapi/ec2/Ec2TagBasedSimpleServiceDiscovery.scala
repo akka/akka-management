@@ -45,8 +45,6 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
       .withFilters(runningInstancesFilter)
       .withFilters(otherFilters)
 
-    implicit val timeout = resolveTimeout
-
     import system.dispatcher
 
     // pretty quick call on EC2, not worried about blocking

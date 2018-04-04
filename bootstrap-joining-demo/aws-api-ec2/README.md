@@ -10,10 +10,6 @@ Examine the source code
 Examine the source code. See how simple it is: there is no hardcoding
 of seed node IPs or host names in the application.conf file.
 
-Examine the source code
------------------------
-Examine the source code. See how simple it is: there is no hardcoding
-of seed node IPs or host names in the application.conf file.
 
 Step 1: Launch Instances
 ------------------------
