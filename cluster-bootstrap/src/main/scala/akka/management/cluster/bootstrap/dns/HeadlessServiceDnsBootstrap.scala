@@ -272,7 +272,7 @@ private[akka] final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDi
           .decide(info)
           .recover {
             case e =>
-              log.error(e, "Join decision failed: {}", e.getMessage)
+              log.error(e, "Join decision failed: {}", e)
               KeepProbing
           }
           .foreach(self ! _)
