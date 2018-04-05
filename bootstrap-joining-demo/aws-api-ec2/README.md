@@ -4,10 +4,6 @@ Your Akka Cluster on Vanilla EC2 using Tag Based Discovery
 Note: these steps can be easily automated via CloudFormation or 
 Python / shell scripts etc. In fact, a simple CloudFormation script is provided [here](src/main/resources/CloudFormation).  
 
-Examine the source code
------------------------
-Examine the source code. See how simple it is: there is no hardcoding
-of seed node IPs or host names in the application.conf file.
 
 Step 1: Launch Instances
 ------------------------

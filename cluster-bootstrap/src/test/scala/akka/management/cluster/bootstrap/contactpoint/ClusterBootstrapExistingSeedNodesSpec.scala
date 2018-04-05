@@ -146,7 +146,7 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
       try TestKit.shutdownActorSystem(systemA, 3.seconds)
       finally try TestKit.shutdownActorSystem(systemB, 3.seconds)
       finally try TestKit.shutdownActorSystem(systemNein, 3.seconds)
-      finally try MockDiscovery.remove(s"${systemName.toLowerCase(Locale.ROOT)}.svc.cluster.local")
+      finally MockDiscovery.remove(s"${systemName.toLowerCase(Locale.ROOT)}.svc.cluster.local")
     }
 
   }

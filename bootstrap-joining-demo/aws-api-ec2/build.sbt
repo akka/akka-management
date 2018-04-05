@@ -1,9 +1,13 @@
 enablePlugins(JavaAppPackaging)
+name := "bootstrap-joining-demo-aws-api-ec2"
 
-packageName in Universal := "app" // should produce app.zip
+version := "1.0"
 
-libraryDependencies += "com.amazonaws" % "aws-java-sdk-cloudformation" % "1.11.271" % IntegrationTest
+scalaVersion := "2.12.4"
 
-libraryDependencies += "com.amazonaws" % "aws-java-sdk-autoscaling" % "1.11.271" % IntegrationTest
+libraryDependencies += "com.lightbend.akka.management" % "akka-management-cluster-bootstrap_2.12" % "0.8.0"
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % IntegrationTest
+libraryDependencies += "com.lightbend.akka.management" % "akka-management-cluster-http_2.12" % "0.8.0"
+
+libraryDependencies += "com.lightbend.akka.discovery" % "akka-discovery-aws-api_2.12" % "0.8.0"
+

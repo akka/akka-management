@@ -57,9 +57,10 @@ private[bootstrap] object HeadlessServiceDnsBootstrap {
       val bootstrap = ClusterBootstrap(system)
 
       // we KNOW this await is safe, since we set the value before we bind the HTTP things even
-      val selfContactPoint = Try(Await.result(bootstrap.selfContactPoint, 10.second)).getOrElse(throw new Exception(
-            "Bootstrap.selfContactPoint was NOT set! This is required for the bootstrap to work! " +
-            "If binding bootstrap routes manually and not via akka-management"))
+      val selfContactPoint =
+        Try(Await.result(bootstrap.selfContactPoint, 10.second)).getOrElse(throw new IllegalStateException(
+              "Bootstrap.selfContactPoint was NOT set! This is required for the bootstrap to work! " +
+              "If binding bootstrap routes manually and not via akka-management"))
 
       // we check if a contact point is "us", by comparing host and port that we've bound to
       def lowestContactPointIsSelfManagement(lowest: ResolvedTarget): Boolean =
@@ -147,7 +148,7 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
       val serviceName = settings.contactPointDiscovery.effectiveName(context.system)
 
       log.info("Locating service members; Lookup: {}", serviceName)
-      discovery.lookup(serviceName, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
+      lookup(serviceName)
 
       context become bootstraping(serviceName, sender())
   }
@@ -155,14 +156,14 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
   /** In process of searching for seed-nodes */
   def bootstraping(serviceName: String, replyTo: ActorRef): Receive = {
     case Internal.AttemptResolve(name) ⇒
-      discovery.lookup(name, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
+      lookup(name)
 
     case SimpleServiceDiscovery.Resolved(name, contactPoints) ⇒
       onContactPointsResolved(name, contactPoints)
 
     case ex: Failure ⇒
       log.warning("Resolve attempt failed! Cause: {}", ex.cause)
-      scheduleNextResolve(serviceName, settings.contactPointDiscovery.interval)
+      scheduleNextResolve(serviceName)
 
     case ObtainedHttpSeedNodesObservation(infoFromAddress, observedSeedNodes) ⇒
       log.info("Contact point [{}] returned [{}] seed-nodes [{}], initiating cluster joining...", infoFromAddress,
@@ -183,10 +184,13 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
 
       onNoSeedNodesObtainedWithinStableDeadline(contactPoint)
 
-    case ProbingFailed(ex) =>
+    case ProbingFailed(_) =>
       log.info("Received signal that probing has failed, scheduling contact point re-discovery")
-      scheduleNextResolve(serviceName, settings.contactPointDiscovery.interval)
+      scheduleNextResolve(serviceName)
   }
+
+  private def lookup(serviceName: String): Unit =
+    discovery.lookup(serviceName, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
 
   private def onContactPointsResolved(serviceName: String, contactPoints: immutable.Seq[ResolvedTarget]): Unit = {
     val newObservation = DnsServiceContactsObservation(timeNow(), contactPoints.toList)
@@ -204,7 +208,7 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
       observation.observedContactPoints.size, settings.contactPointDiscovery.requiredContactPointsNr,
       PrettyDuration.format(settings.contactPointDiscovery.interval))
 
-    scheduleNextResolve(serviceName, settings.contactPointDiscovery.interval)
+    scheduleNextResolve(serviceName)
   }
 
   private def onSufficientContactPointsDiscovered(serviceName: String,
@@ -280,8 +284,9 @@ final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery, setti
       }
   }
 
-  private def scheduleNextResolve(serviceName: String, interval: FiniteDuration): Unit =
-    timers.startSingleTimer(TimerKeyResolveDNS, Internal.AttemptResolve(serviceName), interval)
+  private def scheduleNextResolve(serviceName: String): Unit =
+    timers.startSingleTimer(TimerKeyResolveDNS, Internal.AttemptResolve(serviceName),
+      settings.contactPointDiscovery.interval)
 
   protected def timeNow(): Long =
     System.currentTimeMillis()

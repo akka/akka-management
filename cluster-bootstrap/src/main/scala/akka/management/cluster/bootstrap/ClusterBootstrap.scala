@@ -5,31 +5,34 @@ package akka.management.cluster.bootstrap
 
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
+import scala.concurrent.duration._
+import scala.concurrent.Future
+import scala.concurrent.Promise
+
+import akka.actor.ActorSystem
+import akka.actor.ExtendedActorSystem
+import akka.actor.Extension
+import akka.actor.ExtensionId
+import akka.actor.ExtensionIdProvider
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
 import akka.discovery.ServiceDiscovery
+import akka.discovery.SimpleServiceDiscovery
 import akka.event.Logging
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
 import akka.management.cluster.bootstrap.dns.HeadlessServiceDnsBootstrap
-import akka.management.http.{ ManagementRouteProvider, ManagementRouteProviderSettings }
+import akka.management.http.ManagementRouteProvider
+import akka.management.http.ManagementRouteProviderSettings
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-
-import scala.concurrent.{ Future, Promise }
-import scala.concurrent.duration._
-import scala.util.{ Failure, Success }
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
   import ClusterBootstrap._
   import system.dispatcher
-
-  private implicit val mat = ActorMaterializer()(system)
 
   private val log = Logging(system, classOf[ClusterBootstrap])
 
@@ -80,9 +83,8 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
       val bootstrapCompleted = (bootstrap ? HeadlessServiceDnsBootstrap.Protocol.InitiateBootstraping).mapTo[
           HeadlessServiceDnsBootstrap.Protocol.BootstrapingCompleted]
 
-      bootstrapCompleted.onComplete {
-        case Success(_) ⇒ // ignore, all's fine
-        case Failure(_) ⇒ log.warning("Failed to complete bootstrap within {}!", bootTimeout)
+      bootstrapCompleted.failed.foreach { _ =>
+        log.warning("Failed to complete bootstrap within {}!", bootTimeout)
       }
     } else log.warning("Bootstrap already initiated, yet start() method was called again. Ignoring.")
 
@@ -97,11 +99,11 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
    * @return true if successfully set, false otherwise (i.e. was set already)
    */
   @InternalApi
-  def setSelfContactPoint(baseUri: Uri): Unit =
+  private[akka] def setSelfContactPoint(baseUri: Uri): Unit =
     _selfContactPointUri.success(baseUri)
 
   /** INTERNAL API */
-  private[akka] def selfContactPoint: Future[Uri] =
+  @InternalApi private[akka] def selfContactPoint: Future[Uri] =
     _selfContactPointUri.future
 
 }

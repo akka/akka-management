@@ -4,24 +4,16 @@
 package akka.discovery
 
 import akka.actor._
-import akka.event.Logging
-import com.typesafe.config.Config
 
 final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Extension {
-  private val log = Logging(system, getClass)
-
-  private implicit class HasDefined(val config: Config) {
-    def hasDefined(key: String): Boolean =
-      config.hasPath(key) &&
-      config.getString(key).trim.nonEmpty &&
-      config.getString(key) != s"<$key>"
-  }
 
   private lazy val _simpleImplMethod =
     system.settings.config.getString("akka.discovery.method") match {
       case "<method>" ⇒
-        throw new IllegalArgumentException("No default service discovery implementation configured in " +
-          "`akka.discovery.method`. Make sure to configure this setting to your preferred implementation such as 'akka-dns' in your application.conf (from the akka-discovery-dns module).")
+        throw new IllegalArgumentException(
+            "No default service discovery implementation configured in " +
+            "`akka.discovery.method`. Make sure to configure this setting to your preferred implementation such as " +
+            "'akka-dns' in your application.conf (from the akka-discovery-dns module).")
       case method ⇒ method
     }
 
@@ -58,8 +50,8 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
     i.getOrElse(
       throw new IllegalArgumentException(
           s"Illegal `akka.discovery.method` value '${_simpleImplMethod}' or incompatible class! " +
-          "The implementation class MUST extend akka.discovery.SimpleServiceDiscovery and take an ExtendedActorSystem as constructor argument.",
-          i.failed.get)
+          "The implementation class MUST extend akka.discovery.SimpleServiceDiscovery and take an " +
+          "ExtendedActorSystem as constructor argument.", i.failed.get)
     )
   }
 
