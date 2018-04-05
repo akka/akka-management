@@ -132,7 +132,7 @@ lazy val `bootstrap-joining-demo-kubernetes-api` = project
 
 
 lazy val `bootstrap-joining-demo-aws-api-ec2-tag-based` = project
-    .in(file("bootstrap-joining-demo/aws-api/ec2-tag-based"))
+    .in(file("bootstrap-joining-demo/aws-api-ec2"))
     .configs(IntegrationTest)
     .enablePlugins(NoPublish)
     .disablePlugins(BintrayPlugin)
