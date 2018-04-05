@@ -26,7 +26,6 @@ import akka.management.cluster.bootstrap.dns.HeadlessServiceDnsBootstrap
 import akka.management.http.ManagementRouteProvider
 import akka.management.http.ManagementRouteProviderSettings
 import akka.pattern.ask
-import akka.stream.ActorMaterializer
 import akka.util.Timeout
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
