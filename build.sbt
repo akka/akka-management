@@ -142,7 +142,6 @@ lazy val `bootstrap-joining-demo-kubernetes-api` = project
     `akka-discovery-kubernetes-api`
   )
 
-
 lazy val `bootstrap-joining-demo-aws-api-ec2-tag-based` = project
     .in(file("bootstrap-joining-demo/aws-api-ec2"))
     .configs(IntegrationTest)
