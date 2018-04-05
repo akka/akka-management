@@ -9,11 +9,13 @@ object Dependencies {
   val JUnitVersion = "4.12"
   val SprayJsonVersion = "1.3.3"
 
+  lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.1"
+
   // val akkaDns = "2.4.2" // external lib
 
   val Common = Seq(
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.1" % Test // ApacheV2
+      scalatest % "test" // ApacheV2
     )
   )
 
@@ -71,6 +73,11 @@ object Dependencies {
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
       DependencyGroups.AkkaHttp
+  )
+
+  val BootstrapJoiningDemoKubernetesApi = Seq(
+    libraryDependencies ++=
+      Seq(Dependencies.scalatest % "it") ++ Seq("io.kubernetes" % "client-java" % "0.2" % "it") // ApacheV2
   )
 
   val DiscoveryMarathonApi = Seq(

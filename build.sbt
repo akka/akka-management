@@ -125,6 +125,7 @@ lazy val `cluster-bootstrap` = project
 // demo of the bootstrap
 lazy val `bootstrap-joining-demo-kubernetes-api` = project
   .in(file("bootstrap-joining-demo/kubernetes-api"))
+  .configs(IntegrationTest)
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
@@ -132,7 +133,9 @@ lazy val `bootstrap-joining-demo-kubernetes-api` = project
     name := "akka-management-bootstrap-joining-demo-kubernetes-api",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true
+    whitesourceIgnore := true,
+    Defaults.itSettings,
+    Dependencies.BootstrapJoiningDemoKubernetesApi
   ).dependsOn(
     `akka-management`,
     `cluster-http`,
