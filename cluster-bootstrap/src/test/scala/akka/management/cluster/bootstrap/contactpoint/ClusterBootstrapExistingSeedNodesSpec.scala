@@ -76,10 +76,8 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
                 discovery-method = akka.mock-dns
 
                 service-namespace = "svc.cluster.local"
-              }
 
-              contact-point {
-                no-seeds-stable-margin = 4 seconds
+                stable-margin = 4 seconds
               }
             }
           }

@@ -26,7 +26,6 @@ import akka.management.cluster.bootstrap.dns.HeadlessServiceDnsBootstrap
 import akka.management.http.ManagementRouteProvider
 import akka.management.http.ManagementRouteProviderSettings
 import akka.pattern.ask
-import akka.stream.ActorMaterializer
 import akka.util.Timeout
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
@@ -56,6 +55,13 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
           .get
     }
 
+  private val joinDecider: JoinDecider = {
+    system.dynamicAccess
+      .createInstanceFor[JoinDecider](settings.joinDecider.implClass,
+        List((classOf[ActorSystem], system), (classOf[ClusterBootstrapSettings], settings)))
+      .get
+  }
+
   private[this] val _selfContactPointUri: Promise[Uri] = Promise()
 
   override def routes(routeProviderSettings: ManagementRouteProviderSettings): Route = {
@@ -74,14 +80,13 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     } else if (bootstrapStep.compareAndSet(NotRunning, Initializing)) {
       log.info("Initiating bootstrap procedure using {} method...", settings.contactPointDiscovery.discoveryMethod)
 
-      // TODO this could be configured as well, depending on how we want to bootstrap
-      val bootstrapProps = HeadlessServiceDnsBootstrap.props(discovery, settings)
+      val bootstrapProps = HeadlessServiceDnsBootstrap.props(discovery, joinDecider, settings)
       val bootstrap = system.systemActorOf(bootstrapProps, "headlessServiceDnsBootstrap")
 
       // the boot timeout not really meant to be exceeded
       implicit val bootTimeout: Timeout = Timeout(1.day)
-      val bootstrapCompleted = (bootstrap ? HeadlessServiceDnsBootstrap.Protocol.InitiateBootstraping).mapTo[
-          HeadlessServiceDnsBootstrap.Protocol.BootstrapingCompleted]
+      val bootstrapCompleted = (bootstrap ? HeadlessServiceDnsBootstrap.Protocol.InitiateBootstrapping).mapTo[
+          HeadlessServiceDnsBootstrap.Protocol.BootstrappingCompleted]
 
       bootstrapCompleted.failed.foreach { _ =>
         log.warning("Failed to complete bootstrap within {}!", bootTimeout)
