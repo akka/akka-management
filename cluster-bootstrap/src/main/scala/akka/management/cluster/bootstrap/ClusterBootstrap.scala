@@ -22,7 +22,7 @@ import akka.event.Logging
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
-import akka.management.cluster.bootstrap.dns.HeadlessServiceDnsBootstrap
+import akka.management.cluster.bootstrap.internal.BootstrapCoordinator
 import akka.management.http.ManagementRouteProvider
 import akka.management.http.ManagementRouteProviderSettings
 import akka.pattern.ask
@@ -80,13 +80,13 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     } else if (bootstrapStep.compareAndSet(NotRunning, Initializing)) {
       log.info("Initiating bootstrap procedure using {} method...", settings.contactPointDiscovery.discoveryMethod)
 
-      val bootstrapProps = HeadlessServiceDnsBootstrap.props(discovery, joinDecider, settings)
-      val bootstrap = system.systemActorOf(bootstrapProps, "headlessServiceDnsBootstrap")
+      val bootstrapProps = BootstrapCoordinator.props(discovery, joinDecider, settings)
+      val bootstrap = system.systemActorOf(bootstrapProps, "bootstrapCoordinator")
 
       // the boot timeout not really meant to be exceeded
       implicit val bootTimeout: Timeout = Timeout(1.day)
-      val bootstrapCompleted = (bootstrap ? HeadlessServiceDnsBootstrap.Protocol.InitiateBootstrapping).mapTo[
-          HeadlessServiceDnsBootstrap.Protocol.BootstrappingCompleted]
+      val bootstrapCompleted = (bootstrap ? BootstrapCoordinator.Protocol.InitiateBootstrapping).mapTo[
+          BootstrapCoordinator.Protocol.BootstrappingCompleted]
 
       bootstrapCompleted.failed.foreach { _ =>
         log.warning("Failed to complete bootstrap within {}!", bootTimeout)

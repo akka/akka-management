@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-package akka.management.cluster.bootstrap.dns
+package akka.management.cluster.bootstrap.internal
 
 import java.time.Duration
 import java.time.LocalDateTime
@@ -33,10 +33,10 @@ import akka.pattern.pipe
 
 /** INTERNAL API */
 @InternalApi
-private[akka] object HeadlessServiceDnsBootstrap {
+private[akka] object BootstrapCoordinator {
 
   def props(discovery: SimpleServiceDiscovery, joinDecider: JoinDecider, settings: ClusterBootstrapSettings): Props =
-    Props(new HeadlessServiceDnsBootstrap(discovery, joinDecider, settings))
+    Props(new BootstrapCoordinator(discovery, joinDecider, settings))
 
   object Protocol {
     final case object InitiateBootstrapping
@@ -56,8 +56,8 @@ private[akka] object HeadlessServiceDnsBootstrap {
   private case object ResolveTick extends DeadLetterSuppression
   private case object DecideTick extends DeadLetterSuppression
 
-  protected[dns] final case class DnsServiceContactsObservation(observedAt: LocalDateTime,
-                                                                observedContactPoints: Set[ResolvedTarget]) {
+  protected[bootstrap] final case class DnsServiceContactsObservation(observedAt: LocalDateTime,
+                                                                      observedContactPoints: Set[ResolvedTarget]) {
 
     def membersChanged(other: DnsServiceContactsObservation): Boolean =
       this.observedContactPoints != other.observedContactPoints
@@ -92,18 +92,16 @@ private[akka] object HeadlessServiceDnsBootstrap {
 // also known as the "Baron von Bootstrappen"
 /** INTERNAL API */
 @InternalApi
-private[akka] final class HeadlessServiceDnsBootstrap(discovery: SimpleServiceDiscovery,
-                                                      joinDecider: JoinDecider,
-                                                      settings: ClusterBootstrapSettings)
+private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery,
+                                               joinDecider: JoinDecider,
+                                               settings: ClusterBootstrapSettings)
     extends Actor
     with ActorLogging
     with Timers {
 
-  import HeadlessServiceDnsBootstrap.Protocol._
-  import HeadlessServiceDnsBootstrap._
+  import BootstrapCoordinator.Protocol._
+  import BootstrapCoordinator._
   import context.dispatcher
-
-  // FIXME move/rename these classes, doesn't have to be DNS
 
   private val cluster = Cluster(context.system)
 

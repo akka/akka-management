@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
-package akka.management.cluster.bootstrap.dns
+package akka.management.cluster.bootstrap.internal
 
 import java.time.LocalDateTime
 import java.util.concurrent.ThreadLocalRandom
@@ -16,7 +16,6 @@ import akka.actor.DeadLetterSuppression
 import akka.actor.Props
 import akka.actor.Status
 import akka.actor.Timers
-import akka.pattern.after
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
@@ -27,11 +26,12 @@ import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.contactpoint.ClusterBootstrapRequests
 import akka.management.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol
 import akka.management.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol.SeedNodes
+import akka.pattern.after
 import akka.pattern.pipe
 import akka.stream.ActorMaterializer
 
 @InternalApi
-private[dns] object HttpContactPointBootstrap {
+private[bootstrap] object HttpContactPointBootstrap {
 
   def props(settings: ClusterBootstrapSettings, contactPoint: ResolvedTarget, baseUri: Uri): Props =
     Props(new HttpContactPointBootstrap(settings, contactPoint, baseUri))
@@ -49,7 +49,7 @@ private[dns] object HttpContactPointBootstrap {
  * that we should join, or even coordinate rolling upgrades or more advanced patterns.
  */
 @InternalApi
-private[dns] class HttpContactPointBootstrap(
+private[bootstrap] class HttpContactPointBootstrap(
     settings: ClusterBootstrapSettings,
     contactPoint: ResolvedTarget,
     baseUri: Uri
@@ -109,7 +109,7 @@ private[dns] class HttpContactPointBootstrap(
       log.error("Probing [{}] failed due to: {}", probeRequest.uri, cause.getMessage)
       if (probingKeepFailingDeadline.isOverdue()) {
         log.error("Overdue of probing-failure-timeout, stop probing, signaling that it's failed")
-        context.parent ! HeadlessServiceDnsBootstrap.Protocol.ProbingFailed(contactPoint, cause)
+        context.parent ! BootstrapCoordinator.Protocol.ProbingFailed(contactPoint, cause)
         context.stop(self)
       } else {
         // keep probing, hoping the request will eventually succeed
@@ -126,7 +126,7 @@ private[dns] class HttpContactPointBootstrap(
 
   private def notifyParentAboutSeedNodes(members: SeedNodes): Unit = {
     val seedAddresses = members.seedNodes.map(_.node)
-    context.parent ! HeadlessServiceDnsBootstrap.Protocol.ObtainedHttpSeedNodesObservation(timeNow(), contactPoint,
+    context.parent ! BootstrapCoordinator.Protocol.ObtainedHttpSeedNodesObservation(timeNow(), contactPoint,
       members.selfNode, seedAddresses)
   }
 
