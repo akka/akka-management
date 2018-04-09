@@ -1,5 +1,13 @@
-/.idea
-target
+credentials.sh
+.DS_Store
 
-*.orig
-**/.idea
+target/
+
+*.iml
+*.ipr
+*.iws
+.idea
+
+*.class
+*.log
+

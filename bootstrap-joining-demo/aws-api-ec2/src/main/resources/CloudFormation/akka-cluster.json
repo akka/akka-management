@@ -1,6 +1,10 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Parameters": {
+    "Build": {
+      "Description": "URL of zip file obtained from running sbt universal:packageBin",
+      "Type": "String"
+    },
     "SSHLocation": {
       "Description": "The IP address range that can be used to SSH to the EC2 instances",
       "Type": "String",
@@ -19,34 +23,38 @@
       "ConstraintDescription": "Must be a number between 2 and 50"
     },
     "InstanceType": {
-      "Description": "Instance type to launch EC2 instances.",
+      "Description": "Instance type",
       "Type": "String",
-      "Default": "t2.medium",
+      "Default": "m3.xlarge",
       "AllowedValues": [
-        "t2.medium",
-        "t2.large"
+        "m3.medium", "m3.xlarge", "m3.2xlarge"
       ]
     },
     "KeyPair": {
-      "Description": "Key Pair (for SSH access)",
-      "Type": "AWS::EC2::KeyPair::KeyName",
-      "AllowedPattern": ".+"
+      "Description": "Key Pair (for SSH access). Use 'none' to disable SSH access.",
+      "Type": "String"
+    },
+    "Purpose" : {
+      "Description": "Purpose tag (i.e. development, staging, production, demo)",
+      "Type": "String",
+      "Default": "demo"
     }
+  },
+  "Conditions": {
+    "HasKeyPair": {"Fn::Not": [{"Fn::Equals": ["none", {"Ref": "KeyPair"}]}]}
   },
   "Resources": {
     "LaunchConfiguration": {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
-        "ImageId": "ami-33e3c856",
+        "ImageId": "ami-97785bed",
         "IamInstanceProfile": {
           "Ref": "IAMInstanceProfile"
         },
         "InstanceType": {
           "Ref": "InstanceType"
         },
-        "KeyName": {
-          "Ref": "KeyPair"
-        },
+        "KeyName": {"Fn::If": ["HasKeyPair", {"Ref": "KeyPair"}, {"Ref": "AWS::NoValue"}]},
         "SecurityGroups": [
           {
             "Ref": "AkkaClusterSecurityGroup"
@@ -54,7 +62,17 @@
         ],
         "UserData": {
           "Fn::Base64": {
-            "Fn::Sub": "#!/bin/bash -xe\ncurl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo\nsudo yum -y install sbt\nsudo yum -y install git\ngit clone https://github.com/akka/akka-management.git\ncd akka-management/bootstrap-joining-demo/aws-api/\nsbt compile\nMY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`\nsbt run -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP &\n"
+            "Fn::Join": ["", ["#!/bin/bash -xe\n",
+              "sudo yum install -y java-1.8.0\n",
+              "sudo yum remove -y java-1.7.0-openjdk\n",
+              "wget ", {"Ref": "Build"}, "\n",
+              "export PURPOSE=", {"Ref": "Purpose"}, "\n",
+              "unzip app.zip\n",
+              "cd app\n",
+              "cd bin\n",
+              "MY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`\n",
+              "./akka-management-bootstrap-joining-demo-aws-api-ec2-tag-based -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP &"
+            ]]
           }
         }
       }
@@ -81,6 +99,11 @@
           {
             "Key": "service",
             "Value": "products-api",
+            "PropagateAtLaunch": true
+          },
+          {
+            "Key": "purpose",
+            "Value": {"Ref": "Purpose"},
             "PropagateAtLaunch": true
           }
         ]
@@ -169,6 +192,18 @@
         }
       }
     },
+    "AkkaClusterSecurityGroupIngressForOutsiders19999": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {
+          "Ref": "AkkaClusterSecurityGroup"
+        },
+        "IpProtocol": "tcp",
+        "FromPort": 19999,
+        "ToPort": 19999,
+        "CidrIp": {"Ref": "SSHLocation"}
+      }
+    },
     "AkkaClusterSecurityGroupIngressForPeers19999": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
@@ -182,6 +217,14 @@
           "Ref": "AkkaClusterSecurityGroup"
         }
       }
+    }
+  },
+  "Outputs" : {
+    "AutoScalingGroupName": {
+      "Value": {
+        "Ref": "AkkaAutoScalingGroup"
+      },
+      "Description": "ASG name"
     }
   }
 }

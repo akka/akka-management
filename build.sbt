@@ -13,6 +13,7 @@ lazy val `akka-management-root` = project
     `akka-discovery-marathon-api`,
     `akka-discovery-aws-api`,
     `akka-management`,
+    `bootstrap-joining-demo-aws-api-ec2-tag-based`,
     `cluster-http`,
     `cluster-bootstrap`,
     docs)
@@ -118,7 +119,7 @@ lazy val `cluster-bootstrap` = project
   )
   .dependsOn(`akka-management`, `akka-discovery`)
 
-// TODO I was thinking about introducing a module called akka-management-cluster-bootstrap-dns which does not do anything,
+// TODO: I was thinking about introducing a module called akka-management-cluster-bootstrap-dns which does not do anything,
 // except pull together the 2 modules of cluster bootstrap and akka discovery dns so it's only 1 dependency you need to pick.
 // I was thinking it would be nice to have "hello world bootstrap in the smallest number of steps" so that would reduce 2 deps into 1.
 
@@ -139,6 +140,25 @@ lazy val `bootstrap-joining-demo-kubernetes-api` = project
     `akka-discovery-dns`,
     `cluster-bootstrap`,
     `akka-discovery-kubernetes-api`
+  )
+
+lazy val `bootstrap-joining-demo-aws-api-ec2-tag-based` = project
+    .in(file("bootstrap-joining-demo/aws-api-ec2"))
+    .configs(IntegrationTest)
+    .enablePlugins(NoPublish)
+    .disablePlugins(BintrayPlugin)
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(
+      name := "akka-management-bootstrap-joining-demo-aws-api-ec2-tag-based",
+      skip in publish := true,
+      whitesourceIgnore := true,
+      sources in doc := Seq.empty,
+      Defaults.itSettings
+    ).dependsOn(
+      `akka-management`,
+      `cluster-http`,
+      `akka-discovery-aws-api`,
+      `cluster-bootstrap`
   )
 
 lazy val `bootstrap-joining-demo-marathon-api-docker` = project

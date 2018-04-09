@@ -2,22 +2,15 @@ Your Akka Cluster on Vanilla EC2 using Tag Based Discovery
 ==========================================================
 
 Note: these steps can be easily automated via CloudFormation or 
-Python / shell scripts etc. In fact, a simple CloudFormation script is provided
-[here](CloudFormation).  
-
-Examine the source code
------------------------
-Examine the source code. See how simple it is: there is no hardcoding
-of seed node IPs or host names in the application.conf file.
+Python / shell scripts etc. In fact, a simple CloudFormation script is provided [here](src/main/resources/CloudFormation).  
 
 
 Step 1: Launch Instances
 ------------------------
 
-From the AWS Management Console, provision a few EC2 instances (you'll need at least 2). Recommended image: Ubuntu Server 16.04 
-(AMI ID: ami-26ebbc5c). As for the instance type, this demo app runs fine even on t1.micro instances. As for the security group, 
+From the AWS Management Console, provision a few EC2 instances (you'll need at least 2). Recommended image: Ubuntu Server 16.04. As for the instance type, this demo app runs fine even on t1.micro instances. As for the security group, 
 for now, just select the default one and make sure you allow yourself ssh access to your instances. Once the instances are ready, 
-ssh into them - you'll need to install Java 8. You can use this [guide](https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-get-on-ubuntu-16-04).
+ssh into them - you may need to install Java 8 ( you can use this [guide](https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-get-on-ubuntu-16-04)).
 
 
 Step 2: Create IAM Role
@@ -65,21 +58,24 @@ Step 6: Package the App
 Compile and package the demo app.
 
 ```
-$ cd bootstrap-joining-demo
-$ cd aws-api
+$ cd akka-management 
 $ sbt
+> project bootstrap-joining-demo-aws-api-ec2-tag-based
 > universal:packageBin
 ```
 
-Now, in the `bootstrap-joining-demo/aws-api/target/universal` folder, you should have a
-`bootstrap-joining-demo-aws-api-1.0.zip` file. 
+Now, in the `bootstrap-joining-demo/aws-api-ec2/target/universal` folder, you should have a
+`app.zip` file. 
 
 Step 7: Tag Instances
 ---------------------
 
-Tag your instances with tag "service" -> "products-api".
+Tag your instances with tag "service" -> "products-api". 
+The demo app is configured (via the "akka.discovery.aws-api-ec2-tag-based.filters" key, see the application.conf file) 
+to require an additional tag "purpose" -> "demo". 
 
 ![tagging instances](screenshots/discovery-aws-ec2-tagged-instances.png)
+
 
 
 Step 8: Run and validate the cluster !
@@ -89,10 +85,10 @@ Transfer (via scp, for example) the package zip file to your EC2 instances.
 Unzip the package and run the app like this on each instance:
 
 ```
-$ unzip bootstrap-joining-demo-aws-api-1.0.zip
-$ cd bootstrap-joining-demo-aws-api-1.0/bin
+$ unzip app.zip
+$ cd app/bin
 $ MY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`
-$ ./bootstrap-joining-demo-aws-api -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP
+$ ./akka-management-bootstrap-joining-demo-aws-api-ec2-tag-based -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP
 ```
 
 Follow the logs and watch for signs of successful cluster formation (e.g., a welcome message from one of the nodes). 
