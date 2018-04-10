@@ -265,13 +265,13 @@ And in your `marathon.json`:
 
 If you're using EC2 directly _or_ you're using ECS with host mode networking
 _and_ you're deploying one container per cluster member, continue to
-@ref:['Discovery Method: AWS API - EC2 Tag-Based Discovery](discovery.md#discovery-method:-aws-api---ec2-tag-based-discovery)
+@ref:[Discovery Method: AWS API - EC2 Tag-Based Discovery](discovery.md#discovery-method-aws-api-ec2-tag-based-discovery).
 
 If you're using ECS with
 [awsvpcs](https://aws.amazon.com/blogs/compute/introducing-cloud-native-networking-for-ecs-containers/)
 mode networking (whether on EC2 or with
 [Fargate](https://aws.amazon.com/fargate/)), continue to
-@ref:['Discovery Method: AWS API - ECS Discovery](discovery.md#discovery-method:-aws-api---ecs-discovery)
+@ref:[Discovery Method: AWS API - ECS Discovery](discovery.md#discovery-method-aws-api-ecs-discovery).
 
 ECS with bridge mode networking is not supported.
 
