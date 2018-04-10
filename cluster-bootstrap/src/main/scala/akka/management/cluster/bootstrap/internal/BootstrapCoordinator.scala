@@ -121,8 +121,8 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
   /** Awaiting initial signal to start the bootstrap process */
   override def receive: Receive = {
     case InitiateBootstrapping ⇒
-      log.info("Locating service members; Lookup [{}]. Using discovery [{}], join decider [{}]", serviceName,
-        discovery.getClass.getName, joinDecider.getClass.getName)
+      log.info("Locating service members. Using discovery [{}], join decider [{}]", discovery.getClass.getName,
+        joinDecider.getClass.getName)
       lookup()
 
       context become bootstrapping(sender())
@@ -135,6 +135,7 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
 
     case SimpleServiceDiscovery.Resolved(name, contactPoints) ⇒
       serviceName = name
+      log.info("Located service members with name: [{}].", serviceName)
       onContactPointsResolved(contactPoints)
 
     case ex: Failure ⇒
