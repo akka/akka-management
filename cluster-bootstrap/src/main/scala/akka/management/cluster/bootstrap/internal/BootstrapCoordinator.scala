@@ -135,7 +135,7 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
 
     case SimpleServiceDiscovery.Resolved(name, contactPoints) ⇒
       serviceName = name
-      log.info("Located service members with name: [{}].", serviceName)
+      log.info("Located service members with name: [{}]: [{}]", serviceName, contactPoints.mkString(", "))
       onContactPointsResolved(contactPoints)
 
     case ex: Failure ⇒
