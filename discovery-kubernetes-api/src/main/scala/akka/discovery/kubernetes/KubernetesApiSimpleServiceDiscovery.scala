@@ -90,7 +90,7 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
         unmarshalled
       }
 
-    } yield Resolved(name, targets(podList, settings.podPortName))
+    } yield Resolved(labelSelector, targets(podList, settings.podPortName))
 
   private def apiToken() =
     FileIO.fromPath(Paths.get(settings.apiTokenPath)).runFold("")(_ + _.utf8String).recover { case _: Throwable => "" }
