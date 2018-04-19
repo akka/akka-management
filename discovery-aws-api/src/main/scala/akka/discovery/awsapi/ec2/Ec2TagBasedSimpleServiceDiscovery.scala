@@ -46,7 +46,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     val otherFilters = parseFiltersString(otherFiltersString)
 
-    val allFilters: util.List[Filter] = (List(runningInstancesFilter, tagFilter) ::: otherFilters).asJava
+    val allFilters: util.List[Filter] = (runningInstancesFilter :: tagFilter :: otherFilters).asJava
 
     val request = new DescribeInstancesRequest().withFilters(allFilters) // withFilters is a set operation
 
