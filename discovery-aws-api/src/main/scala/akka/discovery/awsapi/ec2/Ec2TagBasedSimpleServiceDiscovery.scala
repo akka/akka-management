@@ -44,12 +44,11 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
     val otherFiltersString =
       system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based").getString("filters")
 
-    val otherFilters: util.List[Filter] = parseFiltersString(otherFiltersString).asJava
+    val otherFilters = parseFiltersString(otherFiltersString)
 
-    val request = new DescribeInstancesRequest()
-      .withFilters(runningInstancesFilter)
-      .withFilters(tagFilter)
-      .withFilters(otherFilters)
+    val allFilters: util.List[Filter] = (runningInstancesFilter :: tagFilter :: otherFilters).asJava
+
+    val request = new DescribeInstancesRequest().withFilters(allFilters) // withFilters is a set operation
 
     import system.dispatcher
 
