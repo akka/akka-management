@@ -40,7 +40,7 @@ You can do this manually via the web console by creating an ECR repository
 called `bootstrap-joining-demo-aws-api-ecs`, _or_ by running the included
 CloudFormation wrapper script:
 
-`./scripts/create-infrastucture.sh`
+`./scripts/deploy-infrastucture.sh create`
 
 
 # Step 3: Build and publish the Docker image
@@ -48,7 +48,7 @@ CloudFormation wrapper script:
 You can do so by running the provided script. We suggest you read the script
 before executing it, to understand what's happening inside:
 
-`./scripts/publish-application.sh`
+`./scripts/publish.sh`
 
 The script uses `docker:publishLocal` and then tags and pushes the image
 manually (in favour of just using `docker:publish` as might normally be done)
@@ -56,39 +56,14 @@ because this avoids the need to set `dockerRepository` within the SBT build
 (which would then require that we inject the AWS account ID into the build).
 
 
-# Step 4: Identify your subnet IDs
-
-The application stack configures the demo ECS service to launch with five task
-instances.
-
-Before you can create the cluster itself, you need to identify which subnets
-you want the task instances to be launched in.
-
-Go to the VPC service area of the AWS Management Console, then go to the
-Subnets tab. You can compare with the screenshot below as a guide to what
-you're looking for.
-
-![Identifying subnet IDs](screenshots/identify-subnet-ids.png)
-
-For the purposes of the demo we will assume you are using your default VPC (the
-one AWS creates for you automatically), though this need not be the case.
-
-Assign the IDs of the subnets that your VPC has to an environment variable for
-use in step five. You'll need them in the following format for CloudFormation:
-
-`SUBNETS=subnet-fd6f218a,subnet-2d73e606,subnet-9f2644c6,subnet-2c32b849,subnet-1eaa1512,subnet-a9e5dd93`
-
-(Do not use this literal value!)
-
-
-# Step 5: Create and validate the cluster
+# Step 4: Create and validate the cluster
 
 ## Create the cluster
 
 Again, the included wrapper script can be used for this (ultimately it
 just delegates to `aws cloudformation create-stack`):
 
-`./scripts/create-application.sh $SUBNETS`
+`./scripts/deploy.sh create`
 
 
 ## Watch it form
@@ -177,7 +152,7 @@ instance:
 ![Viewing log stream](screenshots/view-log-stream.png)
 
 
-# Step 6: Cleanup
+# Step 5: Cleanup
 
 With one exception, deletion of all the resources created by the demo can be
 achieved by telling CloudFormation to delete the two stacks.
