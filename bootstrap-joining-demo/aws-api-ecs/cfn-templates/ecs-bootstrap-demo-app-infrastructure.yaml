@@ -3,4 +3,4 @@ Resources:
   Repository:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: "bootstrap-joining-demo-aws-api-ecs"
+      RepositoryName: "ecs-bootstrap-demo-app"

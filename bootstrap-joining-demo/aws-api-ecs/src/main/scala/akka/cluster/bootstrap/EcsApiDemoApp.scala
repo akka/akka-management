@@ -30,7 +30,7 @@ object EcsApiDemoApp {
              |}
            """.stripMargin)
       )
-    val system = ActorSystem("bootstrap-joining-demo-aws-api-ecs", config)
+    val system = ActorSystem("ecsBootstrapDemoApp", config)
     AkkaManagement(system).start()
     ClusterBootstrap(system).start()
   }

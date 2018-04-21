@@ -22,9 +22,9 @@ esac
 
 aws cloudformation $ACTION-stack \
   --region us-east-1 \
-  --stack-name bootstrap-joining-demo-aws-api-ecs-infrastructure \
+  --stack-name ecs-bootstrap-demo-app-infrastructure \
   --template-body file://$DIR/../cfn-templates/ecs-bootstrap-demo-app-infrastructure.yaml
 
 aws cloudformation wait stack-$ACTION-complete \
   --region us-east-1 \
-  --stack-name bootstrap-joining-demo-aws-api-ecs-infrastructure
+  --stack-name ecs-bootstrap-demo-app-infrastructure

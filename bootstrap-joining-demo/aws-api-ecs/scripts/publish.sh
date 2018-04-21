@@ -26,8 +26,14 @@ AWS_ACCOUNT_ID=$(
 )
 
 docker tag \
-  bootstrap-joining-demo-aws-api-ecs:1.0 \
-  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/bootstrap-joining-demo-aws-api-ecs:1.0
+  ecs-bootstrap-demo-app:1.0 \
+  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-bootstrap-demo-app:1.0
 
 docker push \
-  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/bootstrap-joining-demo-aws-api-ecs:1.0
+  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-bootstrap-demo-app:1.0
+
+docker rmi \
+  ecs-bootstrap-demo-app:1.0
+
+docker rmi \
+  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-bootstrap-demo-app:1.0

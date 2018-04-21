@@ -87,51 +87,51 @@ When the cluster has fully formed you should see output like this:
 
 ```
 {
-    "leader": "akka.tcp://bootstrap-joining-demo-aws-api-ecs@172.31.20.48:2552",
+    "leader": "akka.tcp://ecsBootstrapDemoApp@172.31.0.248:2552",
     "members": [
         {
-            "node": "akka.tcp://bootstrap-joining-demo-aws-api-ecs@172.31.69.157:2552",
-            "nodeUid": "75824639",
+            "node": "akka.tcp://ecsBootstrapDemoApp@172.31.0.248:2552",
+            "nodeUid": "-801839214",
             "roles": [
                 "dc-default"
             ],
             "status": "Up"
         },
         {
-            "node": "akka.tcp://bootstrap-joining-demo-aws-api-ecs@172.31.92.117:2552",
-            "nodeUid": "1615766934",
+            "node": "akka.tcp://ecsBootstrapDemoApp@172.31.92.234:2552",
+            "nodeUid": "-1965866076",
             "roles": [
                 "dc-default"
             ],
             "status": "Up"
         },
         {
-            "node": "akka.tcp://bootstrap-joining-demo-aws-api-ecs@172.31.5.114:2552",
-            "nodeUid": "1027838693",
+            "node": "akka.tcp://ecsBootstrapDemoApp@172.31.41.181:2552",
+            "nodeUid": "1441500118",
             "roles": [
                 "dc-default"
             ],
             "status": "Up"
         },
         {
-            "node": "akka.tcp://bootstrap-joining-demo-aws-api-ecs@172.31.44.16:2552",
-            "nodeUid": "-104324792",
+            "node": "akka.tcp://ecsBootstrapDemoApp@172.31.58.83:2552",
+            "nodeUid": "443867006",
             "roles": [
                 "dc-default"
             ],
             "status": "Up"
         },
         {
-            "node": "akka.tcp://bootstrap-joining-demo-aws-api-ecs@172.31.20.48:2552",
-            "nodeUid": "1783337367",
+            "node": "akka.tcp://ecsBootstrapDemoApp@172.31.67.222:2552",
+            "nodeUid": "-17061216",
             "roles": [
                 "dc-default"
             ],
             "status": "Up"
         }
     ],
-    "oldest": "akka.tcp://bootstrap-joining-demo-aws-api-ecs@172.31.20.48:2552",
-    "selfNode": "akka.tcp://bootstrap-joining-demo-aws-api-ecs@172.31.92.117:2552",
+    "oldest": "akka.tcp://ecsBootstrapDemoApp@172.31.0.248:2552",
+    "selfNode": "akka.tcp://ecsBootstrapDemoApp@172.31.58.83:2552",
     "unreachable": []
 }
 ```
@@ -165,8 +165,3 @@ it's empty, so first go and delete the image in ECR:
 You can now delete the two stacks:
 
 ![Deleting stacks](screenshots/delete-stack.png)
-
-You'll probably also want to delete the Docker images from your local registry:
-
-1. `docker rmi 837036139524.dkr.ecr.us-east-1.amazonaws.com/bootstrap-joining-demo-aws-api-ecs:1.0`
-2. `docker rmi bootstrap-joining-demo-aws-api-ecs`

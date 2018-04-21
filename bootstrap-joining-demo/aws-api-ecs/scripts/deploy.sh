@@ -42,7 +42,7 @@ SUBNETS=$(
 
 aws cloudformation $ACTION-stack \
   --region us-east-1 \
-  --stack-name bootstrap-joining-demo-aws-api-ecs-application \
+  --stack-name ecs-bootstrap-demo-app \
   --template-body file://$DIR/../cfn-templates/ecs-bootstrap-demo-app.yaml \
   --capabilities CAPABILITY_IAM \
   --parameters \
@@ -50,4 +50,4 @@ aws cloudformation $ACTION-stack \
 
 aws cloudformation wait stack-$ACTION-complete \
   --region us-east-1 \
-  --stack-name bootstrap-joining-demo-aws-api-ecs-application
+  --stack-name ecs-bootstrap-demo-app
