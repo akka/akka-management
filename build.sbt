@@ -199,7 +199,7 @@ lazy val `bootstrap-joining-demo-aws-api-ecs` = project
   )
   .enablePlugins(JavaAppPackaging, AshScriptPlugin, DockerPlugin)
   .settings(
-    dockerBaseImage := "openjdk:8-jre-alpine",
+    dockerBaseImage := "openjdk:10-jre-slim",
     packageName in Docker := "bootstrap-joining-demo-aws-api-ecs",
     version in Docker := "1.0"
   )
