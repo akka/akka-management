@@ -22,9 +22,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class AsyncEcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
-  private[this] implicit val ec: ExecutionContext = system.dispatcher
+  private[this] val cluster = system.settings.config.getString("akka.discovery.aws-api-ecs-async.cluster")
 
   private[this] lazy val ecsClient = ECSAsyncClient.create()
+
+  private[this] implicit val ec: ExecutionContext = system.dispatcher
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
@@ -32,7 +34,7 @@ class AsyncEcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceD
         after(resolveTimeout, using = system.scheduler)(
           Future.failed(new TimeoutException("Future timed out!"))
         ),
-        resolveTasks(ecsClient, name).map(
+        resolveTasks(ecsClient, cluster, name).map(
           tasks =>
             Resolved(
               serviceName = name,
@@ -75,15 +77,16 @@ object AsyncEcsSimpleServiceDiscovery {
         Left(s"Exactly one private address must be configured (found: $other).")
     }
 
-  private def resolveTasks(ecsClient: ECSAsyncClient, serviceName: String)(
+  private def resolveTasks(ecsClient: ECSAsyncClient, cluster: String, serviceName: String)(
       implicit ec: ExecutionContext): Future[Seq[Task]] =
     for {
-      taskArns <- listTaskArns(ecsClient, serviceName)
-      task <- describeTasks(ecsClient, taskArns)
+      taskArns <- listTaskArns(ecsClient, cluster, serviceName)
+      task <- describeTasks(ecsClient, cluster, taskArns)
     } yield task
 
   private[this] def listTaskArns(
       ecsClient: ECSAsyncClient,
+      cluster: String,
       serviceName: String,
       pageTaken: Option[String] = None,
       accumulator: Seq[String] = Seq.empty)(implicit ec: ExecutionContext): Future[Seq[String]] =
@@ -92,6 +95,7 @@ object AsyncEcsSimpleServiceDiscovery {
         ecsClient.listTasks(
           ListTasksRequest
             .builder()
+            .cluster(cluster)
             .serviceName(serviceName)
             .nextToken(pageTaken.orNull)
             .desiredStatus(DesiredStatus.RUNNING)
@@ -106,6 +110,7 @@ object AsyncEcsSimpleServiceDiscovery {
         case nextPageToken =>
           listTaskArns(
             ecsClient,
+            cluster,
             serviceName,
             Some(nextPageToken),
             accumulatedTasksArns
@@ -113,7 +118,7 @@ object AsyncEcsSimpleServiceDiscovery {
       }
     } yield taskArns
 
-  private[this] def describeTasks(ecsClient: ECSAsyncClient, taskArns: Seq[String])(
+  private[this] def describeTasks(ecsClient: ECSAsyncClient, cluster: String, taskArns: Seq[String])(
       implicit ec: ExecutionContext): Future[Seq[Task]] =
     for {
       // Each DescribeTasksRequest can contain at most 100 task ARNs.
@@ -121,7 +126,7 @@ object AsyncEcsSimpleServiceDiscovery {
         taskArnGroup =>
           toScala(
             ecsClient.describeTasks(
-              DescribeTasksRequest.builder().tasks(taskArnGroup.asJava).build()
+              DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).build()
             )
         )
       )

@@ -3,6 +3,10 @@ Parameters:
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
 Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: "bootstrap-joining-demo-aws-api-ecs"
   CloudWatchLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -68,7 +72,8 @@ Resources:
           Environment:
             - Name: JAVA_OPTS
               Value: !Sub "-Dakka.management.cluster.bootstrap.\
-                contact-point-discovery.service-name=${AWS::StackName}"
+                contact-point-discovery.service-name=${AWS::StackName}
+                -Dakka.discovery.aws-api-ecs-async.cluster=bootstrap-joining-demo-aws-api-ecs"
   ServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -101,6 +106,7 @@ Resources:
   Service:
     Type: AWS::ECS::Service
     Properties:
+      Cluster: !Ref Cluster
       NetworkConfiguration:
         AwsvpcConfiguration:
           Subnets: !Ref Subnets

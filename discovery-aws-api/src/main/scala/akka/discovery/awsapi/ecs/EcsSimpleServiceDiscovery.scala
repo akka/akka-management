@@ -22,9 +22,11 @@ import scala.concurrent.duration._
 
 class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
-  private[this] implicit val ec: ExecutionContext = system.dispatcher
+  private[this] val cluster = system.settings.config.getString("akka.discovery.aws-api-ecs.cluster")
 
   private[this] lazy val ecsClient = AmazonECSClientBuilder.defaultClient()
+
+  private[this] implicit val ec: ExecutionContext = system.dispatcher
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
@@ -36,7 +38,7 @@ class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
           Resolved(
             serviceName = name,
             addresses = for {
-              task <- resolveTasks(ecsClient, name)
+              task <- resolveTasks(ecsClient, cluster, name)
               container <- task.getContainers.asScala
               networkInterface <- container.getNetworkInterfaces.asScala
             } yield
@@ -74,15 +76,20 @@ object EcsSimpleServiceDiscovery {
         Left(s"Exactly one private address must be configured (found: $other).")
     }
 
-  private def resolveTasks(ecsClient: AmazonECS, serviceName: String): Seq[Task] =
-    describeTasks(ecsClient, listTaskArns(ecsClient, serviceName))
+  private def resolveTasks(ecsClient: AmazonECS, cluster: String, serviceName: String): Seq[Task] = {
+    val taskArns = listTaskArns(ecsClient, cluster, serviceName)
+    val tasks = describeTasks(ecsClient, cluster, taskArns)
+    tasks
+  }
 
   @tailrec private[this] def listTaskArns(ecsClient: AmazonECS,
+                                          cluster: String,
                                           serviceName: String,
                                           pageTaken: Option[String] = None,
                                           accumulator: Seq[String] = Seq.empty): Seq[String] = {
     val listTasksResult = ecsClient.listTasks(
       new ListTasksRequest()
+        .withCluster(cluster)
         .withServiceName(serviceName)
         .withNextToken(pageTaken.orNull)
         .withDesiredStatus(DesiredStatus.RUNNING)
@@ -95,6 +102,7 @@ object EcsSimpleServiceDiscovery {
       case nextPageToken =>
         listTaskArns(
           ecsClient,
+          cluster,
           serviceName,
           Some(nextPageToken),
           accumulatedTasksArns
@@ -102,12 +110,12 @@ object EcsSimpleServiceDiscovery {
     }
   }
 
-  private[this] def describeTasks(ecsClient: AmazonECS, taskArns: Seq[String]): Seq[Task] =
+  private[this] def describeTasks(ecsClient: AmazonECS, cluster: String, taskArns: Seq[String]): Seq[Task] =
     for {
       // Each DescribeTasksRequest can contain at most 100 task ARNs.
       group <- taskArns.grouped(100).to[Seq]
       tasks = ecsClient.describeTasks(
-        new DescribeTasksRequest().withTasks(group.asJava)
+        new DescribeTasksRequest().withCluster(cluster).withTasks(group.asJava)
       )
       task <- tasks.getTasks.asScala
     } yield task

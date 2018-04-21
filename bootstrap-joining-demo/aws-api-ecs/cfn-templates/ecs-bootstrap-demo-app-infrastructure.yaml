@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
-  ECRRepository:
+  Repository:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: "bootstrap-joining-demo-aws-api-ecs"
