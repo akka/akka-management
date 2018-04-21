@@ -24,7 +24,7 @@ class AsyncEcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceD
 
   private[this] implicit val ec: ExecutionContext = system.dispatcher
 
-  private[this] val ecsClient = ECSAsyncClient.create()
+  private[this] lazy val ecsClient = ECSAsyncClient.create()
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(

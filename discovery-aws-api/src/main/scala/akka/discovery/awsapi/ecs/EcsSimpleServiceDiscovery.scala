@@ -24,7 +24,7 @@ class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
 
   private[this] implicit val ec: ExecutionContext = system.dispatcher
 
-  private[this] val ecsClient = AmazonECSClientBuilder.defaultClient()
+  private[this] lazy val ecsClient = AmazonECSClientBuilder.defaultClient()
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
