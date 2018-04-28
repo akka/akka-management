@@ -393,6 +393,10 @@ And in your `application.conf`:
 ```
 akka.discovery {
   method = aws-api-ecs
+  aws-api-ecs {
+    # Defaults to "default" to match the AWS default cluster name if not overridden
+    cluster = "your-ecs-cluster-name"
+  }
 }
 ```
 
@@ -419,6 +423,10 @@ And in your `application.conf`:
 ```
 akka.discovery {
   method = aws-api-ecs-async
+  aws-api-ecs-async {
+    # Defaults to "default" to match the AWS default cluster name if not overridden
+    cluster = "your-ecs-cluster-name"
+  }
 }
 ```
 
