@@ -22,7 +22,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class AsyncEcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
-  private[this] val cluster = system.settings.config.getString("akka.discovery.aws-api-ecs-async.cluster")
+  private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs-async")
+  private[this] val cluster = config.getString("cluster")
 
   private[this] lazy val ecsClient = ECSAsyncClient.create()
 

@@ -22,7 +22,8 @@ import scala.concurrent.duration._
 
 class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
-  private[this] val cluster = system.settings.config.getString("akka.discovery.aws-api-ecs.cluster")
+  private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs")
+  private[this] val cluster = config.getString("cluster")
 
   private[this] lazy val ecsClient = AmazonECSClientBuilder.defaultClient()
 
