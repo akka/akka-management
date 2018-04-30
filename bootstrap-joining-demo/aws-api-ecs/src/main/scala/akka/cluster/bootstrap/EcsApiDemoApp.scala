@@ -30,7 +30,7 @@ object EcsApiDemoApp {
              |}
            """.stripMargin)
       )
-    val system = ActorSystem("bootstrap-joining-demo-aws-api-ecs", config)
+    val system = ActorSystem("ecsBootstrapDemoApp", config)
     AkkaManagement(system).start()
     ClusterBootstrap(system).start()
   }
@@ -38,7 +38,7 @@ object EcsApiDemoApp {
   private[this] def getPrivateAddressOrExit: InetAddress =
     AsyncEcsSimpleServiceDiscovery.getContainerAddress match {
       case Left(error) =>
-        System.err.println(s"$error. Halting.")
+        System.err.println(s"$error Halting.")
         sys.exit(1)
 
       case Right(value) =>

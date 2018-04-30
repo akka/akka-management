@@ -3,7 +3,11 @@ Parameters:
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
 Resources:
-  CloudWatchLogGroup:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: "ecs-bootstrap-demo-app"
+  LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Ref AWS::StackName
@@ -55,20 +59,21 @@ Resources:
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
       TaskRoleArn: !GetAtt TaskRole.Arn
       ContainerDefinitions:
-        - Name: bootstrap-joining-demo-aws-api-ecs
+        - Name: ecs-bootstrap-demo-app
           Image:
-            !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/bootstrap-joining-demo-aws-api-ecs:1.0"
+            !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ecs-bootstrap-demo-app:1.0"
           ReadonlyRootFilesystem: true
           LogConfiguration:
             LogDriver: awslogs
             Options:
-              awslogs-group: !Ref CloudWatchLogGroup
+              awslogs-group: !Ref LogGroup
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: bootstrap-joining-demo-aws-api-ecs
           Environment:
             - Name: JAVA_OPTS
               Value: !Sub "-Dakka.management.cluster.bootstrap.\
-                contact-point-discovery.service-name=${AWS::StackName}"
+                contact-point-discovery.service-name=${AWS::StackName}
+                -Dakka.discovery.aws-api-ecs-async.cluster=ecs-bootstrap-demo-app"
   ServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -101,6 +106,7 @@ Resources:
   Service:
     Type: AWS::ECS::Service
     Properties:
+      Cluster: !Ref Cluster
       NetworkConfiguration:
         AwsvpcConfiguration:
           Subnets: !Ref Subnets
