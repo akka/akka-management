@@ -35,12 +35,12 @@ Step 4: Create Security Group
 -----------------------------
 
 Since we want to run an an Akka cluster on these instances, they have to be able to talk to each other: the TCP ports we 
-care about are 2551 and 19999. However, we don't want to open these ports to the whole wide world. In the Amazon Cloud, 
+care about are 2552 and 19999. However, we don't want to open these ports to the whole wide world. In the Amazon Cloud,
 instances can *privately* communicate with each other if they are part of the same security group *and* if the proper inbound 
 rules are set. 
 
 Create a security group called "akka-cluster". Once the security group is created, select it and go to "edit inbound rules". 
-First, add a custom TCP rule to allow yourself ssh access (port: 22, source: My IP). Then, add two custom TCP rules (for ports 19999, 2551) 
+First, add a custom TCP rule to allow yourself ssh access (port: 22, source: My IP). Then, add two custom TCP rules (for ports 19999, 2552)
 using a custom source: the ID of the security group. 
 
 See the screenshot below.

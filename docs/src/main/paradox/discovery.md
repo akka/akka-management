@@ -169,7 +169,7 @@ spec:
         ports:
         # akka remoting
         - name: remoting
-          containerPort: 2551
+          containerPort: 2552
           protocol: TCP
         # akka-management bootstrap
         - name: akka-mgmt-http
