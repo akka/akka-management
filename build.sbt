@@ -258,6 +258,25 @@ lazy val `bootstrap-demo-aws-api-ecs` = project
     version in Docker := "1.0"
   )
 
+lazy val `bootstrap-demo-local` = project
+  .in(file("bootstrap-demo/local"))
+  .enablePlugins(NoPublish)
+  .disablePlugins(BintrayPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-bootstrap-local",
+    skip in publish := true,
+    sources in (Compile, doc) := Seq.empty,
+    whitesourceIgnore := true
+  ).dependsOn(
+    `akka-management`,
+    `cluster-http`,
+    `cluster-bootstrap`,
+    `akka-discovery-config`
+  )
+  .enablePlugins(JavaAppPackaging, AshScriptPlugin)
+
+
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project
   .in(file("docs"))
