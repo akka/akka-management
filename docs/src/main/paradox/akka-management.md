@@ -119,7 +119,7 @@ When running akka nodes behind NATs or inside docker containers in bridge mode,
 it's necessary to set different hostname and port number to bind for the HTTP Server for Http Cluster Management:
 
 application.conf
-:   ```
+:   ```hocon
   // Get hostname from environmental variable HOST
   akka.management.http.hostname = ${HOST} 
   akka.management.port = 19999
@@ -132,7 +132,7 @@ application.conf
 It is also possible to modify the base path of the API, by setting the appropriate value in application.conf: 
 
 application.conf
-:   ```
+:   ```hocon
     akka.management.http.base-path = "myClusterName"
     ```
 
