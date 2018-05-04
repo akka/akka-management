@@ -46,7 +46,7 @@ akka.discovery {
 From there on, you can use the generic API that hides the fact which discovery method is being used by calling::
 
 Scala
-:   ```
+:   ```scala
     import akka.discovery.ServiceDiscovery
     val system = ActorSystem("Example")
     // ... 
@@ -55,7 +55,7 @@ Scala
     ```
 
 Java
-:   ```
+:   ```java
     import akka.discovery.ServiceDiscovery; 
     ActorSystem system = ActorSystem.create("Example");
     // ... 
