@@ -53,12 +53,12 @@ to configure and use it.
 Remember that Akka Management does not start automatically and the routes will only be exposed once you trigger:
 
 Scala
-:   ```
+:   ```scala
     AkkaManagement(system).start()
     ```
 
 Java
-:   ```
+:   ```java
     AkkaManagement.get(system).start();
     ```
     
@@ -82,7 +82,7 @@ In case you are running multiple cluster instances within the same JVM these con
 to expose different cluster management APIs by modifying the port:
 
 Scala
-:   ```
+:   ```scala
     //Config Actor system 1
     akka.management.http.hostname = "127.0.0.1"
     akka.management.http.port = 19999
@@ -152,12 +152,12 @@ HTTPS is not enabled by default as additional configuration from the developer i
 The non-secured usage of the module is as follows:
 
 Scala
-:   ```
+:   ```scala
     AkkaManagement(system).start()
     ```
 
 Java
-:   ```
+:   ```java
     AkkaManagement.get(system).start();
     ```
 
@@ -166,7 +166,7 @@ Java
 To enable SSL you need to provide an `SSLContext`. You can find more information about it in @extref[Server side https support](akka-http-docs:scala/http/server-side-https-support)
 
 Scala
-:   ```
+:   ```scala
     val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
     //...
     val management = AkkaManagement(system)
@@ -175,7 +175,7 @@ Scala
     ```
 
 Java
-:   ```
+:   ```java
     HttpsConnectionContext https = ConnectionContext.https(sslContext);
     //...
     AkkaManagement management = AkkaManagement.get(system);
@@ -191,7 +191,7 @@ To enable Basic Authentication you need to provide an authenticator object befor
 You can find more information in @extref:[Authenticate Basic Async directive](akka-http-docs:scala/http/routing-dsl/directives/security-directives/authenticateBasicAsync)
 
 Scala
-:   ```
+:   ```scala
     def myUserPassAuthenticator(credentials: Credentials): Future[Option[String]] =
       credentials match {
         case p @ Credentials.Provided(id) ⇒
@@ -209,7 +209,7 @@ Scala
     ```
 
 Java
-:   ```
+:   ```java
     final Function<Optional<ProvidedCredentials>, CompletionStage<Optional<String>>> 
       myUserPassAuthenticator = opt -> {
         if (opt.filter(c -> (c != null) && c.verify("p4ssw0rd")).isPresent()) {
@@ -237,7 +237,7 @@ You can do so by calling `stop()` on @scaladoc[AkkaManagement](akka.management.h
 This method return a `Future[Done]` to inform when the server has been stopped.
 
 Scala
-:   ```
+:   ```scala
     val httpClusterManagement = AkkaManagement(system)
     httpClusterManagement.start()
     //...
@@ -246,7 +246,7 @@ Scala
     ```
 
 Java
-:   ```
+:   ```java
     AkkaManagement httpClusterManagement = AkkaManagement.create(system);
     httpClusterManagement.start();
     //...
