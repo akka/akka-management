@@ -54,7 +54,7 @@ see `bootstrap-joining-demo/marathon-api-docker/marathon/marathon-api-docker-app
       "portMappings": [
         ...
         {
-          "containerPort": 19999,
+          "containerPort": 8558,
           "hostPort": 0,
           "servicePort": 10206,
           "protocol": "tcp",

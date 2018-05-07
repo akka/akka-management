@@ -98,7 +98,7 @@ The "lowest" address (since in this case we assume they all listen on the same m
 
 An improved way of DNS discovery are `SRV` records, which are not yet supported by `akka-discovery-dns`,
 but would then allow the nodes to also advertise which port they are listening on instead of having to assume a shared 
-known port (which in the case of the akka management routes is `19999`).
+known port (which in the case of the akka management routes is `8558`).
 
 ## Discovery Method: Kubernetes API
 
@@ -457,8 +457,8 @@ Notes:
 
 * Because ECS service discovery is only able to discover IP addresses (not ports
   too) you'll need to set
-  `akka.management.cluster.bootstrap.contact-point.fallback-port = 19999`, where
-  19999 is whatever port you choose to bind akka-management to.  
+  `akka.management.cluster.bootstrap.contact-point.fallback-port = 8558`, where
+  8558 is whatever port you choose to bind akka-management to.
 
 * The current implementation only supports discovery of service task instances
   within the same region.

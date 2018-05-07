@@ -74,7 +74,7 @@ You can configure hostname and port to use for the HTTP Cluster management by ov
 
 ```
 akka.management.http.hostname = "127.0.0.1"
-akka.management.http.port = 19999
+akka.management.http.port = 8558
 ```
 
 Note that the default value for hostname is `InetAddress.getLocalHost.getHostAddress`, which may or may not evaluate to
@@ -87,7 +87,7 @@ Scala
 :   ```scala
     //Config Actor system 1
     akka.management.http.hostname = "127.0.0.1"
-    akka.management.http.port = 19999
+    akka.management.http.port = 8558
     ...
     //Config Actor system 2
     akka.management.http.hostname = "127.0.0.1"
@@ -104,7 +104,7 @@ Java
 :   ```java
     //Config Actor system 1
     akka.management.http.hostname = "127.0.0.1"
-    akka.management.http.port = 19999
+    akka.management.http.port = 8558
     ...
     //Config Actor system 2
     akka.management.http.hostname = "127.0.0.1"
@@ -124,11 +124,11 @@ application.conf
 :   ```hocon
   // Get hostname from environmental variable HOST
   akka.management.http.hostname = ${HOST} 
-  akka.management.port = 19999
-  // Get port from environmental variable PORT_19999 if it's defined, otherwise 19999
-  akka.management.port = ${?PORT_19999} 
+  akka.management.port = 8558
+  // Get port from environmental variable PORT_8558 if it's defined, otherwise 8558
+  akka.management.port = ${?PORT_8558}
   akka.management.http.bind-hostname = 0.0.0.0
-  akka.management.http.bind-port = 19999    
+  akka.management.http.bind-port = 8558
     ```  
 
 It is also possible to modify the base path of the API, by setting the appropriate value in application.conf: 
