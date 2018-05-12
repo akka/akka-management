@@ -84,7 +84,17 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
       entity <- response.entity.toStrict(resolveTimeout)
 
-      appList <- Unmarshal(entity).to[AppList]
+      appList <- {
+        system.log.debug("Marathon API entity: [{}]", entity.data.utf8String)
+        val unmarshalled = Unmarshal(entity).to[AppList]
+
+        unmarshalled.failed.foreach { _ =>
+          system.log.error("Failed to unmarshal Marathon API response status [{}]", response.status.value)
+          system.log.error("Marathon API entity: [{}]", entity.data.utf8String)
+          system.log.error("URI: {}", uri)
+        }
+        unmarshalled
+      }
 
     } yield Resolved(name, targets(appList, settings.appPortName))
   }
