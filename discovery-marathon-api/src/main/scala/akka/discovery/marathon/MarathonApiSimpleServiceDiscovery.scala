@@ -89,7 +89,7 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
         val unmarshalled = Unmarshal(entity).to[AppList]
 
         unmarshalled.failed.foreach { _ =>
-          system.log.error("Failed to unmarshal Marathon API response status [{}], entity: [{}], uri: [{}]", 
+          system.log.error("Failed to unmarshal Marathon API response status [{}], entity: [{}], uri: [{}]",
             response.status.value, entity.data.utf8String, uri)
         }
         unmarshalled
