@@ -90,7 +90,7 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
         unmarshalled.failed.foreach { _ =>
           system.log.error("Failed to unmarshal Marathon API response status [{}], entity: [{}], uri: [{}]", 
-                           response.status.value, entity.data.utf8String, uri)
+            response.status.value, entity.data.utf8String, uri)
         }
         unmarshalled
       }
