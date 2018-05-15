@@ -80,20 +80,20 @@ Resources:
       GroupDescription: !Sub "${AWS::StackName}-service"
       SecurityGroupIngress:
         - IpProtocol: "tcp"
-          FromPort: 19999
-          ToPort: 19999
+          FromPort: 8558
+          ToPort: 8558
           CidrIp: "0.0.0.0/0"
         - IpProtocol: "tcp"
-          FromPort: 19999
-          ToPort: 19999
+          FromPort: 8558
+          ToPort: 8558
           CidrIpv6: "::/0"
   ServiceSecurityGroupAkkaManagementSelfIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !GetAtt ServiceSecurityGroup.GroupId
       IpProtocol: "tcp"
-      FromPort: 19999
-      ToPort: 19999
+      FromPort: 8558
+      ToPort: 8558
       SourceSecurityGroupId: !GetAtt ServiceSecurityGroup.GroupId
   ServiceSecurityGroupAkkaClusterSelfIngress:
     Type: AWS::EC2::SecurityGroupIngress

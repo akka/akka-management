@@ -27,7 +27,7 @@ spec:
               fieldPath: status.podIP
         livenessProbe:
           tcpSocket:
-            port: 19999
+            port: 8558
         ports:
         # akka remoting
         - name: remoting
@@ -39,7 +39,7 @@ spec:
           protocol: TCP
         # external http
         - name: akka-mgmt-http
-          containerPort: 19999
+          containerPort: 8558
           protocol: TCP
 ---
 kind: Service

@@ -26,8 +26,8 @@
           "name": "remoting"
         },
         {
-          "containerPort": 19999,
-          "hostPort": 19999,
+          "containerPort": 8558,
+          "hostPort": 8558,
           "servicePort": 10206,
           "protocol": "tcp",
           "name": "http"

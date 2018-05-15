@@ -42,7 +42,7 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         val configClusterHttpManager = ConfigFactory.parseString(
           """
             |akka.management.http.hostname = "127.0.0.1"
-            |akka.management.http.port = 19999
+            |akka.management.http.port = 8558
             |akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutes"
           """.stripMargin
         )
@@ -54,7 +54,7 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         management.settings.Http.RouteProviders should contain("akka.management.http.HttpManagementEndpointSpecRoutes")
         management.start()
 
-        val responseFuture = Http().singleRequest(HttpRequest(uri = "http://127.0.0.1:19999/"))
+        val responseFuture = Http().singleRequest(HttpRequest(uri = "http://127.0.0.1:8558/"))
         val response = Await.result(responseFuture, 5.seconds)
 
         response.status shouldEqual StatusCodes.OK

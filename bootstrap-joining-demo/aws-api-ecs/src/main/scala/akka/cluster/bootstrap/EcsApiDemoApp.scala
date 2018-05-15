@@ -22,7 +22,7 @@ object EcsApiDemoApp {
              |akka {
              |  actor.provider = "cluster"
              |  management {
-             |    cluster.bootstrap.contact-point.fallback-port = 19999
+             |    cluster.bootstrap.contact-point.fallback-port = 8558
              |    http.hostname = "${privateAddress.getHostAddress}"
              |  }
              |  discovery.method = aws-api-ecs-async
