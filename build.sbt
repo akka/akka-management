@@ -13,6 +13,7 @@ lazy val `akka-management-root` = project
     `akka-discovery-marathon-api`,
     `akka-discovery-aws-api`,
     `akka-discovery-aws-api-async`,
+    `akka-discovery-consul`,
     `akka-management`,
     `bootstrap-joining-demo-aws-api-ec2-tag-based`,
     `bootstrap-joining-demo-aws-api-ecs`,
@@ -88,6 +89,17 @@ lazy val `akka-discovery-aws-api-async` = project
     name := "akka-discovery-aws-api-async",
     organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryAwsApiAsync
+  )
+  .dependsOn(`akka-discovery`)
+
+lazy val `akka-discovery-consul` = project
+  .in(file("discovery-consul"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-consul",
+    organization := "com.lightbend.akka.discovery",
+    Dependencies.DiscoveryConsul
   )
   .dependsOn(`akka-discovery`)
 
