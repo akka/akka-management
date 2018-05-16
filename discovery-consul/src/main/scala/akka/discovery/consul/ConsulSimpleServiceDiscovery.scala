@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ */
 package akka.discovery.consul
 
 import java.util
@@ -7,14 +10,14 @@ import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery
 
 import scala.collection.immutable.Seq
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import akka.pattern.after
 import com.google.common.net.HostAndPort
 import com.orbitz.consul.Consul
 import com.orbitz.consul.async.ConsulResponseCallback
 import com.orbitz.consul.model.ConsulResponse
 import ConsulSimpleServiceDiscovery._
-import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import com.orbitz.consul.model.catalog.CatalogService
 import com.orbitz.consul.option.QueryOptions
 
@@ -25,7 +28,8 @@ import scala.util.Try
 class ConsulSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
   private lazy val settings = ConsulSettings.get(system)
-  private lazy val consul = Consul.builder().withHostAndPort(HostAndPort.fromParts(settings.consulHost, settings.consulPort)).build()
+  private lazy val consul =
+    Consul.builder().withHostAndPort(HostAndPort.fromParts(settings.consulHost, settings.consulPort)).build()
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = {
     import system.dispatcher
@@ -42,9 +46,14 @@ class ConsulSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDis
   private def lookupInConsul(name: String)(implicit executionContext: ExecutionContext): Future[Resolved] = {
     val consulResult = for {
       servicesWithTags <- getServicesWithTags
-      serviceIds = servicesWithTags.getResponse.entrySet().asScala.filter(e => e.getValue.contains(settings.applicationNameTagPrefix + name)).map(_.getKey)
+      serviceIds = servicesWithTags.getResponse
+        .entrySet()
+        .asScala
+        .filter(e => e.getValue.contains(settings.applicationNameTagPrefix + name))
+        .map(_.getKey)
       catalogServices <- Future.sequence(serviceIds.map(id => getService(id).map(_.getResponse.asScala.toList)))
-      resolvedTargets = catalogServices.flatten.toSeq.map(catalogService => extractResolvedTargetFromCatalogService(catalogService))
+      resolvedTargets = catalogServices.flatten.toSeq.map(
+          catalogService => extractResolvedTargetFromCatalogService(catalogService))
     } yield resolvedTargets
     consulResult.map(targets => Resolved(name, scala.collection.immutable.Seq(targets: _*)))
   }
@@ -53,16 +62,18 @@ class ConsulSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDis
     val port = catalogService.getServiceTags.asScala
       .find(_.startsWith(settings.applicationAkkaManagementPortTagPrefix))
       .map(_.replace(settings.applicationAkkaManagementPortTagPrefix, ""))
-      .flatMap {
-        maybePort => Try(maybePort.toInt).toOption
+      .flatMap { maybePort =>
+        Try(maybePort.toInt).toOption
       }
     ResolvedTarget(catalogService.getServiceAddress, Some(port.getOrElse(catalogService.getServicePort)))
   }
 
-  private val getServicesWithTags = ((callback: ConsulResponseCallback[util.Map[String, util.List[String]]]) => consul.catalogClient().getServices(callback)).asFuture
+  private val getServicesWithTags = ((callback: ConsulResponseCallback[util.Map[String, util.List[String]]]) =>
+                                       consul.catalogClient().getServices(callback)).asFuture
 
   private def getService(name: String) =
-    ((callback: ConsulResponseCallback[util.List[CatalogService]]) => consul.catalogClient().getService(name, QueryOptions.BLANK, callback)).asFuture
+    ((callback: ConsulResponseCallback[util.List[CatalogService]]) =>
+       consul.catalogClient().getService(name, QueryOptions.BLANK, callback)).asFuture
 
 }
 
@@ -92,4 +103,3 @@ object ConsulSimpleServiceDiscovery {
   }
 
 }
-
