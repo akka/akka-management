@@ -9,12 +9,12 @@ import akka.discovery.consul.ConsulSimpleServiceDiscovery
 import akka.testkit.TestKitBase
 import com.google.common.net.HostAndPort
 import com.orbitz.consul.Consul
-import com.orbitz.consul.model.catalog.{CatalogRegistration, ImmutableCatalogRegistration}
-import com.orbitz.consul.model.health.{ImmutableService, Service}
-import com.pszymczyk.consul.{ConsulProcess, ConsulStarterBuilder}
+import com.orbitz.consul.model.catalog.{ CatalogRegistration, ImmutableCatalogRegistration }
+import com.orbitz.consul.model.health.{ ImmutableService, Service }
+import com.pszymczyk.consul.{ ConsulProcess, ConsulStarterBuilder }
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
 
@@ -69,6 +69,7 @@ class ConsulDiscoverySpec
 
   override implicit lazy val system: ActorSystem = ActorSystem("test")
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(30, Seconds)), interval = scaled(Span(50, Millis)))
+  implicit override val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = scaled(Span(30, Seconds)), interval = scaled(Span(50, Millis)))
 
 }
