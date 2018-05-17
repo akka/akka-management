@@ -9,6 +9,8 @@ import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery.parseFiltersString
+import com.amazonaws.ClientConfiguration
+import com.amazonaws.retry.PredefinedRetryPolicies
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
 import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter, Reservation }
 
@@ -34,7 +36,10 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] = {
 
-    val ec2Client = AmazonEC2ClientBuilder.defaultClient
+    // we have our own retry/backoff mechanism, so we don't need EC2Client's in addition
+    val clientConfiguration = new ClientConfiguration()
+    clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+    val ec2Client = AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
 
     val tagKey = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based").getString("tag-key")
     val tagFilter = new Filter("tag:" + tagKey, List(name).asJava)

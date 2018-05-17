@@ -11,6 +11,8 @@ import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ecs.AsyncEcsSimpleServiceDiscovery._
 import akka.pattern.after
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration
+import software.amazon.awssdk.core.retry.RetryPolicy
 import software.amazon.awssdk.services.ecs._
 import software.amazon.awssdk.services.ecs.model._
 
@@ -25,7 +27,10 @@ class AsyncEcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceD
   private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs-async")
   private[this] val cluster = config.getString("cluster")
 
-  private[this] lazy val ecsClient = ECSAsyncClient.create()
+  private[this] lazy val ecsClient = {
+    val conf = ClientOverrideConfiguration.builder().retryPolicy(RetryPolicy.NONE).build()
+    ECSAsyncClient.builder().overrideConfiguration(conf).build()
+  }
 
   private[this] implicit val ec: ExecutionContext = system.dispatcher
 

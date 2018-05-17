@@ -11,6 +11,8 @@ import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ecs.EcsSimpleServiceDiscovery._
 import akka.pattern.after
+import com.amazonaws.ClientConfiguration
+import com.amazonaws.retry.PredefinedRetryPolicies
 import com.amazonaws.services.ecs.model.{ DescribeTasksRequest, DesiredStatus, ListTasksRequest, Task }
 import com.amazonaws.services.ecs.{ AmazonECS, AmazonECSClientBuilder }
 
@@ -25,7 +27,12 @@ class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
   private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs")
   private[this] val cluster = config.getString("cluster")
 
-  private[this] lazy val ecsClient = AmazonECSClientBuilder.defaultClient()
+  private[this] lazy val ecsClient = {
+    // we have our own retry/backoff mechanism, so we don't need EC2Client's in addition
+    val clientConfiguration = new ClientConfiguration()
+    clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+    AmazonECSClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
+  }
 
   private[this] implicit val ec: ExecutionContext = system.dispatcher
 
