@@ -185,6 +185,8 @@ configuration can be used as a starting point. It creates a `Role`, `pod-reader`
 information. It then binds the default Service Account to the `Role` by creating a `RoleBinding`.
 Adjust as necessary.
 
+> Using Google Kubernetes Engine? Your user will need permission to grant roles. See [Google's Documentation](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control#prerequisites_for_using_role-based_access_control) for more information.
+
 ```yaml
 ---
 #
