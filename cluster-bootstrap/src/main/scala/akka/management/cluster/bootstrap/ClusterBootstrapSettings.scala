@@ -4,12 +4,13 @@
 package akka.management.cluster.bootstrap
 
 import java.util.Locale
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{ ThreadLocalRandom, TimeUnit }
 
 import akka.actor.ActorSystem
 import com.typesafe.config.Config
 
 import scala.concurrent.duration.{ FiniteDuration, _ }
+import scala.util.Try
 
 final class ClusterBootstrapSettings(config: Config) {
   private implicit class HasDefined(val config: Config) {
@@ -59,6 +60,14 @@ final class ClusterBootstrapSettings(config: Config) {
 
     val interval: FiniteDuration =
       discoveryConfig.getDuration("interval", TimeUnit.MILLISECONDS).millis
+
+    val exponentialBackoffRandomFactor: Double =
+      discoveryConfig.getDouble("exponential-backoff-random-factor")
+
+    val exponentialBackoffMax: FiniteDuration =
+      discoveryConfig.getDuration("exponential-backoff-max", TimeUnit.MILLISECONDS).millis
+
+    require(exponentialBackoffMax >= interval, "exponential-backoff-max has to be greater or equal to interval")
 
     val requiredContactPointsNr: Int = discoveryConfig.getInt("required-contact-point-nr")
 

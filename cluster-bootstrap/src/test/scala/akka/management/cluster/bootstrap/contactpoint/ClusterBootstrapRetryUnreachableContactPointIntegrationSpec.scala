@@ -16,6 +16,7 @@ import akka.testkit.{ SocketUtil, TestKit, TestProbe }
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalatest.{ Matchers, WordSpecLike }
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSpecLike with Matchers {
@@ -87,18 +88,20 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSp
     MockDiscovery.set(name, { () =>
       called += 1
 
-      if (called > 3)
-        Resolved(name,
-          List(
-            ResolvedTarget(clusterA.selfAddress.host.get, contactPointPorts.get("A")),
-            ResolvedTarget(clusterB.selfAddress.host.get, contactPointPorts.get("B"))
-          ))
-      else
-        Resolved(name,
-          List(
-            ResolvedTarget(clusterA.selfAddress.host.get, unreachablePorts.get("A")),
-            ResolvedTarget(clusterB.selfAddress.host.get, unreachablePorts.get("B"))
-          ))
+      Future.successful(
+        if (called > 3)
+          Resolved(name,
+            List(
+              ResolvedTarget(clusterA.selfAddress.host.get, contactPointPorts.get("A")),
+              ResolvedTarget(clusterB.selfAddress.host.get, contactPointPorts.get("B"))
+            ))
+        else
+          Resolved(name,
+            List(
+              ResolvedTarget(clusterA.selfAddress.host.get, unreachablePorts.get("A")),
+              ResolvedTarget(clusterB.selfAddress.host.get, unreachablePorts.get("B"))
+            ))
+      )
     })
 
     "start listening with the http contact-points on 3 systems" in {

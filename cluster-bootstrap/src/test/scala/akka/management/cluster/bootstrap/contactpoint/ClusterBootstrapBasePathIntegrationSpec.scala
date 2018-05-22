@@ -14,6 +14,7 @@ import akka.testkit.{ SocketUtil, TestKit, TestProbe }
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{ Matchers, WordSpecLike }
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 /**
@@ -68,10 +69,12 @@ class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers
     val name = "basepathsystem.svc.cluster.local"
     MockDiscovery.set(name,
       () =>
-        Resolved(name,
-          List(
-            ResolvedTarget("127.0.0.1", Some(managementPort))
-          )))
+        Future.successful(
+          Resolved(name,
+            List(
+              ResolvedTarget("127.0.0.1", Some(managementPort))
+            ))
+      ))
 
     "start listening with the http contact-points on system" in {
       managementA.start()
