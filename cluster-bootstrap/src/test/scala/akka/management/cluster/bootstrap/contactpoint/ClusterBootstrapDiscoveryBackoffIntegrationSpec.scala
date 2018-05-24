@@ -138,7 +138,7 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec extends WordSpecLike with 
       bootstrapA.discovery.getClass should ===(classOf[MockDiscovery])
 
       bootstrapA.start()
-      // bootstrapB.start() // deliberately not discovering from this node, however its management port is available
+      bootstrapB.start() // deliberately not discovering from this node, however its management port is available
 
       val pA = TestProbe()(systemA)
       clusterA.subscribe(pA.ref, classOf[MemberUp])
