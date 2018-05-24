@@ -71,8 +71,9 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec extends WordSpecLike with 
         """.stripMargin).withFallback(ConfigFactory.load())
     }
 
-    val systemA = ActorSystem("System", config("A"))
-    val systemB = ActorSystem("System", config("B"))
+    val systemName = "backoff-discovery-system"
+    val systemA = ActorSystem(systemName, config("A"))
+    val systemB = ActorSystem(systemName, config("B"))
 
     val clusterA = Cluster(systemA)
     val clusterB = Cluster(systemB)
@@ -93,7 +94,7 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec extends WordSpecLike with 
     @volatile var called = 0
     @volatile var call2Timestamp = 0L
     @volatile var call3Timestamp = 0L
-    val name = "system.svc.cluster.local"
+    val name = s"$systemName.svc.cluster.local"
 
     MockDiscovery.set(name, { () =>
       called += 1
