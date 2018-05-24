@@ -100,10 +100,8 @@ private[bootstrap] class HttpContactPointBootstrap(
         .flatMap(_.entity.toStrict(1.second))
         .flatMap(res ⇒ Unmarshal(res).to[SeedNodes])
 
-      Future
-        .firstCompletedOf(List(reply,
-            after(settings.contactPoint.probingFailureTimeout, context.system.scheduler)(replyTimeout)))
-        .pipeTo(self)
+      val afterTimeout = after(settings.contactPoint.probingFailureTimeout, context.system.scheduler)(replyTimeout)
+      Future.firstCompletedOf(List(reply, afterTimeout)).pipeTo(self)
 
     case Status.Failure(cause) =>
       log.error("Probing [{}] failed due to: {}", probeRequest.uri, cause.getMessage)

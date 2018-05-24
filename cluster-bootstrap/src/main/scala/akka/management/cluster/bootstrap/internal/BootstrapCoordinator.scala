@@ -3,11 +3,10 @@
  */
 package akka.management.cluster.bootstrap.internal
 
-import java.time.Duration
 import java.time.LocalDateTime
+import java.util.concurrent.ThreadLocalRandom
 
 import scala.collection.immutable
-
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.actor.ActorRef
@@ -29,7 +28,10 @@ import akka.management.cluster.bootstrap.JoinSelf
 import akka.management.cluster.bootstrap.KeepProbing
 import akka.management.cluster.bootstrap.SeedNodesInformation
 import akka.management.cluster.bootstrap.SeedNodesObservation
-import akka.pattern.pipe
+import akka.pattern.{ pipe, BackoffSupervisor }
+
+import scala.concurrent.duration._
+import scala.util.Try
 
 /** INTERNAL API */
 @InternalApi
@@ -53,7 +55,7 @@ private[akka] object BootstrapCoordinator {
     final case class ProbingFailed(contactPoint: ResolvedTarget, cause: Throwable) extends DeadLetterSuppression
   }
 
-  private case object ResolveTick extends DeadLetterSuppression
+  private case object DiscoverTick extends DeadLetterSuppression
   private case object DecideTick extends DeadLetterSuppression
 
   protected[bootstrap] final case class DnsServiceContactsObservation(observedAt: LocalDateTime,
@@ -87,7 +89,14 @@ private[akka] object BootstrapCoordinator {
  *
  * CAVEATS:
  * There is a slight timing issue, that may theoretically appear in this bootstrap process.
- * FIXME explain the races
+ * One such example is the timing between the lookups becoming an "stable observation",
+ * so an decision is made with regards to joining (e.g. self-joining) on the nodes,
+ * yet exactly right-after the discoverContactPoints returned, a new node with lowest address appears (though is not observed).
+ * Technically this is a race and "wrong decision" made by then, however since the node will itself also probe
+ * the other nodes visible in discovery, it should soon realise that a cluster exists/is-forming and join that
+ * one instead of self-joining, so the race in most timing situations should be harmless, however remains possible
+ * under very unlucky timing -- where the new lowest node would not observe the new cluster being formed within the
+ * stable timeout.
  */
 // also known as the "Baron von Bootstrappen"
 /** INTERNAL API */
@@ -101,11 +110,11 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
 
   import BootstrapCoordinator.Protocol._
   import BootstrapCoordinator._
-  import context.dispatcher
 
+  implicit private val ec = context.dispatcher
   private val cluster = Cluster(context.system)
 
-  private val ResolveTimerKey = "resolve-key"
+  private val DiscoverTimerKey = "resolve-key"
   private val DecideTimerKey = "decide-key"
 
   private var serviceName = settings.contactPointDiscovery.effectiveName(context.system)
@@ -114,34 +123,68 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
 
   private var decisionInProgress = false
+  def startPeriodicDecisionTimer(): Unit =
+    timers.startPeriodicTimer(DecideTimerKey, DecideTick, settings.contactPoint.probeInterval)
 
-  timers.startPeriodicTimer(ResolveTimerKey, ResolveTick, settings.contactPointDiscovery.interval)
-  timers.startPeriodicTimer(DecideTimerKey, DecideTick, settings.contactPoint.probeInterval)
+  private var discoveryFailedBackoffCounter = 0
+  def resetDiscoveryInterval(): Unit =
+    discoveryFailedBackoffCounter = 0
+  def backoffDiscoveryInterval(): Unit = {
+    discoveryFailedBackoffCounter += 1
+  }
+  private[akka] def backedOffInterval(restartCount: Int,
+                                      minBackoff: FiniteDuration,
+                                      maxBackoff: FiniteDuration,
+                                      randomFactor: Double): FiniteDuration = {
+    val rnd = 1.0 + ThreadLocalRandom.current().nextDouble() * randomFactor
+    val calculatedDuration = Try(maxBackoff.min(minBackoff * math.pow(2, restartCount)) * rnd).getOrElse(maxBackoff)
+    calculatedDuration match {
+      case f: FiniteDuration ⇒ f
+      case _ ⇒ maxBackoff
+    }
+  }
+  def startSingleDiscoveryTimer(): Unit = {
+    val interval = backedOffInterval(discoveryFailedBackoffCounter, settings.contactPointDiscovery.interval,
+      settings.contactPointDiscovery.exponentialBackoffMax,
+      settings.contactPointDiscovery.exponentialBackoffRandomFactor)
+    timers.startSingleTimer(DiscoverTimerKey, DiscoverTick, interval)
+  }
+
+  override def preStart(): Unit = {
+    startSingleDiscoveryTimer()
+    startPeriodicDecisionTimer()
+  }
 
   /** Awaiting initial signal to start the bootstrap process */
   override def receive: Receive = {
     case InitiateBootstrapping ⇒
       log.info("Locating service members. Using discovery [{}], join decider [{}]", discovery.getClass.getName,
         joinDecider.getClass.getName)
-      lookup()
+      discoverContactPoints()
 
       context become bootstrapping(sender())
   }
 
   /** In process of searching for seed-nodes */
   def bootstrapping(replyTo: ActorRef): Receive = {
-    case ResolveTick ⇒
-      lookup()
+    case DiscoverTick ⇒
+      // the next round of discovery will be performed once this one returns
+      discoverContactPoints()
 
     case SimpleServiceDiscovery.Resolved(name, contactPoints) ⇒
       serviceName = name
+
       log.info("Located service members with name: [{}]: [{}]", serviceName, contactPoints.mkString(", "))
       onContactPointsResolved(contactPoints)
+      resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals
+      startSingleDiscoveryTimer() // keep looking in case other nodes join the discovery
 
     case ex: Failure ⇒
       log.warning("Resolve attempt failed! Cause: {}", ex.cause)
-      // prevent join decision until successful lookup
+      // prevent join decision until successful discoverContactPoints
       lastContactsObservation = None
+      backoffDiscoveryInterval()
+      startSingleDiscoveryTimer()
 
     case ObtainedHttpSeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes) ⇒
       lastContactsObservation.foreach { contacts =>
@@ -192,15 +235,20 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
     case ProbingFailed(contactPoint, _) =>
       lastContactsObservation.foreach { contacts =>
         if (contacts.observedContactPoints.contains(contactPoint)) {
-          log.info("Received signal that probing has failed, scheduling contact point re-discovery")
+          log.info("Received signal that probing has failed, scheduling contact point probing again")
+          // child actor will have terminated now, so we ride on another discovery round to cause looking up
+          // target nodes and if the same still exists, that would cause probing it again
+          //
+          // we do this in order to not keep probing nodes which simply have been removed from the deployment
         }
       }
 
       // remove the previous observation since it might be obsolete
       seedNodesObservations -= contactPoint
+      startSingleDiscoveryTimer()
   }
 
-  private def lookup(): Unit =
+  private def discoverContactPoints(): Unit =
     discovery.lookup(serviceName, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
 
   private def onContactPointsResolved(contactPoints: immutable.Seq[ResolvedTarget]): Unit = {
@@ -258,10 +306,12 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
         val currentTime = timeNow()
 
         // filter out old observations, in case the probing failures are not triggered
-        def isObsolte(obs: SeedNodesObservation): Boolean =
-          Duration.between(obs.observedAt, currentTime).toMillis > settings.contactPoint.probingFailureTimeout.toMillis
+        def isObsolete(obs: SeedNodesObservation): Boolean =
+          java.time.Duration
+            .between(obs.observedAt, currentTime)
+            .toMillis > settings.contactPoint.probingFailureTimeout.toMillis
 
-        val seedObservations = seedNodesObservations.valuesIterator.filterNot(isObsolte).toSet
+        val seedObservations = seedNodesObservations.valuesIterator.filterNot(isObsolete).toSet
         val info =
           new SeedNodesInformation(currentTime, contacts.observedAt, contacts.observedContactPoints, seedObservations)
 

@@ -18,7 +18,11 @@ lazy val `akka-management-root` = project
     `bootstrap-joining-demo-aws-api-ecs`,
     `cluster-http`,
     `cluster-bootstrap`,
-    docs)
+    docs
+  )
+  .settings(
+    parallelExecution in GlobalScope := false
+  )
 
 // interfaces and extension for Discovery
 lazy val `akka-discovery` = project
