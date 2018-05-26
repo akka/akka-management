@@ -4,18 +4,21 @@
 package akka.discovery.awsapi.ec2
 
 import java.util
+import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery.parseFiltersString
+import akka.pattern.after
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.retry.PredefinedRetryPolicies
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
 import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter, Reservation }
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.collection.immutable.Seq
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration.FiniteDuration
 
 object Ec2TagBasedSimpleServiceDiscovery {
@@ -34,28 +37,31 @@ object Ec2TagBasedSimpleServiceDiscovery {
 
 class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
-  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] = {
+  private val config = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
 
-    // we have our own retry/backoff mechanism, so we don't need EC2Client's in addition
+  private[this] implicit val ec: ExecutionContext = system.dispatcher
+
+  private lazy val ec2Client = {
     val clientConfiguration = new ClientConfiguration()
+    // we have our own retry/back-off mechanism, so we don't need EC2Client's in addition
     clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
-    val ec2Client = AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
+    AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
+  }
 
-    val tagKey = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based").getString("tag-key")
+  private val tagKey = config.getString("tag-key")
+
+  private val otherFiltersString = config.getString("filters")
+  private val otherFilters = parseFiltersString(otherFiltersString)
+
+  private val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
+
+  def lookup(name: String): Future[Resolved] = {
+
     val tagFilter = new Filter("tag:" + tagKey, List(name).asJava)
-
-    val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
-
-    val otherFiltersString =
-      system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based").getString("filters")
-
-    val otherFilters = parseFiltersString(otherFiltersString)
 
     val allFilters: util.List[Filter] = (runningInstancesFilter :: tagFilter :: otherFilters).asJava
 
     val request = new DescribeInstancesRequest().withFilters(allFilters) // withFilters is a set operation
-
-    import system.dispatcher
 
     // pretty quick call on EC2, not worried about blocking
     Future {
@@ -68,12 +74,19 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
         .toList
         .flatMap((r: Reservation) => r.getInstances.asScala.toList)
         .map(instance => instance.getPrivateIpAddress)
-        .filter(ip => ip != null) // have observed some behaviour where the IP address is null (perhaps terminated
-        // instances were included ?
-        // TODO: investigate if the null check is really necessary
         .map((ip: String) => ResolvedTarget(ip, None))
     }.map(Resolved(name, _))
 
   }
+
+  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
+    Future.firstCompletedOf(
+      Seq(
+        after(resolveTimeout, using = system.scheduler)(
+          Future.failed(new TimeoutException(s"Lookup for [$name] timed-out, within [$resolveTimeout]!"))
+        ),
+        lookup(name)
+      )
+    )
 
 }

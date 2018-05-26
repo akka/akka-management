@@ -178,15 +178,15 @@
         ]
       }
     },
-    "AkkaClusterSecurityGroupIngressForPeers2551": {
+    "AkkaClusterSecurityGroupIngressForPeers2552": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupName": {
           "Ref": "AkkaClusterSecurityGroup"
         },
         "IpProtocol": "tcp",
-        "FromPort": 2551,
-        "ToPort": 2551,
+        "FromPort": 2552,
+        "ToPort": 2552,
         "SourceSecurityGroupName": {
           "Ref": "AkkaClusterSecurityGroup"
         }

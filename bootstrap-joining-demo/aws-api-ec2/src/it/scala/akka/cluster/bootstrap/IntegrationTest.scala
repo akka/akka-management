@@ -187,7 +187,7 @@ class IntegrationTest
     clusterPublicIps should have size instanceCount
     clusterPrivateIps should have size instanceCount
 
-    val expectedNodes: Set[String] = clusterPrivateIps.map(ip => s"akka.tcp://demo@$ip:2551").toSet
+    val expectedNodes: Set[String] = clusterPrivateIps.map(ip => s"akka.tcp://demo@$ip:2552").toSet
 
     eventually {
 
