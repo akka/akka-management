@@ -27,16 +27,16 @@ import scala.util.Try
 
 class ConsulSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
-  private lazy val settings = ConsulSettings.get(system)
-  private lazy val consul =
+  private val settings = ConsulSettings.get(system)
+  private val consul =
     Consul.builder().withHostAndPort(HostAndPort.fromParts(settings.consulHost, settings.consulPort)).build()
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = {
-    import system.dispatcher
+    implicit val ec: ExecutionContext = system.dispatcher
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
-          Future.failed(new TimeoutException("Future timed out!"))
+          Future.failed(new TimeoutException(s"Lookup for [${name}] timed-out, within [${resolveTimeout}]!"))
         ),
         lookupInConsul(name)
       )
@@ -68,8 +68,10 @@ class ConsulSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDis
     ResolvedTarget(catalogService.getServiceAddress, Some(port.getOrElse(catalogService.getServicePort)))
   }
 
-  private val getServicesWithTags = ((callback: ConsulResponseCallback[util.Map[String, util.List[String]]]) =>
-                                       consul.catalogClient().getServices(callback)).asFuture
+  private def getServicesWithTags: Future[ConsulResponse[util.Map[String, util.List[String]]]] = {
+    ((callback: ConsulResponseCallback[util.Map[String, util.List[String]]]) =>
+       consul.catalogClient().getServices(callback)).asFuture
+  }
 
   private def getService(name: String) =
     ((callback: ConsulResponseCallback[util.List[CatalogService]]) =>
@@ -82,14 +84,18 @@ object ConsulSimpleServiceDiscovery {
   implicit class ConsulResponseFutureDecorator[T](f: ConsulResponseCallback[T] => Unit) {
     def asFuture: Future[ConsulResponse[T]] = {
       val callback = new ConsulResponseFutureCallback[T]
-      f(callback)
+      Try(f(callback)).recover {
+        case ex: Throwable => callback.fail(ex)
+      }
       callback.future
     }
   }
 
-  case class ConsulResponseFutureCallback[T]() extends ConsulResponseCallback[T] {
+  final case class ConsulResponseFutureCallback[T]() extends ConsulResponseCallback[T] {
 
     private val promise = Promise[ConsulResponse[T]]
+
+    def fail(exception: Throwable) = promise.failure(exception)
 
     def future: Future[ConsulResponse[T]] = promise.future
 

@@ -1,6 +1,6 @@
 enablePlugins(JavaAppPackaging)
 
-com.typesafe.sbt.SbtNativePackager.autoImport.packageName in Universal := "app" // should produce app.zip
+packageName in Universal := "app" // should produce app.zip
 
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-cloudformation" % "1.11.271" % IntegrationTest
 

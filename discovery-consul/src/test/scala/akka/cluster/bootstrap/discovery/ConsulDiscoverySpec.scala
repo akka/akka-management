@@ -25,7 +25,7 @@ class ConsulDiscoverySpec
     with TestKitBase
     with ScalaFutures {
 
-  private var consul: ConsulProcess = null
+  private val consul: ConsulProcess = ConsulStarterBuilder.consulStarter().withHttpPort(8500).build().start()
 
   "Consul Discovery" should {
     "work for defaults" in {
@@ -55,11 +55,6 @@ class ConsulDiscoverySpec
       val resolved = lookupService.lookup("test", 10 seconds).futureValue
       resolved.addresses should contain(ResolvedTarget("127.0.0.1", Some(1234)))
     }
-  }
-
-  override def beforeAll(): Unit = {
-    super.beforeAll()
-    consul = ConsulStarterBuilder.consulStarter().withHttpPort(8500).build().start()
   }
 
   override def afterAll(): Unit = {
