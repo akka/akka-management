@@ -60,7 +60,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
   private val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
 
   @tailrec
-  private[ec2] def getInstances(client: AmazonEC2,
+  private final def getInstances(client: AmazonEC2,
                                 filters: List[Filter],
                                 nextToken: Option[String],
                                 accumulator: List[String] = Nil): List[String] = {
