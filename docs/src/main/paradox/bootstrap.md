@@ -106,7 +106,7 @@ simply adding new nodes to it wanting them to discover and join that cluster.
   Akka Management by the Bootstrap Management Extension) for known seeds to join.
 - Since no cluster exists yet, none of the contacted nodes return any seed nodes during the probing process.
     - The `stable-margin` timeout passes, and no discovery changes are observed as well.
-    - At least `akka.management.cluster.bootstrap.required-contact-point-nr` nodes have been discovered.
+    - At least `akka.management.cluster.bootstrap.contact-point-discovery.required-contact-point-nr` nodes have been discovered.
     - Communication with all discovered Contact Points have been confirmed via successful HTTP request-response.
     - The nodes all decide (autonomously) that no cluster exists, and a new one should be formed,
       they know all their addresses, and decide that the "lowest" sorted address is to start forming the cluster.
@@ -174,7 +174,7 @@ even if the DNS system is not completely consistent.
 If however we are talking about an inconsistent DNS lookup response during the Initial Bootstrap, the nodes will be delayed
 forming the cluster as they expect the lookups to be consistent, this is checked by the stable-margin configuration option.
 
-For complete safety of the Initial Bootstrap it is recommended to set the `akka.management.cluster.bootstrap.required-contact-point-nr`
+For complete safety of the Initial Bootstrap it is recommended to set the `akka.management.cluster.bootstrap.contact-point-discovery.required-contact-point-nr`
 setting to the exact number of nodes the initial startup of the cluster will be done. For example, if starting a cluster with
 4 nodes initially, and later scaling it out to many more nodes, be sure to set this setting to `4` for additional safety of
 the initial joining, even in face of an flaky discovery mechanism!
