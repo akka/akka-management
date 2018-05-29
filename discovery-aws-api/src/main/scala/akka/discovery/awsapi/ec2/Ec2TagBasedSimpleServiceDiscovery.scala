@@ -9,6 +9,7 @@ import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery._
+import akka.event.Logging
 import akka.pattern.after
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.retry.PredefinedRetryPolicies
@@ -34,43 +35,20 @@ object Ec2TagBasedSimpleServiceDiscovery {
         new Filter(kv(0), List(kv(1)).asJava)
       })
 
-  @tailrec
-  private[ec2] def getInstances(client: AmazonEC2,
-                                filters: List[Filter],
-                                nextToken: Option[String],
-                                accumulator: List[String] = List()): List[String] = {
-
-    val describeInstancesRequest = new DescribeInstancesRequest().withFilters(filters.asJava) // withFilters is a set operation
-
-    val describeInstancesResult = client.describeInstances(describeInstancesRequest).withNextToken(nextToken.orNull)
-
-    val ips: List[String] = describeInstancesResult.getReservations.asScala.toList
-      .flatMap((r: Reservation) => r.getInstances.asScala.toList)
-      .map(instance => instance.getPrivateIpAddress)
-
-    val accumulatedIps = accumulator ++ ips
-
-    Option(describeInstancesResult.getNextToken) match {
-      case None =>
-        accumulatedIps
-      case nextToken @ Some(_) =>
-        getInstances(client, filters, nextToken, accumulatedIps)
-    }
-
-  }
-
 }
 
 class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
-  private lazy val ec2Client: AmazonEC2 = {
+  private val log = Logging(system, classOf[Ec2TagBasedSimpleServiceDiscovery])
+
+  private val ec2Client: AmazonEC2 = {
     val clientConfiguration = new ClientConfiguration()
     // we have our own retry/back-off mechanism, so we don't need EC2Client's in addition
     clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
     AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
   }
 
-  private[this] implicit val ec: ExecutionContext = system.dispatcher
+  private implicit val ec: ExecutionContext = system.dispatcher
 
   private val config = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
 
@@ -80,6 +58,35 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
   private val otherFilters = parseFiltersString(otherFiltersString)
 
   private val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
+
+  @tailrec
+  private[ec2] def getInstances(client: AmazonEC2,
+                                filters: List[Filter],
+                                nextToken: Option[String],
+                                accumulator: List[String] = Nil): List[String] = {
+
+    val describeInstancesRequest = new DescribeInstancesRequest()
+      .withFilters(filters.asJava) // withFilters is a set operation (i.e. calls setFilters, be careful with chaining)
+      .withNextToken(nextToken.orNull)
+
+    val describeInstancesResult = client.describeInstances(describeInstancesRequest)
+
+    val ips: List[String] = describeInstancesResult.getReservations.asScala.toList
+      .flatMap((r: Reservation) => r.getInstances.asScala.toList)
+      .map(instance => instance.getPrivateIpAddress)
+
+    val accumulatedIps = accumulator ++ ips
+
+    Option(describeInstancesResult.getNextToken) match {
+      case None =>
+        accumulatedIps // aws api has no more results to return, so we return what we have accumulated so far
+      case nextPageToken @ Some(_) =>
+        // more result items available
+        log.debug("aws api returned paginated result, fetching next page!")
+        getInstances(client, filters, nextPageToken, accumulatedIps)
+    }
+
+  }
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
