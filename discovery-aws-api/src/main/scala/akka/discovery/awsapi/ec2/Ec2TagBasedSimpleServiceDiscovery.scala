@@ -61,9 +61,9 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
   @tailrec
   private final def getInstances(client: AmazonEC2,
-                                filters: List[Filter],
-                                nextToken: Option[String],
-                                accumulator: List[String] = Nil): List[String] = {
+                                 filters: List[Filter],
+                                 nextToken: Option[String],
+                                 accumulator: List[String] = Nil): List[String] = {
 
     val describeInstancesRequest = new DescribeInstancesRequest()
       .withFilters(filters.asJava) // withFilters is a set operation (i.e. calls setFilters, be careful with chaining)
