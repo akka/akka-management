@@ -73,6 +73,11 @@ object Dependencies {
       DependencyGroups.AkkaHttp
   )
 
+  val DiscoveryLocal = Seq(
+    libraryDependencies ++=
+      DependencyGroups.AkkaActor
+  )
+
   val DiscoveryMarathonApi = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
