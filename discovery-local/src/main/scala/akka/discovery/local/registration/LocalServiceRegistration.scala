@@ -6,7 +6,6 @@ package akka.discovery.local.registration
 import java.nio.file.{ Files, Path }
 
 import akka.discovery.local.JsonFormat._
-import LocalServiceEntry
 import spray.json._
 
 import scala.collection.immutable.Seq
