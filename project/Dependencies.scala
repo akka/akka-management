@@ -9,8 +9,6 @@ object Dependencies {
   val JUnitVersion = "4.12"
   val SprayJsonVersion = "1.3.3"
 
-  // val akkaDns = "2.4.2" // external lib
-
   val Common = Seq(
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.0.1" % Test// ApacheV2
