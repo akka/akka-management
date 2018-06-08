@@ -3,4 +3,4 @@
  */
 package akka.discovery.local.registration
 
-case class LocalServiceEntry(addr: String, port: Int) {}
+case class LocalServiceEntry(addr: String, port: Int)

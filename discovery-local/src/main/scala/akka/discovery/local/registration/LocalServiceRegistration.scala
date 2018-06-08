@@ -15,12 +15,31 @@ class LocalServiceRegistration(serviceFile: Path) {
 
   private val utf8 = "utf-8"
 
+  /**
+   * Checks if a <host>:<port> is already registered in the service file
+   * @param address the hostname or ip address
+   * @param port the port
+   * @return true if already registered else false
+   */
   def isRegistered(address: String, port: Int): Boolean =
     localServiceEntries.contains(LocalServiceEntry(address, port))
 
-  def add(address: String, port: Int): Unit =
-    writeToFile(localServiceEntries :+ LocalServiceEntry(address, port))
+  /**
+   * Adds a new <host>:<port> to the service file, if it isn't
+   * already registered.
+   * @param address the hostname or ip address
+   * @param port the port
+   */
+  def add(address: String, port: Int): Unit = {
+    if (!isRegistered(address, port))
+      writeToFile(localServiceEntries :+ LocalServiceEntry(address, port))
+  }
 
+  /**
+   * Removes an <host>:<port> from the service file if registered.
+   * @param address the hostname or ip address
+   * @param port the port
+   */
   def remove(address: String, port: Int): Unit =
     writeToFile(localServiceEntries.filterNot(_ == LocalServiceEntry(address, port)))
 
