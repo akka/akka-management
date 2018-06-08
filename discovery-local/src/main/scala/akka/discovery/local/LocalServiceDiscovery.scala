@@ -20,22 +20,32 @@ class LocalServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery 
   import SimpleServiceDiscovery._
 
   private val log = Logging(system, getClass)
+
+  private val config = system.settings.config
+
   private val serviceFile =
-    system.settings.config.getString("akka.discovery.akka-local.service-file")
+    parseServiceFileName(config.getString("akka.discovery.akka-local.service-file"))
   private val hostname =
-    system.settings.config.getString("akka.remote.netty.tcp.hostname")
+    if (config.hasPath("akka.management.http.hostname"))
+      config.getString("akka.management.http.hostname")
+    else
+      config.getString("akka.remote.netty.tcp.hostname")
+  // we need to read the http.port here since the BootstrapCoordinator assumes that Resolved contains Some(httpPort) or None.
+  // Since we want to be able to start multiple instances on one host we need to save the port
   private val port = system.settings.config.getInt("akka.management.http.port")
   private val localServiceRegistration = new LocalServiceRegistration(Paths.get(serviceFile))
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] = {
+    // we need to register ourselves if not already registered
     registerSelf()
 
-    log.info(s"Using $serviceFile as service file")
+    log.debug(s"Using $serviceFile as service file")
     val addresses =
       localServiceRegistration.localServiceEntries.map { entry =>
         ResolvedTarget(entry.addr, Some(entry.port))
       }
 
+    // remove self from the service file on shutdown
     sys.addShutdownHook {
       unregisterSelf()
     }
@@ -45,7 +55,7 @@ class LocalServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery 
   }
 
   private def registerSelf(): Unit = {
-    log.info("Checking if self is registered in service file")
+    log.debug("Checking if self is registered in service file")
 
     if (!localServiceRegistration.isRegistered(hostname, port)) {
       log.info(s"Registering $hostname:$port")
@@ -57,4 +67,8 @@ class LocalServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery 
     log.info(s"Unregistering $hostname:$port from $serviceFile")
     localServiceRegistration.remove(hostname, port)
   }
+
+  private def parseServiceFileName(fromConfig: String) =
+    if (fromConfig.contains("<name>")) fromConfig.replace("<name>", system.name)
+    else fromConfig
 }
