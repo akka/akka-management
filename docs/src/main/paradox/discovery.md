@@ -486,6 +486,13 @@ If you are using Consul to do the service discovery this would allow you to base
   version="$version$"
 }
 
+@@@ note
+
+This discovery implementation has been recently contributed and we do not fully "support" it yet.
+However it should work fine and has been used in production by the person contributing it.
+
+@@@
+
 In your application conf add:
 ```
 akka.discovery {
