@@ -67,6 +67,18 @@ object Dependencies {
       )
   )
 
+  val DiscoveryConsul = Seq(
+    libraryDependencies ++=
+      DependencyGroups.AkkaActor ++
+      DependencyGroups.AkkaTesting ++
+      Seq(
+        //License: Apache 2.0
+        "com.orbitz.consul" % "consul-client" % "1.1.2",
+        //License: Apache 2.0
+        "com.pszymczyk.consul" % "embedded-consul" % "1.0.2" % "test"
+      )
+  )
+
   val DiscoveryKubernetesApi = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
