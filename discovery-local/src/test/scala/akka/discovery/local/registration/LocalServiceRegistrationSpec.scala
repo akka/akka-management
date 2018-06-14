@@ -14,7 +14,12 @@ class LocalServiceRegistrationSpec extends WordSpec with Matchers with BeforeAnd
   val localServiceRegistration = new LocalServiceRegistration(serviceFile)
 
   "LocalServiceRegistration" should {
-    "be empty when created" in {
+    "be empty when file doesn't exist" in {
+      localServiceRegistration.localServiceEntries shouldBe empty
+    }
+
+    "be empty when file is empty" in {
+      require(serviceFile.toFile.createNewFile())
       localServiceRegistration.localServiceEntries shouldBe empty
     }
 

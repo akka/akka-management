@@ -48,8 +48,11 @@ class LocalServiceRegistration(serviceFile: Path) {
 
   def localServiceEntries: Seq[LocalServiceEntry] = {
     if (Files.notExists(serviceFile)) Seq.empty
-    else
-      Source.fromFile(serviceFile.toFile, utf8).mkString.parseJson.convertTo[Seq[LocalServiceEntry]]
+    else {
+      val source = Source.fromFile(serviceFile.toFile, utf8)
+      if (source.isEmpty) Seq.empty
+      else source.mkString.parseJson.convertTo[Seq[LocalServiceEntry]]
+    }
   }
 
 }
