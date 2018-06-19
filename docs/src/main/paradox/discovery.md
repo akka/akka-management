@@ -100,6 +100,54 @@ An improved way of DNS discovery are `SRV` records, which are not yet supported 
 but would then allow the nodes to also advertise which port they are listening on instead of having to assume a shared 
 known port (which in the case of the akka management routes is `8558`).
 
+## Discovery Method: Configuration
+
+For simple use cases configuration can be used for service discovery. The advantage of using Akka Discovery with
+configuration rather than your own configuration values is that applications can be migrated to a more 
+sophisticated discovery mechanism without any code changes. 
+
+To use configuration discovery add it as a dependency:
+
+@@dependency[sbt,Gradle,Maven] {
+  group="com.lightbend.akka.discovery"
+  artifact="akka-discovery-config_2.12"
+  version="$version$"
+}
+
+And configure it to be used as discovery implementation in your `application.conf` 
+
+```
+akka {
+  discovery.method = akka-config
+}
+```
+
+By default the services discoverable are defined in `akka.discovery.config.services` and have the following format:
+
+```
+akka.discovery.config.services = {
+  service1 = {
+    endpoints = [
+      {
+        host = "cat"
+        port = 1233
+      },
+      {
+        host = "dog"
+        port = 1234
+      }
+    ]
+  },
+  service2 = {
+    endpoints = []
+  }
+}
+```
+
+Where the above block defines two services, `service1` and `service2`.
+Each service can have multiple endpoints.
+
+
 ## Discovery Method: Kubernetes API
 
 Another discovery implementation provided is one that uses the Kubernetes API. Instead of doing a DNS lookup,

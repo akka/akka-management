@@ -61,10 +61,13 @@ object Dependencies {
   val DiscoveryDns = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting ++ Seq(
-        // FIXME this would be needed to use the SRV records, but more likely we want to implement it ourselves
-        // "ru.smslv.akka"     %% "akka-dns"                           % akkaDns, // ApacheV2 (we do need it)
-      )
+      DependencyGroups.AkkaTesting
+  )
+
+  val DiscoveryConfig = Seq(
+    libraryDependencies ++=
+      DependencyGroups.AkkaActor ++
+      DependencyGroups.AkkaTesting
   )
 
   val DiscoveryConsul = Seq(
