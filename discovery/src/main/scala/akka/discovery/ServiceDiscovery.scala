@@ -4,6 +4,7 @@
 package akka.discovery
 
 import akka.actor._
+import akka.annotation.InternalApi
 
 final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Extension {
 
@@ -17,7 +18,31 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
       case method ⇒ method
     }
 
-  private lazy val _simpleImpl = {
+  private lazy val _simpleImpl = ServiceDiscovery.loadServiceDiscovery(_simpleImplMethod, system)
+
+  /**
+   * Default [[SimpleServiceDiscovery]] as configured in `akka.discovery.method`.
+   *
+   * Could throw an [[IllegalArgumentException]] if the configured implementation class is illegal.
+   */
+  def discovery: SimpleServiceDiscovery = _simpleImpl
+
+}
+
+object ServiceDiscovery extends ExtensionId[ServiceDiscovery] with ExtensionIdProvider {
+  override def apply(system: ActorSystem): ServiceDiscovery = super.apply(system)
+
+  override def lookup: ServiceDiscovery.type = ServiceDiscovery
+
+  override def get(system: ActorSystem): ServiceDiscovery = super.get(system)
+
+  override def createExtension(system: ExtendedActorSystem): ServiceDiscovery = new ServiceDiscovery()(system)
+
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  private[akka] def loadServiceDiscovery(method: String, system: ExtendedActorSystem): SimpleServiceDiscovery = {
     val config = system.settings.config
     val dynamic = system.dynamicAccess
 
@@ -25,52 +50,31 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
       if (config.hasPath(path)) config.getString(path)
       else "<nope>"
 
-    def create(clazzName: String) =
+    def create(clazzName: String) = {
       dynamic
         .createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ExtendedActorSystem] → system) :: Nil)
         .recoverWith {
-          case _ ⇒
+          case _: NoSuchMethodException ⇒
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ActorSystem] → system) :: Nil)
         }
         .recoverWith {
-          case _ ⇒
+          case _: NoSuchMethodException ⇒
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, Nil)
         }
-
-    // format: OFF
-    val i = create {
-      classNameFromConfig("akka.discovery." + _simpleImplMethod + ".class")
-    }.recoverWith {
-      case _ ⇒ create(classNameFromConfig(_simpleImplMethod + ".class"))
-    }.recoverWith {
-      case _ ⇒ create(_simpleImplMethod) // so perhaps, it is a classname?
     }
-    // format: ON
+
+    val i = create(classNameFromConfig("akka.discovery." + method + ".class")).recoverWith {
+      case _: NoSuchMethodException ⇒ create(classNameFromConfig(method + ".class"))
+    }.recoverWith {
+      case _: NoSuchMethodException ⇒ create(method) // so perhaps, it is a classname?
+    }
 
     i.getOrElse(
       throw new IllegalArgumentException(
-          s"Illegal `akka.discovery.method` value '${_simpleImplMethod}' or incompatible class! " +
+          s"Illegal `akka.discovery.method` value '$method' or incompatible class! " +
           "The implementation class MUST extend akka.discovery.SimpleServiceDiscovery and take an " +
           "ExtendedActorSystem as constructor argument.", i.failed.get)
     )
   }
-
-  /**
-   * Default [[SimpleServiceDiscovery]] as configured in `akka.discovery.method`.
-   *
-   * Could throw an [[IllegalArgumentException]] if the configured implementation class is illegal.
-   */
-  // FIXME better name?
-  def discovery: SimpleServiceDiscovery = _simpleImpl
-
-}
-
-object ServiceDiscovery extends ExtensionId[ServiceDiscovery] with ExtensionIdProvider {
-  override def apply(system: ActorSystem): ServiceDiscovery = super.apply(system)
-  override def lookup: ServiceDiscovery.type = ServiceDiscovery
-
-  override def get(system: ActorSystem): ServiceDiscovery = super.get(system)
-
-  override def createExtension(system: ExtendedActorSystem): ServiceDiscovery = new ServiceDiscovery()(system)
 
 }

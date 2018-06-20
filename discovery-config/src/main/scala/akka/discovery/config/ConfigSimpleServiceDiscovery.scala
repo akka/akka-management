@@ -3,6 +3,7 @@ package akka.discovery.config
 import akka.actor.ExtendedActorSystem
 import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.event.Logging
 import com.typesafe.config.Config
 
 import scala.collection.JavaConverters._
@@ -31,10 +32,13 @@ object ConfigServicesParser {
 
 class ConfigSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleServiceDiscovery {
 
+  private val log = Logging(system, getClass)
+
   private val resolvedServices = ConfigServicesParser.parse(
     system.settings.config.getConfig(system.settings.config.getString("akka.discovery.akka-config.services-path"))
   )
 
+  log.debug("Config discovery serving: {}", resolvedServices)
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = {
     // TODO or fail?

@@ -122,7 +122,7 @@ akka {
 }
 ```
 
-By default the services discoverable are defined in `akka.discovery.config.services` and have the following format:
+By default the services discoverable are defined in `akka.discovery.akka-config.services` and have the following format:
 
 ```
 akka.discovery.config.services = {
@@ -569,6 +569,53 @@ Notes:
 
 * If Akka management port tag is not found on service in Consul the implementation defaults to catalog service port.
 
+## Discovery Method: Aggregate multiple discovery mechanisms
+
+Aggregate discovery allows multiple discovery mechanisms to be aggregated e.g. try and resolve
+via DNS and fall back to configuration.
+
+To use aggregate discovery add its dependency as well as all of the discovery mechanisms that you 
+want to aggregate.
+
+@@dependency[sbt,Gradle,Maven] {
+  group="com.lightbend.akka.discovery"
+  artifact="akka-discovery-aggregate_2.12"
+  version="$version$"
+}
+
+Configure `akka-aggregate` as `akka.discovery.method` and which discovery mechanisms are tried and in which order.
+
+```
+akka {
+  discovery {
+    method = akka-aggregate
+    akka-aggregate {
+      discovery-mechanisms = ["akka-dns", "akka-config"]
+    }
+    akka-config {
+      services = {
+        service1 = {
+          endpoints = [
+            {
+              host = "host1"
+              port = 1233
+            },
+            {
+              host = "host2"
+              port = 1234
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+```
+
+The above configuration will result in `akka-dns` first being checked and if it fails or returns no
+targets for the given service name then `akka-config` is queried which i configured with one service called
+`service1` which two hosts `host1` and `host2`.
 
 ## How to contribute implementations
 

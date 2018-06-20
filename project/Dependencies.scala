@@ -70,6 +70,12 @@ object Dependencies {
       DependencyGroups.AkkaTesting
   )
 
+  val DiscoveryAggregate = Seq(
+    libraryDependencies ++=
+      DependencyGroups.AkkaActor ++
+      DependencyGroups.AkkaTesting
+  )
+
   val DiscoveryConsul = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
