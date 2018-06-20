@@ -28,7 +28,10 @@ object KubernetesApiSimpleServiceDiscovery {
    * Finds relevant targets given a pod list. Note that this doesn't filter by name as it is the job of the selector
    * to do that.
    */
-  private[kubernetes] def targets(podList: PodList, portName: String): Seq[ResolvedTarget] =
+  private[kubernetes] def targets(podList: PodList,
+                                  portName: String,
+                                  podNamespace: String,
+                                  podDomain: String): Seq[ResolvedTarget] =
     for {
       item <- podList.items
       if item.metadata.flatMap(_.deletionTimestamp).isEmpty
@@ -36,7 +39,8 @@ object KubernetesApiSimpleServiceDiscovery {
       port <- container.ports.getOrElse(Seq.empty).find(_.name.contains(portName))
       itemStatus <- item.status
       ip <- itemStatus.podIP
-    } yield ResolvedTarget(ip, Some(port.containerPort))
+      host = s"${ip.replace('.', '-')}.${podNamespace}.pod.${podDomain}"
+    } yield ResolvedTarget(host, Some(port.containerPort))
 }
 
 /**
@@ -90,7 +94,7 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
         unmarshalled
       }
 
-    } yield Resolved(labelSelector, targets(podList, settings.podPortName))
+    } yield Resolved(labelSelector, targets(podList, settings.podPortName, settings.podNamespace, settings.podDomain))
 
   private def apiToken() =
     FileIO.fromPath(Paths.get(settings.apiTokenPath)).runFold("")(_ + _.utf8String).recover { case _: Throwable => "" }

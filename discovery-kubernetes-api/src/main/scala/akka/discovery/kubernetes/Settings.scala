@@ -23,6 +23,9 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
   val podNamespace: String =
     kubernetesApi.getString("pod-namespace")
 
+  val podDomain: String =
+    kubernetesApi.getString("pod-domain")
+
   def podLabelSelector(name: String): String =
     kubernetesApi.getString("pod-label-selector").format(name)
 
