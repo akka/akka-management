@@ -16,9 +16,10 @@ object ConfigSimpleServiceDiscoverySpec {
   val config: Config = ConfigFactory.parseString(
     """
 akka {
+  loglevel = DEBUG
   discovery {
     method = akka-config
-    config {
+    akka-config {
       services = {
         service1 = {
           endpoints = [
@@ -58,14 +59,18 @@ class ConfigSimpleServiceDiscoverySpec
 
   "Config discovery" must {
     "load from config" in {
-
       val result = discovery.lookup("service1", 100.millis).futureValue
-
       result.serviceName shouldEqual "service1"
       result.addresses shouldEqual immutable.Seq(
         ResolvedTarget("cat", Some(1233)),
         ResolvedTarget("dog", None)
       )
+    }
+
+    "return no resolved targets if not in config" in {
+      val result = discovery.lookup("dontexist", 100.millis).futureValue
+      result.serviceName shouldEqual "dontexist"
+      result.addresses shouldEqual immutable.Seq.empty
     }
   }
 }

@@ -19,7 +19,6 @@ object ConfigServicesParserSpec {
             },
             {
               host = "dog"
-              port = 1234
             }
           ]
         },
@@ -34,14 +33,13 @@ class ConfigServicesParserSpec extends WordSpec with Matchers {
 
   "Config parsing" must {
     "parse" in {
-      val config: Config = exampleConfig.getConfig("services")
+      val config = exampleConfig.getConfig("services")
 
-      val result: Map[String, Resolved] = ConfigServicesParser.parse(config)
+      val result = ConfigServicesParser.parse(config)
 
       result("service1") shouldEqual Resolved("service1", immutable.Seq(
         ResolvedTarget("cat", Some(1233)),
-        ResolvedTarget("dog", Some(1234))
-      )
+        ResolvedTarget("dog", None))
       )
       result("service2") shouldEqual Resolved("service2", immutable.Seq())
     }

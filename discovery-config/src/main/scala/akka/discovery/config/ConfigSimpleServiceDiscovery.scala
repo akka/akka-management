@@ -19,13 +19,13 @@ object ConfigServicesParser {
 
     byService.map {
       case (serviceName, full) =>
-        val x = full.getConfigList("endpoints").asScala
-        val cat: immutable.Seq[ResolvedTarget] = x.map { c =>
+        val endpoints = full.getConfigList("endpoints").asScala
+        val resolvedTargets: immutable.Seq[ResolvedTarget] = endpoints.map { c =>
           val host = c.getString("host")
           val port = if (c.hasPath("port")) Some(c.getInt("port")) else None
           ResolvedTarget(host, port)
         }(breakOut)
-        (serviceName, Resolved(serviceName, cat))
+        (serviceName, Resolved(serviceName, resolvedTargets))
     }
   }
 }
@@ -41,7 +41,7 @@ class ConfigSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleSe
   log.debug("Config discovery serving: {}", resolvedServices)
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = {
-    // TODO or fail?
+    // TODO or fail or change the Resolved type to an ADT?
     Future.successful(resolvedServices.getOrElse(name, Resolved(name, immutable.Seq.empty)))
   }
 }

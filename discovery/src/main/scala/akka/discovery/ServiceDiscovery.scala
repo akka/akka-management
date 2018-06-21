@@ -54,19 +54,19 @@ object ServiceDiscovery extends ExtensionId[ServiceDiscovery] with ExtensionIdPr
       dynamic
         .createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ExtendedActorSystem] → system) :: Nil)
         .recoverWith {
-          case _: NoSuchMethodException ⇒
+          case _ ⇒
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ActorSystem] → system) :: Nil)
         }
         .recoverWith {
-          case _: NoSuchMethodException ⇒
+          case _ ⇒
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, Nil)
         }
     }
 
     val i = create(classNameFromConfig("akka.discovery." + method + ".class")).recoverWith {
-      case _: NoSuchMethodException ⇒ create(classNameFromConfig(method + ".class"))
+      case _ ⇒ create(classNameFromConfig(method + ".class"))
     }.recoverWith {
-      case _: NoSuchMethodException ⇒ create(method) // so perhaps, it is a classname?
+      case _ ⇒ create(method) // so perhaps, it is a classname?
     }
 
     i.getOrElse(

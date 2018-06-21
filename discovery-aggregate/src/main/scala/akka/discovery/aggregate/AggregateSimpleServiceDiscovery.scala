@@ -10,17 +10,12 @@ import com.typesafe.config.Config
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
-import scala.util.control.NoStackTrace
 
 class AggregateSimpleServiceDiscoverySettings(config: Config) {
 
   val discoveryMechanisms = config.getStringList("discovery-mechanisms").asScala.toList.requiring(
     _.nonEmpty, "At least one discovery mechanism should be specified")
 
-}
-
-object AggregateSimpleServiceDiscovery {
-  class ResolveFailed(msg: String) extends Exception(msg) with NoStackTrace
 }
 
 class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleServiceDiscovery {
@@ -34,7 +29,9 @@ class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends Simpl
   private implicit val ec = system.dispatcher
 
 
-  // TODO, update resolve time based on previous time
+  /**
+    * Each discovery mechanism is given the resolveTimeout rather than reducing it each time between mechanisms.
+    */
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = {
     resolve(mechanisms, name, resolveTimeout)
   }
@@ -48,14 +45,14 @@ class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends Simpl
         log.debug("Looking up [{}] with [{}]", name, mechanism)
         // If nothing comes back then try the next one
         next.lookup(name, resolveTimeout).flatMap { resolved =>
-          if (resolved.addresses.isEmpty)
-            log.debug("Mechanism {} returned no ResolvedTargets, trying next", name)
+          if (resolved.addresses.isEmpty) {
+            log.debug("Mechanism [{}] returned no ResolvedTargets, trying next", name)
             resolve(tail, name, resolveTimeout)
-          else
+          } else
             Future.successful(resolved)
         }.recoverWith {
           case t: Throwable =>
-            log.error(t, "{} Service discovery failed. Trying next discovery mechanism", mechanism)
+            log.error(t, "[{}] Service discovery failed. Trying next discovery mechanism", mechanism)
             resolve(tail, name, resolveTimeout)
         }
     }

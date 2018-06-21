@@ -16,8 +16,6 @@ import scala.collection.immutable
 
 class StubbedSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleServiceDiscovery {
 
-  private val log = Logging(system, getClass)
-
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = {
     if (name == "stubbed") {
       Future.successful(Resolved(name, immutable.Seq(ResolvedTarget("stubbed1", Some(1234)))))
