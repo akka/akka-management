@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <http://www.lightbend.com>
+ */
 package akka.discovery.aggregate
 
 import akka.actor.{ActorSystem, ExtendedActorSystem}

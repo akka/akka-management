@@ -593,9 +593,9 @@ akka {
       discovery-mechanisms = ["akka-dns", "akka-config"]
     }
     akka-config {
-      services = {
-        service1 = {
-          endpoints = [
+      services {
+        service1 {
+          endpoints [
             {
               host = "host1"
               port = 1233

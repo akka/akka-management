@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <http://www.lightbend.com>
+ */
 package akka.discovery.config
 
 import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
@@ -10,8 +13,8 @@ import scala.collection.immutable
 object ConfigServicesParserSpec {
   val exampleConfig: Config = ConfigFactory.parseString(
     """
-      services = {
-        service1 = {
+      services {
+        service1 {
           endpoints = [
             {
               host = "cat"
@@ -22,7 +25,7 @@ object ConfigServicesParserSpec {
             }
           ]
         },
-        service2 = {
+        service2 {
           endpoints = []
         }
       }

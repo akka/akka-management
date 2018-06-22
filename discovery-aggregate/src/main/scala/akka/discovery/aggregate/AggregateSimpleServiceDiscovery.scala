@@ -1,7 +1,11 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <http://www.lightbend.com>
+ */
 package akka.discovery.aggregate
 
 import akka.actor.ExtendedActorSystem
 import akka.discovery.SimpleServiceDiscovery.Resolved
+import akka.discovery.aggregate.AggregateSimpleServiceDiscovery.Mechanisms
 import akka.discovery.{ServiceDiscovery, SimpleServiceDiscovery}
 import akka.event.Logging
 import akka.util.Helpers.Requiring
@@ -11,14 +15,19 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
-class AggregateSimpleServiceDiscoverySettings(config: Config) {
+final class AggregateSimpleServiceDiscoverySettings(config: Config) {
 
   val discoveryMechanisms = config.getStringList("discovery-mechanisms").asScala.toList.requiring(
     _.nonEmpty, "At least one discovery mechanism should be specified")
 
+
 }
 
-class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleServiceDiscovery {
+object AggregateSimpleServiceDiscovery {
+  type Mechanisms = List[(String, SimpleServiceDiscovery)]
+}
+
+final class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleServiceDiscovery {
 
   private val log = Logging(system, getClass)
 
@@ -28,7 +37,6 @@ class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends Simpl
   private val mechanisms = settings.discoveryMechanisms.map(mech => (mech, ServiceDiscovery.loadServiceDiscovery(mech, system)))
   private implicit val ec = system.dispatcher
 
-
   /**
     * Each discovery mechanism is given the resolveTimeout rather than reducing it each time between mechanisms.
     */
@@ -36,7 +44,7 @@ class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends Simpl
     resolve(mechanisms, name, resolveTimeout)
   }
 
-  private def resolve(sds: List[(String, SimpleServiceDiscovery)], name: String, resolveTimeout: FiniteDuration): Future[Resolved] = {
+  private def resolve(sds: Mechanisms, name: String, resolveTimeout: FiniteDuration): Future[Resolved] = {
     sds match {
       case (mechanism, next) :: Nil =>
         log.debug("Looking up [{}] with [{}]", name, mechanism)
@@ -57,5 +65,4 @@ class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends Simpl
         }
     }
   }
-
 }

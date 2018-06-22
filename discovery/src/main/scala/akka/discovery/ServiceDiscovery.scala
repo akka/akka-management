@@ -22,9 +22,8 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
 
   /**
    * Default [[SimpleServiceDiscovery]] as configured in `akka.discovery.method`.
-   *
-   * Could throw an [[IllegalArgumentException]] if the configured implementation class is illegal.
    */
+  @throws[IllegalArgumentException]
   def discovery: SimpleServiceDiscovery = _simpleImpl
 
 }
