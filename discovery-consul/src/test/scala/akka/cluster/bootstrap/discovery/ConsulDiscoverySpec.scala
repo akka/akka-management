@@ -9,8 +9,8 @@ import akka.discovery.consul.ConsulSimpleServiceDiscovery
 import akka.testkit.TestKitBase
 import com.google.common.net.HostAndPort
 import com.orbitz.consul.Consul
-import com.orbitz.consul.model.catalog.{ CatalogRegistration, ImmutableCatalogRegistration }
-import com.orbitz.consul.model.health.{ ImmutableService, Service }
+import com.orbitz.consul.model.catalog.ImmutableCatalogRegistration
+import com.orbitz.consul.model.health.ImmutableService
 import com.pszymczyk.consul.{ ConsulProcess, ConsulStarterBuilder }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Seconds, Span }

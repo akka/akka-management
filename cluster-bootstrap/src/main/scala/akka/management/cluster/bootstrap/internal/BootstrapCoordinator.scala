@@ -28,7 +28,7 @@ import akka.management.cluster.bootstrap.JoinSelf
 import akka.management.cluster.bootstrap.KeepProbing
 import akka.management.cluster.bootstrap.SeedNodesInformation
 import akka.management.cluster.bootstrap.SeedNodesObservation
-import akka.pattern.{ pipe, BackoffSupervisor }
+import akka.pattern.pipe
 
 import scala.concurrent.duration._
 import scala.util.Try

@@ -4,13 +4,12 @@
 package akka.management.cluster.bootstrap
 
 import java.util.Locale
-import java.util.concurrent.{ ThreadLocalRandom, TimeUnit }
+import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import com.typesafe.config.Config
 
 import scala.concurrent.duration.{ FiniteDuration, _ }
-import scala.util.Try
 
 final class ClusterBootstrapSettings(config: Config) {
   private implicit class HasDefined(val config: Config) {
