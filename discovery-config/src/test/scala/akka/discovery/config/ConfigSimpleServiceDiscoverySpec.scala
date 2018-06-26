@@ -1,25 +1,27 @@
+/*
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ */
 package akka.discovery.config
 
 import akka.actor.ActorSystem
 import akka.discovery.ServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.testkit.TestKit
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
 import scala.collection.immutable
 
 object ConfigSimpleServiceDiscoverySpec {
 
-  val config: Config = ConfigFactory.parseString(
-    """
+  val config: Config = ConfigFactory.parseString("""
 akka {
   loglevel = DEBUG
   discovery {
-    method = akka-config
-    akka-config {
+    method = config
+    config {
       services = {
         service1 = {
           endpoints = [
@@ -44,12 +46,11 @@ akka {
 }
 
 class ConfigSimpleServiceDiscoverySpec
-  extends TestKit(ActorSystem("ConfigSimpleDiscoverySpec", ConfigSimpleServiceDiscoverySpec.config))
+    extends TestKit(ActorSystem("ConfigSimpleDiscoverySpec", ConfigSimpleServiceDiscoverySpec.config))
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll
     with ScalaFutures {
-
 
   override protected def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)

@@ -1,18 +1,17 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
  */
 package akka.discovery.config
 
-import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.config.ConfigServicesParserSpec._
-import com.typesafe.config.{Config, ConfigFactory}
-import org.scalatest.{Matchers, WordSpec}
+import com.typesafe.config.{ Config, ConfigFactory }
+import org.scalatest.{ Matchers, WordSpec }
 
 import scala.collection.immutable
 
 object ConfigServicesParserSpec {
-  val exampleConfig: Config = ConfigFactory.parseString(
-    """
+  val exampleConfig: Config = ConfigFactory.parseString("""
       services {
         service1 {
           endpoints = [
@@ -40,10 +39,8 @@ class ConfigServicesParserSpec extends WordSpec with Matchers {
 
       val result = ConfigServicesParser.parse(config)
 
-      result("service1") shouldEqual Resolved("service1", immutable.Seq(
-        ResolvedTarget("cat", Some(1233)),
-        ResolvedTarget("dog", None))
-      )
+      result("service1") shouldEqual Resolved("service1",
+        immutable.Seq(ResolvedTarget("cat", Some(1233)), ResolvedTarget("dog", None)))
       result("service2") shouldEqual Resolved("service2", immutable.Seq())
     }
   }

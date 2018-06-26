@@ -118,11 +118,11 @@ And configure it to be used as discovery implementation in your `application.con
 
 ```
 akka {
-  discovery.method = akka-config
+  discovery.method = config
 }
 ```
 
-By default the services discoverable are defined in `akka.discovery.akka-config.services` and have the following format:
+By default the services discoverable are defined in `akka.discovery.config.services` and have the following format:
 
 ```
 akka.discovery.config.services = {
@@ -583,16 +583,16 @@ want to aggregate.
   version="$version$"
 }
 
-Configure `akka-aggregate` as `akka.discovery.method` and which discovery mechanisms are tried and in which order.
+Configure `aggregate` as `akka.discovery.method` and which discovery mechanisms are tried and in which order.
 
 ```
 akka {
   discovery {
-    method = akka-aggregate
-    akka-aggregate {
-      discovery-mechanisms = ["akka-dns", "akka-config"]
+    method = aggregate
+    aggregate {
+      discovery-mechanisms = ["akka-dns", "config"]
     }
-    akka-config {
+    config {
       services {
         service1 {
           endpoints [
@@ -614,7 +614,7 @@ akka {
 ```
 
 The above configuration will result in `akka-dns` first being checked and if it fails or returns no
-targets for the given service name then `akka-config` is queried which i configured with one service called
+targets for the given service name then `config` is queried which i configured with one service called
 `service1` which two hosts `host1` and `host2`.
 
 ## How to contribute implementations
