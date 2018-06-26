@@ -48,6 +48,29 @@ lazy val `akka-discovery-dns` = project
   )
   .dependsOn(`akka-discovery`)
 
+lazy val `akka-discovery-config` = project
+  .in(file("discovery-config"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-config",
+    organization := "com.lightbend.akka.discovery",
+    Dependencies.DiscoveryConfig
+  )
+  .dependsOn(`akka-discovery`)
+
+lazy val `akka-discovery-aggregrate` = project
+  .in(file("discovery-aggregate"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-aggregate",
+    organization := "com.lightbend.akka.discovery",
+    Dependencies.DiscoveryAggregate
+  )
+  .dependsOn(`akka-discovery`)
+  .dependsOn(`akka-discovery-config` % "test")
+
 // K8s API implementation of discovery, allows formation to work even when readiness/health checks are failing
 lazy val `akka-discovery-kubernetes-api` = project
   .in(file("discovery-kubernetes-api"))
