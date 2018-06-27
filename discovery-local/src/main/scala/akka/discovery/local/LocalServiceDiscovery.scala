@@ -5,7 +5,7 @@ package akka.discovery.local
 
 import java.nio.file.Paths
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, CoordinatedShutdown}
 import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.local.registration.LocalServiceRegistration
 import akka.event.Logging
@@ -14,9 +14,10 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
 /**
- * Looks for an entry in the service file
- */
-class LocalServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+  * Looks for an entry in the service file
+  */
+class LocalServiceDiscovery(system: ActorSystem)
+    extends SimpleServiceDiscovery {
   import SimpleServiceDiscovery._
 
   private val log = Logging(system, getClass)
@@ -24,7 +25,8 @@ class LocalServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery 
   private val config = system.settings.config
 
   private val serviceFile =
-    parseServiceFileName(config.getString("akka.discovery.akka-local.service-file"))
+    parseServiceFileName(
+      config.getString("akka.discovery.akka-local.service-file"))
   private val hostname =
     if (config.hasPath("akka.management.http.hostname"))
       config.getString("akka.management.http.hostname")
@@ -33,9 +35,11 @@ class LocalServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery 
   // we need to read the http.port here since the BootstrapCoordinator assumes that Resolved contains Some(httpPort) or None.
   // Since we want to be able to start multiple instances on one host we need to save the port
   private val port = system.settings.config.getInt("akka.management.http.port")
-  private val localServiceRegistration = new LocalServiceRegistration(Paths.get(serviceFile))
+  private val localServiceRegistration = new LocalServiceRegistration(
+    Paths.get(serviceFile))
 
-  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] = {
+  override def lookup(name: String,
+                      resolveTimeout: FiniteDuration): Future[Resolved] = {
     // we need to register ourselves if not already registered
     registerSelf()
 
@@ -46,7 +50,7 @@ class LocalServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery 
       }
 
     // remove self from the service file on shutdown
-    sys.addShutdownHook {
+    CoordinatedShutdown(system).addJvmShutdownHook {
       unregisterSelf()
     }
 
