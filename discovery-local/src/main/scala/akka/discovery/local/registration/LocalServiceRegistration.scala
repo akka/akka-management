@@ -4,7 +4,7 @@
 package akka.discovery.local.registration
 
 import java.io.RandomAccessFile
-import java.nio.channels.{ FileChannel, FileLock }
+import java.nio.channels.FileLock
 import java.nio.file.{ Files, Path }
 
 import akka.discovery.local.JsonFormat._
@@ -73,17 +73,15 @@ class LocalServiceRegistration(serviceFile: Path) {
    *         is empty or does not exist
    */
   def localServiceEntries: Seq[LocalServiceEntry] = {
-    def readLocalServiceEntries(source: Source) = {
-      val fileLock = acquireLock
-      val localServiceEntries = source.mkString.parseJson.convertTo[Seq[LocalServiceEntry]]
-      releaseLock(fileLock)
-      localServiceEntries
-    }
     if (Files.notExists(serviceFile)) Seq.empty
     else {
+      val fileLock = acquireLock
       val source = Source.fromFile(serviceFile.toFile, utf8)
-      if (source.isEmpty) Seq.empty
-      else readLocalServiceEntries(source)
+      val localServiceEntries =
+        if (source.isEmpty) Seq.empty
+        else source.mkString.parseJson.convertTo[Seq[LocalServiceEntry]]
+      releaseLock(fileLock)
+      localServiceEntries
     }
   }
 
