@@ -3,6 +3,8 @@
  */
 package akka.discovery.local.registration
 
+import java.io.RandomAccessFile
+import java.nio.channels.{ FileChannel, FileLock }
 import java.nio.file.{ Files, Path }
 
 import akka.discovery.local.JsonFormat._
@@ -17,8 +19,9 @@ class LocalServiceRegistration(serviceFile: Path) {
 
   /**
    * Checks if a <host>:<port> is already registered in the service file
+   *
    * @param address the hostname or ip address
-   * @param port the port
+   * @param port    the port
    * @return true if already registered else false
    */
   def isRegistered(address: String, port: Int): Boolean =
@@ -27,8 +30,9 @@ class LocalServiceRegistration(serviceFile: Path) {
   /**
    * Adds a new <host>:<port> to the service file, if it isn't
    * already registered.
+   *
    * @param address the hostname or ip address
-   * @param port the port
+   * @param port    the port
    */
   def add(address: String, port: Int): Unit = {
     if (!isRegistered(address, port))
@@ -37,21 +41,49 @@ class LocalServiceRegistration(serviceFile: Path) {
 
   /**
    * Removes an <host>:<port> from the service file if registered.
+   *
    * @param address the hostname or ip address
-   * @param port the port
+   * @param port    the port
    */
   def remove(address: String, port: Int): Unit =
     writeToFile(localServiceEntries.filterNot(_ == LocalServiceEntry(address, port)))
 
-  private def writeToFile(localServiceEntries: Seq[LocalServiceEntry]) =
-    Files.write(serviceFile, localServiceEntries.toJson.compactPrint.getBytes(utf8))
+  private def acquireLock: FileLock = {
+    def fileChannel = new RandomAccessFile(serviceFile.toFile, "rw").getChannel
+    fileChannel.lock()
+  }
 
+  private def releaseLock(fileLock: FileLock) = {
+    if (fileLock != null) {
+      fileLock.release()
+      fileLock.channel().close()
+    }
+  }
+
+  private def writeToFile(localServiceEntries: Seq[LocalServiceEntry]) = {
+    val fileLock = acquireLock
+    Files.write(serviceFile, localServiceEntries.toJson.compactPrint.getBytes(utf8))
+    releaseLock(fileLock)
+  }
+
+  /**
+   * Retrieves all registered LocalServiceEntries
+   *
+   * @return the list of LocalServiceEntries or an empty List if the akka.discovery.akka-local.service-file
+   *         is empty or does not exist
+   */
   def localServiceEntries: Seq[LocalServiceEntry] = {
+    def readLocalServiceEntries(source: Source) = {
+      val fileLock = acquireLock
+      val localServiceEntries = source.mkString.parseJson.convertTo[Seq[LocalServiceEntry]]
+      releaseLock(fileLock)
+      localServiceEntries
+    }
     if (Files.notExists(serviceFile)) Seq.empty
     else {
       val source = Source.fromFile(serviceFile.toFile, utf8)
       if (source.isEmpty) Seq.empty
-      else source.mkString.parseJson.convertTo[Seq[LocalServiceEntry]]
+      else readLocalServiceEntries(source)
     }
   }
 
