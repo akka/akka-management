@@ -18,7 +18,7 @@ import akka.actor.Timers
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
+import akka.discovery.SimpleServiceDiscovery.{ ResolvedTarget, Simple }
 import akka.http.scaladsl.model.Uri
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.JoinDecider
@@ -249,7 +249,7 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
   }
 
   private def discoverContactPoints(): Unit =
-    discovery.lookup(serviceName, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
+    discovery.lookup(Simple(serviceName), settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
 
   private def onContactPointsResolved(contactPoints: immutable.Seq[ResolvedTarget]): Unit = {
     val newObservation = DnsServiceContactsObservation(timeNow(), contactPoints.toSet)

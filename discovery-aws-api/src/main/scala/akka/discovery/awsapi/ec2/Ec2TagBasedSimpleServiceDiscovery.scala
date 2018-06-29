@@ -7,7 +7,7 @@ import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.SimpleServiceDiscovery.{ Lookup, Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery._
 import akka.event.Logging
 import akka.pattern.after
@@ -88,25 +88,25 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
   }
 
-  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
-          Future.failed(new TimeoutException(s"Lookup for [$name] timed-out, within [$resolveTimeout]!"))
+          Future.failed(new TimeoutException(s"Lookup for [$query] timed-out, within [$resolveTimeout]!"))
         ),
-        lookup(name)
+        lookup(query)
       )
     )
 
-  def lookup(name: String): Future[Resolved] = {
+  def lookup(query: Lookup): Future[Resolved] = {
 
-    val tagFilter = new Filter("tag:" + tagKey, List(name).asJava)
+    val tagFilter = new Filter("tag:" + tagKey, List(query.name).asJava)
 
     val allFilters: List[Filter] = runningInstancesFilter :: tagFilter :: otherFilters
 
     Future {
       getInstances(ec2Client, allFilters, None).map((ip: String) => ResolvedTarget(ip, None))
-    }.map(resoledTargets => Resolved(name, resoledTargets))
+    }.map(resoledTargets => Resolved(query.name, resoledTargets))
 
   }
 

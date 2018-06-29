@@ -14,13 +14,13 @@ import akka.stream.scaladsl.FileIO
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 import com.typesafe.sslconfig.ssl.TrustStoreConfig
 import java.nio.file.Paths
+
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
-
 import JsonFormat._
-import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import SimpleServiceDiscovery.{ Lookup, Resolved, ResolvedTarget }
 
 object KubernetesApiSimpleServiceDiscovery {
 
@@ -66,11 +66,11 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
 
   private val httpsContext = http.createClientHttpsContext(httpsConfig)
 
-  def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
     for {
       token <- apiToken()
 
-      labelSelector = settings.podLabelSelector(name)
+      labelSelector = settings.podLabelSelector(query.name)
 
       _ = system.log.info("Querying for pods with label selector: [{}]", labelSelector)
 
@@ -96,7 +96,7 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
 
     } yield
       Resolved(
-        serviceName = name,
+        serviceName = query.name,
         addresses = targets(podList, settings.podPortName, settings.podNamespace, settings.podDomain)
       )
 
