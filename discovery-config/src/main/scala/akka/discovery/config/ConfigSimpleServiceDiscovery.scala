@@ -48,8 +48,9 @@ class ConfigSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleSe
 
   log.debug("Config discovery serving: {}", resolvedServices)
 
-  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = {
+  def lookup(query: SimpleServiceDiscovery.Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     // TODO or fail or change the Resolved type to an ADT?
-    Future.successful(resolvedServices.getOrElse(name, Resolved(name, immutable.Seq.empty)))
+    Future.successful(resolvedServices.getOrElse(query.name, Resolved(query.name, immutable.Seq.empty)))
   }
+
 }

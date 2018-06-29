@@ -22,22 +22,23 @@ class DnsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
   private val dns = IO(Dns)(system)
   import system.dispatcher
 
-  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] = {
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     def cleanIpString(ipString: String): String =
       if (ipString.startsWith("/")) ipString.tail else ipString
 
-    dns.ask(Dns.Resolve(name))(resolveTimeout) map {
+    dns.ask(Dns.Resolve(query.name))(resolveTimeout) map {
+      //TODO if it is a Full query do a SRV
       case resolved: Dns.Resolved =>
         log.info("Resolved Dns.Resolved: {}", resolved)
         val addresses = resolved.ipv4.map { entry ⇒
           val address = cleanIpString(entry.getHostAddress)
           ResolvedTarget(host = address, port = None)
         }
-        Resolved(name, addresses)
+        Resolved(query.name, addresses)
 
       case resolved ⇒
         log.warning("Resolved UNEXPECTED (resolving to Nil): {}", resolved.getClass)
-        Resolved(name, Nil)
+        Resolved(query.name, Nil)
     }
   }
 }
