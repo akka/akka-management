@@ -122,6 +122,9 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
   private var lastContactsObservation: Option[DnsServiceContactsObservation] = None
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
 
+  // set once joinSeedNodes is called; we only want to call joinSeedNodes again once the value changes;
+  // so we keep the last time used value around in this Set of addresses that we
+  private var joiningSeedNodesInProgress: Set[Address] = Set.empty
   private var decisionInProgress = false
   def startPeriodicDecisionTimer(): Unit =
     timers.startPeriodicTimer(DecideTimerKey, DecideTick, settings.contactPoint.probeInterval)
@@ -212,12 +215,23 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
           if (seedNodes.nonEmpty) {
             log.info("Joining [{}] to existing cluster [{}]", cluster.selfAddress, seedNodes.mkString(", "))
 
-            val seedNodesList = (seedNodes - cluster.selfAddress).toList // order doesn't matter
-            cluster.joinSeedNodes(seedNodesList)
+            val addresses = seedNodes - cluster.selfAddress
 
-            // once we issued a join bootstrapping is completed
-            replyTo ! BootstrappingCompleted
-            context.stop(self)
+            // we avoid calling joinSeedNodes with the same set of nodes
+            // this would interrupt and start a new join seed nodes process and cause needless friction
+            // (would still work though)
+            if (addresses != joiningSeedNodesInProgress) {
+              joiningSeedNodesInProgress = addresses
+              cluster.joinSeedNodes(addresses.toList) // order doesn't matter as self node is excluded from the list
+
+              // once we issued a join bootstrapping is completed
+              replyTo ! BootstrappingCompleted
+              context.stop(self)
+            } else {
+              log.debug(
+                  "Received JoinOtherSeedNodes() decision for the same seed nodes that we are already in process of joining ({})",
+                  joiningSeedNodesInProgress)
+            }
           }
         case JoinSelf =>
           log.info(
