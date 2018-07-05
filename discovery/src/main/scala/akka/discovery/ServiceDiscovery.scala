@@ -18,7 +18,7 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
       case method ⇒ method
     }
 
-  private lazy val _simpleImpl = ServiceDiscovery.loadServiceDiscovery(_simpleImplMethod, system)
+  private lazy val _simpleImpl = loadServiceDiscovery(_simpleImplMethod)
 
   /**
    * Default [[SimpleServiceDiscovery]] as configured in `akka.discovery.method`.
@@ -26,22 +26,13 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
   @throws[IllegalArgumentException]
   def discovery: SimpleServiceDiscovery = _simpleImpl
 
-}
-
-object ServiceDiscovery extends ExtensionId[ServiceDiscovery] with ExtensionIdProvider {
-  override def apply(system: ActorSystem): ServiceDiscovery = super.apply(system)
-
-  override def lookup: ServiceDiscovery.type = ServiceDiscovery
-
-  override def get(system: ActorSystem): ServiceDiscovery = super.get(system)
-
-  override def createExtension(system: ExtendedActorSystem): ServiceDiscovery = new ServiceDiscovery()(system)
-
   /**
-   * INTERNAL API
+   * Create a [[SimpleServiceDiscovery]] from configuration property.
+   * The given `method` parameter is used to find configuration property
+   * "akka.discovery.[method].class" or "[method].class". `method` can also
+   * be a fully class name.
    */
-  @InternalApi
-  private[akka] def loadServiceDiscovery(method: String, system: ExtendedActorSystem): SimpleServiceDiscovery = {
+  def loadServiceDiscovery(method: String): SimpleServiceDiscovery = {
     val config = system.settings.config
     val dynamic = system.dynamicAccess
 
@@ -62,18 +53,30 @@ object ServiceDiscovery extends ExtensionId[ServiceDiscovery] with ExtensionIdPr
         }
     }
 
-    val i = create(classNameFromConfig("akka.discovery." + method + ".class")).recoverWith {
+    val configName = "akka.discovery." + method + ".class"
+    val instance = create(classNameFromConfig(configName)).recoverWith {
       case _ ⇒ create(classNameFromConfig(method + ".class"))
     }.recoverWith {
       case _ ⇒ create(method) // so perhaps, it is a classname?
     }
 
-    i.getOrElse(
+    instance.getOrElse(
       throw new IllegalArgumentException(
-          s"Illegal `akka.discovery.method` value '$method' or incompatible class! " +
+          s"Illegal [$configName] value '$method' or incompatible class! " +
           "The implementation class MUST extend akka.discovery.SimpleServiceDiscovery and take an " +
-          "ExtendedActorSystem as constructor argument.", i.failed.get)
+          "ExtendedActorSystem as constructor argument.", instance.failed.get)
     )
   }
+
+}
+
+object ServiceDiscovery extends ExtensionId[ServiceDiscovery] with ExtensionIdProvider {
+  override def apply(system: ActorSystem): ServiceDiscovery = super.apply(system)
+
+  override def lookup: ServiceDiscovery.type = ServiceDiscovery
+
+  override def get(system: ActorSystem): ServiceDiscovery = super.get(system)
+
+  override def createExtension(system: ExtendedActorSystem): ServiceDiscovery = new ServiceDiscovery()(system)
 
 }

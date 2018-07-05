@@ -36,8 +36,10 @@ final class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends
   private val settings =
     new AggregateSimpleServiceDiscoverySettings(system.settings.config.getConfig("akka.discovery.aggregate"))
 
-  private val mechanisms =
-    settings.discoveryMechanisms.map(mech => (mech, ServiceDiscovery.loadServiceDiscovery(mech, system)))
+  private val mechanisms = {
+    val serviceDiscovery = ServiceDiscovery(system)
+    settings.discoveryMechanisms.map(mech => (mech, serviceDiscovery.loadServiceDiscovery(mech)))
+  }
   private implicit val ec = system.dispatcher
 
   /**
@@ -69,6 +71,9 @@ final class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends
               log.error(t, "[{}] Service discovery failed. Trying next discovery mechanism", mechanism)
               resolve(tail, name, resolveTimeout)
           }
+      case Nil =>
+        // this is checked in `discoveryMechanisms`, but silence compiler warning
+        throw new IllegalStateException("At least one discovery mechanism should be specified")
     }
   }
 }
