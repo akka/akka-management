@@ -8,12 +8,14 @@ lazy val `akka-management-root` = project
   .disablePlugins(BintrayPlugin)
   .aggregate(
     `akka-discovery`,
+    `akka-discovery-aggregrate`,
+    `akka-discovery-aws-api`,
+    `akka-discovery-aws-api-async`,
+    `akka-discovery-config`,
+    `akka-discovery-consul`,
     `akka-discovery-dns`,
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
-    `akka-discovery-aws-api`,
-    `akka-discovery-aws-api-async`,
-    `akka-discovery-consul`,
     `akka-management`,
     `bootstrap-joining-demo-aws-api-ec2-tag-based`,
     `bootstrap-joining-demo-aws-api-ecs`,
