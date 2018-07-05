@@ -29,17 +29,13 @@ object MarathonApiDockerDemoApp extends App {
   }
 
   val route =
-    concat(
-      path("ping")(complete("pong!")),
+    concat(path("ping")(complete("pong!")),
       path("healthy")(complete(if (isHealthy()) StatusCodes.OK else StatusCodes.ServiceUnavailable)),
       path("ready")(complete(if (isReady()) StatusCodes.OK else StatusCodes.ServiceUnavailable)))
 
   AkkaManagement(system).start()
   ClusterBootstrap(system).start()
 
-  Http().bindAndHandle(
-    route,
-    sys.env.get("HOST").getOrElse("127.0.0.1"),
+  Http().bindAndHandle(route, sys.env.get("HOST").getOrElse("127.0.0.1"),
     sys.env.get("PORT_HTTP").map(_.toInt).getOrElse(8080))
 }
-

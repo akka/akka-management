@@ -19,6 +19,8 @@ lazy val `akka-management-root` = project
     `akka-management`,
     `bootstrap-joining-demo-aws-api-ec2-tag-based`,
     `bootstrap-joining-demo-aws-api-ecs`,
+    `bootstrap-joining-demo-kubernetes-api`,
+    `bootstrap-joining-demo-marathon-api-docker`,
     `cluster-http`,
     `cluster-bootstrap`,
     docs
