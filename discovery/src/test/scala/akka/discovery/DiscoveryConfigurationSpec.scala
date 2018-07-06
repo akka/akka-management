@@ -105,6 +105,31 @@ class DiscoveryConfigurationSpec extends WordSpec with Matchers {
         ServiceDiscovery(sys).loadServiceDiscovery("mock2").getClass.getCanonicalName should ===(className2)
       } finally TestKit.shutdownActorSystem(sys)
     }
+
+    "return same instance for same method" in {
+      val className1 = classOf[FakeTestDiscovery].getCanonicalName
+      val className2 = classOf[FakeTestDiscovery2].getCanonicalName
+
+      val sys = ActorSystem("DiscoveryConfigurationSpec", ConfigFactory.parseString(s"""
+            akka.discovery {
+              method = mock1
+
+              mock1 {
+                class = $className1
+              }
+              mock2 {
+                class = $className2
+              }
+            }
+        """).withFallback(ConfigFactory.load()))
+
+      try {
+        ServiceDiscovery(sys).loadServiceDiscovery("mock2") should be theSameInstanceAs ServiceDiscovery(sys)
+          .loadServiceDiscovery("mock2")
+
+        ServiceDiscovery(sys).discovery should be theSameInstanceAs ServiceDiscovery(sys).loadServiceDiscovery("mock1")
+      } finally TestKit.shutdownActorSystem(sys)
+    }
   }
 
 }

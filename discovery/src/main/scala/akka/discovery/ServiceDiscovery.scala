@@ -3,12 +3,20 @@
  */
 package akka.discovery
 
+import java.util.concurrent.ConcurrentHashMap
+import java.util.function.{ Function => JFunction }
+
 import akka.actor._
 import akka.annotation.InternalApi
 
 final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Extension {
 
-  private lazy val _simpleImplMethod =
+  private val implementations = new ConcurrentHashMap[String, SimpleServiceDiscovery]
+  private val factory = new JFunction[String, SimpleServiceDiscovery] {
+    override def apply(method: String): SimpleServiceDiscovery = createServiceDiscovery(method)
+  }
+
+  private lazy val _defaultImplMethod =
     system.settings.config.getString("akka.discovery.method") match {
       case "<method>" ⇒
         throw new IllegalArgumentException(
@@ -18,7 +26,7 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
       case method ⇒ method
     }
 
-  private lazy val _simpleImpl = loadServiceDiscovery(_simpleImplMethod)
+  private lazy val _simpleImpl = loadServiceDiscovery(_defaultImplMethod)
 
   /**
    * Default [[SimpleServiceDiscovery]] as configured in `akka.discovery.method`.
@@ -31,8 +39,15 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
    * The given `method` parameter is used to find configuration property
    * "akka.discovery.[method].class" or "[method].class". `method` can also
    * be a fully class name.
+   *
+   * The `SimpleServiceDiscovery` instance for a given `method` will be created
+   * once and subsequent requests for the same `method` will return the same instance.
    */
   def loadServiceDiscovery(method: String): SimpleServiceDiscovery = {
+    implementations.computeIfAbsent(method, factory)
+  }
+
+  private def createServiceDiscovery(method: String): SimpleServiceDiscovery = {
     val config = system.settings.config
     val dynamic = system.dynamicAccess
 
@@ -62,7 +77,7 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
 
     instance.getOrElse(
       throw new IllegalArgumentException(
-          s"Illegal [$configName] value '$method' or incompatible class! " +
+          s"Illegal [$configName] value or incompatible class! " +
           "The implementation class MUST extend akka.discovery.SimpleServiceDiscovery and take an " +
           "ExtendedActorSystem as constructor argument.", instance.failed.get)
     )
