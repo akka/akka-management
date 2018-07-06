@@ -50,7 +50,7 @@ object SimpleServiceDiscovery {
 
     override def toString(): String =
       port match {
-        case Some(p) => s"$host:$port"
+        case Some(p) => s"$host:$p"
         case None => host
       }
   }
