@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.concurrent.Promise
+import scala.collection.immutable
 
 import akka.actor.ActorSystem
 import akka.actor.ExtendedActorSystem
@@ -108,8 +109,19 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     _selfContactPointUri.success(baseUri)
 
   /** INTERNAL API */
-  @InternalApi private[akka] def selfContactPoint: Future[Uri] =
-    _selfContactPointUri.future
+  @InternalApi private[akka] def selfContactPoints: Future[immutable.Seq[(String, Int)]] =
+    _selfContactPointUri.future.map { uri =>
+      if (system.settings.config.hasPath("akka.discovery.kubernetes-api.pod-domain") && uri.authority.host.isIPv4()) {
+        val podNamespace = system.settings.config.getString("akka.discovery.kubernetes-api.pod-namespace")
+        val podDomain = system.settings.config.getString("akka.discovery.kubernetes-api.pod-domain")
+        immutable.Seq(
+          (uri.authority.host.toString, uri.authority.port),
+          (s"${uri.authority.host.toString.replace('.', '-')}.${podNamespace}.pod.${podDomain}", uri.authority.port)
+        )
+      } else {
+        immutable.Seq((uri.authority.host.toString, uri.authority.port))
+      }
+    }
 
 }
 
