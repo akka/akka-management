@@ -4,7 +4,8 @@ language: scala
 
 scala:
   - "2.12.6"
-  - "2.11.12"
+  # FIXME re-introduce once akka 2.5.14 is released
+  # - "2.11.12"
 
 jdk:
   - oraclejdk8

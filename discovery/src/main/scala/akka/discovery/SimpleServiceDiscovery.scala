@@ -22,7 +22,6 @@ import scala.concurrent.duration.FiniteDuration
 @ApiMayChange
 object SimpleServiceDiscovery {
 
-  // TODO for use cases like aggregate it might be worth making this an ADT with a NoTargets case
   /** Result of a successful resolve request */
   final case class Resolved(serviceName: String, addresses: immutable.Seq[ResolvedTarget])
       extends DeadLetterSuppression {

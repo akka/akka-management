@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.function.{ Function => JFunction }
 
 import akka.actor._
-import akka.annotation.InternalApi
 
 final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Extension {
 

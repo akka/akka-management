@@ -3,7 +3,12 @@ import java.nio.file.Paths
 // root
 lazy val `akka-management-root` = project
   .in(file("."))
-  .settings(unidocSettings)
+  .settings(
+    unidocSettings,
+    inThisBuild(List(
+      resolvers += "Akka Snapshots" at "https://repo.akka.io/snapshots/"
+    ))
+  )
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .aggregate(

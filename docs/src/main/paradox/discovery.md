@@ -51,8 +51,14 @@ you can pick those likely gain some additional benefits, read their docs section
 
 ### Dependencies and usage
 
-DNS currently ignores all fields on a Full lookup apart from name. This is expected to change when 
-SRV records are supported.
+DNS discovery maps `Lookup` queries as follows:
+* Simple: A DNS query for A/AAAA records
+* Full(name, port, protocol): As a SRV query in the form: `_port._protocol._name` Where the `_`s are added. 
+
+The mapping between Akka service discovery terminology and SRV terminology:
+* SRV service = port
+* SRV name = name
+* SRV protocol = protocol
 
 To use `akka-discovery-dns` depend on the library:
 
@@ -94,14 +100,15 @@ Java
 
 ### How it works
 
-DNS discovery can use either A/AAAA records or SRV records. The advantage of SRV records is that they can include a port.
+DNS discovery will use either A/AAAA records or SRV records depending on whether a `Simple` or `Full` lookup is issued.. 
+The advantage of SRV records is that they can include a port.
 Container schedulers such as [Kubernetes support both](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/).
-By default SRV records are used you can override to use A/AAAA records by setting `akka.discovery.akka-dns.lookup-type = ip` 
 
 
 #### SRV records
 
-Queries for SRV records also include the service port and weightings e.g.
+
+`Full` lookups become SRV queries. For example:
 
 ```
 dig srv service.tcp.akka.test                                                                                                                                                                                                                                                                                                                      
@@ -129,8 +136,7 @@ and `a-double.akka.test` on port `5070`. Currently discovery does not support th
 
 #### A/AAAA records
 
-To use A/AAAA records rather than SRV records set `akka.discovery.akka-dns.lookup-type = ip`.
-Queries for A/AAAA records can return multiple results e.g.
+`Simple` lookups become A/AAAA record queries. For example:
 
 ```
 dig a-double.akka.test
