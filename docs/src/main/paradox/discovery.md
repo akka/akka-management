@@ -16,29 +16,30 @@ Typed instead. Since it provides a more fine-tuned towards Actors mechanism of d
 Discovery is done in a mechanism agnostic way, where mechanisms are things like DNS, Consul and configuration.
 
 Scala
-:   ```scala
-    import akka.discovery.ServiceDiscovery
-    val system = ActorSystem("Example")
-    // ... 
-    val discovery = ServiceDiscovery(system).discovery
-    val result: Future[Resolved] = discovery.lookup("service-name", resolveTimeout = 500 milliseconds)
-    ```
+:  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #loading }
 
 Java
-:   ```java
-    import akka.discovery.ServiceDiscovery; 
-    ActorSystem system = ActorSystem.create("Example");
-    // ... 
-    SimpleServiceDiscovery discovery = ServiceDiscovery.get(system).discovery();
-    Future<SimpleServiceDiscovery.Resolved> result = discovery.lookup("service-name", Duration.create("500 millis"));
- 
- 
-When doing a lookup the following parameters are optional: 
-* service 
-* port
-* protocol 
+:  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #loading }
 
-Each discovery mechanism chooses if and how to use them, most currently do not.
+Then either a simple of a full lookup can be done. How these are interpreted is discovery mechamism dependent e.g. 
+DNS does an A/AAAA record for a simple lookup and a SRV query for a full look up:
+
+Scala
+:  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #simple }
+
+Java
+:  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #simple }
+
+A full lookup includes a `port` and `protocol` which can be interpreted as a mechanism chooses.
+
+Scala
+:  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #full }
+
+Java
+:  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #full }
+
+Port can be used when a service opens multiple ports e.g. a HTTP port and an Akka remoting port.
+
 
 ## Discovery Method trade-offs
 

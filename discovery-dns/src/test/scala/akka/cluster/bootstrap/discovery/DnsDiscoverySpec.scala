@@ -5,11 +5,11 @@ package akka.cluster.bootstrap.discovery
 
 import akka.actor.ActorSystem
 import akka.discovery.ServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{Full, ResolvedTarget}
+import akka.discovery.SimpleServiceDiscovery.{ Full, ResolvedTarget }
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
 import scala.collection.immutable
@@ -105,7 +105,6 @@ object DnsDiscoverySpec {
 
 }
 
-// Requires DNS server, see above
 class DnsDiscoverySpec
     extends TestKit(ActorSystem("DnsDiscoverySpec", DnsDiscoverySpec.config))
     with WordSpecLike
@@ -114,12 +113,15 @@ class DnsDiscoverySpec
     with ScalaFutures {
 
   "Dns Discovery" must {
+
+    // Requires DNS server, see above
     pending
 
     "work with SRV records" in {
       val discovery = ServiceDiscovery(system).discovery
       val name = "_service._tcp.akka.test."
-      val result = discovery.lookup(Full("akka.test.", "service", "tcp"), resolveTimeout = 500.milliseconds).futureValue
+      val result =
+        discovery.lookup(Full("akka.test.", "service", "tcp"), resolveTimeout = 500.milliseconds).futureValue
       result.addresses.toSet shouldEqual Set(
         ResolvedTarget("a-single.akka.test", Some(5060)),
         ResolvedTarget("a-double.akka.test", Some(5070))
@@ -128,21 +130,13 @@ class DnsDiscoverySpec
     }
 
     "work with IP records" in {
-      val as = ActorSystem("ip-lookup",
-        ConfigFactory
-          .parseString("""akka.discovery.akka-dns.lookup-type = ip""")
-          .withFallback(DnsDiscoverySpec.config))
-      val discovery = ServiceDiscovery(as).discovery
-      try {
-        val name = "a-single.akka.test"
-        val result = discovery.lookup(name, resolveTimeout = 500.milliseconds).futureValue
-        result.serviceName shouldEqual name
-        result.addresses.toSet shouldEqual Set(
-          ResolvedTarget("192.168.1.20", None)
-        )
-      } finally {
-        TestKit.shutdownActorSystem(as)
-      }
+      val discovery = ServiceDiscovery(system).discovery
+      val name = "a-single.akka.test"
+      val result = discovery.lookup(name, resolveTimeout = 500.milliseconds).futureValue
+      result.serviceName shouldEqual name
+      result.addresses.toSet shouldEqual Set(
+        ResolvedTarget("192.168.1.20", None)
+      )
     }
   }
 

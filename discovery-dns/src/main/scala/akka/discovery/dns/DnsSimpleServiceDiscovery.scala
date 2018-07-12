@@ -6,20 +6,18 @@ package akka.discovery.dns
 import akka.AkkaVersion
 import akka.actor.ActorSystem
 import akka.event.Logging
-import akka.io.{Dns, IO}
+import akka.io.{ Dns, IO }
 import akka.pattern.ask
 
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import akka.discovery._
-import akka.io.dns.{AAAARecord, ARecord, DnsProtocol, SRVRecord}
-import akka.io.dns.DnsProtocol.{Ip, Srv}
-
-
+import akka.io.dns.{ AAAARecord, ARecord, DnsProtocol, SRVRecord }
+import akka.io.dns.DnsProtocol.{ Ip, Srv }
 
 /**
-  * Looks for A records for a given service.
-  */
+ * Looks for A records for a given service.
+ */
 class DnsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
   // FIXME once 2.5.12 is released
@@ -38,7 +36,6 @@ class DnsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     def cleanIpString(ipString: String): String =
       if (ipString.startsWith("/")) ipString.tail else ipString
-
 
     query match {
       case Simple(name) =>
