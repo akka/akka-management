@@ -128,15 +128,18 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
       val bootstrap = ClusterBootstrap(system)
 
       // we KNOW this await is safe, since we set the value before we bind the HTTP things even
-      val selfContactPoint =
-        Try(Await.result(bootstrap.selfContactPoint, 10.second)).getOrElse(throw new IllegalStateException(
+      val selfContactPoints =
+        Try(Await.result(bootstrap.selfContactPoints, 10.second)).getOrElse(throw new IllegalStateException(
               "Bootstrap.selfContactPoint was NOT set! This is required for the bootstrap to work! " +
               "If binding bootstrap routes manually and not via akka-management"))
 
       // we check if a contact point is "us", by comparing host and port that we've bound to
-      def lowestContactPointIsSelfManagement(lowest: ResolvedTarget): Boolean =
-        lowest.host == selfContactPoint.authority.host.toString() &&
-        lowest.port.getOrElse(selfContactPoint.authority.port) == selfContactPoint.authority.port
+      def lowestContactPointIsSelfManagement(lowest: ResolvedTarget): Boolean = lowest.port match {
+        case None =>
+          selfContactPoints.exists { case (host, _) => host == lowest.host }
+        case Some(lowestPort) =>
+          selfContactPoints.exists { case (host, port) => host == lowest.host && port == lowestPort }
+      }
 
       lowestAddressContactPoint(info) match {
         case Some(lowest) => lowestContactPointIsSelfManagement(lowest)
