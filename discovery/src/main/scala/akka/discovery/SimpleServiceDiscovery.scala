@@ -75,28 +75,32 @@ object SimpleServiceDiscovery {
     }
   }
 
-  /**
-   * Represents a service discovery lookup.
-   *
-   * Each mechanism should document what a Simple vs Full lookup means.
-   * Implementations are free to ignore port/protocol from a Full lookup
-   * but should not throw if they are set unexpectedly as this prevents the
-   * same query being sent to multiple mechanisms via the aggregate service
-   * discovery
-   */
-  @ApiMayChange
-  sealed abstract class Lookup {
-    def name: String
+}
+
+/**
+ * Additional information for a service lookup. It is up to each mechanism to decide
+ * what to do with this.
+ */
+@ApiMayChange
+class LookupMetadata(portName: Option[String] = None, protocol: Option[String] = None) {
+
+  def withPortName(value: String): LookupMetadata = copy(
+    portName = Some(value)
+  )
+
+  def withProtocol(value: String): LookupMetadata = copy(
+    protocol = Some(value)
+  )
+
+  def copy(portName: Option[String] = portName, protocol: Option[String] = protocol): LookupMetadata = {
+    new LookupMetadata(portName, protocol)
   }
+}
 
-  @ApiMayChange
-  final case class Simple(name: String) extends Lookup
-
-  /**
-   * The meaning of each field is up to the discovery mechanism.
-   */
-  @ApiMayChange
-  final case class Full(name: String, port: String, protocol: String) extends Lookup
+@ApiMayChange
+object LookupMetadata {
+  def apply(): LookupMetadata = new LookupMetadata()
+  def apply(portName: String, protocol: String): LookupMetadata = new LookupMetadata(Some(portName), Some(protocol))
 }
 
 /**
@@ -112,21 +116,20 @@ abstract class SimpleServiceDiscovery {
   /**
    * Scala API: Perform lookup using underlying discovery implementation.
    *
-   * @param query A simple of full query, see discovery-mechanism's docs for how this is interpreted
+   * @param name           service name
+   * @param metadata       Additional (optional) metadata for a service that may be used by the mechanism
    * @param resolveTimeout Timeout. Up to the discovery-mechanism to adhere to his
-   * @return
    */
-  def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved]
+  def lookup(name: String, metadata: LookupMetadata, resolveTimeout: FiniteDuration): Future[Resolved]
 
   /**
    * Scala API: Perform lookup using underlying discovery implementation.
    *
-   * @param name A name, see discovery-mechanism's docs for how this is interpreted
+   * @param name           A name, see discovery-mechanism's docs for how this is interpreted
    * @param resolveTimeout Timeout. Up to the discovery-mechanism to adhere to his
-   * @return
    */
   def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
-    lookup(Simple(name), resolveTimeout)
+    lookup(name, LookupMetadata(), resolveTimeout)
 
   /**
    * Java API: Perform basic lookup using underlying discovery implementation.
@@ -136,16 +139,20 @@ abstract class SimpleServiceDiscovery {
    * eagerness to wait for a result for this specific lookup.
    *
    * The returned future SHOULD be failed once resolveTimeout has passed.
+   *
    */
-  def lookup(query: Lookup, resolveTimeout: java.time.Duration): CompletionStage[Resolved] = {
+  def lookup(name: String, metadata: LookupMetadata, resolveTimeout: java.time.Duration): CompletionStage[Resolved] = {
     import scala.compat.java8.FutureConverters._
-    lookup(query, FiniteDuration(resolveTimeout.toMillis, TimeUnit.MILLISECONDS)).toJava
+    lookup(name, metadata, FiniteDuration(resolveTimeout.toMillis, TimeUnit.MILLISECONDS)).toJava
   }
 
   /**
    * Java API
+   *
+   * @param name           A name, see discovery-mechanism's docs for how this is interpreted
+   * @param resolveTimeout Timeout. Up to the discovery-mechanism to adhere to his
    */
   def lookup(name: String, resolveTimeout: java.time.Duration): CompletionStage[Resolved] =
-    lookup(Simple(name), resolveTimeout)
+    lookup(name, LookupMetadata(), resolveTimeout)
 
 }

@@ -7,7 +7,7 @@ import java.util
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
-import akka.discovery.SimpleServiceDiscovery
+import akka.discovery.{ LookupMetadata, SimpleServiceDiscovery }
 
 import scala.collection.immutable.Seq
 import scala.concurrent.{ ExecutionContext, Future, Promise }
@@ -17,7 +17,7 @@ import com.orbitz.consul.Consul
 import com.orbitz.consul.async.ConsulResponseCallback
 import com.orbitz.consul.model.ConsulResponse
 import ConsulSimpleServiceDiscovery._
-import akka.discovery.SimpleServiceDiscovery.{ Lookup, Resolved, ResolvedTarget }
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import com.orbitz.consul.model.catalog.CatalogService
 import com.orbitz.consul.option.QueryOptions
 
@@ -31,14 +31,14 @@ class ConsulSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDis
   private val consul =
     Consul.builder().withHostAndPort(HostAndPort.fromParts(settings.consulHost, settings.consulPort)).build()
 
-  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+  override def lookup(name: String, meta: LookupMetadata, resolveTimeout: FiniteDuration): Future[Resolved] = {
     implicit val ec: ExecutionContext = system.dispatcher
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
-          Future.failed(new TimeoutException(s"Lookup for [${query.name}] timed-out, within [${resolveTimeout}]!"))
+          Future.failed(new TimeoutException(s"Lookup for [${name}] timed-out, within [${resolveTimeout}]!"))
         ),
-        lookupInConsul(query.name)
+        lookupInConsul(name)
       )
     )
   }

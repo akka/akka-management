@@ -33,8 +33,7 @@ Java
     Future<SimpleServiceDiscovery.Resolved> result = discovery.lookup("service-name", Duration.create("500 millis"));
  
  
-When doing a lookup the following parameters are optional: 
-* service 
+When doing a lookup you can pass in an optional `LookupMetadata` that contains optional fields for:
 * port
 * protocol 
 

@@ -4,7 +4,7 @@
 package akka.discovery.config
 
 import akka.actor.ExtendedActorSystem
-import akka.discovery.SimpleServiceDiscovery
+import akka.discovery.{ LookupMetadata, SimpleServiceDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.event.Logging
 import com.typesafe.config.Config
@@ -48,9 +48,9 @@ class ConfigSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleSe
 
   log.debug("Config discovery serving: {}", resolvedServices)
 
-  def lookup(query: SimpleServiceDiscovery.Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+  override def lookup(name: String, meta: LookupMetadata, resolveTimeout: FiniteDuration): Future[Resolved] = {
     // TODO or fail or change the Resolved type to an ADT?
-    Future.successful(resolvedServices.getOrElse(query.name, Resolved(query.name, immutable.Seq.empty)))
+    Future.successful(resolvedServices.getOrElse(name, Resolved(name, immutable.Seq.empty)))
   }
 
 }

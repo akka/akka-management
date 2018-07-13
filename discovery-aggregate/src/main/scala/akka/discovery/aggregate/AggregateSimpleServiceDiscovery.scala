@@ -4,9 +4,9 @@
 package akka.discovery.aggregate
 
 import akka.actor.ExtendedActorSystem
-import akka.discovery.SimpleServiceDiscovery.{ Lookup, Resolved }
+import akka.discovery.SimpleServiceDiscovery.Resolved
 import akka.discovery.aggregate.AggregateSimpleServiceDiscovery.Mechanisms
-import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
+import akka.discovery.{ LookupMetadata, ServiceDiscovery, SimpleServiceDiscovery }
 import akka.event.Logging
 import akka.util.Helpers.Requiring
 import com.typesafe.config.Config
@@ -45,30 +45,33 @@ final class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends
   /**
    * Each discovery mechanism is given the resolveTimeout rather than reducing it each time between mechanisms.
    */
-  override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
-    resolve(mechanisms, lookup, resolveTimeout)
+  override def lookup(name: String, meta: LookupMetadata, resolveTimeout: FiniteDuration): Future[Resolved] =
+    resolve(mechanisms, name, meta, resolveTimeout)
 
-  private def resolve(sds: Mechanisms, query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+  private def resolve(sds: Mechanisms,
+                      name: String,
+                      meta: LookupMetadata,
+                      resolveTimeout: FiniteDuration): Future[Resolved] = {
     sds match {
       case (mechanism, next) :: Nil =>
-        log.debug("Looking up [{}] with [{}]", query, mechanism)
-        next.lookup(query, resolveTimeout)
+        log.debug("Looking up [{}] with [{}]", name, mechanism)
+        next.lookup(name, meta, resolveTimeout)
       case (mechanism, next) :: tail =>
-        log.debug("Looking up [{}] with [{}]", query, mechanism)
+        log.debug("Looking up [{}] with [{}]", name, mechanism)
         // If nothing comes back then try the next one
         next
-          .lookup(query, resolveTimeout)
+          .lookup(name, meta, resolveTimeout)
           .flatMap { resolved =>
             if (resolved.addresses.isEmpty) {
-              log.debug("Mechanism [{}] returned no ResolvedTargets, trying next", query)
-              resolve(tail, query, resolveTimeout)
+              log.debug("Mechanism [{}] returned no ResolvedTargets, trying next", name)
+              resolve(tail, name, meta, resolveTimeout)
             } else
               Future.successful(resolved)
           }
           .recoverWith {
             case t: Throwable =>
               log.error(t, "[{}] Service discovery failed. Trying next discovery mechanism", mechanism)
-              resolve(tail, query, resolveTimeout)
+              resolve(tail, name, meta, resolveTimeout)
           }
       case Nil =>
         // this is checked in `discoveryMechanisms`, but silence compiler warning

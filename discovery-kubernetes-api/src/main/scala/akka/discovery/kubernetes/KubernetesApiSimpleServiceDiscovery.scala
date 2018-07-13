@@ -22,7 +22,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 import JsonFormat._
-import SimpleServiceDiscovery.{ Lookup, Resolved, ResolvedTarget }
+import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 
 object KubernetesApiSimpleServiceDiscovery {
 
@@ -73,11 +73,11 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
 
   private val httpsContext = http.createClientHttpsContext(httpsConfig)
 
-  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
+  override def lookup(name: String, metadata: LookupMetadata, resolveTimeout: FiniteDuration): Future[Resolved] =
     for {
       token <- apiToken()
 
-      labelSelector = settings.podLabelSelector(query.name)
+      labelSelector = settings.podLabelSelector(name)
 
       _ = system.log.info("Querying for pods with label selector: [{}]", labelSelector)
 
@@ -103,7 +103,7 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
 
     } yield
       Resolved(
-        serviceName = query.name,
+        serviceName = name,
         addresses = targets(podList, settings.podPortName, settings.podNamespace, settings.podDomain)
       )
 

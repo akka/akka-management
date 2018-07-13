@@ -7,8 +7,8 @@ import java.net.{ InetAddress, NetworkInterface }
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
-import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ Lookup, Resolved, ResolvedTarget }
+import akka.discovery.{ LookupMetadata, SimpleServiceDiscovery }
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ecs.AsyncEcsSimpleServiceDiscovery._
 import akka.pattern.after
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration
@@ -34,16 +34,16 @@ class AsyncEcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceD
 
   private[this] implicit val ec: ExecutionContext = system.dispatcher
 
-  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
+  override def lookup(name: String, meta: LookupMetadata, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
           Future.failed(new TimeoutException("Future timed out!"))
         ),
-        resolveTasks(ecsClient, cluster, query.name).map(
+        resolveTasks(ecsClient, cluster, name).map(
           tasks =>
             Resolved(
-              serviceName = query.name,
+              serviceName = name,
               addresses = for {
                 task <- tasks
                 container <- task.containers().asScala
