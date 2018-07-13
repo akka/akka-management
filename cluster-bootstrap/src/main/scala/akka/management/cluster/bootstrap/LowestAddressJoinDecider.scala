@@ -16,7 +16,7 @@ import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.event.Logging
 
 /**
- * The decision of joining "self" is made by deterministically sorting the discovered service IPs
+ * The decision of joining "self" is made by deterministically sorting the discovered services
  * and picking the *lowest* address. Only the node with lowest address joins itself.
  *
  * If any of the contact-points returns a list of seed nodes it joins the existing cluster immediately.
@@ -59,15 +59,17 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
           if (log.isInfoEnabled) {
             if (settings.formNewCluster)
               log.info(
-                  "Exceeded stable margins without locating seed-nodes, however this node is NOT the lowest address " +
-                  "out of the discovered IPs in this deployment, thus NOT joining self. Expecting node [{}] " +
+                  "Exceeded stable margins without locating seed-nodes, however this node {} is NOT the lowest address " +
+                  "out of the discovered endpoints in this deployment, thus NOT joining self. Expecting node [{}] " +
                   "(out of [{}]) to perform the self-join and initiate the cluster.",
+                  selfContactPoints().map(_.productIterator.mkString(":")).mkString("[", ",", "]"),
                   lowestAddressContactPoint(info).getOrElse(""), info.contactPoints.mkString(", "))
             else
               log.warning(
-                  "Exceeded stable margins without locating seed-nodes, however this node is configured with " +
+                  "Exceeded stable margins without locating seed-nodes, however this node {} is configured with " +
                   "form-new-cluster=off, thus NOT joining self. Expecting existing cluster or node [{}] " +
                   "(out of [{}]) to perform the self-join and initiate the cluster.",
+                  selfContactPoints().map(_.productIterator.mkString(":")).mkString("[", ",", "]"),
                   lowestAddressContactPoint(info).getOrElse(""), info.contactPoints.mkString(", "))
           }
 
@@ -146,6 +148,17 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
         case None => false
       }
     } else false
+  }
+
+  private def selfContactPoints(): Set[(String, Int)] = {
+    val bootstrap = ClusterBootstrap(system)
+
+    // we KNOW this await is safe, since we set the value before we bind the HTTP things even
+    val selfContactPoints =
+      Try(Await.result(bootstrap.selfContactPoints, 10.second)).getOrElse(throw new IllegalStateException(
+            "Bootstrap.selfContactPoint was NOT set! This is required for the bootstrap to work! " +
+            "If binding bootstrap routes manually and not via akka-management"))
+    selfContactPoints
   }
 
   /**
