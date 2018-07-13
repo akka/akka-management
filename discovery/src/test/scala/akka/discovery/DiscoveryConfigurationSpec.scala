@@ -136,16 +136,7 @@ class DiscoveryConfigurationSpec extends WordSpec with Matchers {
 
 class FakeTestDiscovery extends SimpleServiceDiscovery {
 
-  /**
-   * Scala API: Perform lookup using underlying discovery implementation.
-   *
-   * @param name           service name
-   * @param metadata       Additional (optional) metadata for a service that may be used by the mechanism
-   * @param resolveTimeout Timeout. Up to the discovery-mechanism to adhere to his
-   */
-  override def lookup(name: String,
-                      metadata: LookupMetadata,
-                      resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = ???
+  override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = ???
 }
 
 class FakeTestDiscovery2 extends FakeTestDiscovery

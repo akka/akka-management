@@ -24,6 +24,8 @@ import scala.util.Try
 import JsonFormat._
 import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 
+import scala.util.control.NonFatal
+
 object KubernetesApiSimpleServiceDiscovery {
 
   /**
@@ -73,11 +75,11 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
 
   private val httpsContext = http.createClientHttpsContext(httpsConfig)
 
-  override def lookup(name: String, metadata: LookupMetadata, resolveTimeout: FiniteDuration): Future[Resolved] =
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
     for {
       token <- apiToken()
 
-      labelSelector = settings.podLabelSelector(name)
+      labelSelector = settings.podLabelSelector(query.serviceName)
 
       _ = system.log.info("Querying for pods with label selector: [{}]", labelSelector)
 
@@ -94,7 +96,7 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
         val unmarshalled = Unmarshal(entity).to[PodList]
 
         unmarshalled.failed.foreach { t =>
-          system.log.error("Failed to unmarshal Kubernetes API response status [{}]; check RBAC settings",
+          system.log.error(t, "Failed to unmarshal Kubernetes API response status [{}]; check RBAC settings",
             response.status.value)
         }
 
@@ -103,12 +105,12 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
 
     } yield
       Resolved(
-        serviceName = name,
+        serviceName = query.serviceName,
         addresses = targets(podList, settings.podPortName, settings.podNamespace, settings.podDomain)
       )
 
   private def apiToken() =
-    FileIO.fromPath(Paths.get(settings.apiTokenPath)).runFold("")(_ + _.utf8String).recover { case _: Throwable => "" }
+    FileIO.fromPath(Paths.get(settings.apiTokenPath)).runFold("")(_ + _.utf8String).recover { case NonFatal(_) => "" }
 
   private def optionToFuture[T](option: Option[T], failMsg: String): Future[T] =
     option.fold(Future.failed[T](new NoSuchElementException(failMsg)))(Future.successful)

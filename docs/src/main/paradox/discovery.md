@@ -32,13 +32,6 @@ Java
     SimpleServiceDiscovery discovery = ServiceDiscovery.get(system).discovery();
     Future<SimpleServiceDiscovery.Resolved> result = discovery.lookup("service-name", Duration.create("500 millis"));
  
- 
-When doing a lookup you can pass in an optional `LookupMetadata` that contains optional fields for:
-* port
-* protocol 
-
-Each discovery mechanism chooses if and how to use them, most currently do not.
-
 ## Discovery Method trade-offs
 
 We recommend using the DNS implementation as good default choice, and if an implementation
@@ -53,7 +46,7 @@ or others define using their own naming schemes, and expect to get back a list o
 
 ### Dependencies and usage
 
-DNS currently ignores all fields on a Full lookup apart from name. This is expected to change when 
+DNS currently ignores all fields apart from name. This is expected to change when 
 SRV records are supported.
 
 To use `akka-discovery-dns` depend on the library:
@@ -131,7 +124,7 @@ known port (which in the case of the akka management routes is `8558`).
 
 ## Discovery Method: Configuration
 
-Configuration currently ignores all fields on a Full lookup apart from name. 
+Configuration currently ignores all fields apart from service name. 
 
 For simple use cases configuration can be used for service discovery. The advantage of using Akka Discovery with
 configuration rather than your own configuration values is that applications can be migrated to a more 
@@ -188,7 +181,7 @@ the namespace, label selector, and port name that are used in the pod selection 
 
 ### Dependencies and usage
 
-Kubernetes currently ignores all fields on a Full lookup apart from name. This is expected to change.
+Kubernetes currently ignores all fields apart from service name. This is expected to change.
 
 Using `akka-discovery-kubernetes-api` is very simple, as you simply need to depend on the library::
 
@@ -302,7 +295,7 @@ roleRef:
 
 ## Discovery Method: Marathon API
 
-Marathon currently ignores all fields on a Full lookup apart from name. This is expected to change.
+Marathon currently ignores all fields apart from service name. This is expected to change.
 
 If you're a Mesos or DC/OS user, you can use the provided Marathon API implementation. You'll need to add a label
 to your Marathon JSON (named `ACTOR_SYSTEM_NAME`  by default) and set the value equal to the name of the configured
@@ -561,7 +554,7 @@ Demo:
 
 ## Discovery Method: Consul
 
-Consul currently ignores all fields on the Full lookup apart from name. This is expected to change.
+Consul currently ignores all fields apart from service name. This is expected to change.
 
 If you are using Consul to do the service discovery this would allow you to base your Cluster on Consul services.
 

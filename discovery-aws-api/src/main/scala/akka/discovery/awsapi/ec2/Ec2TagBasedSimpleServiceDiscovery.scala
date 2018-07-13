@@ -6,7 +6,7 @@ package akka.discovery.awsapi.ec2
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
-import akka.discovery.{ LookupMetadata, SimpleServiceDiscovery }
+import akka.discovery.{ Lookup, SimpleServiceDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery._
 import akka.event.Logging
@@ -88,13 +88,13 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
   }
 
-  override def lookup(name: String, meta: LookupMetadata, resolveTimeout: FiniteDuration): Future[Resolved] =
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
-          Future.failed(new TimeoutException(s"Lookup for [$name] timed-out, within [$resolveTimeout]!"))
+          Future.failed(new TimeoutException(s"Lookup for [$query] timed-out, within [$resolveTimeout]!"))
         ),
-        lookup(name)
+        lookup(query.serviceName)
       )
     )
 

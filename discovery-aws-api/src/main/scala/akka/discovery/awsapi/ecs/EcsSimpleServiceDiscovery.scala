@@ -7,7 +7,7 @@ import java.net.{ InetAddress, NetworkInterface }
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
-import akka.discovery.{ LookupMetadata, SimpleServiceDiscovery }
+import akka.discovery.{ Lookup, SimpleServiceDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ecs.EcsSimpleServiceDiscovery._
 import akka.pattern.after
@@ -36,7 +36,7 @@ class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
 
   private[this] implicit val ec: ExecutionContext = system.dispatcher
 
-  override def lookup(name: String, meta: LookupMetadata, resolveTimeout: FiniteDuration): Future[Resolved] =
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
@@ -44,9 +44,9 @@ class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
         ),
         Future {
           Resolved(
-            serviceName = name,
+            serviceName = query.serviceName,
             addresses = for {
-              task <- resolveTasks(ecsClient, cluster, name)
+              task <- resolveTasks(ecsClient, cluster, query.serviceName)
               container <- task.getContainers.asScala
               networkInterface <- container.getNetworkInterfaces.asScala
             } yield {
