@@ -59,14 +59,14 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
           if (log.isInfoEnabled) {
             if (settings.formNewCluster)
               log.info(
-                  "Exceeded stable margins without locating seed-nodes, however this node [{}] is NOT the lowest address " +
+                  "Exceeded stable margins without locating seed-nodes, however this node {} is NOT the lowest address " +
                   "out of the discovered endpoints in this deployment, thus NOT joining self. Expecting node [{}] " +
                   "(out of [{}]) to perform the self-join and initiate the cluster.",
                   selfContactPoints().map(_.productIterator.mkString(":")).mkString("[", ",", "]"),
                   lowestAddressContactPoint(info).getOrElse(""), info.contactPoints.mkString(", "))
             else
               log.warning(
-                  "Exceeded stable margins without locating seed-nodes, however this node [{}] is configured with " +
+                  "Exceeded stable margins without locating seed-nodes, however this node {} is configured with " +
                   "form-new-cluster=off, thus NOT joining self. Expecting existing cluster or node [{}] " +
                   "(out of [{}]) to perform the self-join and initiate the cluster.",
                   selfContactPoints().map(_.productIterator.mkString(":")).mkString("[", ",", "]"),
