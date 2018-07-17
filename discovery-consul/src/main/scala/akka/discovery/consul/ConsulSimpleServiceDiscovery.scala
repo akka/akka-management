@@ -68,8 +68,7 @@ class ConsulSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDis
     val address = catalogService.getServiceAddress
     ResolvedTarget(
       host = address,
-      port = Some(port.getOrElse(catalogService.getServicePort)),
-      address = Some(address)
+      port = Some(port.getOrElse(catalogService.getServicePort))
     )
   }
 

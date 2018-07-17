@@ -137,7 +137,7 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
 
       // some discovery mechanism can return both host name and IP address. this checks for both.
       def hostMatches(host: String, lowest: ResolvedTarget): Boolean =
-        (Some(host) == lowest.address) || (host == lowest.host)
+        (Some(host) == lowest.address.map(_.getHostAddress)) || (host == lowest.host)
 
       // we check if a contact point is "us", by comparing host and port that we've bound to
       def lowestContactPointIsSelfManagement(lowest: ResolvedTarget): Boolean = lowest.port match {

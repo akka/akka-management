@@ -51,7 +51,7 @@ class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
               networkInterface <- container.getNetworkInterfaces.asScala
             } yield {
               val address = networkInterface.getPrivateIpv4Address
-              ResolvedTarget(host = address, port = None, address = Some(address))
+              ResolvedTarget(host = address, port = None)
             }
           )
         }

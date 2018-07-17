@@ -3,6 +3,7 @@
  */
 package akka.discovery
 
+import java.net.InetAddress
 import java.util.Optional
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit
@@ -39,37 +40,40 @@ object SimpleServiceDiscovery {
       else if (a.port != b.port) a.port.getOrElse(0) < b.port.getOrElse(0)
       else false
     }
+
+    private val IPv4 = """^((?:[0-9]{1,3}\.){3}[0-9]{1,3})$""".r
+
+    def apply(
+        host: String,
+        port: Option[Int]
+    ): ResolvedTarget = {
+      host match {
+        case IPv4(_) => new ResolvedTarget(host = host, port = port, address = Some(InetAddress.getByName(host)))
+        case _ => new ResolvedTarget(host = host, port = port, address = None)
+      }
+    }
   }
 
   /**
    * Resolved target host, with optional port and the IP address.
-   * The address may be used for cluster bootstrap.
+   * @param host the hostname or the IP address of the target
+   * @param port optional port number
+   * @param address optional IP address of the target. This is used during cluster bootstap when available.
    */
-  final case class ResolvedTarget(host: String, port: Option[Int], address: Option[String]) {
+  final case class ResolvedTarget(
+      host: String,
+      port: Option[Int],
+      address: Option[InetAddress]
+  ) {
     def getPort: Optional[Int] = {
       import scala.compat.java8.OptionConverters._
       port.asJava
     }
 
-    def getAddress: Optional[String] = {
+    def getAddress: Optional[InetAddress] = {
       import scala.compat.java8.OptionConverters._
       address.asJava
     }
-
-    override def equals(o: Any): Boolean = o match {
-      case x: ResolvedTarget => (this.host == x.host) && (this.port == x.port)
-      case _ => false
-    }
-
-    override def hashCode: Int = {
-      (host, port).##
-    }
-
-    override def toString(): String =
-      port match {
-        case Some(p) => s"$host:$p"
-        case None => host
-      }
   }
 }
 

@@ -3,6 +3,7 @@
  */
 package akka.discovery.kubernetes
 
+import java.net.InetAddress
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import org.scalatest.{ Matchers, WordSpec }
 
@@ -25,7 +26,7 @@ class KubernetesApiSimpleServiceDiscoverySpec extends WordSpec with Matchers {
           ResolvedTarget(
             host = "172-17-0-4.default.pod.cluster.local",
             port = Some(10001),
-            address = Some("172.17.0.4")
+            address = Some(InetAddress.getByName("172.17.0.4"))
           ))
     }
 

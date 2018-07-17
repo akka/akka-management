@@ -94,13 +94,11 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSp
             List(
               ResolvedTarget(
                 host = clusterA.selfAddress.host.get,
-                port = contactPointPorts.get("A"),
-                address = clusterA.selfAddress.host
+                port = contactPointPorts.get("A")
               ),
               ResolvedTarget(
                 host = clusterB.selfAddress.host.get,
-                port = contactPointPorts.get("B"),
-                address = clusterB.selfAddress.host
+                port = contactPointPorts.get("B")
               )
             ))
         else
@@ -108,13 +106,11 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSp
             List(
               ResolvedTarget(
                 host = clusterA.selfAddress.host.get,
-                port = unreachablePorts.get("A"),
-                address = clusterA.selfAddress.host
+                port = unreachablePorts.get("A")
               ),
               ResolvedTarget(
                 host = clusterB.selfAddress.host.get,
-                port = unreachablePorts.get("B"),
-                address = clusterB.selfAddress.host
+                port = unreachablePorts.get("B")
               )
             ))
       )
