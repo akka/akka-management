@@ -43,14 +43,12 @@ object SimpleServiceDiscovery {
 
     private val IPv4 = """^((?:[0-9]{1,3}\.){3}[0-9]{1,3})$""".r
 
-    def apply(
-        host: String,
-        port: Option[Int]
-    ): ResolvedTarget = {
-      host match {
-        case IPv4(_) => new ResolvedTarget(host = host, port = port, address = Some(InetAddress.getByName(host)))
-        case _ => new ResolvedTarget(host = host, port = port, address = None)
+    def apply(host: String, port: Option[Int]): ResolvedTarget = {
+      val address = host match {
+        case IPv4(_) => Some(InetAddress.getByName(host))
+        case _ => None
       }
+      new ResolvedTarget(host, port, address)
     }
   }
 
