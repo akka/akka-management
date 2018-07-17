@@ -65,7 +65,12 @@ class ConsulSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDis
       .flatMap { maybePort =>
         Try(maybePort.toInt).toOption
       }
-    ResolvedTarget(catalogService.getServiceAddress, Some(port.getOrElse(catalogService.getServicePort)))
+    val address = catalogService.getServiceAddress
+    ResolvedTarget(
+      host = address,
+      port = Some(port.getOrElse(catalogService.getServicePort)),
+      address = Some(address)
+    )
   }
 
   private def getServicesWithTags: Future[ConsulResponse[util.Map[String, util.List[String]]]] = {

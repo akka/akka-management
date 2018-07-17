@@ -53,7 +53,13 @@ class ConsulDiscoverySpec
 
       val lookupService = new ConsulSimpleServiceDiscovery(system)
       val resolved = lookupService.lookup("test", 10 seconds).futureValue
-      resolved.addresses should contain(ResolvedTarget("127.0.0.1", Some(1234)))
+      resolved.addresses should contain(
+        ResolvedTarget(
+          host = "127.0.0.1",
+          port = Some(1234),
+          address = Some("127.0.0.1")
+        )
+      )
     }
   }
 

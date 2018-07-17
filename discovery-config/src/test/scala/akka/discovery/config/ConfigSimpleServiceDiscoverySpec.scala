@@ -63,8 +63,8 @@ class ConfigSimpleServiceDiscoverySpec
       val result = discovery.lookup("service1", 100.millis).futureValue
       result.serviceName shouldEqual "service1"
       result.addresses shouldEqual immutable.Seq(
-        ResolvedTarget("cat", Some(1233)),
-        ResolvedTarget("dog", None)
+        ResolvedTarget(host = "cat", port = Some(1233), address = None),
+        ResolvedTarget(host = "dog", port = None, address = None)
       )
     }
 

@@ -72,7 +72,7 @@ class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers
         Future.successful(
           Resolved(name,
             List(
-              ResolvedTarget("127.0.0.1", Some(managementPort))
+              ResolvedTarget(host = "127.0.0.1", port = Some(managementPort), address = Some("127.0.0.1"))
             ))
       ))
 

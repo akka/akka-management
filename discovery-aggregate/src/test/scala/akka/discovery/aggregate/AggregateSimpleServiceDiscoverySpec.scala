@@ -20,7 +20,10 @@ class StubbedSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleS
 
   override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = {
     if (name == "stubbed") {
-      Future.successful(Resolved(name, immutable.Seq(ResolvedTarget("stubbed1", Some(1234)))))
+      Future.successful(Resolved(name,
+          immutable.Seq(
+            ResolvedTarget(host = "stubbed1", port = Some(1234), address = None)
+          )))
     } else if (name == "fail") {
       Future.failed(new RuntimeException("No resolving for you!"))
     } else {
@@ -88,19 +91,28 @@ class AggregateSimpleServiceDiscoverySpec
 
     "only call first one if returns results" in {
       val results = discovery.lookup("stubbed", 100.millis).futureValue
-      results shouldEqual Resolved("stubbed", immutable.Seq(ResolvedTarget("stubbed1", Some(1234))))
+      results shouldEqual Resolved("stubbed",
+        immutable.Seq(
+          ResolvedTarget(host = "stubbed1", port = Some(1234), address = None)
+        ))
     }
 
     "move onto the next if no resolved targets" in {
       val results = discovery.lookup("config1", 100.millis).futureValue
       results shouldEqual Resolved("config1",
-        immutable.Seq(ResolvedTarget("cat", Some(1233)), ResolvedTarget("dog", Some(1234))))
+        immutable.Seq(
+          ResolvedTarget(host = "cat", port = Some(1233), address = None),
+          ResolvedTarget(host = "dog", port = Some(1234), address = None)
+        ))
     }
 
     "move onto next if fails" in {
       val results = discovery.lookup("fail", 100.millis).futureValue
       // Stub fails then result comes from config
-      results shouldEqual Resolved("fail", immutable.Seq(ResolvedTarget("from-config", None)))
+      results shouldEqual Resolved("fail",
+        immutable.Seq(
+          ResolvedTarget(host = "from-config", port = None, address = None)
+        ))
     }
   }
 

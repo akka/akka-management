@@ -31,7 +31,7 @@ object ConfigServicesParser {
         val resolvedTargets: immutable.Seq[ResolvedTarget] = endpoints.map { c =>
           val host = c.getString("host")
           val port = if (c.hasPath("port")) Some(c.getInt("port")) else None
-          ResolvedTarget(host, port)
+          ResolvedTarget(host = host, port = port, address = None)
         }(breakOut)
         (serviceName, Resolved(serviceName, resolvedTargets))
     }

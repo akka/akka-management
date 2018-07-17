@@ -49,11 +49,10 @@ class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
               task <- resolveTasks(ecsClient, cluster, name)
               container <- task.getContainers.asScala
               networkInterface <- container.getNetworkInterfaces.asScala
-            } yield
-              ResolvedTarget(
-                host = networkInterface.getPrivateIpv4Address,
-                port = None
-              )
+            } yield {
+              val address = networkInterface.getPrivateIpv4Address
+              ResolvedTarget(host = address, port = None, address = Some(address))
+            }
           )
         }
       )

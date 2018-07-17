@@ -83,9 +83,21 @@ class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
         Future.successful(
           Resolved(name,
             List(
-              ResolvedTarget(clusterA.selfAddress.host.get, contactPointPorts.get("A")),
-              ResolvedTarget(clusterB.selfAddress.host.get, contactPointPorts.get("B")),
-              ResolvedTarget(clusterC.selfAddress.host.get, contactPointPorts.get("C"))
+              ResolvedTarget(
+                host = clusterA.selfAddress.host.get,
+                port = contactPointPorts.get("A"),
+                address = clusterA.selfAddress.host
+              ),
+              ResolvedTarget(
+                host = clusterB.selfAddress.host.get,
+                port = contactPointPorts.get("B"),
+                address = clusterB.selfAddress.host
+              ),
+              ResolvedTarget(
+                host = clusterC.selfAddress.host.get,
+                port = contactPointPorts.get("C"),
+                address = clusterC.selfAddress.host
+              )
             ))
       ))
 

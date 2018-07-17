@@ -44,7 +44,7 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
             }
 
             http {
-              hostname = "127.0.0.1"
+              hostname = "10.0.0.2"
               base-path = "test"
               port = $managementPort
             }
@@ -54,19 +54,24 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
     val system = ActorSystem("sys", config)
     val settings = ClusterBootstrapSettings(system.settings.config)
 
-    val contactA = ResolvedTarget("127.0.0.1", None)
-    val contactB = ResolvedTarget("b", None)
-    val contactC = ResolvedTarget("c", None)
+    val contactA = ResolvedTarget(host = "10-0-0-2.default.pod.cluster.local", port = None, address = Some("10.0.0.2"))
+    val contactB = ResolvedTarget(host = "b", port = None, address = None)
+    val contactC = ResolvedTarget(host = "c", port = None, address = None)
 
     "sort ResolvedTarget by lowest hostname:port" in {
-      List(ResolvedTarget("c", None), ResolvedTarget("a", None), ResolvedTarget("b", None)).sorted should ===(
-        List(ResolvedTarget("a", None), ResolvedTarget("b", None), ResolvedTarget("c", None))
+      List(ResolvedTarget("c", None, None), ResolvedTarget("a", None, None),
+        ResolvedTarget("b", None, None)).sorted should ===(
+        List(ResolvedTarget("a", None, None), ResolvedTarget("b", None, None), ResolvedTarget("c", None, None))
       )
-      List(ResolvedTarget("c", Some(1)), ResolvedTarget("a", Some(3)), ResolvedTarget("b", Some(2))).sorted should ===(
-        List(ResolvedTarget("a", Some(3)), ResolvedTarget("b", Some(2)), ResolvedTarget("c", Some(1)))
+      List(ResolvedTarget("c", Some(1), None), ResolvedTarget("a", Some(3), None),
+        ResolvedTarget("b", Some(2), None)).sorted should ===(
+        List(ResolvedTarget("a", Some(3), None), ResolvedTarget("b", Some(2), None),
+          ResolvedTarget("c", Some(1), None))
       )
-      List(ResolvedTarget("a", Some(2)), ResolvedTarget("a", Some(1)), ResolvedTarget("a", Some(3))).sorted should ===(
-        List(ResolvedTarget("a", Some(1)), ResolvedTarget("a", Some(2)), ResolvedTarget("a", Some(3)))
+      List(ResolvedTarget("a", Some(2), None), ResolvedTarget("a", Some(1), None),
+        ResolvedTarget("a", Some(3), None)).sorted should ===(
+        List(ResolvedTarget("a", Some(1), None), ResolvedTarget("a", Some(2), None),
+          ResolvedTarget("a", Some(3), None))
       )
     }
 
@@ -78,9 +83,9 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
         contactPointsChangedAt = now.minusSeconds(2),
         contactPoints = Set(contactA, contactB, contactC),
         seedNodesObservations = Set(new SeedNodesObservation(now.minusSeconds(1), contactA,
-            Address("akka", "sys", "127.0.0.1", 2552), Set(Address("akka", "sys", "127.0.0.1", 2552))))
+            Address("akka", "sys", "10.0.0.2", 2552), Set(Address("akka", "sys", "10.0.0.2", 2552))))
       )
-      decider.decide(info).futureValue should ===(JoinOtherSeedNodes(Set(Address("akka", "sys", "127.0.0.1", 2552))))
+      decider.decide(info).futureValue should ===(JoinOtherSeedNodes(Set(Address("akka", "sys", "10.0.0.2", 2552))))
     }
 
     "keep probing when contact points changed within stable-margin" in {
@@ -91,7 +96,7 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
         contactPointsChangedAt = now.minusSeconds(2), // << 2 < stable-margin
         contactPoints = Set(contactA, contactB, contactC),
         seedNodesObservations = Set(new SeedNodesObservation(now.minusSeconds(1), contactA,
-            Address("akka", "sys", "127.0.0.1", 2552), Set.empty),
+            Address("akka", "sys", "10.0.0.2", 2552), Set.empty),
           new SeedNodesObservation(now.minusSeconds(1), contactB, Address("akka", "sys", "b", 2552), Set.empty),
           new SeedNodesObservation(now.minusSeconds(1), contactC, Address("akka", "sys", "c", 2552), Set.empty))
       )
@@ -106,7 +111,7 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
         contactPointsChangedAt = now.minusSeconds(2),
         contactPoints = Set(contactA, contactB), // << 2 < required-contact-point-nr
         seedNodesObservations = Set(new SeedNodesObservation(now.minusSeconds(1), contactA,
-            Address("akka", "sys", "127.0.0.1", 2552), Set.empty),
+            Address("akka", "sys", "10.0.0.2", 2552), Set.empty),
           new SeedNodesObservation(now.minusSeconds(1), contactB, Address("akka", "sys", "b", 2552), Set.empty))
       )
       decider.decide(info).futureValue should ===(KeepProbing)
@@ -120,15 +125,15 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
         contactPointsChangedAt = now.minusSeconds(2),
         contactPoints = Set(contactA, contactB, contactC),
         seedNodesObservations = Set(new SeedNodesObservation(now.minusSeconds(1), contactA,
-            Address("akka", "sys", "127.0.0.1", 2552), Set.empty),
+            Address("akka", "sys", "10.0.0.2", 2552), Set.empty),
           new SeedNodesObservation(now.minusSeconds(1), contactB, Address("akka", "sys", "b", 2552), Set.empty))
         // << 2 < required-contact-point-nr
       )
       decider.decide(info).futureValue should ===(KeepProbing)
     }
 
-    "join self when all conditions met and self is lowest address" in {
-      ClusterBootstrap(system).setSelfContactPoint(s"http://127.0.0.1:$managementPort/test")
+    "join self when all conditions met and self has the lowest address" in {
+      ClusterBootstrap(system).setSelfContactPoint(s"http://10.0.0.2:$managementPort/test")
       val decider = new LowestAddressJoinDecider(system, settings)
       val now = LocalDateTime.now()
       val info = new SeedNodesInformation(
@@ -136,7 +141,7 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
         contactPointsChangedAt = now.minusSeconds(6),
         contactPoints = Set(contactA, contactB, contactC),
         seedNodesObservations = Set(new SeedNodesObservation(now.minusSeconds(1), contactA,
-            Address("akka", "sys", "127.0.0.1", 2552), Set.empty),
+            Address("akka", "sys", "10.0.0.2", 2552), Set.empty),
           new SeedNodesObservation(now.minusSeconds(1), contactB, Address("akka", "sys", "b", 2552), Set.empty),
           new SeedNodesObservation(now.minusSeconds(1), contactC, Address("akka", "sys", "c", 2552), Set.empty))
       )

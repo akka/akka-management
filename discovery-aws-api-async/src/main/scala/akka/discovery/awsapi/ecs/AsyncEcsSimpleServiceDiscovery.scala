@@ -48,11 +48,10 @@ class AsyncEcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceD
                 task <- tasks
                 container <- task.containers().asScala
                 networkInterface <- container.networkInterfaces().asScala
-              } yield
-                ResolvedTarget(
-                  host = networkInterface.privateIpv4Address(),
-                  port = None
-                )
+              } yield {
+                val address = networkInterface.privateIpv4Address()
+                ResolvedTarget(host = address, port = None, address = Some(address))
+              }
           )
         )
       )

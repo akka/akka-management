@@ -135,12 +135,16 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
               "Bootstrap.selfContactPoint was NOT set! This is required for the bootstrap to work! " +
               "If binding bootstrap routes manually and not via akka-management"))
 
+      // some discovery mechanism can return both host name and IP address. this checks for both.
+      def hostMatches(host: String, lowest: ResolvedTarget): Boolean =
+        (Some(host) == lowest.address) || (host == lowest.host)
+
       // we check if a contact point is "us", by comparing host and port that we've bound to
       def lowestContactPointIsSelfManagement(lowest: ResolvedTarget): Boolean = lowest.port match {
         case None =>
-          selfContactPoints.exists { case (host, _) => host == lowest.host }
+          selfContactPoints.exists { case (host, _) => hostMatches(host, lowest) }
         case Some(lowestPort) =>
-          selfContactPoints.exists { case (host, port) => host == lowest.host && port == lowestPort }
+          selfContactPoints.exists { case (host, port) => hostMatches(host, lowest) && port == lowestPort }
       }
 
       lowestAddressContactPoint(info) match {
