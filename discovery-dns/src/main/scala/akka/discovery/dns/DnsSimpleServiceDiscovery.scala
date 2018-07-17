@@ -30,7 +30,8 @@ class DnsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
       case resolved: Dns.Resolved =>
         log.info("Resolved Dns.Resolved: {}", resolved)
         val addresses = resolved.ipv4.map { entry ⇒
-          ResolvedTarget(cleanIpString(entry.getHostAddress), port = None)
+          val address = cleanIpString(entry.getHostAddress)
+          ResolvedTarget(host = address, port = None, address = Some(address))
         }
         Resolved(name, addresses)
 

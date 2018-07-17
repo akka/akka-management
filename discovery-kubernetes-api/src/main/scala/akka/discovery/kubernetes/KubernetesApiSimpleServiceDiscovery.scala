@@ -40,7 +40,7 @@ object KubernetesApiSimpleServiceDiscovery {
       itemStatus <- item.status
       ip <- itemStatus.podIP
       host = s"${ip.replace('.', '-')}.${podNamespace}.pod.${podDomain}"
-    } yield ResolvedTarget(host, Some(port.containerPort))
+    } yield ResolvedTarget(host = host, port = Some(port.containerPort), address = Some(ip))
 }
 
 /**

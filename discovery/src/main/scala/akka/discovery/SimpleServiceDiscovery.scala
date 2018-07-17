@@ -41,11 +41,28 @@ object SimpleServiceDiscovery {
     }
   }
 
-  /** Resolved target host, with optional port and protocol spoken */
-  final case class ResolvedTarget(host: String, port: Option[Int]) {
+  /**
+   * Resolved target host, with optional port and the IP address.
+   * The address may be used for cluster bootstrap.
+   */
+  final case class ResolvedTarget(host: String, port: Option[Int], address: Option[String]) {
     def getPort: Optional[Int] = {
       import scala.compat.java8.OptionConverters._
       port.asJava
+    }
+
+    def getAddress: Optional[String] = {
+      import scala.compat.java8.OptionConverters._
+      address.asJava
+    }
+
+    override def equals(o: Any): Boolean = o match {
+      case x: ResolvedTarget => (this.host == x.host) && (this.port == x.port)
+      case _ => false
+    }
+
+    override def hashCode: Int = {
+      (host, port).##
     }
 
     override def toString(): String =

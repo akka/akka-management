@@ -54,19 +54,24 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
     val system = ActorSystem("sys", config)
     val settings = ClusterBootstrapSettings(system.settings.config)
 
-    val contactA = ResolvedTarget("127.0.0.1", None)
-    val contactB = ResolvedTarget("b", None)
-    val contactC = ResolvedTarget("c", None)
+    val contactA = ResolvedTarget(host = "127.0.0.1", port = None, address = Some("127.0.0.1"))
+    val contactB = ResolvedTarget(host = "b", port = None, address = None)
+    val contactC = ResolvedTarget(host = "c", port = None, address = None)
 
     "sort ResolvedTarget by lowest hostname:port" in {
-      List(ResolvedTarget("c", None), ResolvedTarget("a", None), ResolvedTarget("b", None)).sorted should ===(
-        List(ResolvedTarget("a", None), ResolvedTarget("b", None), ResolvedTarget("c", None))
+      List(ResolvedTarget("c", None, None), ResolvedTarget("a", None, None),
+        ResolvedTarget("b", None, None)).sorted should ===(
+        List(ResolvedTarget("a", None, None), ResolvedTarget("b", None, None), ResolvedTarget("c", None, None))
       )
-      List(ResolvedTarget("c", Some(1)), ResolvedTarget("a", Some(3)), ResolvedTarget("b", Some(2))).sorted should ===(
-        List(ResolvedTarget("a", Some(3)), ResolvedTarget("b", Some(2)), ResolvedTarget("c", Some(1)))
+      List(ResolvedTarget("c", Some(1), None), ResolvedTarget("a", Some(3), None),
+        ResolvedTarget("b", Some(2), None)).sorted should ===(
+        List(ResolvedTarget("a", Some(3), None), ResolvedTarget("b", Some(2), None),
+          ResolvedTarget("c", Some(1), None))
       )
-      List(ResolvedTarget("a", Some(2)), ResolvedTarget("a", Some(1)), ResolvedTarget("a", Some(3))).sorted should ===(
-        List(ResolvedTarget("a", Some(1)), ResolvedTarget("a", Some(2)), ResolvedTarget("a", Some(3)))
+      List(ResolvedTarget("a", Some(2), None), ResolvedTarget("a", Some(1), None),
+        ResolvedTarget("a", Some(3), None)).sorted should ===(
+        List(ResolvedTarget("a", Some(1), None), ResolvedTarget("a", Some(2), None),
+          ResolvedTarget("a", Some(3), None))
       )
     }
 
