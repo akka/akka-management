@@ -7,6 +7,7 @@ import java.time.LocalDateTime
 
 import scala.concurrent.duration._
 
+import java.net.InetAddress
 import akka.actor.ActorSystem
 import akka.actor.Address
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
@@ -54,7 +55,11 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
     val system = ActorSystem("sys", config)
     val settings = ClusterBootstrapSettings(system.settings.config)
 
-    val contactA = ResolvedTarget(host = "10-0-0-2.default.pod.cluster.local", port = None, address = Some("10.0.0.2"))
+    val contactA = ResolvedTarget(
+      host = "10-0-0-2.default.pod.cluster.local",
+      port = None,
+      address = Some(InetAddress.getByName("10.0.0.2"))
+    )
     val contactB = ResolvedTarget(host = "b", port = None, address = None)
     val contactC = ResolvedTarget(host = "c", port = None, address = None)
 

@@ -112,13 +112,11 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec extends WordSpecLike with 
               List(
                 ResolvedTarget(
                   host = clusterA.selfAddress.host.get,
-                  port = contactPointPorts.get("A"),
-                  address = clusterA.selfAddress.host
+                  port = contactPointPorts.get("A")
                 ),
                 ResolvedTarget(
                   host = clusterB.selfAddress.host.get,
-                  port = contactPointPorts.get("B"),
-                  address = clusterB.selfAddress.host
+                  port = contactPointPorts.get("B")
                 )
               )))
 

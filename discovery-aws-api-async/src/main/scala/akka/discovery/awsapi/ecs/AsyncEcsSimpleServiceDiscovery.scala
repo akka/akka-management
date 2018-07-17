@@ -50,7 +50,7 @@ class AsyncEcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceD
                 networkInterface <- container.networkInterfaces().asScala
               } yield {
                 val address = networkInterface.privateIpv4Address()
-                ResolvedTarget(host = address, port = None, address = Some(address))
+                ResolvedTarget(host = address, port = None)
               }
           )
         )

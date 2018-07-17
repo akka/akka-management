@@ -3,6 +3,7 @@
  */
 package akka.cluster.bootstrap.discovery
 
+import java.net.InetAddress
 import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.discovery.consul.ConsulSimpleServiceDiscovery
@@ -57,7 +58,7 @@ class ConsulDiscoverySpec
         ResolvedTarget(
           host = "127.0.0.1",
           port = Some(1234),
-          address = Some("127.0.0.1")
+          address = Some(InetAddress.getByName("127.0.0.1"))
         )
       )
     }

@@ -105,8 +105,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
     val allFilters: List[Filter] = runningInstancesFilter :: tagFilter :: otherFilters
 
     Future {
-      getInstances(ec2Client, allFilters,
-        None).map((ip: String) => ResolvedTarget(host = ip, port = None, address = Some(ip)))
+      getInstances(ec2Client, allFilters, None).map((ip: String) => ResolvedTarget(host = ip, port = None))
     }.map(resoledTargets => Resolved(name, resoledTargets))
 
   }

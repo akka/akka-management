@@ -16,8 +16,8 @@ class MarathonApiSimpleServiceDiscoverySpec extends WordSpec with Matchers {
       val appList = JsonFormat.appListFormat.read(data.parseJson)
 
       MarathonApiSimpleServiceDiscovery.targets(appList, "akka-mgmt-http") shouldBe List(
-          ResolvedTarget(host = "192.168.65.60", port = Some(23236), address = Some("192.168.65.60")),
-          ResolvedTarget(host = "192.168.65.111", port = Some(6850), address = Some("192.168.65.111")))
+          ResolvedTarget(host = "192.168.65.60", port = Some(23236)),
+          ResolvedTarget(host = "192.168.65.111", port = Some(6850)))
     }
     "calculate the correct list of resolved targets for docker" in {
       val data = resourceAsString("docker-app.json")
@@ -25,8 +25,8 @@ class MarathonApiSimpleServiceDiscoverySpec extends WordSpec with Matchers {
       val appList = JsonFormat.appListFormat.read(data.parseJson)
 
       MarathonApiSimpleServiceDiscovery.targets(appList, "akkamgmthttp") shouldBe List(
-          ResolvedTarget(host = "10.121.48.204", port = Some(29480), address = Some("10.121.48.204")),
-          ResolvedTarget(host = "10.121.48.204", port = Some(10136), address = Some("10.121.48.204")))
+          ResolvedTarget(host = "10.121.48.204", port = Some(29480)),
+          ResolvedTarget(host = "10.121.48.204", port = Some(10136)))
     }
   }
 

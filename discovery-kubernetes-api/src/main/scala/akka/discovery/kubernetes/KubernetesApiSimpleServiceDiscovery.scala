@@ -3,6 +3,8 @@
  */
 package akka.discovery.kubernetes
 
+import java.net.InetAddress
+import java.nio.file.Paths
 import akka.actor.ActorSystem
 import akka.discovery._
 import akka.http.scaladsl._
@@ -13,7 +15,6 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.FileIO
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 import com.typesafe.sslconfig.ssl.TrustStoreConfig
-import java.nio.file.Paths
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
@@ -40,7 +41,12 @@ object KubernetesApiSimpleServiceDiscovery {
       itemStatus <- item.status
       ip <- itemStatus.podIP
       host = s"${ip.replace('.', '-')}.${podNamespace}.pod.${podDomain}"
-    } yield ResolvedTarget(host = host, port = Some(port.containerPort), address = Some(ip))
+    } yield
+      ResolvedTarget(
+        host = host,
+        port = Some(port.containerPort),
+        address = Some(InetAddress.getByName(ip))
+      )
 }
 
 /**

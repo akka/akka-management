@@ -55,7 +55,7 @@ object MarathonApiSimpleServiceDiscovery {
       taskHost <- task.host
       taskPorts <- task.ports
       taskAkkaManagementPort <- taskPorts.lift(portNumber)
-    } yield ResolvedTarget(host = taskHost, port = Some(taskAkkaManagementPort), address = None)
+    } yield ResolvedTarget(host = taskHost, port = Some(taskAkkaManagementPort))
   }
 }
 
