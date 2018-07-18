@@ -9,10 +9,10 @@ import akka.http.scaladsl._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
+
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
-
 import AppList._
 import JsonFormat._
 import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
@@ -72,10 +72,10 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
   private implicit val mat: ActorMaterializer = ActorMaterializer()(system)
 
-  def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] = {
+  override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     val uri =
       Uri(settings.appApiUrl).withQuery(Uri.Query("embed" -> "apps.tasks", "embed" -> "apps.deployments",
-          "label" -> settings.appLabelQuery.format(name)))
+          "label" -> settings.appLabelQuery.format(lookup.serviceName)))
 
     val request = HttpRequest(uri = uri)
 
@@ -95,6 +95,7 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
         unmarshalled
       }
 
-    } yield Resolved(name, targets(appList, settings.appPortName))
+    } yield Resolved(lookup.serviceName, targets(appList, settings.appPortName))
   }
+
 }

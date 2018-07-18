@@ -35,14 +35,16 @@ final class MockDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
 
   private val log = Logging(system, getClass)
 
-  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
-    MockDiscovery.data.get().get(name) match {
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+    MockDiscovery.data.get().get(query.serviceName) match {
       case Some(res) ⇒
         val items = res()
-        log.info("Mock-resolved [{}] to [{}:{}]", name, items, items.value)
+        log.info("Mock-resolved [{}] to [{}:{}]", query.serviceName, items, items.value)
         items
       case None ⇒
-        log.info("No mock-data for [{}], resolving as 'Nil'", name)
-        Future.successful(Resolved(name, Nil))
+        log.info("No mock-data for [{}], resolving as 'Nil'", query.serviceName)
+        Future.successful(Resolved(query.serviceName, Nil))
     }
+  }
+
 }

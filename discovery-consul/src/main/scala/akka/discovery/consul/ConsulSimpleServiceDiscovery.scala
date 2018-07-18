@@ -7,7 +7,7 @@ import java.util
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
-import akka.discovery.SimpleServiceDiscovery
+import akka.discovery.{ Lookup, SimpleServiceDiscovery }
 
 import scala.collection.immutable.Seq
 import scala.concurrent.{ ExecutionContext, Future, Promise }
@@ -31,14 +31,14 @@ class ConsulSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDis
   private val consul =
     Consul.builder().withHostAndPort(HostAndPort.fromParts(settings.consulHost, settings.consulPort)).build()
 
-  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = {
+  override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     implicit val ec: ExecutionContext = system.dispatcher
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
-          Future.failed(new TimeoutException(s"Lookup for [${name}] timed-out, within [${resolveTimeout}]!"))
+          Future.failed(new TimeoutException(s"Lookup for [${lookup}] timed-out, within [${resolveTimeout}]!"))
         ),
-        lookupInConsul(name)
+        lookupInConsul(lookup.serviceName)
       )
     )
   }

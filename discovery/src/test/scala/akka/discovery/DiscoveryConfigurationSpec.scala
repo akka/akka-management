@@ -135,8 +135,8 @@ class DiscoveryConfigurationSpec extends WordSpec with Matchers {
 }
 
 class FakeTestDiscovery extends SimpleServiceDiscovery {
-  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] =
-    ???
+
+  override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = ???
 }
 
 class FakeTestDiscovery2 extends FakeTestDiscovery

@@ -5,8 +5,7 @@ package akka.discovery.aggregate
 
 import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
-import akka.event.Logging
+import akka.discovery.{ Lookup, ServiceDiscovery, SimpleServiceDiscovery }
 import akka.testkit.TestKit
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalatest.concurrent.ScalaFutures
@@ -18,16 +17,16 @@ import scala.collection.immutable
 
 class StubbedSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleServiceDiscovery {
 
-  override def lookup(name: String, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = {
-    if (name == "stubbed") {
-      Future.successful(Resolved(name,
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+    if (query.serviceName == "stubbed") {
+      Future.successful(Resolved(query.serviceName,
           immutable.Seq(
             ResolvedTarget(host = "stubbed1", port = Some(1234), address = None)
           )))
-    } else if (name == "fail") {
+    } else if (query.serviceName == "fail") {
       Future.failed(new RuntimeException("No resolving for you!"))
     } else {
-      Future.successful(Resolved(name, immutable.Seq.empty))
+      Future.successful(Resolved(query.serviceName, immutable.Seq.empty))
     }
   }
 }
