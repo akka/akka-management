@@ -10,7 +10,7 @@ Akka's Service Discovery talks specifically about discovering hosts and ports th
 logical name of a service.
 
 If you're looking for a way to discover Actors in a Cluster, you may want to look at the [Receptionist
-pattern](https://doc.akka.io/docs/akka/current/typed/actor-discovery.html#receptionist) from Akka 
+pattern](https://doc.akka.io/docs/akka/current/typed/actor-discovery.html#receptionist) from Akka
 Typed instead. Since it provides a more fine-tuned towards Actors mechanism of doing the discovery.
 
 Discovery is done in a mechanism agnostic way, where mechanisms are things like DNS, Consul and configuration.
@@ -21,7 +21,7 @@ Scala
 Java
 :  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #loading }
 
-A `Lookup` contains a mandatory `serviceName` and an optional `portName` and `protocol`. How these are interpreted is discovery mechanism dependent e.g. 
+A `Lookup` contains a mandatory `serviceName` and an optional `portName` and `protocol`. How these are interpreted is discovery mechanism dependent e.g.
 DNS does an A/AAAA record if any of the fields are missing and an SRV query for a full look up:
 
 Scala
@@ -55,12 +55,12 @@ you can pick those likely gain some additional benefits, read their docs section
 
 DNS discovery maps `Lookup` queries as follows:
 
-* `serviceName`, `portName` and `protocol` set: SRV query in the form: `_port._protocol._name` Where the `_`s are added. 
+* `serviceName`, `portName` and `protocol` set: SRV query in the form: `_port._protocol._name` Where the `_`s are added.
 * Any query  missing any of the fields is mapped to a A/AAAA query for the `serviceName`
 
 The mapping between Akka service discovery terminology and SRV terminology:
 * SRV service = port
-* SRV name = serviceName 
+* SRV name = serviceName
 * SRV protocol = protocol
 
 To use `akka-discovery-dns` depend on the library:
@@ -87,23 +87,23 @@ Scala
 :   ```scala
     import akka.discovery.ServiceDiscovery
     val system = ActorSystem("Example")
-    // ... 
+    // ...
     val discovery = ServiceDiscovery(system).discovery
     val result: Future[Resolved] = discovery.lookup("service-name", resolveTimeout = 500 milliseconds)
     ```
 
 Java
 :   ```java
-    import akka.discovery.ServiceDiscovery; 
+    import akka.discovery.ServiceDiscovery;
     ActorSystem system = ActorSystem.create("Example");
-    // ... 
+    // ...
     SimpleServiceDiscovery discovery = ServiceDiscovery.get(system).discovery();
     Future<SimpleServiceDiscovery.Resolved> result = discovery.lookup("service-name", Duration.create("500 millis"));
     ```
 
 ### How it works
 
-DNS discovery will use either A/AAAA records or SRV records depending on whether a `Simple` or `Full` lookup is issued.. 
+DNS discovery will use either A/AAAA records or SRV records depending on whether a `Simple` or `Full` lookup is issued..
 The advantage of SRV records is that they can include a port.
 Container schedulers such as [Kubernetes support both](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/).
 
@@ -114,7 +114,7 @@ Container schedulers such as [Kubernetes support both](https://kubernetes.io/doc
 Lookups with all the fields set become SRV queries. For example:
 
 ```
-dig srv service.tcp.akka.test                                                                                                                                                                                                                                                                                                                      
+dig srv service.tcp.akka.test
 
 ; <<>> DiG 9.11.3-RedHat-9.11.3-6.fc28 <<>> srv service.tcp.akka.test
 ;; global options: +cmd
@@ -166,11 +166,11 @@ In this case `a-double.akka.test` would resolve to `192.168.1.21` and `192.168.1
 
 ## Discovery Method: Configuration
 
-Configuration currently ignores all fields apart from service name. 
+Configuration currently ignores all fields apart from service name.
 
 For simple use cases configuration can be used for service discovery. The advantage of using Akka Discovery with
-configuration rather than your own configuration values is that applications can be migrated to a more 
-sophisticated discovery mechanism without any code changes. 
+configuration rather than your own configuration values is that applications can be migrated to a more
+sophisticated discovery mechanism without any code changes.
 
 To use configuration discovery add it as a dependency:
 
@@ -180,7 +180,7 @@ To use configuration discovery add it as a dependency:
   version="$version$"
 }
 
-And configure it to be used as discovery implementation in your `application.conf` 
+And configure it to be used as discovery implementation in your `application.conf`
 
 ```
 akka {
@@ -295,9 +295,9 @@ spec:
 
 ### Role-Based Access Control
 
-If your Kubernetes cluster has [Role-Based Access Control (RBAC)](https://kubernetes.io/docs/admin/authorization/rbac/) 
-enabled, you'll also have to grant the Service Account that your pods run under access to list pods. The following 
-configuration can be used as a starting point. It creates a `Role`, `pod-reader`, which grants access to query pod 
+If your Kubernetes cluster has [Role-Based Access Control (RBAC)](https://kubernetes.io/docs/admin/authorization/rbac/)
+enabled, you'll also have to grant the Service Account that your pods run under access to list pods. The following
+configuration can be used as a starting point. It creates a `Role`, `pod-reader`, which grants access to query pod
 information. It then binds the default Service Account to the `Role` by creating a `RoleBinding`.
 Adjust as necessary.
 
@@ -404,18 +404,18 @@ instead.
 ### Discovery Method: AWS API - EC2 Tag-Based Discovery
 
 You can use tags to simply mark the instances that belong to the same cluster. Use a tag that
-has "service" as the key and set the value equal to the name of your service (same value as `akka.cluster.bootstrap.contact-point-discovery.service-name` 
+has "service" as the key and set the value equal to the name of your service (same value as `akka.cluster.bootstrap.contact-point-discovery.service-name`
 defined in `application.conf`, if you're using this module for bootstrapping your Akka cluster).
- 
+
 Screenshot of two tagged EC2 instances:
 
 ![EC2 instances](images/discovery-aws-ec2-tagged-instances.png)
 
-Note the tag **service** -> *products-api*. It is set on both instances. 
- 
+Note the tag **service** -> *products-api*. It is set on both instances.
+
 Note that this implementation is adequate for users running service clusters on *vanilla* EC2 instances. These
 instances can be created and tagged manually, or created via an auto-scaling group (ASG). If they are created via an ASG,
-they can be tagged automatically on creation. Simply add the tag to the auto-scaling group configuration and 
+they can be tagged automatically on creation. Simply add the tag to the auto-scaling group configuration and
 ensure the "Tag New Instances" option is checked.
 
 
@@ -449,7 +449,7 @@ same security group and [the proper rules have to be set](https://docs.aws.amazo
 
 * You can set additional filters (by instance type, region, other tags etc.) in your application.conf file, in the
 `akka.discovery.aws-api-ec2-tag-based.filters` key. The filters have to be key=value pairs separated by the semicolon
-character. For example: 
+character. For example:
     ```
     akka {
       discovery {
@@ -463,20 +463,20 @@ character. For example:
 * This module does not support running multiple Akka nodes (i.e. multiple JVMs) per EC2 instance, because it
   separates cluster members by their EC2 IP address.
 
-* You can change the default tag key from "service" to something else. This can be done via `application.conf`, by 
-setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else. 
+* You can change the default tag key from "service" to something else. This can be done via `application.conf`, by
+setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
     ```
     akka.discovery.aws-api-ec2-tag-based.tag-key = "akka-cluster"
     ```
 
-* If your service is running in a docker container, you will need to configure akka management with a separete
+* If your service is running in a docker container, you will need to configure akka management with separate
   IPs for binding and discovery. This is because akka management needs to _bind_ to the internal docker IP,
   but will _discover_ the "host" IP (the EC2 private IP) on the AWS API. See @ref:[Basic
-  Configuration](akka-management.md) on how to separete the bind IP from the discovery IP.
+  Configuration](akka-management.md) on how to separate the bind IP from the discovery IP.
 
 Demo:
 
-* A working demo app is available in the [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api-ec2) 
+* A working demo app is available in the [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api-ec2)
 folder.
 
 
@@ -489,7 +489,7 @@ each other. If you're using this module for bootstrapping your Akka cluster that
 you'll do so by setting the value of
 `akka.cluster.bootstrap.contact-point-discovery.service-name` to that of the
 ECS service itself.
- 
+
 Screenshot of two ECS task instances (the service name is
 `liquidity-application`):
 
@@ -593,11 +593,11 @@ Notes:
 Demo:
 
 * A working demo app is available in the
-  [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api-ecs) 
+  [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api-ecs)
   folder. It includes CloudFormation templates with minimal permissions w.r.t to
   IAM policies and security group ingress, and so is a good starting point for
   any deployment that integrates the
-  [principle of least privilege](https://en.wikipedia.org/wiki/Principle_of_least_privilege). 
+  [principle of least privilege](https://en.wikipedia.org/wiki/Principle_of_least_privilege).
 
 
 ## Discovery Method: Consul
@@ -624,16 +624,16 @@ In your application conf add:
 akka.discovery {
   method = akka-consul
   akka-consul {
-        
-    #How to connect to Consul to fetch services data   
+
+    #How to connect to Consul to fetch services data
     consul-host = "127.0.0.1"
     consul-port = 8500
-   
+
     # Prefix for consul tag with the name of the actor system / application name,
     # services with this tag present will be found by the discovery mechanism
     # i.e. `system:test` will be found in cluster if the cluster system is named `test`
     application-name-tag-prefix = "system:"
-    
+
     # Prefix for tag containing port number where akka management is set up so that
     # the seed nodes can be found, an example value for the tag would be `akka-management-port:19999`
     application-akka-management-port-tag-prefix = "akka-management-port:"
@@ -652,7 +652,7 @@ Notes:
 Aggregate discovery allows multiple discovery mechanisms to be aggregated e.g. try and resolve
 via DNS and fall back to configuration.
 
-To use aggregate discovery add its dependency as well as all of the discovery mechanisms that you 
+To use aggregate discovery add its dependency as well as all of the discovery mechanisms that you
 want to aggregate.
 
 @@dependency[sbt,Gradle,Maven] {
