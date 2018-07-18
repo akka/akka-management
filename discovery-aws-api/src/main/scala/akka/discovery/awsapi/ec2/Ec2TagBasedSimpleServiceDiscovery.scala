@@ -6,8 +6,8 @@ package akka.discovery.awsapi.ec2
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
-import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ Lookup, Resolved, ResolvedTarget }
+import akka.discovery.{ Lookup, SimpleServiceDiscovery }
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery._
 import akka.event.Logging
 import akka.pattern.after
@@ -100,13 +100,13 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
   def lookup(query: Lookup): Future[Resolved] = {
 
-    val tagFilter = new Filter("tag:" + tagKey, List(query.name).asJava)
+    val tagFilter = new Filter("tag:" + tagKey, List(query.serviceName).asJava)
 
     val allFilters: List[Filter] = runningInstancesFilter :: tagFilter :: otherFilters
 
     Future {
-      getInstances(ec2Client, allFilters, None).map((ip: String) => ResolvedTarget(ip, None))
-    }.map(resoledTargets => Resolved(query.name, resoledTargets))
+      getInstances(ec2Client, allFilters, None).map((ip: String) => ResolvedTarget(host = ip, port = None))
+    }.map(resoledTargets => Resolved(query.serviceName, resoledTargets))
 
   }
 

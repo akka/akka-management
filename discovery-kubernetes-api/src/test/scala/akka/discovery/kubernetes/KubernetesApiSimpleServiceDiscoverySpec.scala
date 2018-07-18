@@ -3,6 +3,7 @@
  */
 package akka.discovery.kubernetes
 
+import java.net.InetAddress
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import org.scalatest.{ Matchers, WordSpec }
 
@@ -22,7 +23,11 @@ class KubernetesApiSimpleServiceDiscoverySpec extends WordSpec with Matchers {
               Some(PodStatus(None)), Some(Metadata(deletionTimestamp = None)))))
 
       KubernetesApiSimpleServiceDiscovery.targets(podList, "akka-mgmt-http", "default", "cluster.local") shouldBe List(
-          ResolvedTarget("172-17-0-4.default.pod.cluster.local", Some(10001)))
+          ResolvedTarget(
+            host = "172-17-0-4.default.pod.cluster.local",
+            port = Some(10001),
+            address = Some(InetAddress.getByName("172.17.0.4"))
+          ))
     }
 
     "ignore deleted pods" in {

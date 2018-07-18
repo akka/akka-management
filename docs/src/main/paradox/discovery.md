@@ -21,8 +21,8 @@ Scala
 Java
 :  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #loading }
 
-Then either a simple of a full lookup can be done. How these are interpreted is discovery mechamism dependent e.g. 
-DNS does an A/AAAA record for a simple lookup and a SRV query for a full look up:
+A `Lookup` contains a mandatory `serviceName` and an optional `portName` and `protocol`. How these are interpreted is discovery mechanism dependent e.g. 
+DNS does an A/AAAA record if any of the fields are missing and an SRV query for a full look up:
 
 Scala
 :  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #simple }
@@ -30,7 +30,8 @@ Scala
 Java
 :  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #simple }
 
-A full lookup includes a `port` and `protocol` which can be interpreted as a mechanism chooses.
+
+`portName` and `protocol` are optional and their meaning is interpreted by the mechanism.
 
 Scala
 :  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #full }
@@ -53,12 +54,13 @@ you can pick those likely gain some additional benefits, read their docs section
 ### Dependencies and usage
 
 DNS discovery maps `Lookup` queries as follows:
-* Simple: A DNS query for A/AAAA records
-* Full(name, port, protocol): As a SRV query in the form: `_port._protocol._name` Where the `_`s are added. 
+
+* `serviceName`, `portName` and `protocol` set: SRV query in the form: `_port._protocol._name` Where the `_`s are added. 
+* Any query  missing any of the fields is mapped to a A/AAAA query for the `serviceName`
 
 The mapping between Akka service discovery terminology and SRV terminology:
 * SRV service = port
-* SRV name = name
+* SRV name = serviceName 
 * SRV protocol = protocol
 
 To use `akka-discovery-dns` depend on the library:
@@ -109,7 +111,7 @@ Container schedulers such as [Kubernetes support both](https://kubernetes.io/doc
 #### SRV records
 
 
-`Full` lookups become SRV queries. For example:
+Lookups with all the fields set become SRV queries. For example:
 
 ```
 dig srv service.tcp.akka.test                                                                                                                                                                                                                                                                                                                      
@@ -137,7 +139,7 @@ and `a-double.akka.test` on port `5070`. Currently discovery does not support th
 
 #### A/AAAA records
 
-`Simple` lookups become A/AAAA record queries. For example:
+Lookups with any fields missing become A/AAAA record queries. For example:
 
 ```
 dig a-double.akka.test
@@ -164,7 +166,7 @@ In this case `a-double.akka.test` would resolve to `192.168.1.21` and `192.168.1
 
 ## Discovery Method: Configuration
 
-Configuration currently ignores all fields on a Full lookup apart from name. 
+Configuration currently ignores all fields apart from service name. 
 
 For simple use cases configuration can be used for service discovery. The advantage of using Akka Discovery with
 configuration rather than your own configuration values is that applications can be migrated to a more 
@@ -221,7 +223,7 @@ the namespace, label selector, and port name that are used in the pod selection 
 
 ### Dependencies and usage
 
-Kubernetes currently ignores all fields on a Full lookup apart from name. This is expected to change.
+Kubernetes currently ignores all fields apart from service name. This is expected to change.
 
 Using `akka-discovery-kubernetes-api` is very simple, as you simply need to depend on the library::
 
@@ -335,7 +337,7 @@ roleRef:
 
 ## Discovery Method: Marathon API
 
-Marathon currently ignores all fields on a Full lookup apart from name. This is expected to change.
+Marathon currently ignores all fields apart from service name. This is expected to change.
 
 If you're a Mesos or DC/OS user, you can use the provided Marathon API implementation. You'll need to add a label
 to your Marathon JSON (named `ACTOR_SYSTEM_NAME`  by default) and set the value equal to the name of the configured
@@ -594,7 +596,7 @@ Demo:
 
 ## Discovery Method: Consul
 
-Consul currently ignores all fields on the Full lookup apart from name. This is expected to change.
+Consul currently ignores all fields apart from service name. This is expected to change.
 
 If you are using Consul to do the service discovery this would allow you to base your Cluster on Consul services.
 

@@ -108,8 +108,19 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     _selfContactPointUri.success(baseUri)
 
   /** INTERNAL API */
-  @InternalApi private[akka] def selfContactPoint: Future[Uri] =
-    _selfContactPointUri.future
+  @InternalApi private[akka] def selfContactPoints: Future[Set[(String, Int)]] =
+    _selfContactPointUri.future.map { uri =>
+      if (system.settings.config.hasPath("akka.discovery.kubernetes-api.pod-domain") && uri.authority.host.isIPv4()) {
+        val podNamespace = system.settings.config.getString("akka.discovery.kubernetes-api.pod-namespace")
+        val podDomain = system.settings.config.getString("akka.discovery.kubernetes-api.pod-domain")
+        Set(
+          (uri.authority.host.toString, uri.authority.port),
+          (s"${uri.authority.host.toString.replace('.', '-')}.${podNamespace}.pod.${podDomain}", uri.authority.port)
+        )
+      } else {
+        Set((uri.authority.host.toString, uri.authority.port))
+      }
+    }
 
 }
 

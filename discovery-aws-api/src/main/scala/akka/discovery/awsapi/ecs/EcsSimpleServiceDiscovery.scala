@@ -7,8 +7,8 @@ import java.net.{ InetAddress, NetworkInterface }
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
-import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ Lookup, Resolved, ResolvedTarget }
+import akka.discovery.{ Lookup, SimpleServiceDiscovery }
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ecs.EcsSimpleServiceDiscovery._
 import akka.pattern.after
 import com.amazonaws.ClientConfiguration
@@ -44,16 +44,15 @@ class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
         ),
         Future {
           Resolved(
-            serviceName = query.name,
+            serviceName = query.serviceName,
             addresses = for {
-              task <- resolveTasks(ecsClient, cluster, query.name)
+              task <- resolveTasks(ecsClient, cluster, query.serviceName)
               container <- task.getContainers.asScala
               networkInterface <- container.getNetworkInterfaces.asScala
-            } yield
-              ResolvedTarget(
-                host = networkInterface.getPrivateIpv4Address,
-                port = None
-              )
+            } yield {
+              val address = networkInterface.getPrivateIpv4Address
+              ResolvedTarget(host = address, port = None)
+            }
           )
         }
       )

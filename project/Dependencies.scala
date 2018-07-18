@@ -3,8 +3,7 @@ import Keys._
 
 object Dependencies {
 
-  // FIXME set to 2.5.14
-  val AkkaVersion = "2.5-20180711-232436"
+  val AkkaVersion = "2.5.14"
   val AkkaHttpVersion = "10.0.13" // TODO update to 10.1.x as soon as possible
 
   val JUnitVersion = "4.12"

@@ -4,8 +4,8 @@
 package akka.discovery.aggregate
 
 import akka.actor.{ ActorSystem, ExtendedActorSystem }
-import akka.discovery.SimpleServiceDiscovery.{ Lookup, Resolved, ResolvedTarget }
-import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.{ Lookup, ServiceDiscovery, SimpleServiceDiscovery }
 import akka.testkit.TestKit
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalatest.concurrent.ScalaFutures
@@ -17,14 +17,16 @@ import scala.collection.immutable
 
 class StubbedSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleServiceDiscovery {
 
-  def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
-    val name = lookup.name
-    if (name == "stubbed") {
-      Future.successful(Resolved(name, immutable.Seq(ResolvedTarget("stubbed1", Some(1234)))))
-    } else if (name == "fail") {
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+    if (query.serviceName == "stubbed") {
+      Future.successful(Resolved(query.serviceName,
+          immutable.Seq(
+            ResolvedTarget(host = "stubbed1", port = Some(1234), address = None)
+          )))
+    } else if (query.serviceName == "fail") {
       Future.failed(new RuntimeException("No resolving for you!"))
     } else {
-      Future.successful(Resolved(name, immutable.Seq.empty))
+      Future.successful(Resolved(query.serviceName, immutable.Seq.empty))
     }
   }
 }
@@ -38,7 +40,6 @@ object AggregateSimpleServiceDiscoverySpec {
 
           aggregate {
             discovery-mechanisms = ["stubbed1", "config"]
-
           }
         }
       }
@@ -88,19 +89,28 @@ class AggregateSimpleServiceDiscoverySpec
 
     "only call first one if returns results" in {
       val results = discovery.lookup("stubbed", 100.millis).futureValue
-      results shouldEqual Resolved("stubbed", immutable.Seq(ResolvedTarget("stubbed1", Some(1234))))
+      results shouldEqual Resolved("stubbed",
+        immutable.Seq(
+          ResolvedTarget(host = "stubbed1", port = Some(1234), address = None)
+        ))
     }
 
     "move onto the next if no resolved targets" in {
       val results = discovery.lookup("config1", 100.millis).futureValue
       results shouldEqual Resolved("config1",
-        immutable.Seq(ResolvedTarget("cat", Some(1233)), ResolvedTarget("dog", Some(1234))))
+        immutable.Seq(
+          ResolvedTarget(host = "cat", port = Some(1233), address = None),
+          ResolvedTarget(host = "dog", port = Some(1234), address = None)
+        ))
     }
 
     "move onto next if fails" in {
       val results = discovery.lookup("fail", 100.millis).futureValue
       // Stub fails then result comes from config
-      results shouldEqual Resolved("fail", immutable.Seq(ResolvedTarget("from-config", None)))
+      results shouldEqual Resolved("fail",
+        immutable.Seq(
+          ResolvedTarget(host = "from-config", port = None, address = None)
+        ))
     }
   }
 

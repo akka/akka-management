@@ -4,9 +4,9 @@
 package akka.discovery.aggregate
 
 import akka.actor.ExtendedActorSystem
-import akka.discovery.SimpleServiceDiscovery.{ Lookup, Resolved }
+import akka.discovery.SimpleServiceDiscovery.Resolved
 import akka.discovery.aggregate.AggregateSimpleServiceDiscovery.Mechanisms
-import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
+import akka.discovery.{ Lookup, ServiceDiscovery, SimpleServiceDiscovery }
 import akka.event.Logging
 import akka.util.Helpers.Requiring
 import com.typesafe.config.Config
@@ -14,6 +14,7 @@ import com.typesafe.config.Config
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
+import scala.util.control.NonFatal
 
 final class AggregateSimpleServiceDiscoverySettings(config: Config) {
 
@@ -66,7 +67,7 @@ final class AggregateSimpleServiceDiscovery(system: ExtendedActorSystem) extends
               Future.successful(resolved)
           }
           .recoverWith {
-            case t: Throwable =>
+            case NonFatal(t) =>
               log.error(t, "[{}] Service discovery failed. Trying next discovery mechanism", mechanism)
               resolve(tail, query, resolveTimeout)
           }

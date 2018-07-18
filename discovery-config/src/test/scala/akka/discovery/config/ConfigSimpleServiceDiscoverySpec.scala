@@ -5,7 +5,7 @@ package akka.discovery.config
 
 import akka.actor.ActorSystem
 import akka.discovery.ServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ ResolvedTarget, Simple }
+import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.testkit.TestKit
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalatest.concurrent.ScalaFutures
@@ -60,16 +60,16 @@ class ConfigSimpleServiceDiscoverySpec
 
   "Config discovery" must {
     "load from config" in {
-      val result = discovery.lookup(Simple("service1"), 100.millis).futureValue
+      val result = discovery.lookup("service1", 100.millis).futureValue
       result.serviceName shouldEqual "service1"
       result.addresses shouldEqual immutable.Seq(
-        ResolvedTarget("cat", Some(1233)),
-        ResolvedTarget("dog", None)
+        ResolvedTarget(host = "cat", port = Some(1233), address = None),
+        ResolvedTarget(host = "dog", port = None, address = None)
       )
     }
 
     "return no resolved targets if not in config" in {
-      val result = discovery.lookup(Simple("dontexist"), 100.millis).futureValue
+      val result = discovery.lookup("dontexist", 100.millis).futureValue
       result.serviceName shouldEqual "dontexist"
       result.addresses shouldEqual immutable.Seq.empty
     }

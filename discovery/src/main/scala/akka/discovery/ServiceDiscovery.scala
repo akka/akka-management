@@ -58,11 +58,11 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
       dynamic
         .createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ExtendedActorSystem] → system) :: Nil)
         .recoverWith {
-          case _: NoSuchMethodException ⇒
+          case _ ⇒
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ActorSystem] → system) :: Nil)
         }
         .recoverWith {
-          case _: NoSuchMethodException ⇒
+          case _ ⇒
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, Nil)
         }
     }

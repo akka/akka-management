@@ -4,15 +4,14 @@
 package akka.cluster.bootstrap.discovery
 
 import akka.actor.ActorSystem
-import akka.discovery.ServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ Full, ResolvedTarget }
+import akka.discovery.{ Lookup, ServiceDiscovery }
+import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
-import scala.collection.immutable
 
 /*
 Testing is done via subbing out the DnsClient. To test against a real dns server
@@ -121,7 +120,9 @@ class DnsDiscoverySpec
       val discovery = ServiceDiscovery(system).discovery
       val name = "_service._tcp.akka.test."
       val result =
-        discovery.lookup(Full("akka.test.", "service", "tcp"), resolveTimeout = 500.milliseconds).futureValue
+        discovery
+          .lookup(Lookup("akka.test.").withPortName("service").withProtocol("tcp"), resolveTimeout = 500.milliseconds)
+          .futureValue
       result.addresses.toSet shouldEqual Set(
         ResolvedTarget("a-single.akka.test", Some(5060)),
         ResolvedTarget("a-double.akka.test", Some(5070))

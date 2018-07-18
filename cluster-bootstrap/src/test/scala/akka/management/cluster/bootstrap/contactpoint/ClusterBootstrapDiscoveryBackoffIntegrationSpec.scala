@@ -15,12 +15,17 @@ import akka.stream.ActorMaterializer
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalactic.Tolerance
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ Matchers, WordSpecLike }
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class ClusterBootstrapDiscoveryBackoffIntegrationSpec extends WordSpecLike with Matchers with Tolerance {
+class ClusterBootstrapDiscoveryBackoffIntegrationSpec
+    extends WordSpecLike
+    with Matchers
+    with Tolerance
+    with ScalaFutures {
 
   "Cluster Bootstrap" should {
 
@@ -91,47 +96,55 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec extends WordSpecLike with 
     // times it is called, thus testing that discovery is called multiple times and
     // that formation will eventually succeed once discovery returns reachable addresses
 
-    @volatile var called = 0
-    @volatile var call2Timestamp = 0L
-    @volatile var call3Timestamp = 0L
+    var called = 0
+    var call2Timestamp = 0L
+    var call3Timestamp = 0L
     val name = s"$systemName.svc.cluster.local"
 
     MockDiscovery.set(name, { () =>
-      called += 1
+      this.synchronized {
+        called += 1
 
-      if (called == 2)
-        call2Timestamp = System.nanoTime()
-      else if (called == 3)
-        call3Timestamp = System.nanoTime()
+        if (called == 2)
+          call2Timestamp = System.nanoTime()
+        else if (called == 3)
+          call3Timestamp = System.nanoTime()
 
-      val res =
-        if (called < 4)
-          Future.failed(new Exception("Boom! Discovery failed, was rate limited for example..."))
-        else
-          Future.successful(Resolved(name,
-              List(
-                ResolvedTarget(clusterA.selfAddress.host.get, contactPointPorts.get("A")),
-                ResolvedTarget(clusterB.selfAddress.host.get, contactPointPorts.get("B"))
-              )))
+        val res =
+          if (called < 4)
+            Future.failed(new Exception("Boom! Discovery failed, was rate limited for example..."))
+          else
+            Future.successful(Resolved(name,
+                List(
+                  ResolvedTarget(
+                    host = clusterA.selfAddress.host.get,
+                    port = contactPointPorts.get("A")
+                  ),
+                  ResolvedTarget(
+                    host = clusterB.selfAddress.host.get,
+                    port = contactPointPorts.get("B")
+                  )
+                )))
 
-      resolveProbe.ref ! DiscoveryRequest(System.currentTimeMillis(), called, res)
-      res
+        resolveProbe.ref ! DiscoveryRequest(System.currentTimeMillis(), called, res)
+        res
+      }
     })
 
-    "start listening with the http contact-points on 3 systems" in {
+    "start listening with the http contact-points on 2 systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {
         import system.dispatcher
         implicit val sys = system
         implicit val mat = ActorMaterializer()(system)
 
-        val bootstrap = ClusterBootstrap(system)
+        val bootstrap: ClusterBootstrap = ClusterBootstrap(system)
         val routes = new HttpClusterBootstrapRoutes(bootstrap.settings).routes
         bootstrap.setSelfContactPoint(s"http://127.0.0.1:$contactPointPort")
         Http().bindAndHandle(RouteResult.route2HandlerFlow(routes), "127.0.0.1", contactPointPort)
       }
 
-      start(systemA, contactPointPorts("A"))
-      start(systemB, contactPointPorts("B"))
+      start(systemA, contactPointPorts("A")).futureValue
+      start(systemB, contactPointPorts("B")).futureValue
     }
 
     "poll discovery in exponentially increasing backoffs until eventually joining the returned nodes" in {
@@ -147,12 +160,13 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec extends WordSpecLike with 
       val up1 = pA.expectMsgType[MemberUp](45.seconds)
       info("" + up1)
 
-      called shouldBe >=(5)
-
-      val durationBetweenCall2And3 = (call3Timestamp - call2Timestamp).nanos
-      info(s"duration between call 2 and 3 ${durationBetweenCall2And3.toMillis} ms")
-      durationBetweenCall2And3 shouldBe >=(ClusterBootstrap(systemA).settings.contactPointDiscovery.interval * 2)
-
+      this.synchronized {
+        called shouldBe >=(5)
+        val durationBetweenCall2And3 = (call3Timestamp - call2Timestamp).nanos.toMillis
+        info(s"duration between call 2 and 3 ${durationBetweenCall2And3} ms")
+        durationBetweenCall2And3 shouldBe >=(
+            (ClusterBootstrap(systemA).settings.contactPointDiscovery.interval * 2).toMillis)
+      }
     }
 
     "terminate all systems" in {

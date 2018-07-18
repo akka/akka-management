@@ -15,7 +15,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import AppList._
 import JsonFormat._
-import SimpleServiceDiscovery.{ Lookup, Resolved, ResolvedTarget }
+import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 
 object MarathonApiSimpleServiceDiscovery {
 
@@ -55,7 +55,7 @@ object MarathonApiSimpleServiceDiscovery {
       taskHost <- task.host
       taskPorts <- task.ports
       taskAkkaManagementPort <- taskPorts.lift(portNumber)
-    } yield ResolvedTarget(taskHost, Some(taskAkkaManagementPort))
+    } yield ResolvedTarget(host = taskHost, port = Some(taskAkkaManagementPort))
   }
 }
 
@@ -72,10 +72,10 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
   private implicit val mat: ActorMaterializer = ActorMaterializer()(system)
 
-  def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+  override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     val uri =
       Uri(settings.appApiUrl).withQuery(Uri.Query("embed" -> "apps.tasks", "embed" -> "apps.deployments",
-          "label" -> settings.appLabelQuery.format(query.name)))
+          "label" -> settings.appLabelQuery.format(lookup.serviceName)))
 
     val request = HttpRequest(uri = uri)
 
@@ -95,7 +95,7 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
         unmarshalled
       }
 
-    } yield Resolved(query.name, targets(appList, settings.appPortName))
+    } yield Resolved(lookup.serviceName, targets(appList, settings.appPortName))
   }
 
 }

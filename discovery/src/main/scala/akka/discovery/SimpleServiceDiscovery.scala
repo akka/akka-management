@@ -3,6 +3,7 @@
  */
 package akka.discovery
 
+import java.net.InetAddress
 import java.util.Optional
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit
@@ -39,44 +40,82 @@ object SimpleServiceDiscovery {
       else if (a.port != b.port) a.port.getOrElse(0) < b.port.getOrElse(0)
       else false
     }
+
+    private val IPv4 = """^((?:[0-9]{1,3}\.){3}[0-9]{1,3})$""".r
+
+    def apply(host: String, port: Option[Int]): ResolvedTarget = {
+      val address = host match {
+        case IPv4(_) => Some(InetAddress.getByName(host))
+        case _ => None
+      }
+      new ResolvedTarget(host, port, address)
+    }
   }
 
-  /** Resolved target host, with optional port and protocol spoken */
-  final case class ResolvedTarget(host: String, port: Option[Int]) {
+  /**
+   * Resolved target host, with optional port and the IP address.
+   * @param host the hostname or the IP address of the target
+   * @param port optional port number
+   * @param address optional IP address of the target. This is used during cluster bootstap when available.
+   */
+  final case class ResolvedTarget(
+      host: String,
+      port: Option[Int],
+      address: Option[InetAddress]
+  ) {
     def getPort: Optional[Int] = {
       import scala.compat.java8.OptionConverters._
       port.asJava
     }
 
-    override def toString(): String =
-      port match {
-        case Some(p) => s"$host:$p"
-        case None => host
-      }
+    def getAddress: Optional[InetAddress] = {
+      import scala.compat.java8.OptionConverters._
+      address.asJava
+    }
   }
 
+}
+
+/**
+ * A service lookup. It is up to each mechanism to decide
+ * what to do with the optional portName and protocol fields.
+ * For example `portName` could be used to distinguish between
+ * Akka remoting ports and HTTP ports.
+ *
+ */
+@ApiMayChange
+case class Lookup(serviceName: String, portName: Option[String], protocol: Option[String]) {
+
   /**
-   * Represents a service discovery lookup.
+   * Which port for a service e.g. Akka remoting or HTTP.
+   * Maps to "service" for an SRV records.
+   */
+  def withPortName(value: String): Lookup = copy(portName = Some(value))
+
+  /**
+   * Which protocol e.g. TCP or UDP.
+   * Maps to "protocol" for SRV records.
+   */
+  def withProtocol(value: String): Lookup = copy(protocol = Some(value))
+}
+
+case object Lookup {
+
+  /**
+   * Create a simple service Lookup with only a serviceName.
+   * Use withPortName and withProtocol to provide optional portName
+   * and protocol
+   */
+  def apply(serviceName: String): Lookup = new Lookup(serviceName, None, None)
+
+  /**
+   * Java API
    *
-   * Each mechanism should document what a Simple vs Full lookup means.
-   * Implementations are free to ignore port/protocol from a Full lookup
-   * but should not throw if they are set unexpectedly as this prevents the
-   * same query being sent to multiple mechanisms via the aggregate service
-   * discovery
+   * Create a simple service Lookup with only a serviceName.
+   * Use withPortName and withProtocol to provide optional portName
+   * and protocol
    */
-  @ApiMayChange
-  sealed abstract class Lookup {
-    def name: String
-  }
-
-  @ApiMayChange
-  final case class Simple(name: String) extends Lookup
-
-  /**
-   * The meaning of each field is up to the discovery mechanism.
-   */
-  @ApiMayChange
-  final case class Full(name: String, port: String, protocol: String) extends Lookup
+  def create(serviceName: String): Lookup = new Lookup(serviceName, None, None)
 }
 
 /**
@@ -92,21 +131,18 @@ abstract class SimpleServiceDiscovery {
   /**
    * Scala API: Perform lookup using underlying discovery implementation.
    *
-   * @param query A simple of full query, see discovery-mechanism's docs for how this is interpreted
+   * @param lookup       A service discovery lookup.
    * @param resolveTimeout Timeout. Up to the discovery-mechanism to adhere to his
-   * @return
    */
-  def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved]
+  def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved]
 
   /**
    * Scala API: Perform lookup using underlying discovery implementation.
    *
-   * @param name A name, see discovery-mechanism's docs for how this is interpreted
-   * @param resolveTimeout Timeout. Up to the discovery-mechanism to adhere to his
-   * @return
+   * Convenience for when only a name is required.
    */
-  def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
-    lookup(Simple(name), resolveTimeout)
+  def lookup(serviceName: String, resolveTimeout: FiniteDuration): Future[Resolved] =
+    lookup(Lookup(serviceName), resolveTimeout)
 
   /**
    * Java API: Perform basic lookup using underlying discovery implementation.
@@ -116,6 +152,7 @@ abstract class SimpleServiceDiscovery {
    * eagerness to wait for a result for this specific lookup.
    *
    * The returned future SHOULD be failed once resolveTimeout has passed.
+   *
    */
   def lookup(query: Lookup, resolveTimeout: java.time.Duration): CompletionStage[Resolved] = {
     import scala.compat.java8.FutureConverters._
@@ -124,8 +161,11 @@ abstract class SimpleServiceDiscovery {
 
   /**
    * Java API
+   *
+   * @param serviceName           A name, see discovery-mechanism's docs for how this is interpreted
+   * @param resolveTimeout Timeout. Up to the discovery-mechanism to adhere to his
    */
-  def lookup(name: String, resolveTimeout: java.time.Duration): CompletionStage[Resolved] =
-    lookup(Simple(name), resolveTimeout)
+  def lookup(serviceName: String, resolveTimeout: java.time.Duration): CompletionStage[Resolved] =
+    lookup(Lookup(serviceName), resolveTimeout)
 
 }

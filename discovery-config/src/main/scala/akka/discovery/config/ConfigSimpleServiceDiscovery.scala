@@ -4,7 +4,7 @@
 package akka.discovery.config
 
 import akka.actor.ExtendedActorSystem
-import akka.discovery.SimpleServiceDiscovery
+import akka.discovery.{ Lookup, SimpleServiceDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.event.Logging
 import com.typesafe.config.Config
@@ -31,7 +31,7 @@ object ConfigServicesParser {
         val resolvedTargets: immutable.Seq[ResolvedTarget] = endpoints.map { c =>
           val host = c.getString("host")
           val port = if (c.hasPath("port")) Some(c.getInt("port")) else None
-          ResolvedTarget(host, port)
+          ResolvedTarget(host = host, port = port, address = None)
         }(breakOut)
         (serviceName, Resolved(serviceName, resolvedTargets))
     }
@@ -48,9 +48,10 @@ class ConfigSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleSe
 
   log.debug("Config discovery serving: {}", resolvedServices)
 
-  def lookup(query: SimpleServiceDiscovery.Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+  override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     // TODO or fail or change the Resolved type to an ADT?
-    Future.successful(resolvedServices.getOrElse(query.name, Resolved(query.name, immutable.Seq.empty)))
+    Future
+      .successful(resolvedServices.getOrElse(lookup.serviceName, Resolved(lookup.serviceName, immutable.Seq.empty)))
   }
 
 }

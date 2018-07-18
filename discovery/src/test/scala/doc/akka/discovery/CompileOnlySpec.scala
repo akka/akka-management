@@ -4,8 +4,7 @@
 package doc.akka.discovery
 
 import akka.actor.ActorSystem
-import akka.discovery.ServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ Full, Simple }
+import akka.discovery.{ Lookup, ServiceDiscovery }
 
 import scala.concurrent.duration._
 
@@ -17,13 +16,13 @@ object CompileOnlySpec {
   //#loading
 
   //#simple
-  serviceDiscovery.lookup(Simple("akka.io"), 1.second)
-  // Convenience method for Simple
+  serviceDiscovery.lookup(Lookup("akka.io"), 1.second)
+  // Convenience for a Lookup with only a serviceName
   serviceDiscovery.lookup("akka.io", 1.second)
   //#simple
 
   //#full
-  serviceDiscovery.lookup(Full("akka.io", "remoting", "tcp"), 1.second)
+  serviceDiscovery.lookup(Lookup("akka.io").withPortName("remoting").withProtocol("tcp"), 1.second)
   //#full
 
 }
