@@ -390,13 +390,19 @@ character. For example:
     }
     ```
 
-* This module does not support running multiple Akka nodes (i.e. multiple JVMs) per EC2 instance. 
+* This module does not support running multiple Akka nodes (i.e. multiple JVMs) per EC2 instance, because it
+  separates cluster members by their EC2 IP address.
 
 * You can change the default tag key from "service" to something else. This can be done via `application.conf`, by 
 setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else. 
     ```
     akka.discovery.aws-api-ec2-tag-based.tag-key = "akka-cluster"
     ```
+
+* If your service is running in a docker container, you will need to configure akka management with a separete
+  IPs for binding and discovery. This is because akka management needs to _bind_ to the internal docker IP,
+  but will _discover_ the "host" IP (the EC2 private IP) on the AWS API. See @ref:[Basic
+  Configuration](akka-management.md) on how to separete the bind IP from the discovery IP.
 
 Demo:
 
