@@ -16,38 +16,52 @@ Typed instead. Since it provides a more fine-tuned towards Actors mechanism of d
 Discovery is done in a mechanism agnostic way, where mechanisms are things like DNS, Consul and configuration.
 
 Scala
-:   ```scala
-    import akka.discovery.ServiceDiscovery
-    val system = ActorSystem("Example")
-    // ... 
-    val discovery = ServiceDiscovery(system).discovery
-    val result: Future[Resolved] = discovery.lookup("service-name", resolveTimeout = 500 milliseconds)
-    ```
+:  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #loading }
 
 Java
-:   ```java
-    import akka.discovery.ServiceDiscovery; 
-    ActorSystem system = ActorSystem.create("Example");
-    // ... 
-    SimpleServiceDiscovery discovery = ServiceDiscovery.get(system).discovery();
-    Future<SimpleServiceDiscovery.Resolved> result = discovery.lookup("service-name", Duration.create("500 millis"));
- 
+:  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #loading }
+
+A `Lookup` contains a mandatory `serviceName` and an optional `portName` and `protocol`. How these are interpreted is discovery mechanism dependent e.g. 
+DNS does an A/AAAA record if any of the fields are missing and an SRV query for a full look up:
+
+Scala
+:  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #simple }
+
+Java
+:  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #simple }
+
+
+`portName` and `protocol` are optional and their meaning is interpreted by the mechanism.
+
+Scala
+:  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #full }
+
+Java
+:  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #full }
+
+Port can be used when a service opens multiple ports e.g. a HTTP port and an Akka remoting port.
+
+
 ## Discovery Method trade-offs
 
 We recommend using the DNS implementation as good default choice, and if an implementation
 is available for your specific cloud provider or runtime (such as Kubernetes or Mesos etc),
 you can pick those likely gain some additional benefits, read their docs section for details.
 
-## Discovery Method: Akka DNS Discovery
+## Discovery Method: DNS
 
-The most natural form of service discovery is to use DNS as the source of truth regarding available 
-services. In the simplest version, we query for a service name -- which each cluster manager, such as Kubernetes, Mesos 
-or others define using their own naming schemes, and expect to get back a list of IPs that are related to this service.
 
 ### Dependencies and usage
 
-DNS currently ignores all fields apart from name. This is expected to change when 
-SRV records are supported.
+DNS discovery maps `Lookup` queries as follows:
+
+* `serviceName`, `portName` and `protocol` set: SRV query in the form: `_port._protocol._name` Where the `_`s are added. 
+* Any query  missing any of the fields is mapped to a A/AAAA query for the `serviceName`
+
+The mapping between Akka service discovery terminology and SRV terminology:
+* SRV service = port
+* SRV name = serviceName 
+* SRV protocol = protocol
 
 To use `akka-discovery-dns` depend on the library:
 
@@ -57,11 +71,13 @@ To use `akka-discovery-dns` depend on the library:
   version="$version$"
 }
 
-And configure it to be used as default discovery implementation in your `application.conf`:
+And configure it to be used as discovery implementation in your `application.conf` and `async-dns` to be uses
+as the Akka DNS resolver:
 
 ```
-akka.discovery {
-  method = akka-dns
+akka {
+  discovery.method = akka-dns
+  io.dns.resolver = async-dns
 }
 ```
 
@@ -85,42 +101,68 @@ Java
     Future<SimpleServiceDiscovery.Resolved> result = discovery.lookup("service-name", Duration.create("500 millis"));
     ```
 
-### Mechanism explanation
+### How it works
 
-The simplest way of resolving multiple hosts of a (micro-)service is to perform a DNS lookup and treat all returned
-`A` records as hosts of the same service cluster. This is how such lookup would look like in Kubernetes (see the 
-`bootstrap-joining-demo` demo application if you want to try it out for yourself):
+DNS discovery will use either A/AAAA records or SRV records depending on whether a `Simple` or `Full` lookup is issued.. 
+The advantage of SRV records is that they can include a port.
+Container schedulers such as [Kubernetes support both](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/).
+
+
+#### SRV records
+
+
+Lookups with all the fields set become SRV queries. For example:
 
 ```
-$ kubectl exec -it $POD -- dig appka-service.default.svc.cluster.local
+dig srv service.tcp.akka.test                                                                                                                                                                                                                                                                                                                      
 
-; <<>> DiG 9.10.3-P4-Debian <<>> appka-service.default.svc.cluster.local
+; <<>> DiG 9.11.3-RedHat-9.11.3-6.fc28 <<>> srv service.tcp.akka.test
 ;; global options: +cmd
 ;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 3457
-;; flags: qr aa rd ra; QUERY: 1, ANSWER: 4, AUTHORITY: 0, ADDITIONAL: 0
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 60023
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 1, ADDITIONAL: 5
 
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+; COOKIE: 5ab8dd4622e632f6190f54de5b28bb8fb1b930a5333c3862 (good)
 ;; QUESTION SECTION:
-;appka-service.default.svc.cluster.local. IN A
+;service.tcp.akka.test.         IN      SRV
 
 ;; ANSWER SECTION:
-appka-service.default.svc.cluster.local. 30 IN A 172.17.0.6
-appka-service.default.svc.cluster.local. 30 IN A 172.17.0.2
-appka-service.default.svc.cluster.local. 30 IN A 172.17.0.3
-appka-service.default.svc.cluster.local. 30 IN A 172.17.0.4
+service.tcp.akka.test.  86400   IN      SRV     10 60 5060 a-single.akka.test.
+service.tcp.akka.test.  86400   IN      SRV     10 40 5070 a-double.akka.test.
 
-;; Query time: 0 msec
-;; SERVER: 10.0.0.10#53(10.0.0.10)
-;; WHEN: Fri Dec 08 12:04:38 UTC 2017
-;; MSG SIZE  rcvd: 121
 ```
 
-As you can see, this service consists of 4 nodes, with IPs `172.17.0.2` through `172.17.0.6`.
-The "lowest" address (since in this case we assume they all listen on the same management port)
+In this case `service.tcp.akka.test` resolves to `a-single.akka.test` on port `5060`
+and `a-double.akka.test` on port `5070`. Currently discovery does not support the weightings.
 
-An improved way of DNS discovery are `SRV` records, which are not yet supported by `akka-discovery-dns`,
-but would then allow the nodes to also advertise which port they are listening on instead of having to assume a shared 
-known port (which in the case of the akka management routes is `8558`).
+#### A/AAAA records
+
+Lookups with any fields missing become A/AAAA record queries. For example:
+
+```
+dig a-double.akka.test
+
+; <<>> DiG 9.11.3-RedHat-9.11.3-6.fc28 <<>> a-double.akka.test
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 11983
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+; COOKIE: 16e9815d9ca2514d2f3879265b28bad05ff7b4a82721edd0 (good)
+;; QUESTION SECTION:
+;a-double.akka.test.            IN      A
+
+;; ANSWER SECTION:
+a-double.akka.test.     86400   IN      A       192.168.1.21
+a-double.akka.test.     86400   IN      A       192.168.1.22
+
+```
+
+In this case `a-double.akka.test` would resolve to `192.168.1.21` and `192.168.1.22`.
 
 ## Discovery Method: Configuration
 

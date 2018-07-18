@@ -3,8 +3,6 @@
  */
 package akka.management.cluster.bootstrap.contactpoint
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }

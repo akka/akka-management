@@ -23,7 +23,6 @@ import scala.concurrent.duration.FiniteDuration
 @ApiMayChange
 object SimpleServiceDiscovery {
 
-  // TODO for use cases like aggregate it might be worth making this an ADT with a NoTargets case
   /** Result of a successful resolve request */
   final case class Resolved(serviceName: String, addresses: immutable.Seq[ResolvedTarget])
       extends DeadLetterSuppression {
@@ -85,23 +84,38 @@ object SimpleServiceDiscovery {
  *
  */
 @ApiMayChange
-case class Lookup(serviceName: String, portName: Option[String] = None, protocol: Option[String] = None) {
+case class Lookup(serviceName: String, portName: Option[String], protocol: Option[String]) {
 
   /**
    * Which port for a service e.g. Akka remoting or HTTP.
    * Maps to "service" for an SRV records.
    */
-  def withPortName(value: String): Lookup = copy(
-    portName = Some(value)
-  )
+  def withPortName(value: String): Lookup = copy(portName = Some(value))
 
   /**
    * Which protocol e.g. TCP or UDP.
    * Maps to "protocol" for SRV records.
    */
-  def withProtocol(value: String): Lookup = copy(
-    protocol = Some(value)
-  )
+  def withProtocol(value: String): Lookup = copy(protocol = Some(value))
+}
+
+case object Lookup {
+
+  /**
+   * Create a simple service Lookup with only a serviceName.
+   * Use withPortName and withProtocol to provide optional portName
+   * and protocol
+   */
+  def apply(serviceName: String): Lookup = new Lookup(serviceName, None, None)
+
+  /**
+   * Java API
+   *
+   * Create a simple service Lookup with only a serviceName.
+   * Use withPortName and withProtocol to provide optional portName
+   * and protocol
+   */
+  def create(serviceName: String): Lookup = new Lookup(serviceName, None, None)
 }
 
 /**
@@ -127,8 +141,8 @@ abstract class SimpleServiceDiscovery {
    *
    * Convenience for when only a name is required.
    */
-  def lookup(name: String, resolveTimeout: FiniteDuration): Future[Resolved] =
-    lookup(Lookup(name), resolveTimeout)
+  def lookup(serviceName: String, resolveTimeout: FiniteDuration): Future[Resolved] =
+    lookup(Lookup(serviceName), resolveTimeout)
 
   /**
    * Java API: Perform basic lookup using underlying discovery implementation.
@@ -148,10 +162,10 @@ abstract class SimpleServiceDiscovery {
   /**
    * Java API
    *
-   * @param name           A name, see discovery-mechanism's docs for how this is interpreted
+   * @param serviceName           A name, see discovery-mechanism's docs for how this is interpreted
    * @param resolveTimeout Timeout. Up to the discovery-mechanism to adhere to his
    */
-  def lookup(name: String, resolveTimeout: java.time.Duration): CompletionStage[Resolved] =
-    lookup(Lookup(name), resolveTimeout)
+  def lookup(serviceName: String, resolveTimeout: java.time.Duration): CompletionStage[Resolved] =
+    lookup(Lookup(serviceName), resolveTimeout)
 
 }

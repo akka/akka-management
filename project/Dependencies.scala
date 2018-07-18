@@ -3,13 +3,11 @@ import Keys._
 
 object Dependencies {
 
-  val AkkaVersion = "2.5.13"
+  val AkkaVersion = "2.5.14"
   val AkkaHttpVersion = "10.0.13" // TODO update to 10.1.x as soon as possible
 
   val JUnitVersion = "4.12"
   val SprayJsonVersion = "1.3.3"
-
-  // val akkaDns = "2.4.2" // external lib
 
   val Common = Seq(
     libraryDependencies ++= Seq(

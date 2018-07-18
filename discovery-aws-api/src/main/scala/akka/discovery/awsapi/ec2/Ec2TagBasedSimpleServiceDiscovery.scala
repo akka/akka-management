@@ -94,19 +94,19 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
         after(resolveTimeout, using = system.scheduler)(
           Future.failed(new TimeoutException(s"Lookup for [$query] timed-out, within [$resolveTimeout]!"))
         ),
-        lookup(query.serviceName)
+        lookup(query)
       )
     )
 
-  def lookup(name: String): Future[Resolved] = {
+  def lookup(query: Lookup): Future[Resolved] = {
 
-    val tagFilter = new Filter("tag:" + tagKey, List(name).asJava)
+    val tagFilter = new Filter("tag:" + tagKey, List(query.serviceName).asJava)
 
     val allFilters: List[Filter] = runningInstancesFilter :: tagFilter :: otherFilters
 
     Future {
       getInstances(ec2Client, allFilters, None).map((ip: String) => ResolvedTarget(host = ip, port = None))
-    }.map(resoledTargets => Resolved(name, resoledTargets))
+    }.map(resoledTargets => Resolved(query.serviceName, resoledTargets))
 
   }
 

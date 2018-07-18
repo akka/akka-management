@@ -40,7 +40,6 @@ object AggregateSimpleServiceDiscoverySpec {
 
           aggregate {
             discovery-mechanisms = ["stubbed1", "config"]
-
           }
         }
       }

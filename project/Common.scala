@@ -62,7 +62,7 @@ object Common extends AutoPlugin {
     formatSbtFiles := false,
     scalafmtConfig := Some(baseDirectory.in(ThisBuild).value / ".scalafmt.conf"),
 
-    scalaVersion := "2.12.4",
+    scalaVersion := "2.12.6",
     ivyScala := ivyScala.value.map(_.copy(overrideScalaVersion = sbtPlugin.value)) // TODO Remove once this workaround no longer needed (https://github.com/sbt/sbt/issues/2786)!
   )
 }
