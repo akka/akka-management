@@ -15,6 +15,7 @@ lazy val `akka-management-root` = project
     `akka-discovery-consul`,
     `akka-discovery-dns`,
     `akka-discovery-kubernetes-api`,
+    `akka-discovery-local`,
     `akka-discovery-marathon-api`,
     `akka-management`,
     `bootstrap-joining-demo-aws-api-ec2-tag-based`,
@@ -84,6 +85,18 @@ lazy val `akka-discovery-kubernetes-api` = project
     name := "akka-discovery-kubernetes-api",
     organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryKubernetesApi
+  )
+  .dependsOn(`akka-discovery`)
+
+// File based local implementation of discovery, allows testing locally without the need of a DNS server
+lazy val `akka-discovery-local` = project
+  .in(file("discovery-local"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-discovery-local",
+    organization := "com.lightbend.akka.discovery",
+    Dependencies.DiscoveryLocal
   )
   .dependsOn(`akka-discovery`)
 

@@ -92,6 +92,14 @@ object Dependencies {
       DependencyGroups.AkkaHttp
   )
 
+  val DiscoveryLocal = Seq(
+    libraryDependencies ++=
+      DependencyGroups.AkkaActor ++
+        Seq(
+        "io.spray" %% "spray-json" % SprayJsonVersion  // ApacheV2
+        )
+  )
+
   val DiscoveryMarathonApi = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
