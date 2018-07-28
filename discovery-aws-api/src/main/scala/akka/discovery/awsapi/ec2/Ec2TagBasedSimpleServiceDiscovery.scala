@@ -29,13 +29,10 @@ import scala.concurrent.{ ExecutionContext, Future }
     filtersString
       .split(";")
       .filter(_.nonEmpty)
-      .map(kv => kv.split("="))
+      .map(kv ⇒ kv.split("="))
       .toList
-      .map(kv => {
-        assert(
-          kv.length == 2,
-          "failed to parse one of the key-value pairs in filters"
-        )
+      .map(kv ⇒ {
+        assert(kv.length == 2, "failed to parse one of the key-value pairs in filters")
         new Filter(kv(0), List(kv(1)).asJava)
       })
 
@@ -54,8 +51,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
   private implicit val ec: ExecutionContext = system.dispatcher
 
-  private val config =
-    system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
+  private val config = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
 
   private val tagKey = config.getString("tag-key")
 
@@ -68,8 +64,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
       case list ⇒ Some(list) // Akka Management ports
     }
 
-  private val runningInstancesFilter =
-    new Filter("instance-state-name", List("running").asJava)
+  private val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
 
   @tailrec
   private final def getInstances(
@@ -83,20 +78,19 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
       .withFilters(filters.asJava) // withFilters is a set operation (i.e. calls setFilters, be careful with chaining)
       .withNextToken(nextToken.orNull)
 
-    val describeInstancesResult =
-      client.describeInstances(describeInstancesRequest)
+    val describeInstancesResult = client.describeInstances(describeInstancesRequest)
 
     val ips: List[String] =
       describeInstancesResult.getReservations.asScala.toList
-        .flatMap((r: Reservation) => r.getInstances.asScala.toList)
-        .map(instance => instance.getPrivateIpAddress)
+        .flatMap((r: Reservation) ⇒ r.getInstances.asScala.toList)
+        .map(instance ⇒ instance.getPrivateIpAddress)
 
     val accumulatedIps = accumulator ++ ips
 
     Option(describeInstancesResult.getNextToken) match {
-      case None =>
+      case None ⇒
         accumulatedIps // aws api has no more results to return, so we return what we have accumulated so far
-      case nextPageToken @ Some(_) =>
+      case nextPageToken @ Some(_) ⇒
         // more result items available
         log.debug("aws api returned paginated result, fetching next page!")
         getInstances(client, filters, nextPageToken, accumulatedIps)
@@ -108,11 +102,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
-          Future.failed(
-            new TimeoutException(
-              s"Lookup for [$query] timed-out, within [$resolveTimeout]!"
-            )
-          )
+          Future.failed(new TimeoutException(s"Lookup for [$query] timed-out, within [$resolveTimeout]!"))
         ),
         lookup(query)
       )

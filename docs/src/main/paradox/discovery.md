@@ -473,6 +473,7 @@ a setup with multiple Akka nodes (i.e. multiple JVMs) per EC2 instance.
       }
     }
     ```
+    Note: this comes with the limitation that each EC2 instance has to have the same number of Akka nodes.
 
 * You can change the default tag key from "service" to something else. This can be done via `application.conf`, by
 setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
