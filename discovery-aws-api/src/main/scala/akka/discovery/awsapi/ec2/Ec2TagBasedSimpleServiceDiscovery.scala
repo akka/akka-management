@@ -32,7 +32,10 @@ import scala.concurrent.{ ExecutionContext, Future }
       .map(kv => kv.split("="))
       .toList
       .map(kv => {
-        assert(kv.length == 2, "failed to parse one of the key-value pairs in filters")
+        assert(
+          kv.length == 2,
+          "failed to parse one of the key-value pairs in filters"
+        )
         new Filter(kv(0), List(kv(1)).asJava)
       })
 
@@ -51,35 +54,42 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
   private implicit val ec: ExecutionContext = system.dispatcher
 
-  private val config = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
+  private val config =
+    system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
 
   private val tagKey = config.getString("tag-key")
 
   private val otherFiltersString = config.getString("filters")
   private val otherFilters = parseFiltersString(otherFiltersString)
 
-  private val preDefinedPorts = config.getIntList("ports").asScala.toList match {
-    case Nil ⇒ None
-    case list ⇒ Some(list)
-  }
+  private val preDefinedPorts =
+    config.getIntList("ports").asScala.toList match {
+      case Nil ⇒ None
+      case list ⇒ Some(list) // Akka Management ports
+    }
 
-  private val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
+  private val runningInstancesFilter =
+    new Filter("instance-state-name", List("running").asJava)
 
   @tailrec
-  private final def getInstances(client: AmazonEC2,
-                                 filters: List[Filter],
-                                 nextToken: Option[String],
-                                 accumulator: List[String] = Nil): List[String] = {
+  private final def getInstances(
+      client: AmazonEC2,
+      filters: List[Filter],
+      nextToken: Option[String],
+      accumulator: List[String] = Nil
+  ): List[String] = {
 
     val describeInstancesRequest = new DescribeInstancesRequest()
       .withFilters(filters.asJava) // withFilters is a set operation (i.e. calls setFilters, be careful with chaining)
       .withNextToken(nextToken.orNull)
 
-    val describeInstancesResult = client.describeInstances(describeInstancesRequest)
+    val describeInstancesResult =
+      client.describeInstances(describeInstancesRequest)
 
-    val ips: List[String] = describeInstancesResult.getReservations.asScala.toList
-      .flatMap((r: Reservation) => r.getInstances.asScala.toList)
-      .map(instance => instance.getPrivateIpAddress)
+    val ips: List[String] =
+      describeInstancesResult.getReservations.asScala.toList
+        .flatMap((r: Reservation) => r.getInstances.asScala.toList)
+        .map(instance => instance.getPrivateIpAddress)
 
     val accumulatedIps = accumulator ++ ips
 
@@ -98,7 +108,11 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
-          Future.failed(new TimeoutException(s"Lookup for [$query] timed-out, within [$resolveTimeout]!"))
+          Future.failed(
+            new TimeoutException(
+              s"Lookup for [$query] timed-out, within [$resolveTimeout]!"
+            )
+          )
         ),
         lookup(query)
       )
@@ -111,12 +125,14 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
     val allFilters: List[Filter] = runningInstancesFilter :: tagFilter :: otherFilters
 
     Future {
-      getInstances(ec2Client, allFilters, None).flatMap((ip: String) ⇒
+      getInstances(ec2Client, allFilters, None).flatMap(
+        (ip: String) ⇒
           preDefinedPorts match {
-          case None ⇒ ResolvedTarget(host = ip, port = None) :: Nil
-          case Some(ports) ⇒
-            ports.map(p ⇒ ResolvedTarget(host = ip, port = Some(p))) // this allows multiple akka nodes (i.e. JVMs) per EC2 instance
-      })
+            case None ⇒ ResolvedTarget(host = ip, port = None) :: Nil
+            case Some(ports) ⇒
+              ports.map(p ⇒ ResolvedTarget(host = ip, port = Some(p))) // this allows multiple akka nodes (i.e. JVMs) per EC2 instance
+        }
+      )
     }.map(resoledTargets ⇒ Resolved(query.serviceName, resoledTargets))
 
   }
