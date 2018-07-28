@@ -6,6 +6,7 @@ package akka.discovery.awsapi.ec2
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
+import akka.annotation.InternalApi
 import akka.discovery.{ Lookup, SimpleServiceDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery._
@@ -22,7 +23,7 @@ import scala.collection.immutable.Seq
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 
-object Ec2TagBasedSimpleServiceDiscovery {
+@InternalApi private[ec2] object Ec2TagBasedSimpleServiceDiscovery {
 
   private[ec2] def parseFiltersString(filtersString: String): List[Filter] =
     filtersString
@@ -56,6 +57,11 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
   private val otherFiltersString = config.getString("filters")
   private val otherFilters = parseFiltersString(otherFiltersString)
+
+  private val preDefinedPorts = config.getIntList("ports").asScala.toList match {
+    case Nil ⇒ None
+    case list ⇒ Some(list)
+  }
 
   private val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
 
@@ -105,8 +111,13 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
     val allFilters: List[Filter] = runningInstancesFilter :: tagFilter :: otherFilters
 
     Future {
-      getInstances(ec2Client, allFilters, None).map((ip: String) => ResolvedTarget(host = ip, port = None))
-    }.map(resoledTargets => Resolved(query.serviceName, resoledTargets))
+      getInstances(ec2Client, allFilters, None).flatMap((ip: String) ⇒
+          preDefinedPorts match {
+          case None ⇒ ResolvedTarget(host = ip, port = None) :: Nil
+          case Some(ports) ⇒
+            ports.map(p ⇒ ResolvedTarget(host = ip, port = Some(p))) // this allows multiple akka nodes (i.e. JVMs) per EC2 instance
+      })
+    }.map(resoledTargets ⇒ Resolved(query.serviceName, resoledTargets))
 
   }
 
