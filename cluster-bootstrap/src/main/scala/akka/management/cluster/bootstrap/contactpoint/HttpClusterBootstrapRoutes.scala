@@ -19,6 +19,7 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
 
   private def routeGetSeedNodes: Route = extractClientIP { clientIp ⇒
     extractActorSystem { implicit system ⇒
+      import akka.cluster.MemberStatus
       val cluster = Cluster(system)
 
       def memberToClusterMember(m: Member): ClusterMember =
@@ -27,7 +28,11 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
       val state = cluster.state
 
       // TODO shuffle the members so in a big deployment nodes start joining different ones and not all the same?
-      val members = state.members.take(settings.contactPoint.httpMaxSeedNodesToExpose).map(memberToClusterMember)
+      val members = state.members
+        .diff(state.unreachable)
+        .filter(_.status == MemberStatus.up)
+        .take(settings.contactPoint.httpMaxSeedNodesToExpose)
+        .map(memberToClusterMember)
 
       val info = SeedNodes(cluster.selfMember.uniqueAddress.address, members)
       log.info("Bootstrap request from {}: Contact Point returning {} seed-nodes ([{}])", clientIp, members.size,
