@@ -165,7 +165,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
     if (binding == null) {
       Future.successful(Done)
     } else if (bindingFuture.compareAndSet(binding, null)) {
-      val stopFuture = binding.flatMap(_.unbind()).map(_ => Done)
+      val stopFuture = binding.flatMap(_.unbind())
       bindingFuture.set(null)
       stopFuture
     } else stop() // retry, CAS was not successful, someone else completed the stop()
