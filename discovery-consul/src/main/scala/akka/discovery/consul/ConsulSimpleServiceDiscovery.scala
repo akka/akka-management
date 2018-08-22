@@ -88,7 +88,7 @@ object ConsulSimpleServiceDiscovery {
   implicit class ConsulResponseFutureDecorator[T](f: ConsulResponseCallback[T] => Unit) {
     def asFuture: Future[ConsulResponse[T]] = {
       val callback = new ConsulResponseFutureCallback[T]
-      Try(f(callback)).recover {
+      Try(f(callback)).recover[Unit] {
         case ex: Throwable => callback.fail(ex)
       }
       callback.future
