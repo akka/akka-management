@@ -4,7 +4,7 @@
 Akka Cluster Bootstrap supports safely forming a new cluster from discovered nodes or joining a node to an existing cluster. 
 It is an alternative to configuring  static `seed-nodes`.
 
-Akka Cluster Bootstrap not require any additional system like etcd/zookeeper/consul to be run along side the Akka cluster in order to discover the seed-nodes.
+Akka Cluster Bootstrap does not require any additional system like etcd/zookeeper/consul to be run along side the Akka cluster in order to discover the seed-nodes.
 
 ## Prerequisites
 
@@ -12,8 +12,8 @@ Bootstrap depends on:
 
  * @ref:[Akka Discovery](../discovery/index.md) to discover other members of the cluster
  * @ref:[Akka Management](../akka-management.md) to host HTTP endpoints used during the bootstrap process
- 
-It is recommended to understand these before trying to use bootstrap.
+
+A discovery mechanism needs to be chosen. A good default choice is DNS. 
 
 ## Dependency
 
@@ -81,9 +81,9 @@ The following configuration is required, more details for each and additional co
 
 * Service discovery is queried to get initial contact points. At least `contact-point-discovery.required-contact-point-nr` must be returned to start the bootstrap process.
 * Each node exposes a HTTP endpoint `/bootstrap/seed-nodes`. This is exposed automatically by starting Akka management.
-* Each node then probes the contact points's `/bootstrap/seed-ndes` endpoint to see if a cluster has already been formed
+* Each node then probes the contact points's `/bootstrap/seed-nodes` endpoint to see if a cluster has already been formed
     * If it has it joins the cluster, bootstrap is finished
-* If no cluster exists each node returns no `seed-nodes` and the node with the lowest address forms a new cluster and starts  advertising its self as a seed node
+* If no cluster exists each node returns no `seed-nodes` and the node with the lowest address forms a new cluster and starts  advertising itself as a seed node
 * Other nodes will see `/bootstrap/seed-nodes` of the node that self joined and join its cluster
 
 See @ref[full bootsrap process and advanced configuration](details.md) for more details on the process. 

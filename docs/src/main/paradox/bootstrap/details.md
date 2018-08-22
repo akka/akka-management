@@ -8,7 +8,7 @@ The Akka Cluster Bootstrap process is composed of two phases:
 ## Contact point discovery
 
 First, a minimum number of Contact Points need to be gathered. 
-Contact pojints are discovered by `akka.management.cluster.bootstrap.contact-point-discovery.service-name` appended
+Contact points are discovered by `akka.management.cluster.bootstrap.contact-point-discovery.service-name` appended
 with `akka.management.cluster.bootstrap.contact-point-discovery.service-namespace` , this will be passed to the configured
 service discovery mechanism.
 
