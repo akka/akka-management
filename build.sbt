@@ -119,7 +119,8 @@ lazy val `akka-discovery-aws-api-async` = project
   .settings(
     name := "akka-discovery-aws-api-async",
     organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryAwsApiAsync
+    Dependencies.DiscoveryAwsApiAsync,
+    scalacOptions += "-target:jvm-1.8"
   )
   .dependsOn(`akka-discovery`)
 
