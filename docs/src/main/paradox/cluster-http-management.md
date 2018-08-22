@@ -9,7 +9,7 @@ The operations exposed are comparable to the Command Line Management tool or the
 ## Dependencies
 
 The Akka Cluster HTTP Management is a separate jar file. 
-Make sure to include it along with the core akka-management library in your project::
+Make sure to include it along with the core akka-management library in your project:
 
 
 sbt
