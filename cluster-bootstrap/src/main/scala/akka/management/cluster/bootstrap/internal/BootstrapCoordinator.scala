@@ -173,7 +173,7 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
       discoverContactPoints()
 
     case SimpleServiceDiscovery.Resolved(_, contactPoints) ⇒
-      log.info("Located service members with name: [{}]: [{}]", lookup, contactPoints.mkString(", "))
+      log.info("Located service members based on: [{}]: [{}]", lookup, contactPoints.mkString(", "))
       onContactPointsResolved(contactPoints)
       resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals
       startSingleDiscoveryTimer() // keep looking in case other nodes join the discovery
