@@ -11,7 +11,7 @@ object Dependencies {
 
   val Common = Seq(
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.1" % Test// ApacheV2
+      "org.scalatest" %% "scalatest" % "3.0.5-M1" % Test// ApacheV2
     )
   )
 
