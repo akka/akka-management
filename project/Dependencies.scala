@@ -9,10 +9,10 @@ object Dependencies {
   val JUnitVersion = "4.12"
   val SprayJsonVersion = "1.3.3"
 
+  val ScalaTest = "org.scalatest" %% "scalatest" % "3.0.5-M1" // ApacheV2
+
   val Common = Seq(
-    libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.5-M1" % Test// ApacheV2
-    )
+    libraryDependencies ++= Seq(ScalaTest % Test)
   )
 
   private object DependencyGroups {
