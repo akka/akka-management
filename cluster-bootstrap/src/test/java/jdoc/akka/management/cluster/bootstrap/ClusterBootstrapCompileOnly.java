@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ */
 package jdoc.akka.management.cluster.bootstrap;
 
 import akka.actor.ActorSystem;
