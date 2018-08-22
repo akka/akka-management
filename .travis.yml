@@ -5,6 +5,7 @@ language: scala
 scala:
   - "2.12.6"
   - "2.11.11"
+  - "2.13.0-M3"
 
 jdk:
   - oraclejdk8
