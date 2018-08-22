@@ -4,9 +4,11 @@ As of Akka 2.5.15 and Akka-Management 0.18 the recommended way to run Akka Clust
 
 * Use Akka Bootstrap with `akka-dns` with cluster formation via DNS SRV records
 * Use a headless service for internal for Akka management/bootstrap so that readiness probes for prod traffic don't interfere with bootstrap 
-* If required use a separate service and/or ingress for user facing endpoints e.g. HTTP gRPC
+* If required use a separate service and/or ingress for user-facing endpoints, for example [HTTP](https://doc.akka.io/docs/akka-http/current/) or [gRPC](https://developer.lightbend.com/docs/akka-grpc/current/)
 
 # Kubernetes Services
+
+## Internal headless service
 
 For Akka Cluster / Management use a headless service. This allows the solution to not be coupled to k8s as well
 as there is no use case for load balancing across management/remoting ports.
@@ -39,7 +41,7 @@ spec:
   publishNotReadyAddresses: true
 ```
 
-Note there are currently two ways to set that addressed should be published if not ready, the initial way via an annotation 
+Note there are currently two ways to specify that addresses should be published if not ready, the initial way via an annotation 
 `service.alpha.kubernetes.io/tolerate-unready-endpoints` and via the new officially supported way as the property `publishNotReadyAddresses`.
 Set both as depending on your DNS solution it may have not migrated from the annotation to the property.
 
@@ -88,6 +90,8 @@ akka {
 
 The same configuration will work for any environment that has an SRV record for your Akka Clustered application. 
 
+## External service 
+
 For prod traffic e.g. HTTP use a regular service or an alternative ingress mechanism. 
 With an appropriate readiness check this results in traffic not being routed until bootstrap has finished.
 
@@ -127,20 +131,22 @@ class KubernetesHealthChecks(system: ActorSystem) {
   private val aliveStates: Set[MemberStatus] = Set(MemberStatus.Joining, MemberStatus.WeaklyUp, MemberStatus.Up, MemberStatus.Leaving, MemberStatus.Exiting)
 
   val k8sHealthChecks: Route =
+  concat(
     path("ready") {
       get {
         val selfState = cluster.selfMember.status
         if (readyStates.contains(selfState)) complete(StatusCodes.OK)
         else complete(StatusCodes.InternalServerError)
       }
-    } ~
-      path("alive") {
-        get {
-          val selfState = cluster.selfMember.status
-          if (aliveStates.contains(selfState)) complete(StatusCodes.OK)
-          else complete(StatusCodes.InternalServerError)
-        }
+    },
+    path("alive") {
+      get {
+        val selfState = cluster.selfMember.status
+        if (aliveStates.contains(selfState)) complete(StatusCodes.OK)
+        else complete(StatusCodes.InternalServerError)
       }
+    }
+  )
 }
 ```
 
