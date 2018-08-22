@@ -17,7 +17,7 @@ import akka.actor.Status.Failure
 import akka.actor.Timers
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.SimpleServiceDiscovery
+import akka.discovery.{ Lookup, SimpleServiceDiscovery }
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.http.scaladsl.model.Uri
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
@@ -117,7 +117,8 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
   private val DiscoverTimerKey = "resolve-key"
   private val DecideTimerKey = "decide-key"
 
-  private var serviceName = settings.contactPointDiscovery.effectiveName(context.system)
+  private val lookup = Lookup(settings.contactPointDiscovery.effectiveName(context.system),
+    settings.contactPointDiscovery.portName, settings.contactPointDiscovery.protocol)
 
   private var lastContactsObservation: Option[DnsServiceContactsObservation] = None
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
@@ -171,10 +172,8 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
       // the next round of discovery will be performed once this one returns
       discoverContactPoints()
 
-    case SimpleServiceDiscovery.Resolved(name, contactPoints) ⇒
-      serviceName = name
-
-      log.info("Located service members with name: [{}]: [{}]", serviceName, contactPoints.mkString(", "))
+    case SimpleServiceDiscovery.Resolved(_, contactPoints) ⇒
+      log.info("Located service members with name: [{}]: [{}]", lookup, contactPoints.mkString(", "))
       onContactPointsResolved(contactPoints)
       resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals
       startSingleDiscoveryTimer() // keep looking in case other nodes join the discovery
@@ -248,8 +247,10 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
       startSingleDiscoveryTimer()
   }
 
-  private def discoverContactPoints(): Unit =
-    discovery.lookup(serviceName, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
+  private def discoverContactPoints(): Unit = {
+    log.info("Looking up [{}]", lookup)
+    discovery.lookup(lookup, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
+  }
 
   private def onContactPointsResolved(contactPoints: immutable.Seq[ResolvedTarget]): Unit = {
     val newObservation = DnsServiceContactsObservation(timeNow(), contactPoints.toSet)
@@ -274,7 +275,7 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
     val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
 
     val childActorName = s"contactPointProbe-${baseUri.authority.host}-${baseUri.authority.port}"
-    log.info("Ensuring probing actor: " + childActorName)
+    log.debug("Ensuring probing actor: " + childActorName)
 
     // This should never really happen in well configured env, but it may happen that someone is confused with ports
     // and we end up trying to probe (using http for example) a port that actually is our own remoting port.
