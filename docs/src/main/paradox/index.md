@@ -8,8 +8,8 @@ Support for some protocols is provided out of the box and others are provided as
 @@@ index
 
   - [Akka Management](akka-management.md)
-  - [Akka Cluster Bootstrap](bootstrap.md)
-  - [Akka Discovery](discovery.md)
+  - [Akka Cluster Bootstrap](bootstrap/index.md)
+  - [Akka Discovery](discovery/index.md)
   - [Akka Cluster Management (HTTP)](cluster-http-management.md)
   - [Akka Cluster Management (JMX)](cluster-jmx-management.md)
 

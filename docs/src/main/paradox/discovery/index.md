@@ -386,18 +386,18 @@ And in your `marathon.json`:
 
 If you're using EC2 directly _or_ you're using ECS with host mode networking
 _and_ you're deploying one container per cluster member, continue to
-@ref:[Discovery Method: AWS API - EC2 Tag-Based Discovery](discovery.md#discovery-method-aws-api-ec2-tag-based-discovery).
+@ref:[Discovery Method: AWS API - EC2 Tag-Based Discovery](index.md#discovery-method-aws-api-ec2-tag-based-discovery).
 
 If you're using ECS with
 [awsvpcs](https://aws.amazon.com/blogs/compute/introducing-cloud-native-networking-for-ecs-containers/)
 mode networking (whether on EC2 or with
 [Fargate](https://aws.amazon.com/fargate/)), continue to
-@ref:[Discovery Method: AWS API - ECS Discovery](discovery.md#discovery-method-aws-api-ecs-discovery).
+@ref:[Discovery Method: AWS API - ECS Discovery](index.md#discovery-method-aws-api-ecs-discovery).
 
 ECS with bridge mode networking is not supported.
 
 If you're using EKS, then you may want to use the
-@ref:['Kubernetes API'-based discovery method](discovery.md#discovery-method-kubernetes-api)
+@ref:['Kubernetes API'-based discovery method](index.md#discovery-method-kubernetes-api)
 instead.
 
 
@@ -472,7 +472,7 @@ setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
 * If your service is running in a docker container, you will need to configure akka management with separate
   IPs for binding and discovery. This is because akka management needs to _bind_ to the internal docker IP,
   but will _discover_ the "host" IP (the EC2 private IP) on the AWS API. See @ref:[Basic
-  Configuration](akka-management.md) on how to separate the bind IP from the discovery IP.
+  Configuration](../akka-management.md) on how to separate the bind IP from the discovery IP.
 
 Demo:
 
