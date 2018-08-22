@@ -50,8 +50,11 @@ class ConfigSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleSe
 
   override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     // TODO or fail or change the Resolved type to an ADT?
-    Future
+    val result = Future
       .successful(resolvedServices.getOrElse(lookup.serviceName, Resolved(lookup.serviceName, immutable.Seq.empty)))
+
+    println(s"Found $result for $lookup")
+    result
   }
 
 }

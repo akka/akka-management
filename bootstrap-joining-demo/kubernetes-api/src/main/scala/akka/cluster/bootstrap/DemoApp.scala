@@ -33,7 +33,7 @@ object DemoApp extends App {
     .subscribe(system.actorOf(Props[ClusterWatcher]), ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
 
   import akka.http.scaladsl.server.Directives._
-  Http().bindAndHandle(complete("Hello world"), "0.0.0.0", 8080)
+  //Http().bindAndHandle(complete("Hello world"), "0.0.0.0", 8080)
 
 }
 

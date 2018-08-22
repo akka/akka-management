@@ -183,6 +183,7 @@ lazy val `bootstrap-joining-demo-kubernetes-api` = project
     `akka-management`,
     `cluster-http`,
     `akka-discovery-dns`,
+    `akka-discovery-config`,
     `cluster-bootstrap`,
     `akka-discovery-kubernetes-api`
   )
