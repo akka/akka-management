@@ -20,4 +20,3 @@ object ClusterBootstrapCompileOnly {
   //#start
 
 }
-
