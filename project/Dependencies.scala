@@ -4,15 +4,15 @@ import Keys._
 object Dependencies {
 
   val AkkaVersion = "2.5.14"
-  val AkkaHttpVersion = "10.0.13" // TODO update to 10.1.x as soon as possible
+  val AkkaHttpVersion = "10.1.3"
 
   val JUnitVersion = "4.12"
   val SprayJsonVersion = "1.3.3"
 
+  val ScalaTest = "org.scalatest" %% "scalatest" % "3.0.5-M1" // ApacheV2
+
   val Common = Seq(
-    libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.1" % Test// ApacheV2
-    )
+    libraryDependencies ++= Seq(ScalaTest % Test)
   )
 
   private object DependencyGroups {
