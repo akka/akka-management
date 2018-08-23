@@ -1,5 +1,7 @@
 # Kubernetes
 
+A full working example that can be deployed to `minikube` is in `bootstrap-demo/kuvernetes-dns`.
+
 As of Akka 2.5.15 and Akka-Management 0.18 the recommended way to run Akka Cluster in Kubernetes is to:
 
 * Use Akka Bootstrap with `akka-dns` with cluster formation via DNS SRV records
@@ -16,30 +18,7 @@ Set endpoints to be published before readiness checks pass as these endpoints ar
 and make the application ready. 
 
 
-```
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    appName: "akka-cluster-kubernetes"
-  annotations:
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-  name: "akka-cluster-kubernetes"
-spec:
-  ports:
-    - name: management
-      port: 8558
-      protocol: TCP
-      targetPort: 8558
-    - name: remoting
-      port: 2552
-      protocol: TCP
-      targetPort: 2552
-  selector:
-    appName: "akka-cluster-kubernetes"
-  clusterIP: None
-  publishNotReadyAddresses: true
-```
+@@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #headless }
 
 Note there are currently two ways to specify that addresses should be published if not ready, the initial way via an annotation 
 `service.alpha.kubernetes.io/tolerate-unready-endpoints` and via the new officially supported way as the property `publishNotReadyAddresses`.
@@ -50,43 +29,7 @@ bootstrap to find them and form the cluster thus making them ready.
 
 Then to configure your application:
 
-```
-akka {
-  loglevel = DEBUG
-
-  io.dns.resolver = async-dns
-
-  actor {
-    provider = "cluster"
-  }
-
-  management {
-    cluster.bootstrap {
-      contact-point-discovery {
-        port-name = "management" # name of the port in the headless service
-        protocol = "tcp" # protocol in the headless service
-        service-name = "akka-cluster-kubernetes" # headless service name
-        service-namespace = "default.svc.cluster.local" # your namespace/cluster name
-      }
-    }
-
-    http {
-      port = 8558
-      bind-hostname = "0.0.0.0"
-    }
-  }
-
-  remote {
-    netty.tcp {
-      port = 2552
-    }
-  }
-
-  discovery {
-    method = akka-dns
-  }
-}
-```
+@@snip [application.conf]($management$/bootstrap-demo/kubernetes-dns/src/main/resources/application.conf)  
 
 The same configuration will work for any environment that has an SRV record for your Akka Clustered application. 
 
@@ -95,22 +38,7 @@ The same configuration will work for any environment that has an SRV record for 
 For prod traffic e.g. HTTP use a regular service or an alternative ingress mechanism. 
 With an appropriate readiness check this results in traffic not being routed until bootstrap has finished.
 
-```
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    appName: "akka-cluster-kubernetes"
-  name: "akka-cluster-kubernetes-public"
-spec:
-  ports:
-    - name: http 
-      port: 8080
-      protocol: TCP
-      targetPort: 8080 
-  selector:
-    appName: "akka-cluster-kubernetes"
-```
+@@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #public }
 
 This will result in a ClusterIP being created and only added to `Endpoints` when the pods are `ready`
 
@@ -122,34 +50,7 @@ different service types and DNS behavior.
 
 Health checks can be used check a node is part of a cluster e.g.
 
-```scala
-class KubernetesHealthChecks(system: ActorSystem) {
-
-  val cluster = Cluster(system)
-
-  private val readyStates: Set[MemberStatus] = Set(MemberStatus.Up, MemberStatus.Down)
-  private val aliveStates: Set[MemberStatus] = Set(MemberStatus.Joining, MemberStatus.WeaklyUp, MemberStatus.Up, MemberStatus.Leaving, MemberStatus.Exiting)
-
-  val k8sHealthChecks: Route =
-  concat(
-    path("ready") {
-      get {
-        val selfState = cluster.selfMember.status
-        if (readyStates.contains(selfState)) complete(StatusCodes.OK)
-        else complete(StatusCodes.InternalServerError)
-      }
-    },
-    path("alive") {
-      get {
-        val selfState = cluster.selfMember.status
-        if (aliveStates.contains(selfState)) complete(StatusCodes.OK)
-        else complete(StatusCodes.InternalServerError)
-      }
-    }
-  )
-}
-```
-
+@@snip [health-checks]($management$/bootstrap-demo/kubernetes-dns/src/main/scala/akka/cluster/bootstrap/KubernetesHealthChecks.scala)  { #health }
 
 This will mean that a pod won't get traffic until it is part of a cluster which is important
 if `ClusterSharding` and `ClusterSingleton` are used.

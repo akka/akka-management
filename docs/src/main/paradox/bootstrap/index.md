@@ -105,5 +105,8 @@ is strictly defined and is as follows:
   to be using the Bootstrap mechanism. 
 @@@
 
+## Demos
+
+To see how to use bootstrap in various environments such as Kubernetes see @ref[demos](./demos/index.md)
 
 
