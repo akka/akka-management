@@ -29,10 +29,8 @@ lazy val `akka-management-root` = project
   .settings(
     parallelExecution in GlobalScope := false,
     inThisBuild(List(
-      dependencyOverrides ++= Set(
-        "com.typesafe.akka" %% "akka-actor" % "2.5-SNAPSHOT",
-        "com.typesafe.akka" %% "akka-cluster" % "2.5-SNAPSHOT"
-      )
+      resolvers += Resolver.sonatypeRepo("comtypesafe-2189")
+
     ))
   )
 
@@ -55,11 +53,7 @@ lazy val `akka-discovery-dns` = project
   .settings(
     name := "akka-discovery-dns",
     organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryDns,
-    dependencyOverrides ++= Set(
-      "com.typesafe.akka" %% "akka-actor" % "2.5-SNAPSHOT",
-      "com.typesafe.akka" %% "akka-cluster" % "2.5-SNAPSHOT"
-    )
+    Dependencies.DiscoveryDns
   )
   .dependsOn(`akka-discovery`)
 

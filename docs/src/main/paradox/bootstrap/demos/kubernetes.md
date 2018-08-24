@@ -5,10 +5,37 @@ A full working example that can be deployed to `minikube` is in `bootstrap-demo/
 As of Akka 2.5.15 and Akka-Management 0.18 the recommended way to run Akka Cluster in Kubernetes is to:
 
 * Use Akka Bootstrap with `akka-dns` with cluster formation via DNS SRV records
-* Use a headless service for internal for Akka management/bootstrap so that readiness probes for prod traffic don't interfere with bootstrap 
+* Use a headless service for internal and Akka management/bootstrap so that readiness probes for prod traffic don't interfere with bootstrap 
 * If required use a separate service and/or ingress for user-facing endpoints, for example [HTTP](https://doc.akka.io/docs/akka-http/current/) or [gRPC](https://developer.lightbend.com/docs/akka-grpc/current/)
 
-# Kubernetes Services
+## Deployments
+
+Use a regular deployment (not a StatefulSet). 
+
+### Update strategy
+
+For small clusters it may make sense to set `maxUnabailable` to 0 and `maxSurge` to 1. 
+This means that a new pod is created before removing any existing pods so if the new pod fails the cluster remains
+at full strength until a rollback happens. For large clusters it may be too slow to do 1 pod at a time.
+
+If using [SBR](https://developer.lightbend.com/docs/akka-commercial-addons/current/split-brain-resolver.html) have a `maxUnavailable` that will not cause downing
+
+### Cluster singletons
+
+Deployments orders pods by pod state and then time spent ready when deciding which to remove first. The pod 
+with cluster singletons is typically removed last and then the cluster singletons move the the oldest new pod.  
+
+
+### Health checks
+
+Health checks can be used check a node is part of a cluster e.g.
+
+@@snip [health-checks]($management$/bootstrap-demo/kubernetes-dns/src/main/scala/akka/cluster/bootstrap/KubernetesHealthChecks.scala)  { #health }
+
+This will mean that a pod won't get traffic until it is part of a cluster which is important
+if either `ClusterSharding` or `ClusterSingleton` are used.
+
+## Services
 
 ## Internal headless service
 
@@ -33,7 +60,7 @@ Then to configure your application:
 
 The same configuration will work for any environment that has an SRV record for your Akka Clustered application. 
 
-## External service 
+### External service 
 
 For prod traffic e.g. HTTP use a regular service or an alternative ingress mechanism. 
 With an appropriate readiness check this results in traffic not being routed until bootstrap has finished.
@@ -46,11 +73,3 @@ Note that the `appName` is the same for both services as we want the services to
 different service types and DNS behavior.
 
 
-## Pods
-
-Health checks can be used check a node is part of a cluster e.g.
-
-@@snip [health-checks]($management$/bootstrap-demo/kubernetes-dns/src/main/scala/akka/cluster/bootstrap/KubernetesHealthChecks.scala)  { #health }
-
-This will mean that a pod won't get traffic until it is part of a cluster which is important
-if `ClusterSharding` and `ClusterSingleton` are used.

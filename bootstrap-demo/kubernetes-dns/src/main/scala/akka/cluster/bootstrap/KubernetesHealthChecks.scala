@@ -16,7 +16,7 @@ class KubernetesHealthChecks(system: ActorSystem) {
   val cluster = Cluster(system)
 
   //#health
-  private val readyStates: Set[MemberStatus] = Set(MemberStatus.Up, MemberStatus.Down)
+  private val readyStates: Set[MemberStatus] = Set(MemberStatus.Up, MemberStatus.WeaklyUp)
   private val aliveStates: Set[MemberStatus] =
     Set(MemberStatus.Joining, MemberStatus.WeaklyUp, MemberStatus.Up, MemberStatus.Leaving, MemberStatus.Exiting)
 
