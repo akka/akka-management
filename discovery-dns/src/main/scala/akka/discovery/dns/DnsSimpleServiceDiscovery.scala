@@ -7,6 +7,7 @@ import java.net.InetAddress
 
 import akka.AkkaVersion
 import akka.actor.ActorSystem
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.event.Logging
 import akka.io.{ Dns, IO }
 import akka.pattern.ask
@@ -14,13 +15,29 @@ import akka.pattern.ask
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import akka.discovery._
-import akka.io.dns.{ AAAARecord, ARecord, DnsProtocol, SRVRecord }
 import akka.io.dns.DnsProtocol.{ Ip, Srv }
+import akka.io.dns.{ AAAARecord, ARecord, DnsProtocol, SRVRecord }
+
+object DnsSimpleServiceDiscovery {
+  def srvRecordsToResolved(srvRequest: String, resolved: DnsProtocol.Resolved): Resolved = {
+    val ips: Map[String, InetAddress] = resolved.additionalRecords.collect {
+      case a: ARecord => a.name -> a.ip
+      case aaaa: AAAARecord => aaaa.name -> aaaa.ip
+    }.toMap
+
+    val addresses = resolved.records.collect {
+      case srv: SRVRecord => ResolvedTarget(srv.target, Some(srv.port), ips.get(srv.target))
+    }
+    Resolved(srvRequest, addresses)
+  }
+
+}
 
 /**
  * Looks for A records for a given service.
  */
 class DnsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+  import DnsSimpleServiceDiscovery._
 
   // Required for async dns, 15 for additional records
   AkkaVersion.require("discovery-dns", "2.5.15")
@@ -45,15 +62,7 @@ class DnsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
         dns.ask(DnsProtocol.Resolve(srvRequest, Srv))(resolveTimeout).map {
           case resolved: DnsProtocol.Resolved =>
             log.debug("Resolved Dns.Resolved: {}", resolved)
-            val ips: Map[String, InetAddress] = resolved.additionalRecords.collect {
-              case a: ARecord => a.name -> a.ip
-              case aaaa: AAAARecord => aaaa.name -> aaaa.ip
-            }.toMap
-
-            val addresses = resolved.records.collect {
-              case srv: SRVRecord => ResolvedTarget(srv.target, Some(srv.port), ips.get(srv.target))
-            }
-            Resolved(srvRequest, addresses)
+            srvRecordsToResolved(srvRequest, resolved)
           case resolved ⇒
             log.warning("Resolved UNEXPECTED (resolving to Nil): {}", resolved.getClass)
             Resolved(srvRequest, Nil)
@@ -75,4 +84,5 @@ class DnsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
         }
     }
   }
+
 }
