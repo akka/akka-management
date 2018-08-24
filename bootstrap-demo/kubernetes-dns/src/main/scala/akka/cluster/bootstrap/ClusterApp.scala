@@ -3,7 +3,8 @@
  */
 package akka.cluster.bootstrap
 
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, PoisonPill, Props }
+import akka.cluster.singleton.{ ClusterSingletonManager, ClusterSingletonManagerSettings }
 import akka.http.scaladsl.Http
 import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
@@ -20,6 +21,9 @@ object ClusterApp {
     system.log.info("Starting Akka Management")
     AkkaManagement(system).start()
     ClusterBootstrap(system).start()
+
+    system.actorOf(ClusterSingletonManager.props(Props[NoisySingleton], PoisonPill,
+        ClusterSingletonManagerSettings(system)))
 
     val k8sHealthChecks = new KubernetesHealthChecks(system)
 

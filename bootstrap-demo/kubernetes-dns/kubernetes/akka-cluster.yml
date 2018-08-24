@@ -2,20 +2,26 @@
 apiVersion: "apps/v1beta2"
 kind: Deployment
 metadata:
-  name: "bootstrap-demo-kubernetes-dns-v1-3-3-7"
+  name: "bootstrap-demo-kubernetes-dns"
   labels:
     appName: "bootstrap-demo-kubernetes-dns"
-    appNameVersion: "bootstrap-demo-kubernetes-dns-v1-3-3-7"
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      appNameVersion: "bootstrap-demo-kubernetes-dns-v1-3-3-7"
+      appName: "bootstrap-demo-kubernetes-dns"
+#update
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+ #update
+
   template:
     metadata:
       labels:
         appName: "bootstrap-demo-kubernetes-dns"
-        appNameVersion: "bootstrap-demo-kubernetes-dns-v1-3-3-7"
     spec:
       restartPolicy: Always
       containers:
@@ -47,7 +53,7 @@ metadata:
     appName: "bootstrap-demo-kubernetes-dns"
   annotations:
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-  name: "bootstrap-demo-kubernetes-dns"
+  name: "bootstrap-demo-kubernetes-dns-internal"
 spec:
   ports:
   - name: management
@@ -70,7 +76,7 @@ kind: Service
 metadata:
   labels:
     appName: "bootstrap-demo-kubernetes-dns"
-  name: "bootstrap-demo-kubernetes-dns-public"
+  name: "bootstrap-demo-kubernetes-dns"
 spec:
   ports:
   - name: http
