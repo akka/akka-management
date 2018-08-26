@@ -3,14 +3,14 @@
  */
 package akka.discovery.dns
 
-import java.net.{Inet6Address, InetAddress}
+import java.net.{ Inet6Address, InetAddress }
 
 import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
-import akka.io.dns.{AAAARecord, ARecord, DnsProtocol, SRVRecord}
-import org.scalatest.{Matchers, WordSpec}
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.io.dns.{ AAAARecord, ARecord, DnsProtocol, SRVRecord }
+import org.scalatest.{ Matchers, WordSpec }
 
-import scala.collection.{immutable => im}
+import scala.collection.{ immutable => im }
 
 class DnsSimpleServiceDiscoverySpec extends WordSpec with Matchers {
   "srvRecordsToResolved" must {
