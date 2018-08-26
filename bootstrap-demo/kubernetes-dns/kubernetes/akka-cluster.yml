@@ -85,4 +85,5 @@ spec:
     targetPort: 8080
   selector:
     appName: "bootstrap-demo-kubernetes-dns"
+  type: LoadBalancer
 #public

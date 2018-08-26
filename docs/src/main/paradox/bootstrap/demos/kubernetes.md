@@ -1,6 +1,6 @@
 # Kubernetes
 
-A full working example that can be deployed to `minikube` is in `bootstrap-demo/kuvernetes-dns`.
+A full working example that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kuvernetes-dns`.
 
 As of Akka 2.5.15 and Akka-Management 0.18 the recommended way to run Akka Cluster in Kubernetes is to:
 
@@ -14,7 +14,7 @@ Use a regular deployment (not a StatefulSet).
 
 ### Update strategy
 
-For small clusters it may make sense to set `maxUnabailable` to 0 and `maxSurge` to 1. 
+For small clusters it may make sense to set `maxUnavailable` to 0 and `maxSurge` to 1. 
 This means that a new pod is created before removing any existing pods so if the new pod fails the cluster remains
 at full strength until a rollback happens. For large clusters it may be too slow to do 1 pod at a time.
 
@@ -32,12 +32,12 @@ Health checks can be used check a node is part of a cluster e.g.
 
 @@snip [health-checks]($management$/bootstrap-demo/kubernetes-dns/src/main/scala/akka/cluster/bootstrap/KubernetesHealthChecks.scala)  { #health }
 
-This will mean that a pod won't get traffic until it is part of a cluster which is important
+This will mean that a pod won't get traffic until it is part of a cluster, which is important
 if either `ClusterSharding` or `ClusterSingleton` are used.
 
 ## Services
 
-## Internal headless service
+### Internal headless service
 
 For Akka Cluster / Management use a headless service. This allows the solution to not be coupled to k8s as well
 as there is no use case for load balancing across management/remoting ports.
