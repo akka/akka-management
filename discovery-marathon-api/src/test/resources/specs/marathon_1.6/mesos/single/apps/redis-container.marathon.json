@@ -1,0 +1,30 @@
+{
+  "id": "/redis-container",
+  "cpus": 0.1,
+  "mem": 128,
+  "disk": 0,
+  "instances": 2,
+  "acceptedResourceRoles": [
+    "*"
+  ],
+  "container": {
+    "type": "MESOS",
+    "docker": {
+      "forcePullImage": false,
+      "image": "redis:4.0.11",
+      "privileged": false
+    },
+    "portMappings": [
+      {
+        "containerPort": 80,
+        "name": "http"
+      }
+    ]
+  },
+  "networks": [
+    {
+      "mode": "container",
+      "name": "dcos"
+    }
+  ]
+}

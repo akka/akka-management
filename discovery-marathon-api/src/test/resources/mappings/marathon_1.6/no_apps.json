@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/empty/v2/apps?embed=apps.tasks"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "apps": []
+    }
+  }
+}

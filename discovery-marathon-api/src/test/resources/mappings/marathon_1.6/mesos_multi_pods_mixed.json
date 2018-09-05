@@ -1,0 +1,994 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/mesos/mixed/multi/v2/pods/::status"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": [
+      {
+        "id": "/nginx-pod-host",
+        "spec": {
+          "id": "/nginx-pod-host",
+          "labels": {
+            "ACTOR_SYSTEM_NAME": "test-system-1"
+          },
+          "version": "2018-08-30T07:12:17.325Z",
+          "containers": [
+            {
+              "name": "nginx",
+              "resources": {
+                "cpus": 0.1,
+                "mem": 128,
+                "disk": 0,
+                "gpus": 0
+              },
+              "endpoints": [
+                {
+                  "name": "http",
+                  "hostPort": 8880,
+                  "protocol": [
+                    "tcp"
+                  ]
+                },
+                {
+                  "name": "akkamgmthttp",
+                  "hostPort": 1443,
+                  "protocol": [
+                    "tcp"
+                  ]
+                }
+              ],
+              "image": {
+                "kind": "DOCKER",
+                "id": "nginx:1.15.2",
+                "forcePull": false
+              }
+            },
+            {
+              "name": "redis",
+              "resources": {
+                "cpus": 0.1,
+                "mem": 128,
+                "disk": 0,
+                "gpus": 0
+              },
+              "endpoints": [
+                {
+                  "name": "redis-port",
+                  "hostPort": 6379,
+                  "protocol": [
+                    "tcp"
+                  ]
+                }
+              ],
+              "image": {
+                "kind": "DOCKER",
+                "id": "redis:4.0.11",
+                "forcePull": false
+              }
+            }
+          ],
+          "networks": [
+            {
+              "mode": "host"
+            }
+          ],
+          "scaling": {
+            "kind": "fixed",
+            "instances": 1
+          },
+          "scheduling": {
+            "backoff": {
+              "backoff": 1,
+              "backoffFactor": 1.15,
+              "maxLaunchDelay": 3600
+            },
+            "upgrade": {
+              "minimumHealthCapacity": 1,
+              "maximumOverCapacity": 1
+            },
+            "placement": {
+              "acceptedResourceRoles": [
+                "*"
+              ]
+            },
+            "killSelection": "YOUNGEST_FIRST",
+            "unreachableStrategy": {
+              "inactiveAfterSeconds": 0,
+              "expungeAfterSeconds": 0
+            }
+          },
+          "executorResources": {
+            "cpus": 0.1,
+            "mem": 32,
+            "disk": 10
+          }
+        },
+        "status": "STABLE",
+        "statusSince": "2018-08-30T07:12:21.115Z",
+        "instances": [
+          {
+            "id": "nginx-pod-host.instance-0850c05d-ac24-11e8-ae8a-70b3d5800001",
+            "status": "STABLE",
+            "statusSince": "2018-08-30T07:12:21.115Z",
+            "conditions": [],
+            "agentHostname": "192.168.65.111",
+            "agentId": "5741ee85-2a18-4339-b38e-e7f401c88346-S3",
+            "resources": {
+              "cpus": 0.30000000000000004,
+              "mem": 288,
+              "disk": 10,
+              "gpus": 0
+            },
+            "networks": [
+              {
+                "addresses": [
+                  "192.168.65.111"
+                ]
+              }
+            ],
+            "containers": [
+              {
+                "name": "nginx",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:21.115Z",
+                "conditions": [],
+                "containerId": "nginx-pod-host.instance-0850c05d-ac24-11e8-ae8a-70b3d5800001.nginx",
+                "endpoints": [
+                  {
+                    "name": "http",
+                    "allocatedHostPort": 8880
+                  },
+                  {
+                    "name": "akkamgmthttp",
+                    "allocatedHostPort": 1443
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:21.115Z",
+                "lastChanged": "2018-08-30T07:12:21.115Z"
+              },
+              {
+                "name": "redis",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:21.115Z",
+                "conditions": [],
+                "containerId": "nginx-pod-host.instance-0850c05d-ac24-11e8-ae8a-70b3d5800001.redis",
+                "endpoints": [
+                  {
+                    "name": "redis-port",
+                    "allocatedHostPort": 6379
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:21.115Z",
+                "lastChanged": "2018-08-30T07:12:21.115Z"
+              }
+            ],
+            "specReference": "/v2/pods/nginx-pod-host::versions/2018-08-30T07:12:17.325Z",
+            "localVolumes": [],
+            "lastUpdated": "2018-08-30T07:12:21.115Z",
+            "lastChanged": "2018-08-30T07:12:21.115Z"
+          }
+        ],
+        "terminationHistory": [],
+        "lastUpdated": "2018-08-30T07:12:54.797Z",
+        "lastChanged": "2018-08-30T07:12:21.115Z"
+      },
+      {
+        "id": "/nginx-pod-bridge",
+        "spec": {
+          "id": "/nginx-pod-bridge",
+          "labels": {
+            "ACTOR_SYSTEM_NAME": "test-system-2"
+          },
+          "version": "2018-08-30T07:12:14.272Z",
+          "containers": [
+            {
+              "name": "nginx",
+              "resources": {
+                "cpus": 0.1,
+                "mem": 128,
+                "disk": 0,
+                "gpus": 0
+              },
+              "endpoints": [
+                {
+                  "name": "http",
+                  "containerPort": 80,
+                  "hostPort": 12080,
+                  "protocol": [
+                    "tcp"
+                  ]
+                },
+                {
+                  "name": "akkamgmthttp",
+                  "containerPort": 443,
+                  "hostPort": 0,
+                  "protocol": [
+                    "tcp"
+                  ]
+                }
+              ],
+              "image": {
+                "kind": "DOCKER",
+                "id": "nginx:1.15.2",
+                "forcePull": false
+              }
+            },
+            {
+              "name": "redis",
+              "resources": {
+                "cpus": 0.1,
+                "mem": 128,
+                "disk": 0,
+                "gpus": 0
+              },
+              "endpoints": [
+                {
+                  "name": "redis-port",
+                  "containerPort": 6379,
+                  "hostPort": 16379,
+                  "protocol": [
+                    "tcp"
+                  ]
+                }
+              ],
+              "image": {
+                "kind": "DOCKER",
+                "id": "redis:4.0.11",
+                "forcePull": false
+              }
+            }
+          ],
+          "networks": [
+            {
+              "mode": "container/bridge"
+            }
+          ],
+          "scaling": {
+            "kind": "fixed",
+            "instances": 1
+          },
+          "scheduling": {
+            "backoff": {
+              "backoff": 1,
+              "backoffFactor": 1.15,
+              "maxLaunchDelay": 3600
+            },
+            "upgrade": {
+              "minimumHealthCapacity": 1,
+              "maximumOverCapacity": 1
+            },
+            "placement": {
+              "acceptedResourceRoles": [
+                "*"
+              ]
+            },
+            "killSelection": "YOUNGEST_FIRST",
+            "unreachableStrategy": {
+              "inactiveAfterSeconds": 0,
+              "expungeAfterSeconds": 0
+            }
+          },
+          "executorResources": {
+            "cpus": 0.1,
+            "mem": 32,
+            "disk": 10
+          }
+        },
+        "status": "STABLE",
+        "statusSince": "2018-08-30T07:12:25.911Z",
+        "instances": [
+          {
+            "id": "nginx-pod-bridge.instance-055337cb-ac24-11e8-ae8a-70b3d5800001",
+            "status": "STABLE",
+            "statusSince": "2018-08-30T07:12:25.911Z",
+            "conditions": [],
+            "agentHostname": "192.168.65.112",
+            "agentId": "5741ee85-2a18-4339-b38e-e7f401c88346-S2",
+            "resources": {
+              "cpus": 0.30000000000000004,
+              "mem": 288,
+              "disk": 10,
+              "gpus": 0
+            },
+            "networks": [
+              {
+                "name": "mesos-bridge",
+                "addresses": [
+                  "172.31.254.16"
+                ]
+              }
+            ],
+            "containers": [
+              {
+                "name": "nginx",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:25.911Z",
+                "conditions": [],
+                "containerId": "nginx-pod-bridge.instance-055337cb-ac24-11e8-ae8a-70b3d5800001.nginx",
+                "endpoints": [
+                  {
+                    "name": "http",
+                    "allocatedHostPort": 12080
+                  },
+                  {
+                    "name": "akkamgmthttp",
+                    "allocatedHostPort": 28232
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:25.911Z",
+                "lastChanged": "2018-08-30T07:12:25.911Z"
+              },
+              {
+                "name": "redis",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:25.911Z",
+                "conditions": [],
+                "containerId": "nginx-pod-bridge.instance-055337cb-ac24-11e8-ae8a-70b3d5800001.redis",
+                "endpoints": [
+                  {
+                    "name": "redis-port",
+                    "allocatedHostPort": 16379
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:25.911Z",
+                "lastChanged": "2018-08-30T07:12:25.911Z"
+              }
+            ],
+            "specReference": "/v2/pods/nginx-pod-bridge::versions/2018-08-30T07:12:14.272Z",
+            "localVolumes": [],
+            "lastUpdated": "2018-08-30T07:12:25.911Z",
+            "lastChanged": "2018-08-30T07:12:25.911Z"
+          }
+        ],
+        "terminationHistory": [],
+        "lastUpdated": "2018-08-30T07:12:54.797Z",
+        "lastChanged": "2018-08-30T07:12:25.911Z"
+      },
+      {
+        "id": "/nginx-pod-container-multinetwork",
+        "spec": {
+          "id": "/nginx-pod-container-multinetwork",
+          "labels": {
+            "ACTOR_SYSTEM_NAME": "test-system-1"
+          },
+          "version": "2018-08-30T07:12:15.297Z",
+          "containers": [
+            {
+              "name": "nginx",
+              "resources": {
+                "cpus": 0.1,
+                "mem": 128,
+                "disk": 0,
+                "gpus": 0
+              },
+              "endpoints": [
+                {
+                  "name": "http",
+                  "containerPort": 80,
+                  "protocol": [
+                    "tcp"
+                  ],
+                  "networkNames": [
+                    "dcos"
+                  ]
+                },
+                {
+                  "name": "akkamgmthttp",
+                  "containerPort": 443,
+                  "protocol": [
+                    "tcp"
+                  ],
+                  "networkNames": [
+                    "testcn"
+                  ]
+                }
+              ],
+              "image": {
+                "kind": "DOCKER",
+                "id": "nginx:1.15.2",
+                "forcePull": false
+              }
+            },
+            {
+              "name": "redis",
+              "resources": {
+                "cpus": 0.1,
+                "mem": 128,
+                "disk": 0,
+                "gpus": 0
+              },
+              "endpoints": [
+                {
+                  "name": "redis-port",
+                  "containerPort": 6379,
+                  "protocol": [
+                    "tcp"
+                  ]
+                }
+              ],
+              "image": {
+                "kind": "DOCKER",
+                "id": "redis:4.0.11",
+                "forcePull": false
+              }
+            }
+          ],
+          "networks": [
+            {
+              "name": "dcos",
+              "mode": "container"
+            },
+            {
+              "name": "testcn",
+              "mode": "container"
+            }
+          ],
+          "scaling": {
+            "kind": "fixed",
+            "instances": 1
+          },
+          "scheduling": {
+            "backoff": {
+              "backoff": 1,
+              "backoffFactor": 1.15,
+              "maxLaunchDelay": 3600
+            },
+            "upgrade": {
+              "minimumHealthCapacity": 1,
+              "maximumOverCapacity": 1
+            },
+            "placement": {
+              "acceptedResourceRoles": [
+                "*"
+              ]
+            },
+            "killSelection": "YOUNGEST_FIRST",
+            "unreachableStrategy": {
+              "inactiveAfterSeconds": 0,
+              "expungeAfterSeconds": 0
+            }
+          },
+          "executorResources": {
+            "cpus": 0.1,
+            "mem": 32,
+            "disk": 10
+          }
+        },
+        "status": "STABLE",
+        "statusSince": "2018-08-30T07:12:22.708Z",
+        "instances": [
+          {
+            "id": "nginx-pod-container-multinetwork.instance-0850e76e-ac24-11e8-ae8a-70b3d5800001",
+            "status": "STABLE",
+            "statusSince": "2018-08-30T07:12:22.708Z",
+            "conditions": [],
+            "agentHostname": "192.168.65.112",
+            "agentId": "5741ee85-2a18-4339-b38e-e7f401c88346-S2",
+            "resources": {
+              "cpus": 0.30000000000000004,
+              "mem": 288,
+              "disk": 10,
+              "gpus": 0
+            },
+            "networks": [
+              {
+                "name": "testcn",
+                "addresses": [
+                  "192.199.1.18"
+                ]
+              },
+              {
+                "name": "dcos",
+                "addresses": [
+                  "9.0.1.47"
+                ]
+              }
+            ],
+            "containers": [
+              {
+                "name": "nginx",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:22.703Z",
+                "conditions": [],
+                "containerId": "nginx-pod-container-multinetwork.instance-0850e76e-ac24-11e8-ae8a-70b3d5800001.nginx",
+                "endpoints": [
+                  {
+                    "name": "http"
+                  },
+                  {
+                    "name": "akkamgmthttp"
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:22.703Z",
+                "lastChanged": "2018-08-30T07:12:22.703Z"
+              },
+              {
+                "name": "redis",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:22.708Z",
+                "conditions": [],
+                "containerId": "nginx-pod-container-multinetwork.instance-0850e76e-ac24-11e8-ae8a-70b3d5800001.redis",
+                "endpoints": [
+                  {
+                    "name": "redis-port"
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:22.708Z",
+                "lastChanged": "2018-08-30T07:12:22.708Z"
+              }
+            ],
+            "specReference": "/v2/pods/nginx-pod-container-multinetwork::versions/2018-08-30T07:12:15.297Z",
+            "localVolumes": [],
+            "lastUpdated": "2018-08-30T07:12:22.708Z",
+            "lastChanged": "2018-08-30T07:12:22.708Z"
+          }
+        ],
+        "terminationHistory": [],
+        "lastUpdated": "2018-08-30T07:12:54.797Z",
+        "lastChanged": "2018-08-30T07:12:22.708Z"
+      },
+      {
+        "id": "/redis-pod-container",
+        "spec": {
+          "id": "/redis-pod-container",
+          "version": "2018-08-30T07:12:18.332Z",
+          "containers": [
+            {
+              "name": "redis",
+              "resources": {
+                "cpus": 0.1,
+                "mem": 128,
+                "disk": 0,
+                "gpus": 0
+              },
+              "endpoints": [
+                {
+                  "name": "http",
+                  "containerPort": 80,
+                  "protocol": [
+                    "tcp"
+                  ]
+                }
+              ],
+              "image": {
+                "kind": "DOCKER",
+                "id": "redis:4.0.11",
+                "forcePull": false
+              }
+            }
+          ],
+          "networks": [
+            {
+              "name": "dcos",
+              "mode": "container"
+            }
+          ],
+          "scaling": {
+            "kind": "fixed",
+            "instances": 2
+          },
+          "scheduling": {
+            "backoff": {
+              "backoff": 1,
+              "backoffFactor": 1.15,
+              "maxLaunchDelay": 3600
+            },
+            "upgrade": {
+              "minimumHealthCapacity": 1,
+              "maximumOverCapacity": 1
+            },
+            "placement": {
+              "acceptedResourceRoles": [
+                "*"
+              ]
+            },
+            "killSelection": "YOUNGEST_FIRST",
+            "unreachableStrategy": {
+              "inactiveAfterSeconds": 0,
+              "expungeAfterSeconds": 0
+            }
+          },
+          "executorResources": {
+            "cpus": 0.1,
+            "mem": 32,
+            "disk": 10
+          }
+        },
+        "status": "STABLE",
+        "statusSince": "2018-08-30T07:12:22.012Z",
+        "instances": [
+          {
+            "id": "redis-pod-container.instance-08513590-ac24-11e8-ae8a-70b3d5800001",
+            "status": "STABLE",
+            "statusSince": "2018-08-30T07:12:22.012Z",
+            "conditions": [],
+            "agentHostname": "192.168.65.112",
+            "agentId": "5741ee85-2a18-4339-b38e-e7f401c88346-S2",
+            "resources": {
+              "cpus": 0.2,
+              "mem": 160,
+              "disk": 10,
+              "gpus": 0
+            },
+            "networks": [
+              {
+                "name": "dcos",
+                "addresses": [
+                  "9.0.1.49"
+                ]
+              }
+            ],
+            "containers": [
+              {
+                "name": "redis",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:22.012Z",
+                "conditions": [],
+                "containerId": "redis-pod-container.instance-08513590-ac24-11e8-ae8a-70b3d5800001.redis",
+                "endpoints": [
+                  {
+                    "name": "http"
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:22.012Z",
+                "lastChanged": "2018-08-30T07:12:22.012Z"
+              }
+            ],
+            "specReference": "/v2/pods/redis-pod-container::versions/2018-08-30T07:12:18.332Z",
+            "localVolumes": [],
+            "lastUpdated": "2018-08-30T07:12:22.012Z",
+            "lastChanged": "2018-08-30T07:12:22.012Z"
+          },
+          {
+            "id": "redis-pod-container.instance-0850e76f-ac24-11e8-ae8a-70b3d5800001",
+            "status": "STABLE",
+            "statusSince": "2018-08-30T07:12:21.995Z",
+            "conditions": [],
+            "agentHostname": "192.168.65.111",
+            "agentId": "5741ee85-2a18-4339-b38e-e7f401c88346-S3",
+            "resources": {
+              "cpus": 0.2,
+              "mem": 160,
+              "disk": 10,
+              "gpus": 0
+            },
+            "networks": [
+              {
+                "name": "dcos",
+                "addresses": [
+                  "9.0.2.40"
+                ]
+              }
+            ],
+            "containers": [
+              {
+                "name": "redis",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:21.995Z",
+                "conditions": [],
+                "containerId": "redis-pod-container.instance-0850e76f-ac24-11e8-ae8a-70b3d5800001.redis",
+                "endpoints": [
+                  {
+                    "name": "http"
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:21.995Z",
+                "lastChanged": "2018-08-30T07:12:21.995Z"
+              }
+            ],
+            "specReference": "/v2/pods/redis-pod-container::versions/2018-08-30T07:12:18.332Z",
+            "localVolumes": [],
+            "lastUpdated": "2018-08-30T07:12:21.995Z",
+            "lastChanged": "2018-08-30T07:12:21.995Z"
+          }
+        ],
+        "terminationHistory": [],
+        "lastUpdated": "2018-08-30T07:12:54.797Z",
+        "lastChanged": "2018-08-30T07:12:22.012Z"
+      },
+      {
+        "id": "/nginx-pod-container",
+        "spec": {
+          "id": "/nginx-pod-container",
+          "labels": {
+            "ACTOR_SYSTEM_NAME": "test-system-2"
+          },
+          "version": "2018-08-30T07:12:16.316Z",
+          "containers": [
+            {
+              "name": "nginx",
+              "resources": {
+                "cpus": 0.1,
+                "mem": 128,
+                "disk": 0,
+                "gpus": 0
+              },
+              "endpoints": [
+                {
+                  "name": "http",
+                  "containerPort": 80,
+                  "protocol": [
+                    "tcp"
+                  ]
+                },
+                {
+                  "name": "akkamgmthttp",
+                  "containerPort": 443,
+                  "protocol": [
+                    "tcp"
+                  ]
+                }
+              ],
+              "image": {
+                "kind": "DOCKER",
+                "id": "nginx:1.15.2",
+                "forcePull": false
+              }
+            },
+            {
+              "name": "redis",
+              "resources": {
+                "cpus": 0.1,
+                "mem": 128,
+                "disk": 0,
+                "gpus": 0
+              },
+              "endpoints": [
+                {
+                  "name": "redis-port",
+                  "containerPort": 6379,
+                  "protocol": [
+                    "tcp"
+                  ]
+                }
+              ],
+              "image": {
+                "kind": "DOCKER",
+                "id": "redis:4.0.11",
+                "forcePull": false
+              }
+            }
+          ],
+          "networks": [
+            {
+              "name": "dcos",
+              "mode": "container"
+            }
+          ],
+          "scaling": {
+            "kind": "fixed",
+            "instances": 2
+          },
+          "scheduling": {
+            "backoff": {
+              "backoff": 1,
+              "backoffFactor": 1.15,
+              "maxLaunchDelay": 3600
+            },
+            "upgrade": {
+              "minimumHealthCapacity": 1,
+              "maximumOverCapacity": 1
+            },
+            "placement": {
+              "acceptedResourceRoles": [
+                "*"
+              ]
+            },
+            "killSelection": "YOUNGEST_FIRST",
+            "unreachableStrategy": {
+              "inactiveAfterSeconds": 0,
+              "expungeAfterSeconds": 0
+            }
+          },
+          "executorResources": {
+            "cpus": 0.1,
+            "mem": 32,
+            "disk": 10
+          }
+        },
+        "status": "STABLE",
+        "statusSince": "2018-08-30T07:12:23.252Z",
+        "instances": [
+          {
+            "id": "nginx-pod-container.instance-085183b1-ac24-11e8-ae8a-70b3d5800001",
+            "status": "STABLE",
+            "statusSince": "2018-08-30T07:12:23.218Z",
+            "conditions": [],
+            "agentHostname": "192.168.65.111",
+            "agentId": "5741ee85-2a18-4339-b38e-e7f401c88346-S3",
+            "resources": {
+              "cpus": 0.30000000000000004,
+              "mem": 288,
+              "disk": 10,
+              "gpus": 0
+            },
+            "networks": [
+              {
+                "name": "dcos",
+                "addresses": [
+                  "9.0.2.41"
+                ]
+              }
+            ],
+            "containers": [
+              {
+                "name": "nginx",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:23.213Z",
+                "conditions": [],
+                "containerId": "nginx-pod-container.instance-085183b1-ac24-11e8-ae8a-70b3d5800001.nginx",
+                "endpoints": [
+                  {
+                    "name": "http"
+                  },
+                  {
+                    "name": "akkamgmthttp"
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:23.213Z",
+                "lastChanged": "2018-08-30T07:12:23.213Z"
+              },
+              {
+                "name": "redis",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:23.218Z",
+                "conditions": [],
+                "containerId": "nginx-pod-container.instance-085183b1-ac24-11e8-ae8a-70b3d5800001.redis",
+                "endpoints": [
+                  {
+                    "name": "redis-port"
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:23.218Z",
+                "lastChanged": "2018-08-30T07:12:23.218Z"
+              }
+            ],
+            "specReference": "/v2/pods/nginx-pod-container::versions/2018-08-30T07:12:16.316Z",
+            "localVolumes": [],
+            "lastUpdated": "2018-08-30T07:12:23.218Z",
+            "lastChanged": "2018-08-30T07:12:23.218Z"
+          },
+          {
+            "id": "nginx-pod-container.instance-0850723c-ac24-11e8-ae8a-70b3d5800001",
+            "status": "STABLE",
+            "statusSince": "2018-08-30T07:12:23.252Z",
+            "conditions": [],
+            "agentHostname": "192.168.65.112",
+            "agentId": "5741ee85-2a18-4339-b38e-e7f401c88346-S2",
+            "resources": {
+              "cpus": 0.30000000000000004,
+              "mem": 288,
+              "disk": 10,
+              "gpus": 0
+            },
+            "networks": [
+              {
+                "name": "dcos",
+                "addresses": [
+                  "9.0.1.48"
+                ]
+              }
+            ],
+            "containers": [
+              {
+                "name": "nginx",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:23.249Z",
+                "conditions": [],
+                "containerId": "nginx-pod-container.instance-0850723c-ac24-11e8-ae8a-70b3d5800001.nginx",
+                "endpoints": [
+                  {
+                    "name": "http"
+                  },
+                  {
+                    "name": "akkamgmthttp"
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:23.249Z",
+                "lastChanged": "2018-08-30T07:12:23.249Z"
+              },
+              {
+                "name": "redis",
+                "status": "TASK_RUNNING",
+                "statusSince": "2018-08-30T07:12:23.252Z",
+                "conditions": [],
+                "containerId": "nginx-pod-container.instance-0850723c-ac24-11e8-ae8a-70b3d5800001.redis",
+                "endpoints": [
+                  {
+                    "name": "redis-port"
+                  }
+                ],
+                "resources": {
+                  "cpus": 0.1,
+                  "mem": 128,
+                  "disk": 0,
+                  "gpus": 0
+                },
+                "lastUpdated": "2018-08-30T07:12:23.252Z",
+                "lastChanged": "2018-08-30T07:12:23.252Z"
+              }
+            ],
+            "specReference": "/v2/pods/nginx-pod-container::versions/2018-08-30T07:12:16.316Z",
+            "localVolumes": [],
+            "lastUpdated": "2018-08-30T07:12:23.252Z",
+            "lastChanged": "2018-08-30T07:12:23.252Z"
+          }
+        ],
+        "terminationHistory": [],
+        "lastUpdated": "2018-08-30T07:12:54.797Z",
+        "lastChanged": "2018-08-30T07:12:23.252Z"
+      }
+    ]
+  }
+}

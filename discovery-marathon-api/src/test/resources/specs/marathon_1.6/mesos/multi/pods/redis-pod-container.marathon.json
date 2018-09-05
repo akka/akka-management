@@ -1,0 +1,42 @@
+{
+  "id": "/redis-pod-container",
+  "containers": [
+    {
+      "name": "redis",
+      "resources": {
+        "cpus": 0.1,
+        "mem": 128
+      },
+      "endpoints":[
+        {
+          "name":"http",
+          "containerPort": 80,
+          "protocol":["tcp"]
+        }
+      ],
+      "image": {
+        "id": "redis:4.0.11",
+        "forcePull": false,
+        "kind": "DOCKER",
+        "privileged": false
+      }
+    }
+  ],
+  "scheduling": {
+    "placement": {
+      "acceptedResourceRoles": [
+        "*"
+      ]
+    }
+  },
+  "networks": [
+    {
+      "mode": "container",
+      "name": "dcos"
+    }
+  ],
+  "scaling": {
+    "instances": 2,
+    "kind": "fixed"
+  }
+}

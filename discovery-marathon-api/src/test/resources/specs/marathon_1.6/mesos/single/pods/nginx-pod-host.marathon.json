@@ -1,0 +1,69 @@
+{
+  "id": "/nginx-pod-host",
+  "labels": {
+    "ACTOR_SYSTEM_NAME": "test-system-1"
+  },
+  "containers": [
+    {
+      "name": "nginx",
+      "resources": {
+        "cpus": 0.1,
+        "mem": 128
+      },
+      "endpoints":[
+        {
+          "name":"http",
+          "hostPort": 8880,
+          "protocol":["tcp"]
+        },
+        {
+          "name":"akkamgmthttp",
+          "hostPort":1443,
+          "protocol":["tcp"]
+        }
+      ],
+      "image": {
+        "id": "nginx:1.15.2",
+        "forcePull": false,
+        "kind": "DOCKER",
+        "privileged": false
+      }
+    },
+    {
+      "name": "redis",
+      "resources": {
+        "cpus": 0.1,
+        "mem": 128
+      },
+      "image": {
+        "id": "redis:4.0.11",
+        "forcePull": false,
+        "kind": "DOCKER",
+        "privileged": false
+      },
+      "endpoints":[
+        {
+          "name":"redis-port",
+          "hostPort": 6379,
+          "protocol":["tcp"]
+        }
+      ]
+    }
+  ],
+  "scheduling": {
+    "placement": {
+      "acceptedResourceRoles": [
+        "*"
+      ]
+    }
+  },
+  "networks": [
+    {
+      "mode": "host"
+    }
+  ],
+  "scaling": {
+    "instances": 1,
+    "kind": "fixed"
+  }
+}

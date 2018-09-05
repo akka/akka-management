@@ -1,0 +1,37 @@
+{
+  "id": "/nginx-host",
+  "cpus": 0.1,
+  "mem": 128,
+  "disk": 0,
+  "instances": 1,
+  "acceptedResourceRoles": [
+    "slave_public"
+  ],
+  "labels": {
+    "ACTOR_SYSTEM_NAME": "test-system-1"
+  },
+  "portDefinitions": [
+    {
+      "port": 80,
+      "name": "http"
+    },
+    {
+      "port": 443,
+      "name": "akkamgmthttp"
+    }
+  ],
+  "requirePorts": true,
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "forcePullImage": false,
+      "image": "nginx:1.15.2",
+      "privileged": false
+    }
+  },
+  "networks": [
+    {
+      "mode": "host"
+    }
+  ]
+}

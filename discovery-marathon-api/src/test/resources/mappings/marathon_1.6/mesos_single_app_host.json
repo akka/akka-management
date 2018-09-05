@@ -1,0 +1,106 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/mesos/host/single/v2/apps?embed=apps.tasks"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "apps": [
+        {
+          "id": "/nginx-host",
+          "acceptedResourceRoles": [
+            "slave_public"
+          ],
+          "backoffFactor": 1.15,
+          "backoffSeconds": 1,
+          "container": {
+            "type": "MESOS",
+            "docker": {
+              "forcePullImage": false,
+              "image": "nginx:1.15.2",
+              "parameters": [],
+              "privileged": false
+            },
+            "volumes": []
+          },
+          "cpus": 0.1,
+          "disk": 0,
+          "executor": "",
+          "instances": 1,
+          "labels": {
+            "ACTOR_SYSTEM_NAME": "test-system-1"
+          },
+          "maxLaunchDelaySeconds": 3600,
+          "mem": 128,
+          "gpus": 0,
+          "networks": [
+            {
+              "mode": "host"
+            }
+          ],
+          "portDefinitions": [
+            {
+              "port": 80,
+              "name": "http",
+              "protocol": "tcp"
+            },
+            {
+              "port": 443,
+              "name": "akkamgmthttp",
+              "protocol": "tcp"
+            }
+          ],
+          "requirePorts": true,
+          "upgradeStrategy": {
+            "maximumOverCapacity": 1,
+            "minimumHealthCapacity": 1
+          },
+          "version": "2018-08-29T13:05:51.795Z",
+          "versionInfo": {
+            "lastScalingAt": "2018-08-29T13:05:51.795Z",
+            "lastConfigChangeAt": "2018-08-29T13:05:51.795Z"
+          },
+          "killSelection": "YOUNGEST_FIRST",
+          "unreachableStrategy": {
+            "inactiveAfterSeconds": 0,
+            "expungeAfterSeconds": 0
+          },
+          "tasksStaged": 0,
+          "tasksRunning": 1,
+          "tasksHealthy": 0,
+          "tasksUnhealthy": 0,
+          "deployments": [],
+          "tasks": [
+            {
+              "appId": "/nginx-host",
+              "healthCheckResults": [],
+              "host": "192.168.65.60",
+              "id": "nginx-host.418e355c-ab8c-11e8-ae8a-70b3d5800001",
+              "ipAddresses": [
+                {
+                  "ipAddress": "192.168.65.60",
+                  "protocol": "IPv4"
+                }
+              ],
+              "ports": [
+                80,
+                443
+              ],
+              "servicePorts": [],
+              "slaveId": "5741ee85-2a18-4339-b38e-e7f401c88346-S5",
+              "state": "TASK_RUNNING",
+              "stagedAt": "2018-08-29T13:05:51.842Z",
+              "startedAt": "2018-08-29T13:05:52.579Z",
+              "version": "2018-08-29T13:05:51.795Z",
+              "localVolumes": []
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -346,6 +346,9 @@ effective name, which defaults to your applications actor system name.
 You'll also have to add a named port, by default `akkamgmthttp`, and ensure that Akka Management's HTTP interface
 is bound to this port.
 
+It is also possible to limit the discovery to addresses on a specific subnet. To enable this filtering mechanism,
+you can set `akka.discovery.marathon-api.expected-cluster-subnet` to the expected subnet (e.g. 192.168.1.0/24)
+
 ### Dependencies and usage
 
 This is a separate JAR file:

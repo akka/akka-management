@@ -1,0 +1,72 @@
+{
+  "id": "/nginx-pod-bridge",
+  "labels": {
+    "ACTOR_SYSTEM_NAME": "test-system-1"
+  },
+  "containers": [
+    {
+      "name": "nginx",
+      "resources": {
+        "cpus": 0.1,
+        "mem": 128
+      },
+      "endpoints":[
+        {
+          "name":"http",
+          "containerPort": 80,
+          "hostPort": 12080,
+          "protocol":["tcp"]
+        },
+        {
+          "name":"akkamgmthttp",
+          "containerPort": 443,
+          "hostPort":0,
+          "protocol":["tcp"]
+        }
+      ],
+      "image": {
+        "id": "nginx:1.15.2",
+        "forcePull": false,
+        "kind": "DOCKER",
+        "privileged": false
+      }
+    },
+    {
+      "name": "redis",
+      "resources": {
+        "cpus": 0.1,
+        "mem": 128
+      },
+      "image": {
+        "id": "redis:4.0.11",
+        "forcePull": false,
+        "kind": "DOCKER",
+        "privileged": false
+      },
+      "endpoints":[
+        {
+          "name":"redis-port",
+          "containerPort": 6379,
+          "hostPort": 16379,
+          "protocol":["tcp"]
+        }
+      ]
+    }
+  ],
+  "scheduling": {
+    "placement": {
+      "acceptedResourceRoles": [
+        "*"
+      ]
+    }
+  },
+  "networks": [
+    {
+      "mode": "container/bridge"
+    }
+  ],
+  "scaling": {
+    "instances": 1,
+    "kind": "fixed"
+  }
+}

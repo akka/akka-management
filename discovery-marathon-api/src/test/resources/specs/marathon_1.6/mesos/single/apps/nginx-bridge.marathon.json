@@ -1,0 +1,37 @@
+{
+  "id": "/nginx-bridge",
+  "cpus": 0.1,
+  "mem": 128,
+  "disk": 0,
+  "instances": 1,
+  "acceptedResourceRoles": [
+    "*"
+  ],
+  "labels": {
+    "ACTOR_SYSTEM_NAME": "test-system-1"
+  },
+  "container": {
+    "type": "MESOS",
+    "docker": {
+      "forcePullImage": false,
+      "image": "nginx:1.15.2",
+      "privileged": false
+    },
+    "portMappings": [
+      {
+        "containerPort": 80,
+        "hostPort": 11080,
+        "name": "http"
+      },
+      {
+        "containerPort": 443,
+        "name": "akkamgmthttp"
+      }
+    ]
+  },
+  "networks": [
+    {
+      "mode": "container/bridge"
+    }
+  ]
+}

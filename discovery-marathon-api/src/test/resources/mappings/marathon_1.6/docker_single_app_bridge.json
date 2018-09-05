@@ -1,0 +1,112 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/docker/bridge/single/v2/apps?embed=apps.tasks"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "apps": [
+        {
+          "id": "/nginx-bridge",
+          "acceptedResourceRoles": [
+            "*"
+          ],
+          "backoffFactor": 1.15,
+          "backoffSeconds": 1,
+          "container": {
+            "type": "DOCKER",
+            "docker": {
+              "forcePullImage": false,
+              "image": "nginx:1.15.2",
+              "parameters": [],
+              "privileged": false
+            },
+            "volumes": [],
+            "portMappings": [
+              {
+                "containerPort": 80,
+                "hostPort": 11080,
+                "labels": {},
+                "name": "http",
+                "protocol": "tcp",
+                "servicePort": 10000
+              },
+              {
+                "containerPort": 443,
+                "hostPort": 0,
+                "labels": {},
+                "name": "akkamgmthttp",
+                "protocol": "tcp",
+                "servicePort": 10001
+              }
+            ]
+          },
+          "cpus": 0.1,
+          "disk": 0,
+          "executor": "",
+          "instances": 1,
+          "labels": {
+            "ACTOR_SYSTEM_NAME": "test-system-1"
+          },
+          "maxLaunchDelaySeconds": 3600,
+          "mem": 128,
+          "gpus": 0,
+          "networks": [
+            {
+              "mode": "container/bridge"
+            }
+          ],
+          "requirePorts": false,
+          "upgradeStrategy": {
+            "maximumOverCapacity": 1,
+            "minimumHealthCapacity": 1
+          },
+          "version": "2018-08-29T13:12:48.201Z",
+          "versionInfo": {
+            "lastScalingAt": "2018-08-29T13:12:48.201Z",
+            "lastConfigChangeAt": "2018-08-29T13:12:48.201Z"
+          },
+          "killSelection": "YOUNGEST_FIRST",
+          "unreachableStrategy": {
+            "inactiveAfterSeconds": 0,
+            "expungeAfterSeconds": 0
+          },
+          "tasksStaged": 0,
+          "tasksRunning": 1,
+          "tasksHealthy": 0,
+          "tasksUnhealthy": 0,
+          "deployments": [],
+          "tasks": [
+            {
+              "appId": "/nginx-bridge",
+              "healthCheckResults": [],
+              "host": "192.168.65.112",
+              "id": "nginx-bridge.39bf0b10-ab8d-11e8-ae8a-70b3d5800001",
+              "ipAddresses": [
+                {
+                  "ipAddress": "172.17.0.2",
+                  "protocol": "IPv4"
+                }
+              ],
+              "ports": [
+                11080,
+                22950
+              ],
+              "servicePorts": [],
+              "slaveId": "5741ee85-2a18-4339-b38e-e7f401c88346-S2",
+              "state": "TASK_RUNNING",
+              "stagedAt": "2018-08-29T13:12:48.259Z",
+              "startedAt": "2018-08-29T13:13:02.273Z",
+              "version": "2018-08-29T13:12:48.201Z",
+              "localVolumes": []
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -95,7 +95,11 @@ object Dependencies {
   val DiscoveryMarathonApi = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
-        DependencyGroups.AkkaHttp
+      DependencyGroups.AkkaHttp ++
+      DependencyGroups.AkkaTesting ++ Seq(
+        "commons-net" % "commons-net" % "3.6",
+        "com.github.tomakehurst" % "wiremock" % "2.18.0" % "test"
+      )
   )
 
   val DiscoveryAwsApi = Seq(

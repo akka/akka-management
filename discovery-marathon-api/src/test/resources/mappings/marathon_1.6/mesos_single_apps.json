@@ -1,0 +1,400 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/mesos/all/single/v2/apps?embed=apps.tasks"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "apps": [
+        {
+          "id": "/nginx-bridge",
+          "acceptedResourceRoles": [
+            "*"
+          ],
+          "backoffFactor": 1.15,
+          "backoffSeconds": 1,
+          "container": {
+            "type": "MESOS",
+            "docker": {
+              "forcePullImage": false,
+              "image": "nginx",
+              "parameters": [],
+              "privileged": false
+            },
+            "volumes": [],
+            "portMappings": [
+              {
+                "containerPort": 80,
+                "hostPort": 11080,
+                "labels": {},
+                "name": "http",
+                "protocol": "tcp",
+                "servicePort": 10000
+              },
+              {
+                "containerPort": 443,
+                "hostPort": 0,
+                "labels": {},
+                "name": "akkamgmthttp",
+                "protocol": "tcp",
+                "servicePort": 10001
+              }
+            ]
+          },
+          "cpus": 0.1,
+          "disk": 0,
+          "executor": "",
+          "instances": 1,
+          "labels": {
+            "ACTOR_SYSTEM_NAME": "test-system-1"
+          },
+          "maxLaunchDelaySeconds": 3600,
+          "mem": 128,
+          "gpus": 0,
+          "networks": [
+            {
+              "mode": "container/bridge"
+            }
+          ],
+          "requirePorts": false,
+          "upgradeStrategy": {
+            "maximumOverCapacity": 1,
+            "minimumHealthCapacity": 1
+          },
+          "version": "2018-08-28T12:00:26.993Z",
+          "versionInfo": {
+            "lastScalingAt": "2018-08-28T12:00:26.993Z",
+            "lastConfigChangeAt": "2018-08-28T12:00:26.993Z"
+          },
+          "killSelection": "YOUNGEST_FIRST",
+          "unreachableStrategy": {
+            "inactiveAfterSeconds": 0,
+            "expungeAfterSeconds": 0
+          },
+          "tasksStaged": 0,
+          "tasksRunning": 1,
+          "tasksHealthy": 0,
+          "tasksUnhealthy": 0,
+          "deployments": [],
+          "tasks": [
+            {
+              "appId": "/nginx-bridge",
+              "healthCheckResults": [],
+              "host": "192.168.65.111",
+              "id": "nginx-bridge.f3c8932d-aab9-11e8-8bdf-70b3d5800001",
+              "ipAddresses": [
+                {
+                  "ipAddress": "172.31.254.5",
+                  "protocol": "IPv4"
+                }
+              ],
+              "ports": [
+                11080,
+                5732
+              ],
+              "servicePorts": [],
+              "slaveId": "a967f766-d930-4f97-baa7-f05a825124f0-S2",
+              "state": "TASK_RUNNING",
+              "stagedAt": "2018-08-28T12:00:27.048Z",
+              "startedAt": "2018-08-28T12:00:37.840Z",
+              "version": "2018-08-28T12:00:26.993Z",
+              "localVolumes": []
+            }
+          ]
+        },
+        {
+          "id": "/nginx-container-multinetwork",
+          "acceptedResourceRoles": [
+            "*"
+          ],
+          "backoffFactor": 1.15,
+          "backoffSeconds": 1,
+          "container": {
+            "type": "MESOS",
+            "docker": {
+              "forcePullImage": false,
+              "image": "nginx",
+              "parameters": [],
+              "privileged": false
+            },
+            "volumes": [],
+            "portMappings": [
+              {
+                "containerPort": 80,
+                "labels": {},
+                "name": "http",
+                "protocol": "tcp",
+                "servicePort": 10002,
+                "networkNames": [
+                  "dcos"
+                ]
+              },
+              {
+                "containerPort": 443,
+                "labels": {},
+                "name": "akkamgmthttp",
+                "protocol": "tcp",
+                "servicePort": 10003,
+                "networkNames": [
+                  "testcn"
+                ]
+              }
+            ]
+          },
+          "cpus": 0.1,
+          "disk": 0,
+          "executor": "",
+          "instances": 1,
+          "labels": {
+            "ACTOR_SYSTEM_NAME": "test-system-1"
+          },
+          "maxLaunchDelaySeconds": 3600,
+          "mem": 128,
+          "gpus": 0,
+          "networks": [
+            {
+              "name": "dcos",
+              "mode": "container"
+            },
+            {
+              "name": "testcn",
+              "mode": "container"
+            }
+          ],
+          "requirePorts": false,
+          "upgradeStrategy": {
+            "maximumOverCapacity": 1,
+            "minimumHealthCapacity": 1
+          },
+          "version": "2018-08-28T12:00:28.105Z",
+          "versionInfo": {
+            "lastScalingAt": "2018-08-28T12:00:28.105Z",
+            "lastConfigChangeAt": "2018-08-28T12:00:28.105Z"
+          },
+          "killSelection": "YOUNGEST_FIRST",
+          "unreachableStrategy": {
+            "inactiveAfterSeconds": 0,
+            "expungeAfterSeconds": 0
+          },
+          "tasksStaged": 0,
+          "tasksRunning": 1,
+          "tasksHealthy": 0,
+          "tasksUnhealthy": 0,
+          "deployments": [],
+          "tasks": [
+            {
+              "appId": "/nginx-container-multinetwork",
+              "healthCheckResults": [],
+              "host": "192.168.65.112",
+              "id": "nginx-container-multinetwork.f6c4bc2f-aab9-11e8-8bdf-70b3d5800001",
+              "ipAddresses": [
+                {
+                  "ipAddress": "192.199.1.4",
+                  "protocol": "IPv4"
+                },
+                {
+                  "ipAddress": "9.0.1.9",
+                  "protocol": "IPv4"
+                }
+              ],
+              "ports": [],
+              "servicePorts": [],
+              "slaveId": "a967f766-d930-4f97-baa7-f05a825124f0-S3",
+              "state": "TASK_RUNNING",
+              "stagedAt": "2018-08-28T12:00:32.057Z",
+              "startedAt": "2018-08-28T12:00:34.910Z",
+              "version": "2018-08-28T12:00:28.105Z",
+              "localVolumes": []
+            }
+          ]
+        },
+        {
+          "id": "/nginx-container",
+          "acceptedResourceRoles": [
+            "*"
+          ],
+          "backoffFactor": 1.15,
+          "backoffSeconds": 1,
+          "container": {
+            "type": "MESOS",
+            "docker": {
+              "forcePullImage": false,
+              "image": "nginx",
+              "parameters": [],
+              "privileged": false
+            },
+            "volumes": [],
+            "portMappings": [
+              {
+                "containerPort": 80,
+                "labels": {},
+                "name": "http",
+                "protocol": "tcp",
+                "servicePort": 10004
+              },
+              {
+                "containerPort": 443,
+                "labels": {},
+                "name": "akkamgmthttp",
+                "protocol": "tcp",
+                "servicePort": 10005
+              }
+            ]
+          },
+          "cpus": 0.1,
+          "disk": 0,
+          "executor": "",
+          "instances": 1,
+          "labels": {
+            "ACTOR_SYSTEM_NAME": "test-system-1"
+          },
+          "maxLaunchDelaySeconds": 3600,
+          "mem": 128,
+          "gpus": 0,
+          "networks": [
+            {
+              "name": "dcos",
+              "mode": "container"
+            }
+          ],
+          "requirePorts": false,
+          "upgradeStrategy": {
+            "maximumOverCapacity": 1,
+            "minimumHealthCapacity": 1
+          },
+          "version": "2018-08-28T12:00:29.161Z",
+          "versionInfo": {
+            "lastScalingAt": "2018-08-28T12:00:29.161Z",
+            "lastConfigChangeAt": "2018-08-28T12:00:29.161Z"
+          },
+          "killSelection": "YOUNGEST_FIRST",
+          "unreachableStrategy": {
+            "inactiveAfterSeconds": 0,
+            "expungeAfterSeconds": 0
+          },
+          "tasksStaged": 0,
+          "tasksRunning": 1,
+          "tasksHealthy": 0,
+          "tasksUnhealthy": 0,
+          "deployments": [],
+          "tasks": [
+            {
+              "appId": "/nginx-container",
+              "healthCheckResults": [],
+              "host": "192.168.65.112",
+              "id": "nginx-container.f6c446fe-aab9-11e8-8bdf-70b3d5800001",
+              "ipAddresses": [
+                {
+                  "ipAddress": "9.0.1.8",
+                  "protocol": "IPv4"
+                }
+              ],
+              "ports": [],
+              "servicePorts": [],
+              "slaveId": "a967f766-d930-4f97-baa7-f05a825124f0-S3",
+              "state": "TASK_RUNNING",
+              "stagedAt": "2018-08-28T12:00:32.054Z",
+              "startedAt": "2018-08-28T12:00:34.205Z",
+              "version": "2018-08-28T12:00:29.161Z",
+              "localVolumes": []
+            }
+          ]
+        },
+        {
+          "id": "/nginx-host",
+          "acceptedResourceRoles": [
+            "slave_public"
+          ],
+          "backoffFactor": 1.15,
+          "backoffSeconds": 1,
+          "container": {
+            "type": "MESOS",
+            "docker": {
+              "forcePullImage": false,
+              "image": "nginx",
+              "parameters": [],
+              "privileged": false
+            },
+            "volumes": []
+          },
+          "cpus": 0.1,
+          "disk": 0,
+          "executor": "",
+          "instances": 1,
+          "labels": {
+            "ACTOR_SYSTEM_NAME": "test-system-1"
+          },
+          "maxLaunchDelaySeconds": 3600,
+          "mem": 128,
+          "gpus": 0,
+          "networks": [
+            {
+              "mode": "host"
+            }
+          ],
+          "portDefinitions": [
+            {
+              "port": 80,
+              "name": "http",
+              "protocol": "tcp"
+            },
+            {
+              "port": 443,
+              "name": "akkamgmthttp",
+              "protocol": "tcp"
+            }
+          ],
+          "requirePorts": true,
+          "upgradeStrategy": {
+            "maximumOverCapacity": 1,
+            "minimumHealthCapacity": 1
+          },
+          "version": "2018-08-28T13:17:10.951Z",
+          "versionInfo": {
+            "lastScalingAt": "2018-08-28T13:17:10.951Z",
+            "lastConfigChangeAt": "2018-08-28T12:00:30.211Z"
+          },
+          "killSelection": "YOUNGEST_FIRST",
+          "unreachableStrategy": {
+            "inactiveAfterSeconds": 0,
+            "expungeAfterSeconds": 0
+          },
+          "tasksStaged": 0,
+          "tasksRunning": 1,
+          "tasksHealthy": 0,
+          "tasksUnhealthy": 0,
+          "deployments": [],
+          "tasks": [
+            {
+              "appId": "/nginx-host",
+              "healthCheckResults": [],
+              "host": "192.168.65.60",
+              "id": "nginx-host.ae557d11-aac4-11e8-8bdf-70b3d5800001",
+              "ipAddresses": [
+                {
+                  "ipAddress": "192.168.65.60",
+                  "protocol": "IPv4"
+                }
+              ],
+              "ports": [
+                80,
+                443
+              ],
+              "servicePorts": [],
+              "slaveId": "a967f766-d930-4f97-baa7-f05a825124f0-S5",
+              "state": "TASK_RUNNING",
+              "stagedAt": "2018-08-28T13:17:14.995Z",
+              "startedAt": "2018-08-28T13:17:15.637Z",
+              "version": "2018-08-28T13:17:10.951Z",
+              "localVolumes": []
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

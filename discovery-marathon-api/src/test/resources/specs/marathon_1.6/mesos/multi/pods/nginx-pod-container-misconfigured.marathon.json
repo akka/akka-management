@@ -1,0 +1,70 @@
+{
+  "id": "/nginx-pod-container-misconfigured",
+  "labels": {
+    "ACTOR_SYSTEM_NAME": "test-system-2"
+  },
+  "containers": [
+    {
+      "name": "nginx",
+      "resources": {
+        "cpus": 0.1,
+        "mem": 128
+      },
+      "endpoints":[
+        {
+          "name":"http",
+          "containerPort": 80,
+          "protocol":["tcp"]
+        },
+        {
+          "name":"noakkamgmthttp",
+          "containerPort": 443,
+          "protocol":["tcp"]
+        }
+      ],
+      "image": {
+        "id": "nginx:1.15.2",
+        "forcePull": false,
+        "kind": "DOCKER",
+        "privileged": false
+      }
+    },
+    {
+      "name": "redis",
+      "resources": {
+        "cpus": 0.1,
+        "mem": 128
+      },
+      "image": {
+        "id": "redis:4.0.11",
+        "forcePull": false,
+        "kind": "DOCKER",
+        "privileged": false
+      },
+      "endpoints":[
+        {
+          "name":"redis-port",
+          "containerPort": 6379,
+          "protocol":["tcp"]
+        }
+      ]
+    }
+  ],
+  "scheduling": {
+    "placement": {
+      "acceptedResourceRoles": [
+        "*"
+      ]
+    }
+  },
+  "networks": [
+    {
+      "mode": "container",
+      "name": "dcos"
+    }
+  ],
+  "scaling": {
+    "instances": 2,
+    "kind": "fixed"
+  }
+}
