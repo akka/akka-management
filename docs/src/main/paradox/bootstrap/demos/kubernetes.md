@@ -2,7 +2,8 @@
 
 A full working example that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kuvernetes-dns`.
 
-As of Akka 2.5.15 and Akka-Management 0.18 the recommended way to run Akka Cluster in Kubernetes is to:
+As of Akka 2.5.15 and Akka-Management 0.18 `akka-dns` discovery mechanism can be used to deploy Akka Cluster in Kubernetes.
+This example shows how to:
 
 * Use Akka Bootstrap with `akka-dns` with cluster formation via DNS SRV records
 * Use a headless service for internal and Akka management/bootstrap so that readiness probes for prod traffic don't interfere with bootstrap 

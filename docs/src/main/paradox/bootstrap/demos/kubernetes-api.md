@@ -1,9 +1,8 @@
 ### Kubernetes API 
 
-This demo can be found under `bootstrap-demo/kubernetes-api`. It is now recommended to use `akka-dns` rather than the
-`kubernetes-api` as a discovery mechanism. See @ref[kubernetes-dns](./kubernetes.md)
+This demo can be found under `bootstrap-demo/kubernetes-api`. 
 
-In Kubernetes, one would deploy an Akka Cluster as a single [Headless Service](https://kubernetes.io/docs/concepts/services-networking/service/#headless-services).
+In Kubernetes, Akka Cluster can be deployed as a single [Headless Service](https://kubernetes.io/docs/concepts/services-networking/service/#headless-services).
 
 An example application using docker and prepared to be deployed to kubernetes is provided in Akka Management's github repository 
 as sub-project [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/kubernetes-api).
