@@ -30,15 +30,9 @@ dockerCommands :=
 
 version := "1.3.3.7" // we hard-code the version here, it could be anything really
 
-dockerUsername := Some("ktoso")
-
-// use += to add an item to a Sequence
-dockerCommands += Cmd("USER", "root")
-
-// use ++= to merge a sequence with an existing sequence
-//
 // ENABLE THESE IF YOU WANT TO MANUALLY DO DNSLOOKUPS IN THE CONTAINER (FOR DEBUGGING)
 //dockerCommands ++= Seq(
+//  Cmd("USER", "root")
 //  ExecCmd("RUN", "apt-get", "update"),
 //  ExecCmd("RUN", "apt-get", "install", "-y", "dnsutils")
 //)

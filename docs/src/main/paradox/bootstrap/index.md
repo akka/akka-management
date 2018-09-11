@@ -17,8 +17,7 @@ A discovery mechanism needs to be chosen. A good default choice is DNS.
 
 ## Dependency
 
-Add `akka-management-cluster-bootstrap` and one or more discovery mechanisms `akka-discovery` 
-implementation you'd like to use for the discovery process. 
+Add `akka-management-cluster-bootstrap` and one or more discovery mechanisms to use for the discovery process. 
 
 For example, you might choose to use the DNS discovery and bootstrap extensions:
 
@@ -83,10 +82,10 @@ The following configuration is required, more details for each and additional co
 * Each node exposes a HTTP endpoint `/bootstrap/seed-nodes`. This is exposed automatically by starting Akka management.
 * Each node then probes the contact points's `/bootstrap/seed-nodes` endpoint to see if a cluster has already been formed
     * If it has it joins the cluster, bootstrap is finished
-* If no cluster exists each node returns no `seed-nodes` and the node with the lowest address forms a new cluster and starts  advertising itself as a seed node
+* If no cluster exists then each node returns no `seed-nodes` and the node with the lowest address forms a new cluster and starts advertising itself as a seed node
 * Other nodes will see `/bootstrap/seed-nodes` of the node that self joined and join its cluster
 
-See @ref[full bootsrap process and advanced configuration](details.md) for more details on the process. 
+See @ref[full bootstrap process and advanced configuration](details.md) for more details on the process. 
 
 ## Joining mechanism precedence
 
@@ -105,5 +104,8 @@ is strictly defined and is as follows:
   to be using the Bootstrap mechanism. 
 @@@
 
+## Demos
+
+To see how to use bootstrap in various environments such as Kubernetes see @ref[demos](./demos/index.md)
 
 
