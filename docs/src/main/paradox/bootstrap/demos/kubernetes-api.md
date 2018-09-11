@@ -1,20 +1,26 @@
-### Kubernetes API 
+# Kubernetes API 
 
-This demo can be found under `bootstrap-demo/kubernetes-api`. 
+An example project can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-api`.
 
-In Kubernetes, Akka Cluster can be deployed as a single [Headless Service](https://kubernetes.io/docs/concepts/services-networking/service/#headless-services).
+This demo shows how to form an Akka Cluster in Kubernetes using the `kubernetes-api` discovery mechanism. The `kubernetes-api`
+mechanism queries the Kubernetes API server to find pods with a given label. A Kubernetes service isn't required 
+for the cluster bootstrap but may be used for external access to the application. It can be be found under `bootstrap-demo/kubernetes-api`. 
 
-An example application using docker and prepared to be deployed to kubernetes is provided in Akka Management's github repository 
-as sub-project [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/kubernetes-api).
+The following Kubernetes resources are created:
 
-Rather than configuring the Dockerfile directly, we used the [sbt-native-packager](http://sbt-native-packager.readthedocs.io/en/stable/) 
-to package the application as docker container. See the `build.sbt` file for more details, and the `kubernetes/akka-cluster.yml` 
-file for the service configuration, which is:
+* Deployment: For creating the Akka pods 
+* Role and RoleBinding to give the pods access to the API server
 
 @@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml) 
 
-You run the example using [minikube](https://github.com/kubernetes/minikube) (or a real kubernetes system),
-which you can do by typing:
+The following configuration is required:
+
+* Set `akka.discovery.method` to `kubernetes-api`
+* Set `akka.discovery.kubernetes-api.pod-label-selector` to a label selector that will match the Akka pods
+
+@@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-api/src/main/resources/application.conf) { #discovery-config } 
+
+You can run the example using [minikube](https://github.com/kubernetes/minikube) (or a real Kubernetes system) by:
 
 ```
 # 1) make sure you have installed `minikube` (see link above)
@@ -42,22 +48,18 @@ $ eval $(minikube docker-env)
 ```
 # 4) Publish the application docker image locally:
 $ sbt shell
-...
-> project bootstrap-joining-demo-kubernetes-api
-... 
+> project bootstrap-demo-kubernetes-api
 > docker:publishLocal 
-...
-[info] Successfully tagged ktoso/akka-management-bootstrap-joining-demo-kubernetes-api:1.3.3.7
-[info] Built image ktoso/akka-management-bootstrap-joining-demo-kubernetes-api:1.3.3.7
-[success] Total time: 25 s, completed Dec 8, 2017 7:47:05 PM
 ```
 
-Once the image is published, you can deploy it onto the kubernetes cluster by calling:
+Once the image is published, deploy it onto the kubernetes cluster:
 
-@@snip [kube-create.sh]($management$/bootstrap-demo/kubernetes-api/kube-create.sh) 
+@@snip [kube-apply.sh]($management$/bootstrap-demo/kubernetes-api/kube-apply.sh) 
 
 This will create and start running a number of Pods hosting the application. The application nodes will proceed with 
-forming the cluster using the DNS bootstrap method. In order to observe the logs during the cluster formation you can 
+forming the cluster using the `kubernetes-api` bootstrap method. 
+
+In order to observe the logs during the cluster formation you can 
 pick one of the pods and simply issue the kubectl logs command on it, like this:
 
 ```
@@ -65,31 +67,20 @@ $ POD=$(kubectl get pods | grep appka | grep Running | head -n1 | awk '{ print $
 appka-6bfdf47ff6-l7cpb
 
 $ kubectl logs $POD -f
-...
-[INFO] [12/08/2017 10:57:52.678] [main] [akka.remote.Remoting] Starting remoting
-...
-[INFO] [12/08/2017 10:57:53.597] [main] [akka.remote.Remoting] Remoting started; listening on addresses :[akka.tcp://Appka@172.17.0.2:2552]
-...
-[INFO] [12/08/2017 10:58:00.558] [main] [ClusterHttpManagement(akka://Appka)] Bound akka-management HTTP endpoint to: 172.17.0.2:8558
-[INFO] [12/08/2017 10:58:00.559] [main] [ClusterBootstrap(akka://Appka)] Initiating bootstrap procedure using akka.discovery.akka-dns method...
-...
-[INFO] [12/08/2017 10:58:04.747] [Appka-akka.actor.default-dispatcher-2] [akka.tcp://Appka@172.17.0.2:2552/system/bootstrapCoordinator] Initiating new cluster, self-joining [akka.tcp://Appka@172.17.0.2:2552], as this node has the LOWEST address out of: [List(ResolvedTarget(172.17.0.2,None), ResolvedTarget(172.17.0.6,None), ResolvedTarget(172.17.0.4,None), ResolvedTarget(172.17.0.3,None))]! Other nodes are expected to locate this cluster via continued contact-point probing.
-[INFO] [12/08/2017 10:58:04.796] [Appka-akka.actor.default-dispatcher-15] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.2:2552] - Node [akka.tcp://Appka@172.17.0.2:2552] is JOINING, roles [dc-default]
-[INFO] [12/08/2017 10:58:04.894] [Appka-akka.actor.default-dispatcher-15] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.2:2552] - Leader is moving node [akka.tcp://Appka@172.17.0.2:2552] to [Up]
-[INFO] [12/08/2017 10:58:04.920] [Appka-akka.actor.default-dispatcher-16] [akka.tcp://Appka@172.17.0.2:2552/user/$a] Cluster akka.tcp://Appka@172.17.0.2:2552 >>> MemberUp(Member(address = akka.tcp://Appka@172.17.0.2:2552, status = Up))
-...
 ```
 
-You can also see the pods in the dashboard:
+```
+[INFO] [09/11/2018 09:57:16.612] [Appka-akka.actor.default-dispatcher-4] [akka.tcp://Appka@172.17.0.14:2552/system/bootstrapCoordinator] Locating service members. Using discovery [akka.discovery.kubernetes.KubernetesApiSimpleServiceDiscovery], join decider [akka.management.cluster.bootstrap.LowestAddressJoinDecider]                                                                
+[INFO] [09/11/2018 09:57:16.613] [Appka-akka.actor.default-dispatcher-4] [akka.tcp://Appka@172.17.0.14:2552/system/bootstrapCoordinator] Looking up [Lookup(appka-service.default.svc.cluster.local,Some(management),Some(tcp))]                                                                                                                                                             
+[INFO] [09/11/2018 09:57:16.713] [Appka-akka.actor.default-dispatcher-19] [AkkaManagement(akka://Appka)] Bound Akka Management (HTTP) endpoint to: 172.17.0.14:8558
+[INFO] [09/11/2018 09:57:16.746] [Appka-akka.actor.default-dispatcher-17] [akka.actor.ActorSystemImpl(Appka)] Querying for pods with label selector: [actorSystemName=appka]
+[INFO] [09/11/2018 09:57:17.710] [Appka-akka.actor.default-dispatcher-3] [HttpClusterBootstrapRoutes(akka://Appka)] Bootstrap request from 172.17.0.15:55502: Contact Point returning 0 seed-nodes ([Set()])                                                                                                                                                                                 
+[INFO] [09/11/2018 09:57:17.718] [Appka-akka.actor.default-dispatcher-17] [akka.tcp://Appka@172.17.0.14:2552/system/bootstrapCoordinator] Located service members based on: [Lookup(appka-service.default.svc.cluster.local,Some(management),Some(tcp))]: [ResolvedTarget(172-17-0-14.default.pod.cluster.local,Some(8558),Some(/172.17.0.14)), ResolvedTarget(172-17-0-15.default.pod.cluster
+.local,Some(8558),Some(/172.17.0.15))]
+[INFO] [09/11/2018 09:57:23.636] [Appka-akka.actor.default-dispatcher-17] [akka.tcp://Appka@172.17.0.14:2552/system/bootstrapCoordinator] Initiating new cluster, self-joining [akka.tcp://Appka@172.17.0.14:2552]. Other nodes are expected to locate this cluster via continued contact-point probing.                                                                                     
+[INFO] [09/11/2018 09:57:23.650] [Appka-akka.actor.default-dispatcher-19] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.14:2552] - Node [akka.tcp://Appka@172.17.0.14:2552] is JOINING itself (with roles [dc-default]) and forming new cluster                                                                                                               
+[INFO] [09/11/2018 09:57:23.655] [Appka-akka.actor.default-dispatcher-19] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.14:2552] - Cluster Node [akka.tcp://Appka@172.17.0.14:2552] dc [default] is the new leader                                                                                                                                            
+[INFO] [09/11/2018 09:57:23.676] [Appka-akka.actor.default-dispatcher-19] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.14:2552] - Leader is moving node [akka.tcp://Appka@172.17.0.14:2552] to [Up]                                                                                                                                                          
+[INFO] [09/11/2018 09:57:23.680] [Appka-akka.actor.default-dispatcher-17] [akka.actor.ActorSystemImpl(Appka)] Cluster member is up!
 
 ```
-$ minikube dashboard
-```
-
-To finally stop it you use:
-
-```
-$ minikube stop
-```
-
-Which concludes the short demo of cluster bootstrap in kubernetes using the DNS discovery mechanism.

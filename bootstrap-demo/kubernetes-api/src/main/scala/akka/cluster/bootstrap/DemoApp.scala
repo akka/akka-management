@@ -35,6 +35,10 @@ object DemoApp extends App {
   import akka.http.scaladsl.server.Directives._
   Http().bindAndHandle(complete("Hello world"), "0.0.0.0", 8080)
 
+  Cluster(system).registerOnMemberUp({
+    log.info("Cluster member is up!")
+  })
+
 }
 
 class ClusterWatcher extends Actor with ActorLogging {

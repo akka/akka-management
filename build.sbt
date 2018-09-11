@@ -169,7 +169,7 @@ lazy val `cluster-bootstrap` = project
   .dependsOn(`akka-management`, `akka-discovery`)
 
 lazy val `bootstrap-demo-kubernetes-api` = project
-  .in(file("bootstrap-joining-demo/kubernetes-api"))
+  .in(file("bootstrap-demo/kubernetes-api"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)

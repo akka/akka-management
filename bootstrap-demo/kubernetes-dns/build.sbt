@@ -2,13 +2,13 @@ import com.typesafe.sbt.packager.docker._
 
 enablePlugins(JavaServerAppPackaging)
 
+version := "1.3.3.7" // we hard-code the version here, it could be anything really
 dockerCommands :=
   dockerCommands.value.flatMap {
     case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
     case v => Seq(v)
   }
 
-version := "1.3.3.7" // we hard-code the version here, it could be anything really
 
 dockerExposedPorts := Seq(8080, 8558, 2552)
 dockerBaseImage := "openjdk:8-jre-alpine"

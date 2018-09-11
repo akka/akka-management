@@ -2,37 +2,22 @@ import com.typesafe.sbt.packager.docker._
 
 enablePlugins(JavaServerAppPackaging)
 
-dockerEntrypoint ++= Seq(
-  """-Dakka.remote.netty.tcp.hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")"""",
-  """-Dakka.management.http.hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")""""
-)
+//dockerEntrypoint ++= Seq(
+//  """-Dakka.remote.netty.tcp.hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")"""",
+//  """-Dakka.management.http.hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")""""
+//)
 
-/*
-libraryDependencies += Seq(
-  // 1) we want to use akka-management
-  "akka-management",
-
-  // 2) we want to use the bootstrap
-  "akka-management-cluster-bootstrap",
-
-  // 3) the initial contact points should be located via DNS:
-  "akka-discovery-dns",
-
-  // extra)
-  // ""akka-management-cluster-http" // optional, if you want to inspect the cluster as well
-*/
+version := "1.3.3.7" // we hard-code the version here, it could be anything really
 
 dockerCommands :=
   dockerCommands.value.flatMap {
     case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
     case v => Seq(v)
   }
+dockerExposedPorts := Seq(8080, 8558, 2552)
+dockerBaseImage := "openjdk:8-jre-alpine"
 
-version := "1.3.3.7" // we hard-code the version here, it could be anything really
-
-// ENABLE THESE IF YOU WANT TO MANUALLY DO DNSLOOKUPS IN THE CONTAINER (FOR DEBUGGING)
-//dockerCommands ++= Seq(
-//  Cmd("USER", "root")
-//  ExecCmd("RUN", "apt-get", "update"),
-//  ExecCmd("RUN", "apt-get", "install", "-y", "dnsutils")
-//)
+dockerCommands ++= Seq(
+  Cmd("USER", "root"),
+  Cmd("RUN", "/sbin/apk", "add", "--no-cache", "bash", "bind-tools", "busybox-extras", "curl", "strace")
+)
