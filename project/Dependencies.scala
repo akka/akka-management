@@ -3,9 +3,8 @@ import Keys._
 
 object Dependencies {
 
-  val AkkaVersion = "2.5.14"
-  // TODO #281 update to 10.1.x when play and lagom are released
-  val AkkaHttpVersion = "10.0.13"
+  val AkkaVersion = "2.5.15"
+  val AkkaHttpVersion = "10.0.13" // TODO #281 update to 10.1.x when play and lagom are released
 
   val JUnitVersion = "4.12"
   val SprayJsonVersion = "1.3.3"
