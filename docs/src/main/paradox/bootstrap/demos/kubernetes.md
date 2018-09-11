@@ -1,6 +1,6 @@
 # Kubernetes
 
-A full working example that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kuvernetes-dns`.
+A full working example that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-dns`.
 
 As of Akka 2.5.15 and Akka-Management 0.18 `akka-dns` discovery mechanism can be used to deploy Akka Cluster in Kubernetes.
 This example shows how to:
