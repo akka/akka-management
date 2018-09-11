@@ -18,16 +18,31 @@ import akka.discovery._
 import akka.io.dns.DnsProtocol.{ Ip, Srv }
 import akka.io.dns.{ AAAARecord, ARecord, DnsProtocol, SRVRecord }
 
+import scala.collection.{ immutable => im }
+
 object DnsSimpleServiceDiscovery {
   def srvRecordsToResolved(srvRequest: String, resolved: DnsProtocol.Resolved): Resolved = {
-    val ips: Map[String, InetAddress] = resolved.additionalRecords.collect {
-      case a: ARecord => a.name -> a.ip
-      case aaaa: AAAARecord => aaaa.name -> aaaa.ip
-    }.toMap
+    val ips: Map[String, im.Seq[InetAddress]] =
+      resolved.additionalRecords.foldLeft(Map.empty[String, im.Seq[InetAddress]]) {
+        case (acc, a: ARecord) =>
+          acc.updated(a.name, a.ip +: acc.getOrElse(a.name, Nil))
+        case (acc, a: AAAARecord) =>
+          acc.updated(a.name, a.ip +: acc.getOrElse(a.name, Nil))
+        case (acc, _) =>
+          acc
+      }
 
-    val addresses = resolved.records.collect {
-      case srv: SRVRecord => ResolvedTarget(srv.target, Some(srv.port), ips.get(srv.target))
+    val addresses = resolved.records.flatMap {
+      case srv: SRVRecord =>
+        val addresses = ips.getOrElse(srv.target, Nil).map(ip => ResolvedTarget(srv.target, Some(srv.port), Some(ip)))
+        if (addresses.isEmpty) {
+          im.Seq(ResolvedTarget(srv.target, Some(srv.port), None))
+        } else {
+          addresses
+        }
+      case other => im.Seq.empty[ResolvedTarget]
     }
+
     Resolved(srvRequest, addresses)
   }
 
@@ -37,6 +52,7 @@ object DnsSimpleServiceDiscovery {
  * Looks for A records for a given service.
  */
 class DnsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+
   import DnsSimpleServiceDiscovery._
 
   // Required for async dns, 15 for additional records
