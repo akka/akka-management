@@ -1,6 +1,6 @@
 # Kubernetes API 
 
-An example project can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-api`.
+An example project that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-api`.
 
 This demo shows how to form an Akka Cluster in Kubernetes using the `kubernetes-api` discovery mechanism. The `kubernetes-api`
 mechanism queries the Kubernetes API server to find pods with a given label. A Kubernetes service isn't required 
@@ -54,7 +54,9 @@ $ sbt shell
 
 Once the image is published, deploy it onto the kubernetes cluster:
 
-@@snip [kube-apply.sh]($management$/bootstrap-demo/kubernetes-api/kube-apply.sh) 
+```
+kubectl apply -f kuberbetes/akka-cluster.yml
+```
 
 This will create and start running a number of Pods hosting the application. The application nodes will proceed with 
 forming the cluster using the `kubernetes-api` bootstrap method. 

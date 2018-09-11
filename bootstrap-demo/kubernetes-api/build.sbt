@@ -2,11 +2,6 @@ import com.typesafe.sbt.packager.docker._
 
 enablePlugins(JavaServerAppPackaging)
 
-//dockerEntrypoint ++= Seq(
-//  """-Dakka.remote.netty.tcp.hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")"""",
-//  """-Dakka.management.http.hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")""""
-//)
-
 version := "1.3.3.7" // we hard-code the version here, it could be anything really
 
 dockerCommands :=

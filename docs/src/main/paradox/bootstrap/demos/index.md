@@ -20,4 +20,5 @@ For Akka Cluster in Kubernetes either `akka-dns` or `kubernetes-api` service dis
 * @ref[Kubernetes using `kubernetes-api` discovery](./kubernetes-api.md)
 
 DNS has the benefit that it is agnostic of Kubernetes so does not require pods be able to communicate with the API
-server. However it requires a headless service that supports the `publishNotReadyAddresses` feature.
+server. However it requires a headless service that supports the `publishNotReadyAddresses` feature. If your Kubernetes setup
+does not support `publishNotReadyAddresses` yet then use the `kubernetes-api` discovery mechanism.
