@@ -104,8 +104,8 @@ is strictly defined and is as follows:
   to be using the Bootstrap mechanism. 
 @@@
 
-## Demos
+## Recipes 
 
-To see how to use bootstrap in various environments such as Kubernetes see @ref[demos](./demos/index.md)
+To see how to use bootstrap in various environments such as Kubernetes see the @ref[bootstrap recipes](demos.md)
 
 

@@ -1,4 +1,4 @@
-# Kubernetes
+# Bootstrap in Kubernetes with DNS
 
 A full working example that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-dns`.
 

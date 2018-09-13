@@ -1,4 +1,4 @@
-### Kubernetes API 
+### Bootstrap with the Kuberntes API 
 
 This demo can be found under `bootstrap-demo/kubernetes-api`. 
 

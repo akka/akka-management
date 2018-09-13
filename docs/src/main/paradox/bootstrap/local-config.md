@@ -1,6 +1,6 @@
-# Local demo using config discovery
+# Bootstrap from configuration 
 
-@ref[Configuration](../../discovery/index.md#discovery-method-configuration) based discovery can be used to see the 
+@ref[Configuration](../discovery/index.md#discovery-method-configuration) based discovery can be used to see the 
 Cluster Bootstrap process run locally within an IDE or from the command line.
 
 To use `config` service discovery set the following configuration:
