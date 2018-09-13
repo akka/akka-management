@@ -74,7 +74,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   private[this] var _connectionContext: akka.http.scaladsl.ConnectionContext = Http().defaultServerHttpContext
 
   private val bindingFuture = new AtomicReference[Future[Http.ServerBinding]]()
-  private val selfUriPromise = Promise[Uri]() // TODO has to keep config as well as the Uri, so we can reject 2nd calls with diff uri
+  private val serverUriPromise = Promise[Uri]() // TODO has to keep config as well as the Uri, so we can reject 2nd calls with diff uri
 
   /**
    * Start the HTTP management endpoint
@@ -116,16 +116,20 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
               settings = ServerSettings(system).withRemoteAddressHeader(true)
             )
 
-          serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { _ =>
-            log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
-            selfUriPromise.success(selfBaseUri).future
+          serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { serverBinding =>
+            val serverAddress = serverBinding.localAddress
+            val path = settings.Http.BasePath.fold("")("/" + _)
+            val serverUri =
+              Uri(s"$protocol://${serverAddress.getHostName}:${serverAddress.getPort}${path}")
+            log.info("Bound Akka Management (HTTP) endpoint to: {}", serverUri)
+            serverUriPromise.success(serverUri).future
           }
 
         case Failure(ex) ⇒
           log.warning(ex.getMessage)
           Future.failed(new IllegalArgumentException("Failed to start Akka Management HTTP endpoint.", ex))
       }
-    } else selfUriPromise.future
+    } else serverUriPromise.future
   }
 
   private def prepareCombinedRoutes(managementSettings: AkkaManagementSettings,
