@@ -11,85 +11,89 @@ object Dependencies {
 
   val Common = Seq(
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.1" % Test// ApacheV2
+      "org.scalatest" %% "scalatest" % "3.0.1" % Test // ApacheV2
     )
   )
 
+  val AkkaMultiNodeTestKit = "com.typesafe.akka" %% "akka-multi-node-testkit" % AkkaVersion % "multi-jvm;test"
+
   private object DependencyGroups {
     val AkkaActor = Seq(
-      "com.typesafe.akka" %% "akka-actor"                         % AkkaVersion
+      "com.typesafe.akka" %% "akka-actor" % AkkaVersion
     )
 
     val AkkaHttpCore = Seq(
-      "com.typesafe.akka" %% "akka-http-core"                     % AkkaHttpVersion,
-      "com.typesafe.akka" %% "akka-http-spray-json"               % AkkaHttpVersion,
-      "io.spray"          %% "spray-json"                         % SprayJsonVersion                  // ApacheV2
+      "com.typesafe.akka" %% "akka-http-core" % AkkaHttpVersion,
+      "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+      "io.spray" %% "spray-json" % SprayJsonVersion // ApacheV2
     )
     val AkkaHttp = Seq(
-      "com.typesafe.akka" %% "akka-http"                          % AkkaHttpVersion,
-      "com.typesafe.akka" %% "akka-http-spray-json"               % AkkaHttpVersion,
-      "com.typesafe.akka" %% "akka-stream"                        % AkkaVersion,
-      "com.typesafe.akka" %% "akka-actor"                         % AkkaVersion,
-      "io.spray"          %% "spray-json"                         % SprayJsonVersion                  // ApacheV2
+      "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+      "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+      "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
+      "io.spray" %% "spray-json" % SprayJsonVersion // ApacheV2
     )
 
     val AkkaCluster = Seq(
-      "com.typesafe.akka" %% "akka-cluster"                       % AkkaVersion
+      "com.typesafe.akka" %% "akka-cluster" % AkkaVersion
     )
 
     val AkkaSharding = Seq(
-      "com.typesafe.akka" %% "akka-cluster"                       % AkkaVersion,
-      "com.typesafe.akka" %% "akka-cluster-sharding"              % AkkaVersion
+      "com.typesafe.akka" %% "akka-cluster" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-cluster-sharding" % AkkaVersion
     )
 
     val AkkaTesting = Seq(
-      "com.typesafe.akka" %% "akka-testkit"                       % AkkaVersion     % "test",
-      "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "test",
-      "junit"             % "junit"                               % JUnitVersion    % "test",
-      "org.mockito"       % "mockito-all"                         % "1.10.19"       % "test"  // Common Public License 1.0
+      "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "test",
+      "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % "test",
+      "junit" % "junit" % JUnitVersion % "test",
+      "org.mockito" % "mockito-all" % "1.10.19" % "test" // Common Public License 1.0
     )
+
+
   }
 
   val Discovery = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting
+        DependencyGroups.AkkaTesting
   )
 
   val DiscoveryDns = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting
+        DependencyGroups.AkkaTesting
   )
 
   val DiscoveryConfig = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting
+        DependencyGroups.AkkaTesting
   )
 
   val DiscoveryAggregate = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting
+        DependencyGroups.AkkaTesting
   )
 
   val DiscoveryConsul = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting ++
-      Seq(
-        //License: Apache 2.0
-        "com.orbitz.consul" % "consul-client" % "1.1.2",
-        //License: Apache 2.0
-        "com.pszymczyk.consul" % "embedded-consul" % "1.0.2" % "test"
-      )
+        DependencyGroups.AkkaTesting ++
+        Seq(
+          //License: Apache 2.0
+          "com.orbitz.consul" % "consul-client" % "1.1.2",
+          //License: Apache 2.0
+          "com.pszymczyk.consul" % "embedded-consul" % "1.0.2" % "test"
+        )
   )
 
   val DiscoveryKubernetesApi = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaHttp
+        DependencyGroups.AkkaHttp
   )
 
   val DiscoveryMarathonApi = Seq(
@@ -115,24 +119,24 @@ object Dependencies {
   val ManagementHttp = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaHttp ++
-      DependencyGroups.AkkaTesting
+        DependencyGroups.AkkaTesting
   )
   val ClusterHttp = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaSharding ++
-      DependencyGroups.AkkaHttpCore ++
-      DependencyGroups.AkkaTesting ++ Seq(
-      "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test"
-    )
+        DependencyGroups.AkkaHttpCore ++
+        DependencyGroups.AkkaTesting ++ Seq(
+        "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % "test"
+      )
   )
 
   val ClusterBootstrap = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaCluster ++
-      DependencyGroups.AkkaHttpCore ++
-      DependencyGroups.AkkaTesting ++ Seq(
-      "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test"
-    )
+        DependencyGroups.AkkaHttpCore ++
+        DependencyGroups.AkkaTesting ++ Seq(
+        "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % "test"
+      )
   )
 
 }

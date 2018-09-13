@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ */
 package akka.cluster.bootstrap
 
 import akka.actor.ActorSystem
@@ -21,8 +24,7 @@ object Node3 extends App {
 
 class Main(nr: Int) {
 
-  val config = ConfigFactory.parseString(
-    s"""
+  val config = ConfigFactory.parseString(s"""
       akka.remote.artery.canonical.hostname = "127.0.0.$nr"
       akka.management.http.hostname = "127.0.0.$nr"
     """).withFallback(ConfigFactory.load())

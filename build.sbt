@@ -157,7 +157,8 @@ lazy val `cluster-http` = project
 // cluster bootstraping
 lazy val `cluster-bootstrap` = project
   .in(file("cluster-bootstrap"))
-  .enablePlugins(AutomateHeaderPlugin)
+  .enablePlugins(AutomateHeaderPlugin, MultiJvmPlugin)
+  .configs(MultiJvm)
   .settings(
     name := "akka-management-cluster-bootstrap",
     Dependencies.ClusterBootstrap
@@ -263,14 +264,16 @@ lazy val `bootstrap-demo-local` = project
     name := "akka-bootstrap-local",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true
+    whitesourceIgnore := true,
+    libraryDependencies += Dependencies.AkkaMultiNodeTestKit
   ).dependsOn(
     `akka-management`,
     `cluster-http`,
     `cluster-bootstrap`,
     `akka-discovery-config`
   )
-  .enablePlugins(JavaAppPackaging, AshScriptPlugin)
+  .enablePlugins(JavaAppPackaging, AshScriptPlugin, MultiJvmPlugin)
+  .configs(MultiJvm)
 
 
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
