@@ -4,7 +4,7 @@ An example project that can be deployed to kubernetes via `minikube` is in `boot
 
 This demo shows how to form an Akka Cluster in Kubernetes using the `kubernetes-api` discovery mechanism. The `kubernetes-api`
 mechanism queries the Kubernetes API server to find pods with a given label. A Kubernetes service isn't required 
-for the cluster bootstrap but may be used for external access to the application. It can be be found under `bootstrap-demo/kubernetes-api`. 
+for the cluster bootstrap but may be used for external access to the application. 
 
 The following Kubernetes resources are created:
 
@@ -20,14 +20,9 @@ The following configuration is required:
 
 @@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-api/src/main/resources/application.conf) { #discovery-config } 
 
-You can run the example using [minikube](https://github.com/kubernetes/minikube) (or a real Kubernetes system) by:
+If running he example in [minikube](https://github.com/kubernetes/minikube) make sure you have installed and is running:
 
 ```
-# 1) make sure you have installed `minikube` (see link above)
-```
-
-```
-# 2) make sure minikube is running
 $ minikube start
 Starting local Kubernetes v1.8.0 cluster...
 Starting VM...
@@ -40,13 +35,16 @@ Starting cluster components...
 Kubectl is now configured to use the cluster.
 ```
 
+Make sure your shell is configured to target minikube cluster
+ 
 ```
-# 3) make sure your shell is configured to target minikube cluster
 $ eval $(minikube docker-env) 
 ```
 
+For minikube publish the application docker image locally. If running this project in a real cluster you'll need to publish the image to a repository
+that is accessible from your Kubernetes cluster and update the `kubernetes/akka-cluster.yml` with the new image name.
+
 ```
-# 4) Publish the application docker image locally:
 $ sbt shell
 > project bootstrap-demo-kubernetes-api
 > docker:publishLocal 
@@ -62,7 +60,7 @@ This will create and start running a number of Pods hosting the application. The
 forming the cluster using the `kubernetes-api` bootstrap method. 
 
 In order to observe the logs during the cluster formation you can 
-pick one of the pods and simply issue the kubectl logs command on it, like this:
+pick one of the pods and issue the kubectl logs command on it:
 
 ```
 $ POD=$(kubectl get pods | grep appka | grep Running | head -n1 | awk '{ print $1 }'); echo $POD
@@ -85,4 +83,11 @@ $ kubectl logs $POD -f
 [INFO] [09/11/2018 09:57:23.676] [Appka-akka.actor.default-dispatcher-19] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.14:2552] - Leader is moving node [akka.tcp://Appka@172.17.0.14:2552] to [Up]                                                                                                                                                          
 [INFO] [09/11/2018 09:57:23.680] [Appka-akka.actor.default-dispatcher-17] [akka.actor.ActorSystemImpl(Appka)] Cluster member is up!
 
+```
+
+The resources can be deleted from the cluster with:
+
+```
+kubectl delete services,pods,deployment -l app=appka	
+kubectl delete services,pods,deployment appka-service
 ```

@@ -2,7 +2,6 @@
 
 An example project that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-dns`.
 
-As of Akka 2.5.15 and Akka-Management 0.18 the `akka-dns` discovery mechanism can be used to deploy Akka Cluster in Kubernetes.
 The project shows how to:
 
 * Use Akka Bootstrap with `akka-dns` with cluster formation via DNS SRV records

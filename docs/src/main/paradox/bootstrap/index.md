@@ -106,6 +106,6 @@ is strictly defined and is as follows:
 
 ## Bootstrap recipes 
 
-To see how to use bootstrap in various environments such as Kubernetes see @ref[recipes](./demos/index.md)
+To see how to use bootstrap in various environments such as Kubernetes see @ref[recipes](recipes.md)
 
 
