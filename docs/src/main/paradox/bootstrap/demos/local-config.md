@@ -22,7 +22,23 @@ Three main methods can be run, only overriding the host so the ActorSystem's can
 
 @@snip [application.conf]($management$/bootstrap-demo/local/src/main/scala/akka/cluster/bootstrap/Main.scala) { #main }
 
-Run the three mains: `Node1`, `Node2` and `Node3` and they will form a cluster.
+The example uses three loopback addresses: `127.0.0.2-4`. On Mac you'll need to set these up:
+
+```
+sudo ifconfig lo0 alias 127.0.0.2 up
+sudo ifconfig lo0 alias 127.0.0.3 up
+sudo ifconfig lo0 alias 127.0.0.4 up
+```
+
+On Linux this should not be required.
+
+Run the three mains: `Node1`, `Node2` and `Node3` and they will form a cluster either in your IDE or from the command line:
+
+```
+sbt "bootstrap-demo-local/runMain akka.cluster.bootstrap.Node1"
+sbt "bootstrap-demo-local/runMain akka.cluster.bootstrap.Node2"
+sbt "bootstrap-demo-local/runMain akka.cluster.bootstrap.Node3"
+```
 
 The first time one of the Nodes will form a new cluster and the others will join. Any subsequent restarts
 then the node will discover a cluster already exists and join.
