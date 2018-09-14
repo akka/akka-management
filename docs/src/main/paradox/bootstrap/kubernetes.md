@@ -1,9 +1,8 @@
-# Kubernetes
+# Kubernetes using DNS
 
-A full working example that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-dns`.
+An example project that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-dns`.
 
-As of Akka 2.5.15 and Akka-Management 0.18 `akka-dns` discovery mechanism can be used to deploy Akka Cluster in Kubernetes.
-This example shows how to:
+The project shows how to:
 
 * Use Akka Bootstrap with `akka-dns` with cluster formation via DNS SRV records
 * Use a headless service for internal and Akka management/bootstrap so that readiness probes for prod traffic don't interfere with bootstrap 
@@ -24,9 +23,8 @@ If using [SBR](https://developer.lightbend.com/docs/akka-commercial-addons/curre
 
 ### Cluster singletons
 
-Deployments orders pods by pod state and then time spent ready when deciding which to remove first. The pod 
-with cluster singletons is typically removed last and then the cluster singletons move the the oldest new pod.  
-
+Deployments order pods by pod state and then time spent ready when deciding which to remove first. This works well
+with cluster singletons as they are typically removed last and then the cluster singletons move the the oldest new pod.  
 
 ### Health checks
 
@@ -46,7 +44,6 @@ as there is no use case for load balancing across management/remoting ports.
 Set endpoints to be published before readiness checks pass as these endpoints are required to bootstrap the Cluster
 and make the application ready. 
 
-
 @@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #headless }
 
 Note there are currently two ways to specify that addresses should be published if not ready, the initial way via an annotation 
@@ -64,14 +61,13 @@ The same configuration will work for any environment that has an SRV record for 
 
 ### External service 
 
-For prod traffic e.g. HTTP use a regular service or an alternative ingress mechanism. 
+For production traffic e.g. HTTP use a regular service or an alternative ingress mechanism. 
 With an appropriate readiness check this results in traffic not being routed until bootstrap has finished.
 
 @@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #public }
 
 This will result in a ClusterIP being created and only added to `Endpoints` when the pods are `ready`
 
-Note that the `appName` is the same for both services as we want the services to point to the same pods just have
-different service types and DNS behavior.
+Note that the `appName` is the same for both services as they both refer to the same pods. 
 
 
