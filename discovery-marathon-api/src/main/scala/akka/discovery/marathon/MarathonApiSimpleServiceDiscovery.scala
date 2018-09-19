@@ -79,6 +79,8 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     val request = HttpRequest(uri = uri)
 
+    system.log.info("Requesting seed nodes by: {}", request.uri)
+
     for {
       response <- http.singleRequest(request)
 
