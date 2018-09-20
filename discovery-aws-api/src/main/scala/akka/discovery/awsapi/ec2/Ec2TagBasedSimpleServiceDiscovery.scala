@@ -23,6 +23,7 @@ import scala.collection.immutable.Seq
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 
+/** INTERNAL API */
 @InternalApi private[ec2] object Ec2TagBasedSimpleServiceDiscovery {
 
   private[ec2] def parseFiltersString(filtersString: String): List[Filter] =
