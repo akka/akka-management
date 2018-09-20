@@ -6,7 +6,7 @@ package akka.management.cluster.bootstrap.contactpoint
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
-import akka.discovery.MockDiscovery
+import akka.discovery.{ Lookup, MockDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
@@ -101,7 +101,7 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
     var call3Timestamp = 0L
     val name = s"$systemName.svc.cluster.local"
 
-    MockDiscovery.set(name, { () =>
+    MockDiscovery.set(Lookup(name).withProtocol("tcp").withPortName("management"), { () =>
       this.synchronized {
         called += 1
 

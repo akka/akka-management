@@ -14,7 +14,6 @@ import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.server.{ Directives, Route }
 import akka.http.scaladsl.{ ConnectionContext, Http, HttpsConnectionContext }
 import akka.management.AkkaManagement
-import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{ Matchers, WordSpecLike }
 
@@ -48,7 +47,6 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         )
 
         implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
-        implicit val materializer = ActorMaterializer()
 
         val management = AkkaManagement(system)
         management.settings.Http.RouteProviders should contain("akka.management.http.HttpManagementEndpointSpecRoutes")
@@ -90,8 +88,6 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         management.setAsyncAuthenticator(myUserPassAuthenticator)
         management.start()
 
-        implicit val materializer = ActorMaterializer()
-
         val httpRequest = HttpRequest(uri = "http://127.0.0.1:20000/").addHeader(
             Authorization(BasicHttpCredentials("user", "p4ssw0rd")))
         val responseGetMembersFuture = Http().singleRequest(httpRequest)
@@ -120,7 +116,6 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         )
 
         implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
-        implicit val materializer = ActorMaterializer()
 
         val password: Array[Char] = "password".toCharArray // do not store passwords in code, read them from somewhere safe!
 

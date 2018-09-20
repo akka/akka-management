@@ -17,16 +17,21 @@ lazy val `akka-management-root` = project
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
-    `bootstrap-joining-demo-aws-api-ec2-tag-based`,
-    `bootstrap-joining-demo-aws-api-ecs`,
-    `bootstrap-joining-demo-kubernetes-api`,
-    `bootstrap-joining-demo-marathon-api-docker`,
+    `bootstrap-demo-aws-api-ec2-tag-based`,
+    `bootstrap-demo-aws-api-ecs`,
+    `bootstrap-demo-kubernetes-api`,
+    `bootstrap-demo-kubernetes-dns`,
+    `bootstrap-demo-marathon-api-docker`,
     `cluster-http`,
     `cluster-bootstrap`,
     docs
   )
   .settings(
-    parallelExecution in GlobalScope := false
+    parallelExecution in GlobalScope := false,
+    inThisBuild(List(
+      resolvers += Resolver.sonatypeRepo("comtypesafe-2189")
+
+    ))
   )
 
 // interfaces and extension for Discovery
@@ -75,7 +80,6 @@ lazy val `akka-discovery-aggregrate` = project
   .dependsOn(`akka-discovery`)
   .dependsOn(`akka-discovery-config` % "test")
 
-// K8s API implementation of discovery, allows formation to work even when readiness/health checks are failing
 lazy val `akka-discovery-kubernetes-api` = project
   .in(file("discovery-kubernetes-api"))
   .enablePlugins(AutomateHeaderPlugin)
@@ -164,37 +168,45 @@ lazy val `cluster-bootstrap` = project
   )
   .dependsOn(`akka-management`, `akka-discovery`)
 
-// TODO: I was thinking about introducing a module called akka-management-cluster-bootstrap-dns which does not do anything,
-// except pull together the 2 modules of cluster bootstrap and akka discovery dns so it's only 1 dependency you need to pick.
-// I was thinking it would be nice to have "hello world bootstrap in the smallest number of steps" so that would reduce 2 deps into 1.
-
-// demo of the bootstrap
-lazy val `bootstrap-joining-demo-kubernetes-api` = project
-  .in(file("bootstrap-joining-demo/kubernetes-api"))
+lazy val `bootstrap-demo-kubernetes-api` = project
+  .in(file("bootstrap-demo/kubernetes-api"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "akka-management-bootstrap-joining-demo-kubernetes-api",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
   ).dependsOn(
     `akka-management`,
     `cluster-http`,
-    `akka-discovery-dns`,
     `cluster-bootstrap`,
     `akka-discovery-kubernetes-api`
   )
 
-lazy val `bootstrap-joining-demo-aws-api-ec2-tag-based` = project
-    .in(file("bootstrap-joining-demo/aws-api-ec2"))
+lazy val `bootstrap-demo-kubernetes-dns` = project
+  .in(file("bootstrap-demo/kubernetes-dns"))
+  .enablePlugins(NoPublish)
+  .disablePlugins(BintrayPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    skip in publish := true,
+    sources in (Compile, doc) := Seq.empty,
+    whitesourceIgnore := true
+  ).dependsOn(
+    `akka-management`,
+    `cluster-http`,
+    `cluster-bootstrap`,
+    `akka-discovery-dns`
+  )
+
+lazy val `bootstrap-demo-aws-api-ec2-tag-based` = project
+    .in(file("bootstrap-demo/aws-api-ec2"))
     .configs(IntegrationTest)
     .enablePlugins(NoPublish)
     .disablePlugins(BintrayPlugin)
     .enablePlugins(AutomateHeaderPlugin)
     .settings(
-      name := "akka-management-bootstrap-joining-demo-aws-api-ec2-tag-based",
       skip in publish := true,
       whitesourceIgnore := true,
       sources in doc := Seq.empty,
@@ -206,13 +218,13 @@ lazy val `bootstrap-joining-demo-aws-api-ec2-tag-based` = project
       `cluster-bootstrap`
   )
 
-lazy val `bootstrap-joining-demo-marathon-api-docker` = project
-  .in(file("bootstrap-joining-demo/marathon-api-docker"))
+lazy val `bootstrap-demo-marathon-api-docker` = project
+  .in(file("bootstrap-demo/marathon-api-docker"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "akka-management-bootstrap-joining-demo-marathon-api-docker",
+    name := "akka-management-bootstrap-demo-marathon-api-docker",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
@@ -224,13 +236,12 @@ lazy val `bootstrap-joining-demo-marathon-api-docker` = project
     `akka-discovery-marathon-api`
   )
 
-lazy val `bootstrap-joining-demo-aws-api-ecs` = project
-  .in(file("bootstrap-joining-demo/aws-api-ecs"))
+lazy val `bootstrap-demo-aws-api-ecs` = project
+  .in(file("bootstrap-demo/aws-api-ecs"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "akka-management-bootstrap-joining-demo-aws-api-ecs",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
@@ -246,6 +257,25 @@ lazy val `bootstrap-joining-demo-aws-api-ecs` = project
     com.typesafe.sbt.SbtNativePackager.autoImport.packageName in Docker := "ecs-bootstrap-demo-app",
     version in Docker := "1.0"
   )
+
+lazy val `bootstrap-demo-local` = project
+  .in(file("bootstrap-demo/local"))
+  .enablePlugins(NoPublish)
+  .disablePlugins(BintrayPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-bootstrap-local",
+    skip in publish := true,
+    sources in (Compile, doc) := Seq.empty,
+    whitesourceIgnore := true
+  ).dependsOn(
+    `akka-management`,
+    `cluster-http`,
+    `cluster-bootstrap`,
+    `akka-discovery-config`
+  )
+  .enablePlugins(JavaAppPackaging, AshScriptPlugin)
+
 
 val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project

@@ -6,7 +6,7 @@ package akka.management.cluster.bootstrap.contactpoint
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
-import akka.discovery.MockDiscovery
+import akka.discovery.{ Lookup, MockDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
@@ -54,6 +54,10 @@ class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
               contact-point-discovery {
                 discovery-method = akka.mock-dns
 
+                service-name = "service"
+                port-name = "management2"
+                protocol = "tcp2"
+
                 service-namespace = "svc.cluster.local"
 
                 stable-margin = 4 seconds
@@ -77,8 +81,8 @@ class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
     val bootstrapC = ClusterBootstrap(systemC)
 
     // prepare the "mock DNS"
-    val name = "system.svc.cluster.local"
-    MockDiscovery.set(name,
+    val name = "service.svc.cluster.local"
+    MockDiscovery.set(Lookup(name, Some("management2"), Some("tcp2")),
       () =>
         Future.successful(
           Resolved(name,

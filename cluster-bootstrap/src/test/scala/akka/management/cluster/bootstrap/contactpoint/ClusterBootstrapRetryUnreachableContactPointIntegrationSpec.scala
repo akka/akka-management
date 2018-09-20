@@ -6,7 +6,7 @@ package akka.management.cluster.bootstrap.contactpoint
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
-import akka.discovery.MockDiscovery
+import akka.discovery.{ Lookup, MockDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
@@ -85,7 +85,7 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSp
 
     val name = "systemunreachablenodes.svc.cluster.local"
 
-    MockDiscovery.set(name, { () =>
+    MockDiscovery.set(Lookup(name).withPortName("management").withProtocol("tcp"), { () =>
       called += 1
 
       Future.successful(

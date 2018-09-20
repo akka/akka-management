@@ -9,7 +9,7 @@ The operations exposed are comparable to the Command Line Management tool or the
 ## Dependencies
 
 The Akka Cluster HTTP Management is a separate jar file. 
-Make sure to include it along with the core akka-management library in your project::
+Make sure to include it along with the core akka-management library in your project:
 
 
 sbt
@@ -45,6 +45,16 @@ Gradle
     }
     ```
     @@@
+
+## Running
+
+To make sure the Akka Cluster HTTP Management is running, register it with Akka Management:
+
+Scala
+:  @@snip [CompileOnlySpec.scala]($management$/cluster-http/src/test/scala/doc/akka/cluster/http/management/CompileOnlySpec.scala) { #loading }
+
+Java
+:  @@snip [CompileOnlyTest.java]($management$/cluster-http/src/test/java/jdoc/akka/cluster/http/management/CompileOnlyTest.java) { #loading }
 
 
 ## API Definition

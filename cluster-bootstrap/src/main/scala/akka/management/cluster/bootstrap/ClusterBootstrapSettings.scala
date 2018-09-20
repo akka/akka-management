@@ -37,6 +37,10 @@ final class ClusterBootstrapSettings(config: Config) {
       if (discoveryConfig.hasDefined("service-namespace")) Some(discoveryConfig.getString("service-namespace"))
       else None
 
+    val portName = getOptionalString("port-name")
+
+    val protocol = getOptionalString("protocol")
+
     def effectiveName(system: ActorSystem): String =
       if (discoveryConfig.hasDefined("effective-name")) {
         discoveryConfig.getString("effective-name")
@@ -71,6 +75,11 @@ final class ClusterBootstrapSettings(config: Config) {
     val requiredContactPointsNr: Int = discoveryConfig.getInt("required-contact-point-nr")
 
     val resolveTimeout: FiniteDuration = discoveryConfig.getDuration("resolve-timeout", TimeUnit.MILLISECONDS).millis
+
+    private def getOptionalString(path: String): Option[String] = discoveryConfig.getString(path) match {
+      case "" => None
+      case other => Some(other)
+    }
 
   }
 

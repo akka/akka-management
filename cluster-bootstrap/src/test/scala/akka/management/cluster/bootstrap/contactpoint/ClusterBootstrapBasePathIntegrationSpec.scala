@@ -6,7 +6,7 @@ package akka.management.cluster.bootstrap.contactpoint
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
-import akka.discovery.MockDiscovery
+import akka.discovery.{ Lookup, MockDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
@@ -67,7 +67,7 @@ class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers
 
     // prepare the "mock DNS"
     val name = "basepathsystem.svc.cluster.local"
-    MockDiscovery.set(name,
+    MockDiscovery.set(Lookup(name).withProtocol("tcp").withPortName("management"),
       () =>
         Future.successful(
           Resolved(name,
