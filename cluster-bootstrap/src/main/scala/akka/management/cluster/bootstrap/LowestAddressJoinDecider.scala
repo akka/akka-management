@@ -139,17 +139,25 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
       def hostMatches(host: String, lowest: ResolvedTarget): Boolean =
         (host == lowest.host) || (Some(host) == lowest.address.map(_.getHostAddress))
 
-      // we check if a contact point is "us", by comparing host and port that we've bound to
-      def lowestContactPointIsSelfManagement(lowest: ResolvedTarget): Boolean = lowest.port match {
+      def matchesSelf(target: ResolvedTarget): Boolean = target.port match {
         case None =>
-          selfContactPoints.exists { case (host, _) => hostMatches(host, lowest) }
+          selfContactPoints.exists { case (host, _) => hostMatches(host, target) }
         case Some(lowestPort) =>
-          selfContactPoints.exists { case (host, port) => hostMatches(host, lowest) && port == lowestPort }
+          selfContactPoints.exists { case (host, port) => hostMatches(host, target) && port == lowestPort }
       }
 
       lowestAddressContactPoint(info) match {
-        case Some(lowest) => lowestContactPointIsSelfManagement(lowest)
-        case None => false
+        case Some(lowest) =>
+          if (matchesSelf(lowest)) true
+          else {
+            if (!info.contactPoints.exists(matchesSelf)) {
+              log.warning("Self contact point [{}] not found in targets [{}]", selfContactPoints.mkString(", "),
+                info.contactPoints.mkString(", "))
+            }
+            false
+          }
+        case None =>
+          false
       }
     } else false
   }
