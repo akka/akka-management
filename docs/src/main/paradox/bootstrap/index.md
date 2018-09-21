@@ -26,7 +26,7 @@ sbt
     ```scala
     libraryDependencies += "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % "$version$"
     libraryDependencies += "com.lightbend.akka.discovery" %% "akka-discovery-dns"                % "$version$"
-    // USE THIS FOR KUBERNETES API SERVICE DISCOVERY
+    // use this for kubernetes api discovery instead of akka-discovery-dns
     //libraryDependencies += "com.lightbend.akka.discovery" %% "akka-discovery-kubernetes-api"                % "$version$"
     ```
     @@@
@@ -44,7 +44,7 @@ Maven
       <artifactId>akka-discovery-dns_$scala.binaryVersion$</artifactId>
       <version>$version$</version>
     </dependency>
-    <!-- USE THIS FOR KUBERNETES API SERVICE DISCOVERY
+    <!-- use this for kubernetes api discovery instead of akka-discovery-dns 
     <dependency>
       <groupId>com.lightbend.akka.discovery</groupId>
       <artifactId>akka-discovery-kubernetes-api_$scala.binaryVersion$</artifactId>
@@ -60,7 +60,7 @@ Gradle
     dependencies {
       compile group: "com.lightbend.akka.management", name: "akka-management-cluster-bootstrap_$scala.binaryVersion$", version: "$version$"
       compile group: "com.lightbend.akka.discovery", name: "akka-discovery-dns_$scala.binaryVersion$", version: "$version$"
-      // USE THIS FOR KUBERNETES API SERVICE DISCOVERY
+      // use this for kubernetes api discovery instead of akka-discovery-dns
       // compile group: "com.lightbend.akka.discovery", name: "akka-discovery-kubernetes-api_$scala.binaryVersion$", version: "$version$"
     }
     ```

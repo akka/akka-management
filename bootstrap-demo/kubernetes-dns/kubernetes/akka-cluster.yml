@@ -32,8 +32,6 @@ spec:
           httpGet:
             path: /ready
             port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 15
         livenessProbe:
           httpGet:
             path: /alive
