@@ -18,7 +18,16 @@ class KubernetesHealthChecks(system: ActorSystem) {
   //#health
   private val readyStates: Set[MemberStatus] = Set(MemberStatus.Up, MemberStatus.WeaklyUp)
   private val aliveStates: Set[MemberStatus] =
-    Set(MemberStatus.Joining, MemberStatus.WeaklyUp, MemberStatus.Up, MemberStatus.Leaving, MemberStatus.Exiting)
+    Set(
+      // 'Removed' might be counter-intuitive here, but the cluster status is also 'removed' during pre-join
+      // initialization (https://github.com/akka/akka/issues/25663)
+      MemberStatus.Removed,
+      MemberStatus.Joining,
+      MemberStatus.WeaklyUp,
+      MemberStatus.Up,
+      MemberStatus.Leaving,
+      MemberStatus.Exiting
+    )
 
   val k8sHealthChecks: Route =
     concat(
