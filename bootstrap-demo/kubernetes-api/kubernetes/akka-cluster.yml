@@ -28,13 +28,18 @@ spec:
           containerPort: 2552
           protocol: TCP
         # akka-management bootstrap
-        - name: bootstrap
+        # must match up with contact-point-discovery.port-name for boostrap
+        - name: management
           containerPort: 8558
           protocol: TCP
-        # external http
-        - name: akka-mgmt-http
-          containerPort: 8558
-          protocol: TCP
+#namespace
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+#namespace
+
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1

@@ -57,7 +57,7 @@ object KubernetesApiSimpleServiceDiscovery {
  * you to define readiness/health checks that don't affect the bootstrap mechanism.
  */
 class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
-  import KubernetesApiSimpleServiceDiscovery._
+  import akka.discovery.kubernetes.KubernetesApiSimpleServiceDiscovery._
   import system.dispatcher
 
   private val http = Http()(system)
@@ -75,13 +75,18 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
 
   private val httpsContext = http.createClientHttpsContext(httpsConfig)
 
-  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+    val labelSelector = settings.podLabelSelector(query.serviceName)
+
+    val portName = query.portName match {
+      case Some(name) => name
+      case None => settings.podPortName
+    }
+    system.log.info("Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}]", labelSelector,
+      settings.podNamespace, portName)
+
     for {
       token <- apiToken()
-
-      labelSelector = settings.podLabelSelector(query.serviceName)
-
-      _ = system.log.info("Querying for pods with label selector: [{}]", labelSelector)
 
       request <- optionToFuture(podRequest(token, settings.podNamespace, labelSelector),
         s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})")
@@ -103,11 +108,13 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
         unmarshalled
       }
 
-    } yield
+    } yield {
       Resolved(
         serviceName = query.serviceName,
-        addresses = targets(podList, settings.podPortName, settings.podNamespace, settings.podDomain)
+        addresses = targets(podList, portName, settings.podNamespace, settings.podDomain)
       )
+    }
+  }
 
   private def apiToken() =
     FileIO.fromPath(Paths.get(settings.apiTokenPath)).runFold("")(_ + _.utf8String).recover { case NonFatal(_) => "" }
