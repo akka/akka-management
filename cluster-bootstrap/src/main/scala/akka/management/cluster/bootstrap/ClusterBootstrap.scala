@@ -67,6 +67,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   override def routes(routeProviderSettings: ManagementRouteProviderSettings): Route = {
     log.info(s"Got self contact point address: ${routeProviderSettings.selfBaseUri}")
     this.setSelfContactPoint(routeProviderSettings.selfBaseUri)
+
     new HttpClusterBootstrapRoutes(settings).routes
   }
 
@@ -113,9 +114,11 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
       if (system.settings.config.hasPath("akka.discovery.kubernetes-api.pod-domain") && uri.authority.host.isIPv4()) {
         val podNamespace = system.settings.config.getString("akka.discovery.kubernetes-api.pod-namespace")
         val podDomain = system.settings.config.getString("akka.discovery.kubernetes-api.pod-domain")
+        val derivedHost = s"${uri.authority.host.toString.replace('.', '-')}.${podNamespace}.pod.${podDomain}"
+        log.info(s"Derived self contact point $derivedHost:${uri.authority.port}")
         Set(
           (uri.authority.host.toString, uri.authority.port),
-          (s"${uri.authority.host.toString.replace('.', '-')}.${podNamespace}.pod.${podDomain}", uri.authority.port)
+          (derivedHost, uri.authority.port)
         )
       } else {
         Set((uri.authority.host.toString, uri.authority.port))
