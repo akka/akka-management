@@ -22,6 +22,8 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 8558
+          initialDelaySeconds: 30
+          periodSeconds: 15
         ports:
         # akka remoting
         - name: remoting
