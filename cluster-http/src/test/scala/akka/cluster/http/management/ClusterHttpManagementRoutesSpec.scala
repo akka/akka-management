@@ -73,7 +73,7 @@ class ClusterHttpManagementRoutesSpec
 
           val expected = ClusterMembers(selfNode = s"$address1", members = clusterMembers,
             unreachable = Seq(clusterUnreachableMember), leader = Some(address1.toString),
-            oldest = Some(address1.toString))
+            oldest = Some(address1.toString), Map(s"dc-$dcName" -> address1.toString))
 
           val members = responseAs[ClusterMembers]
           // specific checks for easier spotting in failure output what was not matching
