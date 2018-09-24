@@ -1,10 +1,13 @@
+/*
+ * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ */
 package akka.cluster.http.management
 
 import akka.actor.Address
 import akka.cluster.MemberStatus._
-import akka.cluster.{Member, UniqueAddress}
+import akka.cluster.{ Member, UniqueAddress }
 import akka.management.cluster.ClusterHttpManagementHelper
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{ Matchers, WordSpec }
 
 class ClusterHttpManagementHelperSpec extends WordSpec with Matchers {
 

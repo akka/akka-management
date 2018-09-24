@@ -4,11 +4,11 @@
 package akka.management.cluster
 
 import akka.actor.AddressFromURIString
-import akka.cluster.sharding.{ClusterSharding, ShardRegion}
-import akka.cluster.{Cluster, Member, MemberStatus}
+import akka.cluster.sharding.{ ClusterSharding, ShardRegion }
+import akka.cluster.{ Cluster, Member, MemberStatus }
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import akka.pattern.{ask, AskTimeoutException}
+import akka.pattern.{ ask, AskTimeoutException }
 import akka.util.Timeout
 
 import scala.concurrent.duration._
@@ -30,8 +30,8 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         }
 
         val thisDcMembers =
-          cluster.state.members.toSeq
-            .filter(node => node.status == MemberStatus.Up && node.dataCenter == cluster.selfDataCenter)
+          cluster.state.members.toSeq.filter(
+              node => node.status == MemberStatus.Up && node.dataCenter == cluster.selfDataCenter)
 
         val leader = readView.leader.map(_.toString)
 
@@ -40,11 +40,9 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
           .headOption // we are only interested in the oldest one that is still Up
           .map(_.address.toString)
 
-
         ClusterMembers(s"${readView.selfAddress}", members, unreachable, leader, oldest, oldestPerRole(thisDcMembers))
       }
     }
-
 
   private def routePostMembers(cluster: Cluster) =
     post {

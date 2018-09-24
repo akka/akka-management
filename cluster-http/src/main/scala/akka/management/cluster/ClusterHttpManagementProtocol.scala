@@ -37,5 +37,3 @@ trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJso
   implicit val shardRegionInfoFormat = jsonFormat2(ShardRegionInfo)
   implicit val shardDetailsFormat = jsonFormat1(ShardDetails)
 }
-
-
