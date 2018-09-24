@@ -460,8 +460,20 @@ character. For example:
     }
     ```
 
-* This module does not support running multiple Akka nodes (i.e. multiple JVMs) per EC2 instance, because it
-  separates cluster members by their EC2 IP address.
+* By default, this module is configured for clusters with one Akka node per EC2 instance: it
+  separates cluster members solely by their EC2 IP address. However, we can change the default configuration to indicate multiple ports per discovered EC2 IP, and achieve
+a setup with multiple Akka nodes (i.e. multiple JVMs) per EC2 instance. 
+    ```
+    akka {
+      discovery {
+        aws-api-ec2-tag-based {
+          ports = [8557, 8558, 8559] # 3 Akka nodes per EC2 instance
+          # note that the above need to be the ports associated with the *Akka Management* extension
+        }
+      }
+    }
+    ```
+    Note: this comes with the limitation that each EC2 instance has to have the same number of Akka nodes.
 
 * You can change the default tag key from "service" to something else. This can be done via `application.conf`, by
 setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
