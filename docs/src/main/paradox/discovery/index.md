@@ -404,7 +404,7 @@ instead.
 ### Discovery Method: AWS API - EC2 Tag-Based Discovery
 
 You can use tags to simply mark the instances that belong to the same cluster. Use a tag that
-has "service" as the key and set the value equal to the name of your service (same value as `akka.cluster.bootstrap.contact-point-discovery.service-name`
+has "service" as the key and set the value equal to the name of your service (same value as `akka.management.cluster.bootstrap.contact-point-discovery.service-name`
 defined in `application.conf`, if you're using this module for bootstrapping your Akka cluster).
 
 Screenshot of two tagged EC2 instances:
@@ -499,7 +499,7 @@ If you're using ECS with
 mode networking, you can have all task instances of a given ECS service discover
 each other. If you're using this module for bootstrapping your Akka cluster that
 you'll do so by setting the value of
-`akka.cluster.bootstrap.contact-point-discovery.service-name` to that of the
+`akka.management.cluster.bootstrap.contact-point-discovery.service-name` to that of the
 ECS service itself.
 
 Screenshot of two ECS task instances (the service name is
