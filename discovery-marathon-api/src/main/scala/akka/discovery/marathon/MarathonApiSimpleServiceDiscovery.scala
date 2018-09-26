@@ -16,6 +16,7 @@ import scala.concurrent.duration.FiniteDuration
 import AppList._
 import JsonFormat._
 import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.event.Logging
 
 object MarathonApiSimpleServiceDiscovery {
 
@@ -66,6 +67,8 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
   import MarathonApiSimpleServiceDiscovery._
   import system.dispatcher
 
+  private val log = Logging(system, getClass)
+
   private val http = Http()(system)
 
   private val settings = Settings(system)
@@ -79,17 +82,19 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     val request = HttpRequest(uri = uri)
 
+    log.info("Requesting seed nodes by: {}", request.uri)
+
     for {
       response <- http.singleRequest(request)
 
       entity <- response.entity.toStrict(resolveTimeout)
 
       appList <- {
-        system.log.debug("Marathon API entity: [{}]", entity.data.utf8String)
+        log.debug("Marathon API entity: [{}]", entity.data.utf8String)
         val unmarshalled = Unmarshal(entity).to[AppList]
 
         unmarshalled.failed.foreach { _ =>
-          system.log.error("Failed to unmarshal Marathon API response status [{}], entity: [{}], uri: [{}]",
+          log.error("Failed to unmarshal Marathon API response status [{}], entity: [{}], uri: [{}]",
             response.status.value, entity.data.utf8String, uri)
         }
         unmarshalled
