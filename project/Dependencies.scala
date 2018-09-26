@@ -44,9 +44,12 @@ object Dependencies {
 
     val AkkaTesting = Seq(
       "com.typesafe.akka" %% "akka-testkit"                       % AkkaVersion     % "test",
-      "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "test",
       "junit"             % "junit"                               % JUnitVersion    % "test",
       "org.mockito"       % "mockito-all"                         % "1.10.19"       % "test"  // Common Public License 1.0
+    )
+
+    val AkkaHttpTesting = Seq(
+      "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "test"
     )
   }
 
@@ -121,7 +124,8 @@ object Dependencies {
     libraryDependencies ++=
       DependencyGroups.AkkaSharding ++
       DependencyGroups.AkkaHttpCore ++
-      DependencyGroups.AkkaTesting ++ Seq(
+      DependencyGroups.AkkaTesting ++
+      DependencyGroups.AkkaHttpTesting ++ Seq(
       "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test"
     )
   )
@@ -130,7 +134,8 @@ object Dependencies {
     libraryDependencies ++=
       DependencyGroups.AkkaCluster ++
       DependencyGroups.AkkaHttpCore ++
-      DependencyGroups.AkkaTesting ++ Seq(
+      DependencyGroups.AkkaTesting ++
+      DependencyGroups.AkkaHttpTesting ++ Seq(
       "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test"
     )
   )
