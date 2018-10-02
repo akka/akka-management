@@ -10,17 +10,17 @@ To use `config` service discovery set the following configuration:
 
 For example:
 
-@@snip [application.conf]($management$/bootstrap-demo/local/src/main/resources/application.conf) { #discovery }
+@@snip [application.conf](/bootstrap-demo/local/src/main/resources/application.conf) { #discovery }
 
 This configuration will return three endpoints for a service called `local-cluster`.
 
 Akka bootstrap is then configured to lookup `local-cluster` as the service name:
 
-@@snip [application.conf]($management$/bootstrap-demo/local/src/main/resources/application.conf) { #bootstrap }
+@@snip [application.conf](/bootstrap-demo/local/src/main/resources/application.conf) { #bootstrap }
 
 Three main methods can be run, only overriding the host so the ActorSystem's can all bind to the same port:
 
-@@snip [application.conf]($management$/bootstrap-demo/local/src/main/scala/akka/cluster/bootstrap/Main.scala) { #main }
+@@snip [application.conf](/bootstrap-demo/local/src/main/scala/akka/cluster/bootstrap/Main.scala) { #main }
 
 The example uses three loopback addresses: `127.0.0.2-4`. On Mac you'll need to set these up:
 

@@ -51,10 +51,10 @@ Gradle
 To make sure the Akka Cluster HTTP Management is running, register it with Akka Management:
 
 Scala
-:  @@snip [CompileOnlySpec.scala]($management$/cluster-http/src/test/scala/doc/akka/cluster/http/management/CompileOnlySpec.scala) { #loading }
+:  @@snip [CompileOnlySpec.scala](/cluster-http/src/test/scala/doc/akka/cluster/http/management/CompileOnlySpec.scala) { #loading }
 
 Java
-:  @@snip [CompileOnlyTest.java]($management$/cluster-http/src/test/java/jdoc/akka/cluster/http/management/CompileOnlyTest.java) { #loading }
+:  @@snip [CompileOnlyTest.java](/cluster-http/src/test/java/jdoc/akka/cluster/http/management/CompileOnlyTest.java) { #loading }
 
 
 ## API Definition

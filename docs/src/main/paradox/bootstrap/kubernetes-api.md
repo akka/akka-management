@@ -11,14 +11,14 @@ The following Kubernetes resources are created:
 * Deployment: For creating the Akka pods 
 * Role and RoleBinding to give the pods access to the API server
 
-@@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml) 
+@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml) 
 
 The following configuration is required:
 
 * Set `akka.discovery.method` to `kubernetes-api`
 * Set `akka.discovery.kubernetes-api.pod-label-selector` to a label selector that will match the Akka pods
 
-@@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-api/src/main/resources/application.conf) { #discovery-config } 
+@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-api/src/main/resources/application.conf) { #discovery-config } 
 
 If running he example in [minikube](https://github.com/kubernetes/minikube) make sure you have installed and is running:
 
