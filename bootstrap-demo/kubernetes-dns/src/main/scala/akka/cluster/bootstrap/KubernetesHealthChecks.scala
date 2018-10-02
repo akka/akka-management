@@ -29,7 +29,7 @@ class KubernetesHealthChecks(system: ActorSystem) {
       MemberStatus.Exiting,
       // We do not want to be killed when we are in Down state, because we want
       // this to propagate to the leader so it can remove us.
-      MemberStatus.Down,
+      MemberStatus.Down
     )
 
   val k8sHealthChecks: Route =
