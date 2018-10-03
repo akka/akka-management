@@ -20,7 +20,8 @@ class KubernetesHealthChecks(system: ActorSystem) {
 
   // Removed is the initial state before joining. See https://github.com/akka/akka/issues/25663
   private val aliveStates: Set[MemberStatus] =
-    Set(MemberStatus.Joining, MemberStatus.WeaklyUp, MemberStatus.Up, MemberStatus.Leaving, MemberStatus.Exiting, MemberStatus.Removed)
+    Set(MemberStatus.Joining, MemberStatus.WeaklyUp, MemberStatus.Up, MemberStatus.Leaving, MemberStatus.Exiting,
+      MemberStatus.Removed)
 
   val k8sHealthChecks: Route =
     concat(

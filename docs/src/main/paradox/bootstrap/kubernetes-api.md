@@ -18,13 +18,13 @@ The following configuration is required:
 * Set `akka.management.cluster.bootstrap.contact-point-discovery.discovery-method` to `akka.discovery.kubernetes-api`
 * Set `akka.discovery.kubernetes-api.pod-label-selector` to a label selector that will match the Akka pods
 
-@@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-api/src/main/resources/application.conf) { #discovery-config } 
+@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-api/src/main/resources/application.conf) { #discovery-config } 
 
 The lookup needs to know which namespace to look in. This can be configured with
 `akka.discovery.kubernetes-api.pod-namespace` or it will be picked up via the `NAMESPACE` environment
 variable that can be injected into the pod via:
 
-@@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml)  { #namespace }
+@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml)  { #namespace }
 
 If running he example in [minikube](https://github.com/kubernetes/minikube) make sure you have installed and is running:
 

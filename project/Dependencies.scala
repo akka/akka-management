@@ -15,6 +15,7 @@ object Dependencies {
     )
   )
 
+
   private object DependencyGroups {
     val AkkaActor = Seq(
       "com.typesafe.akka" %% "akka-actor"                         % AkkaVersion
@@ -50,6 +51,12 @@ object Dependencies {
 
     val AkkaHttpTesting = Seq(
       "com.typesafe.akka" %% "akka-http-testkit"                  % AkkaHttpVersion % "test"
+    )
+
+    // For demos
+    val Logging = Seq(
+      "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
+      "ch.qos.logback" % "logback-classic" % "1.2.3"
     )
   }
 
@@ -120,6 +127,7 @@ object Dependencies {
       DependencyGroups.AkkaHttp ++
       DependencyGroups.AkkaTesting
   )
+
   val ClusterHttp = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaSharding ++
@@ -138,6 +146,10 @@ object Dependencies {
       DependencyGroups.AkkaHttpTesting ++ Seq(
       "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test"
     )
+  )
+
+  val BootstrapDemoKubernetesApi = Seq(
+    libraryDependencies ++= DependencyGroups.Logging
   )
 
 }

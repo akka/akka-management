@@ -28,7 +28,7 @@ spec:
           containerPort: 2552
           protocol: TCP
         # akka-management bootstrap
-        # must match up with contact-point-discovery.port-name for boostrap
+        # must match up with contact-point-discovery.port-name for bootstrap
         - name: management
           containerPort: 8558
           protocol: TCP

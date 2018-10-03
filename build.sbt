@@ -18,6 +18,7 @@ lazy val `akka-management-root` = project
     `akka-discovery-marathon-api`,
     `akka-management`,
     `bootstrap-demo-aws-api-ec2-tag-based`,
+    `bootstrap-demo-local`,
     `bootstrap-demo-aws-api-ecs`,
     `bootstrap-demo-kubernetes-api`,
     `bootstrap-demo-kubernetes-dns`,
@@ -176,7 +177,8 @@ lazy val `bootstrap-demo-kubernetes-api` = project
   .settings(
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true
+    whitesourceIgnore := true,
+    Dependencies.BootstrapDemoKubernetesApi
   ).dependsOn(
     `akka-management`,
     `cluster-http`,
