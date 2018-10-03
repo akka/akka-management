@@ -298,8 +298,6 @@ lazy val docs = project
         if (isSnapshot.value) Paths.get((target in paradox in Compile).value.getPath).relativize(Paths.get(unidocTask.value.head.getPath)).toString
         else s"http://developer.lightbend.com/docs/api/akka-management/${version.value}"
       },
-      "snip.code.base_dir" -> (sourceDirectory in Test).value.getAbsolutePath,
-      "snip.management.base_dir" -> (baseDirectory in ThisBuild).value.getAbsolutePath,
       "scaladoc.version" -> "2.12.0"
     )
   )

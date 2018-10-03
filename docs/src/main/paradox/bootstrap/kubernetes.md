@@ -30,7 +30,7 @@ with cluster singletons as they are typically removed last and then the cluster 
 
 Health checks can be used check a node is part of a cluster e.g.
 
-@@snip [health-checks]($management$/bootstrap-demo/kubernetes-dns/src/main/scala/akka/cluster/bootstrap/KubernetesHealthChecks.scala)  { #health }
+@@snip [health-checks](/bootstrap-demo/kubernetes-dns/src/main/scala/akka/cluster/bootstrap/KubernetesHealthChecks.scala)  { #health }
 
 This will mean that a pod won't get traffic until it is part of a cluster, which is important
 if either `ClusterSharding` or `ClusterSingleton` are used.
@@ -44,7 +44,7 @@ as there is no use case for load balancing across management/remoting ports.
 Set endpoints to be published before readiness checks pass as these endpoints are required to bootstrap the Cluster
 and make the application ready. 
 
-@@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #headless }
+@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #headless }
 
 Note there are currently two ways to specify that addresses should be published if not ready, the initial way via an annotation 
 `service.alpha.kubernetes.io/tolerate-unready-endpoints` and via the new officially supported way as the property `publishNotReadyAddresses`.
@@ -55,7 +55,7 @@ bootstrap to find them and form the cluster thus making them ready.
 
 Then to configure your application:
 
-@@snip [application.conf]($management$/bootstrap-demo/kubernetes-dns/src/main/resources/application.conf)  
+@@snip [application.conf](/bootstrap-demo/kubernetes-dns/src/main/resources/application.conf)  
 
 The same configuration will work for any environment that has an SRV record for your Akka Clustered application. 
 
@@ -64,7 +64,7 @@ The same configuration will work for any environment that has an SRV record for 
 For production traffic e.g. HTTP use a regular service or an alternative ingress mechanism. 
 With an appropriate readiness check this results in traffic not being routed until bootstrap has finished.
 
-@@snip [akka-cluster.yml]($management$/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #public }
+@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #public }
 
 This will result in a ClusterIP being created and only added to `Endpoints` when the pods are `ready`
 

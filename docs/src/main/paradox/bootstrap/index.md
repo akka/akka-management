@@ -62,10 +62,10 @@ Gradle
 Akka management must be started as well as the bootstrap process: 
 
 Scala
-:  @@snip [CompileOnly.scala]($management$/cluster-bootstrap/src/test/scala/doc/akka/management/cluster/bootstrap/ClusterBootstrapCompileOnly.scala) { #start }
+:  @@snip [CompileOnly.scala](/cluster-bootstrap/src/test/scala/doc/akka/management/cluster/bootstrap/ClusterBootstrapCompileOnly.scala) { #start }
 
 Java
-:  @@snip [CompileOnly.java]($management$/cluster-bootstrap/src/test/java/jdoc/akka/management/cluster/bootstrap/ClusterBootstrapCompileOnly.java) { #start }
+:  @@snip [CompileOnly.java](/cluster-bootstrap/src/test/java/jdoc/akka/management/cluster/bootstrap/ClusterBootstrapCompileOnly.java) { #start }
    
    
 Ensure that `seed-nodes` is not present in configuration and that `start()` is called on every node.

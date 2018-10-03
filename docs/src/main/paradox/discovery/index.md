@@ -16,28 +16,28 @@ Typed instead. Since it provides a more fine-tuned towards Actors mechanism of d
 Discovery is done in a mechanism agnostic way, where mechanisms are things like DNS, Consul and configuration.
 
 Scala
-:  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #loading }
+:  @@snip [CompileOnlySpec.scala](/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #loading }
 
 Java
-:  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #loading }
+:  @@snip [CompileOnlyTest.java](/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #loading }
 
 A `Lookup` contains a mandatory `serviceName` and an optional `portName` and `protocol`. How these are interpreted is discovery mechanism dependent e.g.
 DNS does an A/AAAA record if any of the fields are missing and an SRV query for a full look up:
 
 Scala
-:  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #simple }
+:  @@snip [CompileOnlySpec.scala](/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #simple }
 
 Java
-:  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #simple }
+:  @@snip [CompileOnlyTest.java](/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #simple }
 
 
 `portName` and `protocol` are optional and their meaning is interpreted by the mechanism.
 
 Scala
-:  @@snip [CompileOnlySpec.scala]($management$/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #full }
+:  @@snip [CompileOnlySpec.scala](/discovery/src/test/scala/doc/akka/discovery/CompileOnlySpec.scala) { #full }
 
 Java
-:  @@snip [CompileOnlyTest.java]($management$/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #full }
+:  @@snip [CompileOnlyTest.java](/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #full }
 
 Port can be used when a service opens multiple ports e.g. a HTTP port and an Akka remoting port.
 
