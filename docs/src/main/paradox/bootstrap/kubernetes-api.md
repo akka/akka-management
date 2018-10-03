@@ -53,7 +53,7 @@ $ sbt shell
 Once the image is published, deploy it onto the kubernetes cluster:
 
 ```
-kubectl apply -f kuberbetes/akka-cluster.yml
+kubectl apply -f kubernetes/akka-cluster.yml
 ```
 
 This will create and start running a number of Pods hosting the application. The application nodes will proceed with 
