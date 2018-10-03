@@ -15,7 +15,7 @@ The following Kubernetes resources are created:
 
 The following configuration is required:
 
-* Set `akka.discovery.method` to `kubernetes-api`
+* Set `akka.management.cluster.bootstrap.contact-point-discovery.discovery-method` to `akka.discovery.kubernetes-api`
 * Set `akka.discovery.kubernetes-api.pod-label-selector` to a label selector that will match the Akka pods
 
 @@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-api/src/main/resources/application.conf) { #discovery-config } 

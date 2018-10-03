@@ -72,8 +72,8 @@ Ensure that `seed-nodes` is not present in configuration and that `start()` is c
 
 The following configuration is required, more details for each and additional configuration can be found in [reference.conf](https://github.com/akka/akka-management/blob/master/cluster-bootstrap/src/main/resources/reference.conf):
 
-* `akka.management.cluster.bootstrap.contact-point-discovery` set to the name to lookup in service discovery
-* `akka.discovery.method` set to the intended service discovery mechanism
+* `akka.management.cluster.bootstrap.contact-point-discovery.service-name` set to the name to lookup in service discovery. If unset, it will be derived from the `ActorSystem` name.
+* `akka.management.cluster.bootstrap.contact-point-discovery.discovery-method` set to the intended service discovery mechanism. If unset, falls back to the system-wide default from `akka.discovery.method`.
 
 
 ## How it works
