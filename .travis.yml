@@ -1,5 +1,6 @@
 sudo: required
 dist: xenial
+language: scala
 
 jdk:
   - oraclejdk8
