@@ -35,10 +35,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
 
         val leader = readView.leader.map(_.toString)
 
-        val oldest = thisDcMembers
-          .sorted(Member.ageOrdering)
-          .headOption // we are only interested in the oldest one that is still Up
-          .map(_.address.toString)
+        val oldest = if (thisDcMembers.isEmpty) None else Some(thisDcMembers.min(Member.ageOrdering).address.toString)
 
         ClusterMembers(s"${readView.selfAddress}", members, unreachable, leader, oldest, oldestPerRole(thisDcMembers))
       }

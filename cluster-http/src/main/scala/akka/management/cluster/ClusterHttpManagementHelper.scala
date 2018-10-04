@@ -7,7 +7,7 @@ import akka.cluster.Member
 
 object ClusterHttpManagementHelper {
   def memberToClusterMember(m: Member): ClusterMember =
-    ClusterMember(s"${m.uniqueAddress.address}", s"${m.uniqueAddress.longUid}", s"${m.status}", m.roles)
+    ClusterMember(s"${m.address}", s"${m.uniqueAddress.longUid}", s"${m.status}", m.roles)
 
   private[akka] def oldestPerRole(thisDcMembers: Seq[Member]): Map[String, String] = {
     val roles: Set[String] = thisDcMembers.flatMap(_.roles).toSet
@@ -15,12 +15,12 @@ object ClusterHttpManagementHelper {
   }
 
   private def oldestForRole(cluster: Seq[Member], role: String): String = {
-    cluster
-      .filter(_.roles.contains(role))
-      .sorted(Member.ageOrdering)
-      .headOption
-      .map(_.address.toString)
-      .getOrElse("<unknown>")
+    val forRole = cluster.filter(_.roles.contains(role))
+
+    if (forRole.isEmpty)
+      "<unknown>"
+    else
+      forRole.min(Member.ageOrdering).address.toString
 
   }
 }
