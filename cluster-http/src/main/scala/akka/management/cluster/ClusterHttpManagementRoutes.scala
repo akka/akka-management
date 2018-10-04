@@ -13,7 +13,9 @@ import akka.util.Timeout
 
 import scala.concurrent.duration._
 
-object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
+object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
+  import ClusterHttpManagementHelper._
+
   import akka.http.scaladsl.server.Directives._
 
   private def routeGetMembers(cluster: Cluster) =
@@ -27,14 +29,18 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementHelper {
             ClusterUnreachableMember(s"${subject.address}", observers.toSeq.sorted.map(m ⇒ s"${m.address}"))
         }
 
+        val thisDcMembers =
+          cluster.state.members.toSeq.filter(
+              node => node.status == MemberStatus.Up && node.dataCenter == cluster.selfDataCenter)
+
         val leader = readView.leader.map(_.toString)
-        val oldest = cluster.state.members.toSeq
-          .filter(node => node.status == MemberStatus.Up && node.dataCenter == cluster.selfDataCenter)
+
+        val oldest = thisDcMembers
           .sorted(Member.ageOrdering)
           .headOption // we are only interested in the oldest one that is still Up
           .map(_.address.toString)
 
-        ClusterMembers(s"${readView.selfAddress}", members, unreachable, leader, oldest)
+        ClusterMembers(s"${readView.selfAddress}", members, unreachable, leader, oldest, oldestPerRole(thisDcMembers))
       }
     }
 

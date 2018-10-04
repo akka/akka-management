@@ -13,7 +13,8 @@ final case class ClusterMembers(selfNode: String,
                                 members: Set[ClusterMember],
                                 unreachable: Seq[ClusterUnreachableMember],
                                 leader: Option[String],
-                                oldest: Option[String])
+                                oldest: Option[String],
+                                oldestPerRole: Map[String, String])
 final case class ClusterHttpManagementMessage(message: String)
 final case class ShardRegionInfo(shardId: String, numEntities: Int)
 final case class ShardDetails(regions: Seq[ShardRegionInfo])
@@ -31,13 +32,8 @@ object ClusterHttpManagementOperation {
 trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val clusterUnreachableMemberFormat = jsonFormat2(ClusterUnreachableMember)
   implicit val clusterMemberFormat = jsonFormat4(ClusterMember)
-  implicit val clusterMembersFormat = jsonFormat5(ClusterMembers)
+  implicit val clusterMembersFormat = jsonFormat6(ClusterMembers)
   implicit val clusterMemberMessageFormat = jsonFormat1(ClusterHttpManagementMessage)
   implicit val shardRegionInfoFormat = jsonFormat2(ShardRegionInfo)
   implicit val shardDetailsFormat = jsonFormat1(ShardDetails)
-}
-
-trait ClusterHttpManagementHelper extends ClusterHttpManagementJsonProtocol {
-  def memberToClusterMember(m: Member): ClusterMember =
-    ClusterMember(s"${m.uniqueAddress.address}", s"${m.uniqueAddress.longUid}", s"${m.status}", m.roles)
 }
