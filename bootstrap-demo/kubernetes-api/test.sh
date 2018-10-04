@@ -14,6 +14,7 @@ do
   kubectl get pods
   [ `kubectl get pods | grep Running | wc -l` -eq 2 ] && break
   sleep 4
+  TRY=$[$TRY+1]
 done
 
 if [ $TRY -eq 10 ]
@@ -32,6 +33,7 @@ do
   kubectl logs $POD | grep MemberUp || true
   [ `kubectl logs $POD | grep MemberUp | wc -l` -eq 2 ] && break
   sleep 3
+  TRY=$[$TRY+1]
 done
 
 if [ $TRY -eq 10 ]
