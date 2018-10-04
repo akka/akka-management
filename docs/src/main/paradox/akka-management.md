@@ -33,7 +33,7 @@ it is ready and wants to start joining an existing cluster.
 
 ## Dependencies
 
-Akka management requires Akka 2.5 or later.
+Akka management requires Akka 2.5 or later.  Akka Cluster Bootstrap with DNS service discovery requires Akka 2.5.14 or later.
 
 The main Akka Management dependency is called `akka-management`. By itself however it does not provide any capabilities,
 and you have to combine it with the management extension libraries that you want to make use of (e.g. cluster http management,

@@ -36,6 +36,8 @@ spec:
           httpGet:
             path: /alive
             port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 15
         env:
         ports:
         - containerPort: 8558
