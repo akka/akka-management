@@ -14,10 +14,7 @@ import com.typesafe.config.ConfigFactory
 
 object DemoApp extends App {
 
-  implicit val system = ActorSystem("Appka", ConfigFactory.parseString("""
-       akka.loglevel = INFO
-       akka.actor.provider = cluster
-    """).withFallback(ConfigFactory.load()))
+  implicit val system = ActorSystem("Appka")
 
   import system.log
   import system.dispatcher
