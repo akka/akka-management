@@ -1,35 +1,8 @@
 <a id="akka-management"></a>
 # Akka Management
 
-Akka Management is the central module of all the management utilities that pulls them all together.
-
-
-The operations exposed are comparable to the Command Line Management tool or the JMX interface `akka-cluster` provides.
-
-## Akka management architecture overview 
-
-Akka management serves as the central piece that pulls together various Akka management extensions
-and actually exposes them as simple HTTP endpoints. 
-
-For example, the "Cluster HTTP Management" module exposes HTTP routes that can be used to monitor,
-and even trigger joining/leaving/downing decisions via HTTP calls to these routes. The routes and
-logic for these are implemented inside the `akka-management-cluster-http`, however that module serves
-as a "plugin" to `akka-management` itself. 
-
-Libraries (referred to as "management extensions") can contribute to the exposed HTTP routes by 
-appending to the `akka.management.http.route-providers` list. The core `AkkaManagement` extension
-then collects all the routes and serves them together under the management HTTP server. This is in order
-to avoid having to start an additional HTTP server for each additional extension, and also, it allows
-easy extension of routes served by including libraries that offer new capabilities (such as health-checks or
-cluster information etc).
-
-Management extensions whose nature is "active" (as in, they "do something proactively") should not be
-started automatically, but instead be started manually by the user. One example of that is the Cluster
-Bootstrap, which on one hand does contributes routes to Akka Management, however the bootstraping process
-does not start unless `ClusterBootstrap().start()` is invoked, which allows the user to decide when exactly
-it is ready and wants to start joining an existing cluster.
-
-![project structure](images/structure.png)
+Akka Management is the core module of the management utilities that provides a central HTTP endpoint for Akka
+management extensions.
 
 ## Dependencies
 
@@ -37,7 +10,7 @@ Akka management requires Akka 2.5 or later.
 
 The main Akka Management dependency is called `akka-management`. By itself however it does not provide any capabilities,
 and you have to combine it with the management extension libraries that you want to make use of (e.g. cluster http management,
-or cluster bootstrap). This design choice was made to make users able to include only the minimal set of features that they 
+or cluster bootstrap). This design choice was made to make users able to include only the minimal set of features that they
 actually want to use (and load) in their project.
 
 @@dependency[sbt,Gradle,Maven] {
@@ -50,7 +23,7 @@ And in addition to that, include all of the dependencies for the features you'd 
 like `akka-management-bootstrap` etc. Refer to each extensions documentation page to learn about how
 to configure and use it.
 
-## Basic usage
+## Basic Usage
 
 Remember that Akka Management does not start automatically and the routes will only be exposed once you trigger:
 
@@ -63,8 +36,8 @@ Java
 :   ```java
     AkkaManagement.get(system).start();
     ```
-    
-This is in order to allow users to prepare anything else they might want to prepare or start before exposing routes for 
+
+This is in order to allow users to prepare anything else they might want to prepare or start before exposing routes for
 the bootstrap joining process and other purposes.
 
 
@@ -117,21 +90,21 @@ Java
     AkkaManagement.get(actorSystem2).start();
     ```
 
-When running akka nodes behind NATs or inside docker containers in bridge mode, 
+When running akka nodes behind NATs or inside docker containers in bridge mode,
 it's necessary to set different hostname and port number to bind for the HTTP Server for Http Cluster Management:
 
 application.conf
 :   ```hocon
   // Get hostname from environmental variable HOST
-  akka.management.http.hostname = ${HOST} 
+  akka.management.http.hostname = ${HOST}
   akka.management.port = 8558
   // Get port from environmental variable PORT_8558 if it's defined, otherwise 8558
   akka.management.port = ${?PORT_8558}
   akka.management.http.bind-hostname = 0.0.0.0
   akka.management.http.bind-port = 8558
-    ```  
+    ```
 
-It is also possible to modify the base path of the API, by setting the appropriate value in application.conf: 
+It is also possible to modify the base path of the API, by setting the appropriate value in application.conf:
 
 application.conf
 :   ```hocon
@@ -147,7 +120,9 @@ base path. For example, when using Akka Cluster Management routes the members in
 
 @@@ note
 
-HTTPS is not enabled by default as additional configuration from the developer is required This module does not provide security by default. It's the developer's choice to add security to this API.
+HTTPS is not enabled by default as additional configuration from the developer is required This module does not provide security by default.
+It's the developer's choice to add security to this API. It is generally advisable not to expose management endpoints
+on the internet.
 
 @@@
 
@@ -184,12 +159,12 @@ Java
     management.setHttpsContext(https);
     management.start();
     ```
-    
+
 You can also refer to [AkkaManagementHttpEndpointSpec](https://github.com/akka/akka-management/blob/119ad1871c3907c2ca528720361b8ccb20234c55/management/src/test/scala/akka/management/http/AkkaManagementHttpEndpointSpec.scala#L124-L148) where a full example configuring the HTTPS context is shown.
 
 ### Enabling Basic Authentication
 
-To enable Basic Authentication you need to provide an authenticator object before starting the management extension. 
+To enable Basic Authentication you need to provide an authenticator object before starting the management extension.
 You can find more information in @extref:[Authenticate Basic Async directive](akka-http-docs:scala/http/routing-dsl/directives/security-directives/authenticateBasicAsync)
 
 Scala
@@ -207,12 +182,12 @@ Scala
     // ...
     val management = AkkaManagement(system)
     management.setAsyncAuthenticator(myUserPassAuthenticator)
-    management.start()  
+    management.start()
     ```
 
 Java
 :   ```java
-    final Function<Optional<ProvidedCredentials>, CompletionStage<Optional<String>>> 
+    final Function<Optional<ProvidedCredentials>, CompletionStage<Optional<String>>>
       myUserPassAuthenticator = opt -> {
         if (opt.filter(c -> (c != null) && c.verify("p4ssw0rd")).isPresent()) {
           return CompletableFuture.completedFuture(Optional.of(opt.get().identifier()));
@@ -220,22 +195,22 @@ Java
           return CompletableFuture.completedFuture(Optional.empty());
         }
       };
-    // ... 
+    // ...
     management.setAsyncAuthenticator(myUserPassAuthenticator);
     management.start();
     ```
 
 @@@ note
-  You can combine the two security options in order to enable HTTPS as well as basic authentication. 
+  You can combine the two security options in order to enable HTTPS as well as basic authentication.
   In order to do this, invoke both `setAsyncAuthenticator` as well as `setHttpsContext` *before* calling `start()`.
 @@@
 
 ## Stopping Akka Management
 
 In a dynamic environment you might stop instances of Akka Management, for example if you don't want to free up resources
-taken by the HTTP server serving the Management routes. 
+taken by the HTTP server serving the management routes.
 
-You can do so by calling `stop()` on @scaladoc[AkkaManagement](akka.management.http.AkkaManagement). 
+You can do so by calling `stop()` on @scaladoc[AkkaManagement](akka.management.http.AkkaManagement).
 This method return a `Future[Done]` to inform when the server has been stopped.
 
 Scala
@@ -255,3 +230,26 @@ Java
     httpClusterManagement.stop();
     ```
 
+## Developing Extensions
+
+This project provides a set of management extensions. If you want to write third-party extensions to Akka management here
+are few pointers about how it all works together.
+
+The `akka-management` module provides the central HTTP endpoint to which extensions can register themselves.
+
+For example, the "Cluster HTTP Management" module exposes HTTP routes that can be used to monitor,
+and even trigger joining/leaving/downing decisions via HTTP calls to these routes. The routes and
+logic for these are implemented inside the `akka-management-cluster-http`.
+
+An extension can contribute to the exposed HTTP routes by appending to the `akka.management.http.route-providers` list in
+its own `reference.conf` (make sure to use `+=` instead of `=`). The core `AkkaManagement` extension
+then collects all the routes and serves them together under the management HTTP server. This is in order
+to avoid having to start an additional HTTP server for each additional extension, and also, it allows
+easy extension of routes served by including libraries that offer new capabilities (such as health-checks or
+cluster information etc).
+
+Management extensions whose nature is "active" (as in, they "do something proactively") should not be
+started automatically, but should instead be started manually by the user. One example of that is the Cluster
+Bootstrap, which on one hand does contributes routes to Akka Management, however the bootstrapping process
+does not start unless `ClusterBootstrap().start()` is invoked, which allows the user to decide when exactly
+it is ready and wants to start joining an existing cluster.

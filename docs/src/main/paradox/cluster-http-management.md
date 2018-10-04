@@ -1,14 +1,14 @@
 <a id="http-cluster-management"></a>
 # Cluster Http Management
 
-Akka Management Cluster HTTP is a Management extension that allows you interaction with an `akka-cluster` through an HTTP interface. 
+Akka Management Cluster HTTP is a Management extension that allows you interaction with an `akka-cluster` through an HTTP interface.
 This management extension exposes different operations to manage nodes in a cluster.
 
 The operations exposed are comparable to the Command Line Management tool or the JMX interface `akka-cluster` provides.
 
 ## Dependencies
 
-The Akka Cluster HTTP Management is a separate jar file. 
+The Akka Cluster HTTP Management is a separate jar file.
 Make sure to include it along with the core akka-management library in your project:
 
 
@@ -98,7 +98,7 @@ In the paths `address` is also allowed to be provided without the protocol prefi
        "leader: "akka.tcp://test@10.10.10.10:1111",
        "oldest: "akka.tcp://test@10.10.10.10:1111"
      }
-     
+
 Where `oldest` is the oldest node in the current datacenter.
 
 ### Post /cluster/members responses

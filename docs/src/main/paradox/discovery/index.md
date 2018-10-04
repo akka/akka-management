@@ -462,7 +462,7 @@ character. For example:
 
 * By default, this module is configured for clusters with one Akka node per EC2 instance: it
   separates cluster members solely by their EC2 IP address. However, we can change the default configuration to indicate multiple ports per discovered EC2 IP, and achieve
-a setup with multiple Akka nodes (i.e. multiple JVMs) per EC2 instance. 
+a setup with multiple Akka nodes (i.e. multiple JVMs) per EC2 instance.
     ```
     akka {
       discovery {
