@@ -29,7 +29,7 @@ TRY=0
 until [ $TRY -ge 10 ]
 do
   echo "Checking for MemberUp logging..."
-  kubectl logs $POD | grep MemberUp
+  kubectl logs $POD | grep MemberUp || true
   [ `kubectl logs $POD | grep MemberUp | wc -l` -eq 2 ] && break
   sleep 3
 done
