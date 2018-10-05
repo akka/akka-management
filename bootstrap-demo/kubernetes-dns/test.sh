@@ -10,7 +10,7 @@ for i in {1..10}
 do
   echo "Waiting for pods to get ready..."
   kubectl get pods
-  [ `kubectl get pods | grep Running | wc -l` -eq 2 ] && break
+  [ `kubectl get pods | grep Running | wc -l` -eq 3 ] && break
   sleep 4
 done
 
@@ -26,12 +26,12 @@ for i in {1..10}
 do
   echo "Checking for MemberUp logging..."
   kubectl logs $POD | grep MemberUp || true
-  [ `kubectl logs $POD | grep MemberUp | wc -l` -eq 2 ] && break
+  [ `kubectl logs $POD | grep MemberUp | wc -l` -eq 3 ] && break
   sleep 3
 done
 
 if [ $i -eq 10 ]
 then
-  echo "No 2 MemberUp log events found"
+  echo "No 3 MemberUp log events found"
   exit -1
 fi
