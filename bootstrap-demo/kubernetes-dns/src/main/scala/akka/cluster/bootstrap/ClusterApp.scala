@@ -41,12 +41,11 @@ object ClusterApp {
     system.log.info(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
   }
 
-}
+  class ClusterWatcher extends Actor with ActorLogging {
+    implicit val cluster = Cluster(context.system)
 
-class ClusterWatcher extends Actor with ActorLogging {
-  implicit val cluster = Cluster(context.system)
-
-  override def receive = {
-    case msg ⇒ log.info(s"Cluster ${cluster.selfAddress} >>> " + msg)
+    override def receive = {
+      case msg ⇒ log.info(s"Cluster ${cluster.selfAddress} >>> " + msg)
+    }
   }
 }
