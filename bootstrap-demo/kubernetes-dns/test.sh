@@ -20,13 +20,13 @@ then
   exit -1
 fi
 
-POD=$(kubectl get pods | grep appka | grep Running | head -n1 | awk '{ print $1 }')
+POD=$(kubectl get pods | grep demo-kubernetes-dns | grep Running | head -n1 | awk '{ print $1 }')
 
 for i in {1..10}
 do
   echo "Checking for MemberUp logging..."
-  kubectl logs $POD | grep MemberUp || true
-  [ `kubectl logs $POD | grep MemberUp | wc -l` -eq 3 ] && break
+  kubectl logs $POD bootstrap-demo-kubernetes-dns | grep MemberUp || true
+  [ `kubectl logs $POD bootstrap-demo-kubernetes-dns | grep MemberUp | wc -l` -eq 3 ] && break
   sleep 3
 done
 
