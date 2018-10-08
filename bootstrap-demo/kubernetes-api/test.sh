@@ -33,5 +33,7 @@ done
 if [ $i -eq 10 ]
 then
   echo "No 2 MemberUp log events found"
+  echo "=============================="
+  kubectl logs $POD
   exit -1
 fi
