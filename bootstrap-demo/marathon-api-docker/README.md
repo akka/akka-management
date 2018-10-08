@@ -20,7 +20,7 @@ see `bootstrap-joining-demo/marathon-api-docker/src/main/resources/application.c
 > the application ActorSystem name.
 
 The second place is the application description:
-see `bootstrap-joining-demo/marathon-api-docker/marathon/marathon-api-docker-app.json`:
+see `marathon/marathon-api-docker-app.json`:
 ```
   ...
   "labels": {
@@ -36,7 +36,7 @@ see `bootstrap-joining-demo/marathon-api-docker/marathon/marathon-api-docker-app
 After Discovery mechanism found potential contact points by the label it needs to find Akka HTTP management port.
 
 It uses `app-port-name`:
-see `bootstrap-joining-demo/marathon-api-docker/src/main/resources/application.conf`:
+see `src/main/resources/application.conf`:
 ```
 ...
 akka.discovery.marathon-api.app-port-name = "akkamgmthttp"
@@ -44,7 +44,7 @@ akka.discovery.marathon-api.app-port-name = "akkamgmthttp"
 ``` 
 
 it should match with Akka HTTP management port name in Marathon application description docker port declaration:
-see `bootstrap-joining-demo/marathon-api-docker/marathon/marathon-api-docker-app.json`:
+see `marathon/marathon-api-docker-app.json`:
 ```
 ...
   "container": {
@@ -78,7 +78,7 @@ How to Deploy
 
 Use next template for Marathon application descriptor. 
 
-`bootstrap-joining-demo/marathon-api-docker/marathon/marathon-api-docker-app.json`
+`marathon/marathon-api-docker-app.json`
 
 > NOTE: Make sure to substitute $DOCKER_USER in it to point to your docker hub repo.
 

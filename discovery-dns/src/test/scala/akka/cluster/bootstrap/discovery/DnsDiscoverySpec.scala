@@ -85,20 +85,15 @@ a-single IN A  192.168.2.20
 object DnsDiscoverySpec {
 
   val config = ConfigFactory.parseString("""
+     //#configure-dns
      akka {
-      loglevel = DEBUG
-      discovery {
-        method = akka-dns
-      }
-
-      io {
-        dns {
-          resolver = "async-dns"
-          async-dns {
-            nameservers = ["localhost"]
-          }
-        }
-      }
+       discovery.method = akka-dns
+       io.dns.resolver = async-dns
+     }
+     //#configure-dns
+     akka {
+       loglevel = DEBUG
+       io.dns.async-dns.nameservers = ["localhost"]
      }
     """)
 
@@ -114,7 +109,7 @@ class DnsDiscoverySpec
   "Dns Discovery" must {
 
     // Requires DNS server, see above
-    pending
+//    pending
 
     "work with SRV records" in {
       val discovery = ServiceDiscovery(system).discovery

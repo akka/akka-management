@@ -133,11 +133,13 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
 
         val sslContext: SSLContext = SSLContext.getInstance("TLS")
         sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
-        val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
-
+        //#start-akka-management-with-https-context
         val management = AkkaManagement(system)
+
+        val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
         management.setHttpsContext(https)
         management.start()
+        //#start-akka-management-with-https-context
 
         val httpRequest = HttpRequest(uri = "https://127.0.0.1:20001/")
         val responseGetMembersFuture = Http().singleRequest(httpRequest, connectionContext = https)

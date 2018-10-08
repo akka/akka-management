@@ -357,7 +357,7 @@ class ClusterHttpManagementRoutesSpec
         responseGetShardDetails.status shouldEqual StatusCodes.OK
         val unmarshaledGetShardDetails = Await.result(
           Unmarshal(responseGetShardDetails.entity).to[ShardDetails],
-          1.second
+          3.seconds
         )
         unmarshaledGetShardDetails shouldEqual ShardDetails(Seq(ShardRegionInfo("ShardId", 1)))
 

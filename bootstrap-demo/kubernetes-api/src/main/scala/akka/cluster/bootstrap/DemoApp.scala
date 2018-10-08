@@ -23,7 +23,9 @@ object DemoApp extends App {
 
   log.info(s"Started [$system], cluster.selfAddress = ${cluster.selfAddress}")
 
+  //#start-akka-management
   AkkaManagement(system).start()
+  //#start-akka-management
   ClusterBootstrap(system).start()
 
   cluster

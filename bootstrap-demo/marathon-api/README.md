@@ -7,7 +7,7 @@ Prerequisites
 * A DC/OS cluster with `dcos` command configured to point at it
 * SBT
 * Webserver to host build artifact
-* A terminal with working directory `bootstrap-joining-demo/marathon-api`
+* A terminal with working directory `bootstrap-demo/marathon-api`
 
 Step 1: Package the App
 -----------------------

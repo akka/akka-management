@@ -74,12 +74,7 @@ To use `akka-discovery-dns` depend on the library:
 And configure it to be used as discovery implementation in your `application.conf` and `async-dns` to be uses
 as the Akka DNS resolver:
 
-```
-akka {
-  discovery.method = akka-dns
-  io.dns.resolver = async-dns
-}
-```
+@@snip[application.conf](/discovery-dns/src/test/scala/akka/cluster/bootstrap/discovery/DnsDiscoverySpec.scala){ #configure-dns }
 
 From there on, you can use the generic API that hides the fact which discovery method is being used by calling::
 
