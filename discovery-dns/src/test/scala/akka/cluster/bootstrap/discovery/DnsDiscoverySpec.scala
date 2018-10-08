@@ -108,8 +108,8 @@ class DnsDiscoverySpec
 
   "Dns Discovery" must {
 
-    // Requires DNS server, see above
-//    pending
+    // Requires DNS server, see above, FIXME #337
+    pending
 
     "work with SRV records" in {
       val discovery = ServiceDiscovery(system).discovery
