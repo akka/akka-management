@@ -68,7 +68,7 @@ the bootstrap joining process and other purposes.
 
 You can configure hostname and port to use for the HTTP Cluster management by overriding the following:
 
-@@snip[application.conf](/bootstrap-demo/kubernetes-api/src/main/resources/application.conf){ #management-host-port }
+@@snip[application.conf](/management/src/test/scala/akka/management/http/AkkaManagementHttpEndpointSpec.scala){ #management-host-port }
 
 Note that the default value for hostname is `InetAddress.getLocalHost.getHostAddress`, which may or may not evaluate to
 `127.0.0.1`.
