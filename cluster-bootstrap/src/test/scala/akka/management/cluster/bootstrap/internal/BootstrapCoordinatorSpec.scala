@@ -4,106 +4,81 @@
 
 package akka.management.cluster.bootstrap.internal
 
-import java.util.concurrent.atomic.AtomicReference
+import java.net.InetAddress
 
 import akka.actor.{ ActorRef, ActorSystem, Props }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.{ Lookup, MockDiscovery }
+import akka.discovery.{ Lookup, ServiceDiscovery }
+import akka.http.scaladsl.model.Uri
+import akka.management.cluster.bootstrap.LowestAddressJoinDecider
+import org.scalatest.{ Matchers, WordSpecLike }
+import akka.testkit.{ TestKit, TestProbe }
+import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator.Protocol.InitiateBootstrapping
-import akka.management.cluster.bootstrap.{ ClusterBootstrapSettings, LowestAddressJoinDecider }
 import com.typesafe.config.ConfigFactory
-import org.scalatest.concurrent.Eventually
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
-import org.scalatest.time.{ Span, Seconds, Millis }
+import org.scalatest.concurrent.ScalaFutures
 
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration._
+import scala.concurrent.{ Future, Promise }
+import scala.concurrent.duration.FiniteDuration
+import scala.collection.immutable
 
-class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfterAll with Eventually {
-  val serviceName = "bootstrap-coordinator-test-service"
-  val system = ActorSystem("test", ConfigFactory.parseString(s"""
-      |akka.management.cluster.bootstrap {
-      | contact-point-discovery.service-name = $serviceName
-      |}
-    """.stripMargin).withFallback(ConfigFactory.load()))
-  val settings = ClusterBootstrapSettings(system.settings.config, system.log)
-  val joinDecider = new LowestAddressJoinDecider(system, settings)
+class BootstrapCoordinatorSpec extends TestKit(ActorSystem()) with WordSpecLike with Matchers with ScalaFutures {
+  "The BootstrapCoordinator" should {
+    "spawn a HttpContactPointBootstrap with the expected base URI" in {
+      val settings = new ClusterBootstrapSettings(system.settings.config, system.log)
 
-  val discovery = new MockDiscovery(system)
+      val baseUriPromise = Promise[Uri]()
 
-  override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(100, Millis))
-
-  "The bootstrap coordinator, when avoiding named port lookups" should {
-
-    "probe only on the Akka Management port" in {
-
-      MockDiscovery.set(
-        Lookup(serviceName, portName = None, protocol = Some("tcp")),
-        () =>
-          Future.successful(Resolved(serviceName,
-            List(
-              ResolvedTarget("host1", Some(2552), None),
-              ResolvedTarget("host1", Some(8558), None),
-              ResolvedTarget("host2", Some(2552), None),
-              ResolvedTarget("host2", Some(8558), None)
-            )))
-      )
-
-      val targets = new AtomicReference[List[ResolvedTarget]](Nil)
-      val coordinator = system.actorOf(Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
-        override def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
-          println(s"Resolving $contactPoint")
-          val targetsSoFar = targets.get
-          targets.compareAndSet(targetsSoFar, contactPoint +: targetsSoFar)
-          None
+      val staticDiscovery = new ServiceDiscovery {
+        override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+          lookup.serviceName should be("default")
+          Future.successful(Resolved("default",
+              immutable.Seq(ResolvedTarget("foo.example", None, Some(InetAddress.getByName("10.1.2.3"))))))
+        }
+      }
+      val coordinator = system.actorOf(Props(new BootstrapCoordinator(staticDiscovery,
+            new LowestAddressJoinDecider(system, settings), settings) {
+        override def getOrCreateChild(contactPoint: ServiceDiscovery.ResolvedTarget,
+                                      baseUri: Uri,
+                                      childActorName: String): ActorRef = {
+          baseUriPromise.success(baseUri)
+          TestProbe().ref
         }
       }))
       coordinator ! InitiateBootstrapping
-      eventually {
-        val targetsToCheck = targets.get
-        targetsToCheck.length should be >= (2)
-        targetsToCheck.map(_.host) should contain("host1")
-        targetsToCheck.map(_.host) should contain("host2")
-        targetsToCheck.flatMap(_.port).toSet should be(Set(8558))
-      }
+
+      baseUriPromise.future.futureValue should be(Uri("http://foo.example:8558"))
     }
 
-    "probe all hosts with fallback port" in {
-
-      MockDiscovery.set(
-        Lookup(serviceName, portName = None, protocol = Some("tcp")),
-        () =>
-          Future.successful(Resolved(serviceName,
-            List(
-              ResolvedTarget("host1", None, None),
-              ResolvedTarget("host1", None, None),
-              ResolvedTarget("host2", None, None),
-              ResolvedTarget("host2", None, None)
-            )))
+    "spawn a HttpContactPointBootstrap with the expected base URI when connecting by IP address" in {
+      val settings = new ClusterBootstrapSettings(
+        ConfigFactory
+          .parseString("akka.management.cluster.bootstrap.contact-point.connect-by-ip = yes")
+          .withFallback(system.settings.config),
+        system.log
       )
 
-      val targets = new AtomicReference[List[ResolvedTarget]](Nil)
-      val coordinator = system.actorOf(Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
-        override def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
-          println(s"Resolving $contactPoint")
-          val targetsSoFar = targets.get
-          targets.compareAndSet(targetsSoFar, contactPoint +: targetsSoFar)
-          None
+      val baseUriPromise = Promise[Uri]()
+
+      val staticDiscovery = new ServiceDiscovery {
+        override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+          lookup.serviceName should be("default")
+          Future.successful(Resolved("default",
+              immutable.Seq(ResolvedTarget("foo.example", None, Some(InetAddress.getByName("10.1.2.3"))))))
+        }
+      }
+      val coordinator = system.actorOf(Props(new BootstrapCoordinator(staticDiscovery,
+            new LowestAddressJoinDecider(system, settings), settings) {
+        override def getOrCreateChild(contactPoint: ServiceDiscovery.ResolvedTarget,
+                                      baseUri: Uri,
+                                      childActorName: String): ActorRef = {
+          baseUriPromise.success(baseUri)
+          TestProbe().ref
         }
       }))
       coordinator ! InitiateBootstrapping
-      eventually {
-        val targetsToCheck = targets.get
-        targetsToCheck.length should be >= (2)
-        targetsToCheck.map(_.host) should contain("host1")
-        targetsToCheck.map(_.host) should contain("host2")
-        targetsToCheck.flatMap(_.port).toSet shouldBe empty
-      }
-    }
-  }
 
-  override def afterAll(): Unit = {
-    Await.result(system.terminate(), 10.seconds)
-    super.afterAll()
+      baseUriPromise.future.futureValue should be(Uri("http://10.1.2.3:8558"))
+    }
   }
 }

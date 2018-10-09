@@ -153,8 +153,8 @@ object Dependencies {
       DependencyGroups.AkkaCluster ++
       DependencyGroups.AkkaDiscovery ++
       DependencyGroups.AkkaHttpCore ++
-      DependencyGroups.AkkaTesting ++
-      DependencyGroups.AkkaHttpTesting ++ Seq(
+      DependencyGroups.AkkaHttpTesting ++
+      DependencyGroups.AkkaTesting ++ Seq(
         "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % "test"
       )
   )

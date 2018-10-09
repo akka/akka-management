@@ -62,6 +62,8 @@ object KubernetesApiServiceDiscovery {
           } yield Some(port.containerPort)
       }
     } yield {
+      // This host may not be resolvable, for example when 'pods disabled' is configured
+      // https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#coredns-configmap-options
       val host = s"${ip.replace('.', '-')}.$podNamespace.pod.$podDomain"
       ResolvedTarget(
         host = host,
