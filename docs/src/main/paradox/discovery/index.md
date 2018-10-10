@@ -404,7 +404,7 @@ defined in `application.conf`, if you're using this module for bootstrapping you
 
 Screenshot of two tagged EC2 instances:
 
-![EC2 instances](images/discovery-aws-ec2-tagged-instances.png)
+![EC2 instances](../images/discovery-aws-ec2-tagged-instances.png)
 
 Note the tag **service** -> *products-api*. It is set on both instances.
 
@@ -500,7 +500,7 @@ ECS service itself.
 Screenshot of two ECS task instances (the service name is
 `liquidity-application`):
 
-![ECS task instances](images/discovery-aws-ecs-task-instances.png)
+![ECS task instances](../images/discovery-aws-ecs-task-instances.png)
 
 
 #### Dependencies and usage
