@@ -8,7 +8,7 @@ cd bootstrap-demo/kubernetes-api-java
 
 mvn -Dakka-management.version=$VERSION clean package docker:build
 
-kubectl apply -f bootstrap-demo/kubernetes-api-java/kubernetes/akka-cluster.yml
+kubectl apply -f kubernetes/akka-cluster.yml
 
 for i in {1..10}
 do
