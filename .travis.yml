@@ -24,6 +24,7 @@ jobs:
   - script: sbt -J-XX:ReservedCodeCacheSize=128m "+test"
   - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api/test.sh
   - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-dns/test.sh
+  - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api-java/test.sh
   - stage: whitesource
     script: sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
 

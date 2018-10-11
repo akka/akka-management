@@ -2,9 +2,13 @@
 
 set -exu
 
-sbt bootstrap-demo-kubernetes-api/docker:publishLocal
+VERSION=`sbt publishM2 | grep akka-management-cluster-bootstrap_2.12 | tail -1 | cut -d "/" -f 11`
 
-kubectl apply -f bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml
+cd bootstrap-demo/kubernetes-api-java
+
+mvn -Dakka-management.version=$VERSION clean package docker:build
+
+kubectl apply -f bootstrap-demo/kubernetes-api-java/kubernetes/akka-cluster.yml
 
 for i in {1..10}
 do
