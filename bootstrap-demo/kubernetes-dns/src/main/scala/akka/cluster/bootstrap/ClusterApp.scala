@@ -3,7 +3,9 @@
  */
 package akka.cluster.bootstrap
 
-import akka.actor.{ ActorSystem, PoisonPill, Props }
+import akka.actor.{ Actor, ActorLogging, ActorSystem, PoisonPill, Props }
+import akka.cluster.{ Cluster, ClusterEvent }
+import akka.cluster.ClusterEvent.ClusterDomainEvent
 import akka.cluster.singleton.{ ClusterSingletonManager, ClusterSingletonManagerSettings }
 import akka.http.scaladsl.Http
 import akka.management.AkkaManagement
@@ -24,6 +26,8 @@ object ClusterApp {
 
     system.actorOf(ClusterSingletonManager.props(Props[NoisySingleton], PoisonPill,
         ClusterSingletonManagerSettings(system)))
+    Cluster(system)
+      .subscribe(system.actorOf(Props[ClusterWatcher]), ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
 
     val k8sHealthChecks = new KubernetesHealthChecks(system)
 
@@ -37,4 +41,11 @@ object ClusterApp {
     system.log.info(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
   }
 
+  class ClusterWatcher extends Actor with ActorLogging {
+    implicit val cluster = Cluster(context.system)
+
+    override def receive = {
+      case msg ⇒ log.info(s"Cluster ${cluster.selfAddress} >>> " + msg)
+    }
+  }
 }

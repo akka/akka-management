@@ -23,6 +23,7 @@ jobs:
     - git diff --exit-code --color || { echo "[error] Unformatted code found. Please run 'test:compile' and commit the reformatted code."; false; }
   - script: sbt -J-XX:ReservedCodeCacheSize=128m "+test"
   - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api/test.sh
+  - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-dns/test.sh
   - stage: whitesource
     script: sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
 
