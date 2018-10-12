@@ -42,7 +42,7 @@ actually want to use (and load) in their project.
 
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.management"
-  artifact="akka-management_$scala.binaryVersion$"
+  artifact="akka-management_$scala.binary_version$"
   version="$version$"
 }
 
@@ -55,14 +55,10 @@ to configure and use it.
 Remember that Akka Management does not start automatically and the routes will only be exposed once you trigger:
 
 Scala
-:   ```scala
-    AkkaManagement(system).start()
-    ```
+:   @@snip[DemoApp.scala](/bootstrap-demo/kubernetes-api/src/main/scala/akka/cluster/bootstrap/DemoApp.scala){ #start-akka-management }
 
 Java
-:   ```java
-    AkkaManagement.get(system).start();
-    ```
+:   @@snip[DemoApp.java](/bootstrap-demo/kubernetes-api-java/src/main/java/akka/cluster/bootstrap/demo/DemoApp.java){ #start-akka-management }
     
 This is in order to allow users to prepare anything else they might want to prepare or start before exposing routes for 
 the bootstrap joining process and other purposes.
@@ -72,61 +68,22 @@ the bootstrap joining process and other purposes.
 
 You can configure hostname and port to use for the HTTP Cluster management by overriding the following:
 
-```
-akka.management.http.hostname = "127.0.0.1"
-akka.management.http.port = 8558
-```
+@@snip[application.conf](/management/src/test/scala/akka/management/http/AkkaManagementHttpEndpointSpec.scala){ #management-host-port }
 
 Note that the default value for hostname is `InetAddress.getLocalHost.getHostAddress`, which may or may not evaluate to
 `127.0.0.1`.
 
-In case you are running multiple cluster instances within the same JVM these configuration parameters should allow you
-to expose different cluster management APIs by modifying the port:
-
-Scala
-:   ```scala
-    //Config Actor system 1
-    akka.management.http.hostname = "127.0.0.1"
-    akka.management.http.port = 8558
-    ...
-    //Config Actor system 2
-    akka.management.http.hostname = "127.0.0.1"
-    akka.management.http.port = 20000
-    ...
-    val actorSystem1 = ActorSystem("as1", config1)
-    val actorSystem2 = ActorSystem("as2", config2)
-    ...
-    AkkaManagement(actorSystem1).start()
-    AkkaManagement(actorSystem2).start()
-    ```
-
-Java
-:   ```java
-    //Config Actor system 1
-    akka.management.http.hostname = "127.0.0.1"
-    akka.management.http.port = 8558
-    ...
-    //Config Actor system 2
-    akka.management.http.hostname = "127.0.0.1"
-    akka.management.http.port = 20000
-    ...
-    ActorSystem actorSystem1 = ActorSystem.create("as1", config1);
-    ActorSystem actorSystem2 = ActorSystem.create("as2", config2);
-    ...
-    AkkaManagement.get(actorSystem1).start();
-    AkkaManagement.get(actorSystem2).start();
-    ```
-
 When running akka nodes behind NATs or inside docker containers in bridge mode, 
-it's necessary to set different hostname and port number to bind for the HTTP Server for Http Cluster Management:
+it is necessary to set different hostname and port number to bind for the HTTP Server for Http Cluster Management:
 
 application.conf
 :   ```hocon
-  // Get hostname from environmental variable HOST
+  # Get hostname from environmental variable HOST
   akka.management.http.hostname = ${HOST} 
+  # Use port 8558 by default, but use environment variable PORT_8558 if it is defined
   akka.management.port = 8558
-  // Get port from environmental variable PORT_8558 if it's defined, otherwise 8558
   akka.management.port = ${?PORT_8558}
+  # Bind to 0.0.0.0:8558 'internally': 
   akka.management.http.bind-hostname = 0.0.0.0
   akka.management.http.bind-port = 8558
     ```  
@@ -154,36 +111,20 @@ HTTPS is not enabled by default as additional configuration from the developer i
 The non-secured usage of the module is as follows:
 
 Scala
-:   ```scala
-    AkkaManagement(system).start()
-    ```
+:   @@snip[DemoApp.scala](/bootstrap-demo/kubernetes-api/src/main/scala/akka/cluster/bootstrap/DemoApp.scala){ #start-akka-management }
 
 Java
-:   ```java
-    AkkaManagement.get(system).start();
-    ```
+:   @@snip[DemoApp.java](/bootstrap-demo/kubernetes-api-java/src/main/java/akka/cluster/bootstrap/demo/DemoApp.java){ #start-akka-management }
 
 ### Enabling TLS/SSL (HTTPS) for Cluster HTTP Management
 
 To enable SSL you need to provide an `SSLContext`. You can find more information about it in @extref[Server side https support](akka-http-docs:scala/http/server-side-https-support)
 
 Scala
-:   ```scala
-    val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
-    //...
-    val management = AkkaManagement(system)
-    management.setHttpsContext(https)
-    management.start()
-    ```
+:   @@snip[AkkaManagementHttpEndpointSpec.scala](/management/src/test/scala/akka/management/http/AkkaManagementHttpEndpointSpec.scala){ #start-akka-management-with-https-context }
 
 Java
-:   ```java
-    HttpsConnectionContext https = ConnectionContext.https(sslContext);
-    //...
-    AkkaManagement management = AkkaManagement.get(system);
-    management.setHttpsContext(https);
-    management.start();
-    ```
+:   @@snip[CodeExamples.java](/management/src/test/java/akka/management/http/CodeExamples.java){ #start-akka-management-with-https-context }
     
 You can also refer to [AkkaManagementHttpEndpointSpec](https://github.com/akka/akka-management/blob/119ad1871c3907c2ca528720361b8ccb20234c55/management/src/test/scala/akka/management/http/AkkaManagementHttpEndpointSpec.scala#L124-L148) where a full example configuring the HTTPS context is shown.
 
@@ -193,37 +134,10 @@ To enable Basic Authentication you need to provide an authenticator object befor
 You can find more information in @extref:[Authenticate Basic Async directive](akka-http-docs:scala/http/routing-dsl/directives/security-directives/authenticateBasicAsync)
 
 Scala
-:   ```scala
-    def myUserPassAuthenticator(credentials: Credentials): Future[Option[String]] =
-      credentials match {
-        case p @ Credentials.Provided(id) ⇒
-          Future {
-            // potentially
-            if (p.verify("p4ssw0rd")) Some(id)
-            else None
-          }
-        case _ ⇒ Future.successful(None)
-      }
-    // ...
-    val management = AkkaManagement(system)
-    management.setAsyncAuthenticator(myUserPassAuthenticator)
-    management.start()  
-    ```
+:   @@snip[CompileOnly.scala](/management/src/test/scala/akka/management/http/CompileOnly.scala){ #basic-auth }
 
 Java
-:   ```java
-    final Function<Optional<ProvidedCredentials>, CompletionStage<Optional<String>>> 
-      myUserPassAuthenticator = opt -> {
-        if (opt.filter(c -> (c != null) && c.verify("p4ssw0rd")).isPresent()) {
-          return CompletableFuture.completedFuture(Optional.of(opt.get().identifier()));
-        } else {
-          return CompletableFuture.completedFuture(Optional.empty());
-        }
-      };
-    // ... 
-    management.setAsyncAuthenticator(myUserPassAuthenticator);
-    management.start();
-    ```
+:  @@snip[CodeExamples.java](/management/src/test/java/akka/management/http/CodeExamples.java){ #basic-auth }
 
 @@@ note
   You can combine the two security options in order to enable HTTPS as well as basic authentication. 
@@ -239,19 +153,7 @@ You can do so by calling `stop()` on @scaladoc[AkkaManagement](akka.management.h
 This method return a `Future[Done]` to inform when the server has been stopped.
 
 Scala
-:   ```scala
-    val httpClusterManagement = AkkaManagement(system)
-    httpClusterManagement.start()
-    //...
-    val bindingFuture = httpClusterManagement.stop()
-    bindingFuture.onComplete { _ => println("It's stopped") }
-    ```
+:   @@snip[CompileOnly.java](/management/src/test/scala/akka/management/http/CompileOnly.scala) { #stopping }
 
 Java
-:   ```java
-    AkkaManagement httpClusterManagement = AkkaManagement.create(system);
-    httpClusterManagement.start();
-    //...
-    httpClusterManagement.stop();
-    ```
-
+:   @@snip[CodeExamples.java](/management/src/test/scala/akka/management/http/CompileOnly.scala) { #stopping }

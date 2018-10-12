@@ -69,7 +69,7 @@ $ sbt
 > universal:packageBin
 ```
 
-Now, in the `bootstrap-joining-demo/aws-api-ec2/target/universal` folder, you should have a
+Now, in the `bootstrap-demo/aws-api-ec2/target/universal` folder, you should have a
 `app.zip` file. 
 
 Step 7: Tag Instances

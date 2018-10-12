@@ -40,10 +40,12 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
       "not setting any security" in {
         val configClusterHttpManager = ConfigFactory.parseString(
           """
-            |akka.management.http.hostname = "127.0.0.1"
-            |akka.management.http.port = 8558
-            |akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutes"
-          """.stripMargin
+            //#management-host-port
+            akka.management.http.hostname = "127.0.0.1"
+            akka.management.http.port = 8558
+            //#management-host-port
+            akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutes"
+          """
         )
 
         implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
@@ -133,11 +135,13 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
 
         val sslContext: SSLContext = SSLContext.getInstance("TLS")
         sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
-        val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
-
+        //#start-akka-management-with-https-context
         val management = AkkaManagement(system)
+
+        val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
         management.setHttpsContext(https)
         management.start()
+        //#start-akka-management-with-https-context
 
         val httpRequest = HttpRequest(uri = "https://127.0.0.1:20001/")
         val responseGetMembersFuture = Http().singleRequest(httpRequest, connectionContext = https)
