@@ -33,5 +33,6 @@ done
 if [ $i -eq 10 ]
 then
   echo "No 3 MemberUp log events found"
+  kubectl logs $POD bootstrap-demo-kubernetes-dns
   exit -1
 fi
