@@ -10,7 +10,7 @@ a port name to identify Akka HTTP management port:
 
 Label need to be defined in two places. 
 First place is the application configuration:
-see `bootstrap-joining-demo/marathon-api-docker/src/main/resources/application.conf`:
+see `bootstrap-demo/marathon-api-docker/src/main/resources/application.conf`:
 ```
     akka.management.cluster.bootstrap.contact-point-discovery.effective-name = "marathon-api-docker-app-label"
 ```
@@ -71,7 +71,7 @@ How to Build
 
 2. In order to build and publish this example into your docker hub repo run next command from `akka-management` work folder
 
-`sbt bootstrap-joining-demo-marathon-api-docker/docker:publish`
+`sbt bootstrap-demo-marathon-api-docker/docker:publish`
 
 How to Deploy
 -------------

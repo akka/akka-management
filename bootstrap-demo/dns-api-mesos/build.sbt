@@ -1,5 +1,5 @@
 enablePlugins(JavaAppPackaging)
-name := "bootstrap-joining-demo-dns-api"
+name := "bootstrap-demo-dns-api"
 
 scalaVersion := "2.12.4"
 
