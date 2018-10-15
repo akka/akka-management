@@ -15,7 +15,6 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.FileIO
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 import com.typesafe.sslconfig.ssl.TrustStoreConfig
-import java.nio.file.Paths
 
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
