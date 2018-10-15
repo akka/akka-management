@@ -60,8 +60,16 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
       port = None,
       address = Some(InetAddress.getByName("10.0.0.2"))
     )
-    val contactB = ResolvedTarget(host = "b", port = None, address = None)
-    val contactC = ResolvedTarget(host = "c", port = None, address = None)
+    val contactB = ResolvedTarget(
+      host = "10-0-0-3.default.pod.cluster.local",
+      port = None,
+      address = Some(InetAddress.getByName("10.0.0.3"))
+    )
+    val contactC = ResolvedTarget(
+      host = "10-0-0-4.default.pod.cluster.local",
+      port = None,
+      address = Some(InetAddress.getByName("10.0.0.4"))
+    )
 
     "sort ResolvedTarget by lowest hostname:port" in {
       List(ResolvedTarget("c", None, None), ResolvedTarget("a", None, None),
@@ -77,6 +85,21 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
         ResolvedTarget("a", Some(3), None)).sorted should ===(
         List(ResolvedTarget("a", Some(1), None), ResolvedTarget("a", Some(2), None),
           ResolvedTarget("a", Some(3), None))
+      )
+    }
+
+    /**
+     * This may happen for example in case of #344
+     */
+    "when addresses are known, sort deterministically on address even when names are inconsistent" in {
+      val addr1 = InetAddress.getByName("127.0.0.1")
+      val addr2 = InetAddress.getByName("127.0.0.2")
+      val addr3 = InetAddress.getByName("127.0.0.3")
+
+      List(ResolvedTarget("c", None, Some(addr2)), ResolvedTarget("x", None, Some(addr1)),
+        ResolvedTarget("b", None, Some(addr3))).sorted should ===(
+        List(ResolvedTarget("x", None, Some(addr1)), ResolvedTarget("c", None, Some(addr2)),
+          ResolvedTarget("b", None, Some(addr3)))
       )
     }
 
