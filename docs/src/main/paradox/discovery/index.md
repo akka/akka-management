@@ -404,7 +404,7 @@ defined in `application.conf`, if you're using this module for bootstrapping you
 
 Screenshot of two tagged EC2 instances:
 
-![EC2 instances](images/discovery-aws-ec2-tagged-instances.png)
+![EC2 instances](../images/discovery-aws-ec2-tagged-instances.png)
 
 Note the tag **service** -> *products-api*. It is set on both instances.
 
@@ -483,7 +483,7 @@ setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
 
 Demo:
 
-* A working demo app is available in the [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api-ec2)
+* A working demo app is available in the [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-demo/aws-api-ec2)
 folder.
 
 
@@ -500,7 +500,7 @@ ECS service itself.
 Screenshot of two ECS task instances (the service name is
 `liquidity-application`):
 
-![ECS task instances](images/discovery-aws-ecs-task-instances.png)
+![ECS task instances](../images/discovery-aws-ecs-task-instances.png)
 
 
 #### Dependencies and usage
@@ -600,7 +600,7 @@ Notes:
 Demo:
 
 * A working demo app is available in the
-  [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api-ecs)
+  [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-demo/aws-api-ecs)
   folder. It includes CloudFormation templates with minimal permissions w.r.t to
   IAM policies and security group ingress, and so is a good starting point for
   any deployment that integrates the
