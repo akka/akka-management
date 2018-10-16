@@ -1,6 +1,6 @@
 enablePlugins(JavaServerAppPackaging)
 
-name := "bootstrap-joining-demo-marathon-api"
+name := "bootstrap-demo-marathon-api"
 
 version := "0.1.0"
 

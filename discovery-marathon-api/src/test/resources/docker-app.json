@@ -26,7 +26,7 @@
         "type": "DOCKER",
         "volumes": [],
         "docker": {
-          "image": "occo6er/bootstrap-joining-demo-marathon-api:1.0",
+          "image": "occo6er/bootstrap-demo-marathon-api:1.0",
           "network": "BRIDGE",
           "portMappings": [
             {

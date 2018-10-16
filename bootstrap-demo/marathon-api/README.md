@@ -19,18 +19,18 @@ sbt universal:packageZipTarball
 ```
 
 Now, in the `target/universal` folder, you should have a
-`bootstrap-joining-demo-marathon-api-0.1.0.tgz` file. 
+`bootstrap-demo-marathon-api-0.1.0.tgz` file.
 
 Step 2: Upload the App
 ----------------------
 
-Upload `bootstrap-joining-demo-marathon-api-0.1.0.tgz` to a webserver that your DC/OS cluster can access.
+Upload `bootstrap-demo-marathon-api-0.1.0.tgz` to a webserver that your DC/OS cluster can access.
 
 
 Step 3: Edit Config
 -------------------
 
-Edit `marathon/app.json`, replacing the value at `fetch[0].uri` ("http://yourwebserver.example.com/bootstrap-joining-demo-marathon-api-0.1.0.tgz")
+Edit `marathon/app.json`, replacing the value at `fetch[0].uri` ("http://yourwebserver.example.com/bootstrap-demo-marathon-api-0.1.0.tgz")
 with the URL of the packaged application.
 
 Step 4: Deploy the App
@@ -48,7 +48,7 @@ Step 5: Verify the cluster formation
 Using `dcos task log` you can watch the output of the application.
 
 ```bash
-dcos task log --follow bootstrap-joining-demo-marathon-api-0.1.0
+dcos task log --follow bootstrap-demo-marathon-api-0.1.0
 ```
 
 Successful log output will look something like the following:
