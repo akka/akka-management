@@ -31,7 +31,7 @@ object DemoApp extends App {
   cluster
     .subscribe(system.actorOf(Props[ClusterWatcher]), ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
 
-  val k8sHealthChecks = new KubernetesHealthChecks(system)
+  val k8sHealthChecks = new KubernetesHealthCheck(system)
 
   val routes = k8sHealthChecks.k8sHealthChecks // add real app routes here
 

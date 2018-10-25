@@ -10,7 +10,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 
-class KubernetesHealthChecks(system: ActorSystem) {
+class KubernetesHealthCheck(system: ActorSystem) {
 
   val log: LoggingAdapter = Logging(system, getClass)
   val cluster = Cluster(system)
