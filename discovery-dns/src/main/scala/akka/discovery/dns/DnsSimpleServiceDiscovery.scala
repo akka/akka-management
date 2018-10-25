@@ -89,8 +89,8 @@ class DnsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscov
           case resolved: DnsProtocol.Resolved =>
             log.debug("Resolved Dns.Resolved: {}", resolved)
             val addresses = resolved.records.collect {
-              case a: ARecord => ResolvedTarget(cleanIpString(a.ip.getHostAddress), None)
-              case a: AAAARecord => ResolvedTarget(cleanIpString(a.ip.getHostAddress), None)
+              case a: ARecord => ResolvedTarget(cleanIpString(a.ip.getHostAddress), None, Some(a.ip))
+              case a: AAAARecord => ResolvedTarget(cleanIpString(a.ip.getHostAddress), None, Some(a.ip))
             }
             Resolved(lookup.serviceName, addresses)
           case resolved ⇒
