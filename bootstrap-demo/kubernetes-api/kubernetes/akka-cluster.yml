@@ -4,6 +4,7 @@ metadata:
   labels:
     app: appka
   name: appka
+  namespace: akka-bootstrap
 spec:
   replicas: 2
   selector:
@@ -52,6 +53,7 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: pod-reader
+  namespace: akka-bootstrap
 rules:
 - apiGroups: [""] # "" indicates the core API group
   resources: ["pods"]
@@ -61,11 +63,11 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: read-pods
+  namespace: akka-bootstrap
 subjects:
-# Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
-# For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
+  # Create the default user for the akka-bootstrap namespace
 - kind: User
-  name: system:serviceaccount:default:default
+  name: system:serviceaccount:akka-bootstrap:default
 roleRef:
   kind: Role
   name: pod-reader

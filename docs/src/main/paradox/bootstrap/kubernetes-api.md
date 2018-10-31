@@ -1,6 +1,6 @@
 # Kubernetes API
 
-An example project that can be deployed to Kubernetes via minikube is in `bootstrap-demo/kubernetes-api`.
+An example project that can be deployed to kubernetes via `minikube` or `minishift` is in `bootstrap-demo/kubernetes-api`.
 
 This demo shows how to form an Akka Cluster in Kubernetes using the `kubernetes-api` discovery mechanism. The `kubernetes-api`
 mechanism queries the Kubernetes API server to find pods with a given label. A Kubernetes service isn't required
@@ -26,28 +26,26 @@ variable that can be injected into the pod via:
 
 @@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml)  { #namespace }
 
-If running he example in [minikube](https://github.com/kubernetes/minikube) make sure you have installed and is running:
+## Running in Kubernetes
+
+To run the demo in a real Kubernetes or OpenShift cluster the images must be pushed to a registry that cluster
+has access to and then `kubernetes/akka-cluster.yml` modified with the full image path.
+
+The following shows how the sample can be run in a local cluster using either `minishift` or `minikube`. Unless
+explicitly stated `minikube` can be replaced with `minishift` and `kubectl` with `oc` in any of the commands below.
+
+Start [minikube](https://github.com/kubernetes/minikube) make sure you have installed and is running:
 
 ```
 $ minikube start
-Starting local Kubernetes v1.8.0 cluster...
-Starting VM...
-Getting VM IP address...
-Moving files into cluster...
-Setting up certs...
-Connecting to cluster...
-Setting up kubeconfig...
-Starting cluster components...
-Kubectl is now configured to use the cluster.
 ```
 
-Make sure your shell is configured to target minikube cluster
-
+Make sure your shell is configured to target the docker daemon running inside the VM:
 ```
 $ eval $(minikube docker-env)
 ```
 
-For minikube publish the application docker image locally. If running this project in a real cluster you'll need to publish the image to a repository
+Publish the application docker image locally. If running this project in a real cluster you'll need to publish the image to a repository
 that is accessible from your Kubernetes cluster and update the `kubernetes/akka-cluster.yml` with the new image name.
 
 ```
@@ -56,10 +54,27 @@ $ sbt shell
 > docker:publishLocal
 ```
 
-Once the image is published, deploy it onto the kubernetes cluster:
+The resources in `kubernetes/akka-cluster.yml` are configured to run in the `akka-bootstrap` namespace. Either change that to the namespace
+you want to deploy to or ensure`akka-bootstrap` namespace exists either by creating it:
+
+```
+kubectl create namespace akka-boostrap
+```
+
+Or if running with `minishift` creating a project called `akka-bootstrap`:
+
+```
+oc new-project akka-bootstrap
+```
+
+Next deploy the application:
 
 ```
 kubectl apply -f kubernetes/akka-cluster.yml
+
+or
+
+oc apply -f kubernetes/akka-cluster.yaml
 ```
 
 This will create and start running a number of Pods hosting the application. The application nodes will proceed with

@@ -150,7 +150,6 @@ lazy val `akka-management` = project
     Dependencies.ManagementHttp
   )
 
-// cluster management http routes, expose information and operations about the cluster
 lazy val `cluster-http` = project
   .in(file("cluster-http"))
   .enablePlugins(AutomateHeaderPlugin)
@@ -160,7 +159,6 @@ lazy val `cluster-http` = project
   )
   .dependsOn(`akka-management`)
 
-// cluster bootstraping
 lazy val `cluster-bootstrap` = project
   .in(file("cluster-bootstrap"))
   .enablePlugins(AutomateHeaderPlugin)

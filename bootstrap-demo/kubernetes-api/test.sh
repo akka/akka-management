@@ -4,6 +4,7 @@ set -exu
 
 sbt bootstrap-demo-kubernetes-api/docker:publishLocal
 
+kubectl create namespace akka-bootstrap
 kubectl apply -f bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml
 
 for i in {1..10}
