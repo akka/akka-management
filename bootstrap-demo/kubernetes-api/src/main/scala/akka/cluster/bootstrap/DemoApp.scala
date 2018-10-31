@@ -31,8 +31,12 @@ object DemoApp extends App {
   cluster
     .subscribe(system.actorOf(Props[ClusterWatcher]), ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
 
+  val k8sHealthChecks = new KubernetesHealthCheck(system)
+
+  val routes = k8sHealthChecks.k8sHealthChecks // add real app routes here
+
   import akka.http.scaladsl.server.Directives._
-  Http().bindAndHandle(complete("Hello world"), "0.0.0.0", 8080)
+  Http().bindAndHandle(routes, "0.0.0.0", 8080)
 
   Cluster(system).registerOnMemberUp({
     log.info("Cluster member is up!")
