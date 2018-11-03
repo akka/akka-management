@@ -7,9 +7,11 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.function.{ Function => JFunction }
 
 import akka.actor._
+import akka.event.Logging
 
 final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Extension {
 
+  private val log = Logging(system, classOf[ServiceDiscovery])
   private val implementations = new ConcurrentHashMap[String, SimpleServiceDiscovery]
   private val factory = new JFunction[String, SimpleServiceDiscovery] {
     override def apply(method: String): SimpleServiceDiscovery = createServiceDiscovery(method)
@@ -58,11 +60,13 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
       dynamic
         .createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ExtendedActorSystem] → system) :: Nil)
         .recoverWith {
-          case _ ⇒
+          case e: Throwable ⇒
+            log.info(s"Failed to create discovery instance {}", e)
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ActorSystem] → system) :: Nil)
         }
         .recoverWith {
-          case _ ⇒
+          case e: Throwable ⇒
+            log.info(s"Failed to create discovery instance {}", e)
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, Nil)
         }
     }
