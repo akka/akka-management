@@ -61,12 +61,12 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
         .createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ExtendedActorSystem] → system) :: Nil)
         .recoverWith {
           case e: Throwable ⇒
-            log.info(s"Failed to create discovery instance {}", e)
+            log.info("Failed to create discovery instance {}", e)
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ActorSystem] → system) :: Nil)
         }
         .recoverWith {
           case e: Throwable ⇒
-            log.info(s"Failed to create discovery instance {}", e)
+            log.info("Failed to create discovery instance {}", e)
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, Nil)
         }
     }
