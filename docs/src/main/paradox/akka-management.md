@@ -81,8 +81,8 @@ application.conf
   # Get hostname from environmental variable HOST
   akka.management.http.hostname = ${HOST} 
   # Use port 8558 by default, but use environment variable PORT_8558 if it is defined
-  akka.management.port = 8558
-  akka.management.port = ${?PORT_8558}
+  akka.management.http.port = 8558
+  akka.management.http.port = ${?PORT_8558}
   # Bind to 0.0.0.0:8558 'internally': 
   akka.management.http.bind-hostname = 0.0.0.0
   akka.management.http.bind-port = 8558
