@@ -4,16 +4,17 @@
 package akka.cluster.bootstrap
 
 import akka.actor.Actor
+import akka.actor.ActorLogging
 
-class NoisySingleton extends Actor {
+class NoisySingleton extends Actor with ActorLogging {
 
   override def preStart(): Unit =
-    context.system.log.info("Noisy singleton started")
+    log.info("Noisy singleton started")
 
   override def postStop(): Unit =
-    context.system.log.info("Noisy singleton stopped")
+    log.info("Noisy singleton stopped")
 
   override def receive: Receive = {
-    case msg => context.system.log.info("Msg: {}", msg)
+    case msg => log.info("Msg: {}", msg)
   }
 }

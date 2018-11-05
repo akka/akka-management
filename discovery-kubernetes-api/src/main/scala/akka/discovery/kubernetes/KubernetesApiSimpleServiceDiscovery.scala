@@ -5,6 +5,7 @@ package akka.discovery.kubernetes
 
 import java.net.InetAddress
 import java.nio.file.Paths
+
 import akka.actor.ActorSystem
 import akka.discovery._
 import akka.http.scaladsl._
@@ -15,15 +16,16 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.FileIO
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 import com.typesafe.sslconfig.ssl.TrustStoreConfig
-
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
+
 import JsonFormat._
 import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
-
 import scala.util.control.NonFatal
+
+import akka.event.Logging
 
 object KubernetesApiSimpleServiceDiscovery {
 
@@ -65,6 +67,8 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
 
   private implicit val mat: ActorMaterializer = ActorMaterializer()(system)
 
+  private val log = Logging(system, getClass)
+
   private val httpsTrustStoreConfig =
     TrustStoreConfig(data = None, filePath = Some(settings.apiCaPath)).withStoreType("PEM")
 
@@ -81,7 +85,7 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
       case Some(name) => name
       case None => settings.podPortName
     }
-    system.log.info("Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}]", labelSelector,
+    log.info("Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}]", labelSelector,
       settings.podNamespace, portName)
 
     for {
@@ -95,12 +99,12 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
       entity <- response.entity.toStrict(resolveTimeout)
 
       podList <- {
-        system.log.debug("Kubernetes API entity: [{}]", entity.data.utf8String)
+        log.debug("Kubernetes API entity: [{}]", entity.data.utf8String)
 
         val unmarshalled = Unmarshal(entity).to[PodList]
 
         unmarshalled.failed.foreach { t =>
-          system.log.error(t, "Failed to unmarshal Kubernetes API response status [{}]; check RBAC settings",
+          log.error(t, "Failed to unmarshal Kubernetes API response status [{}]; check RBAC settings",
             response.status.value)
         }
 
