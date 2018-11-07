@@ -15,7 +15,7 @@ for i in {1..10}
 do
   echo "Waiting for pods to get ready..."
   kubectl get pods --namespace akka-bootstrap
-  [ `kubectl get pods --namespace akka-bootstrap | grep Running | wc -l` -eq 2 ] && break
+  [ `kubectl get pods --namespace akka-bootstrap | grep Running | wc -l` -eq 3 ] && break
   sleep 4
 done
 

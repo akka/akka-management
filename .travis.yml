@@ -34,7 +34,7 @@ jobs:
     env: TEST
   - script: sbt -J-XX:ReservedCodeCacheSize=128m "+test"
   - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api/test.sh
-    env: MINIKUBE
+    env: K8S_API
   - script:
     - ./scripts/setup-minikube-for-linux.sh
     - #344 minikube mixes kube-dns and coredns:
@@ -42,7 +42,7 @@ jobs:
     - ./bootstrap-demo/kubernetes-dns/test.sh
     env: K8S_DNS
   - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api-java/test.sh
-    env: K8S_API
+    env: K8S_API_MAVEN
   - stage: whitesource
     script: sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
     env: WHITESOURCE
