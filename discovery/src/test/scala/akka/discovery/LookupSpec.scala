@@ -39,11 +39,11 @@ class LookupSpec extends WordSpec with Matchers with OptionValues {
   }
 
   "Lookup.isSrvString" should {
-    "true for any conforming SRV String" in {
+    "return true for any conforming SRV String" in {
       Lookup.isSrvString("_portName._protocol.serviceName") shouldBe true
     }
 
-    "false for any conforming SRV String" in {
+    "return false for any non-conforming SRV String" in {
       invalidSRVs.map { str =>
         withClue(s"checking '$str'") {
           Lookup.isSrvString(str) shouldBe false
