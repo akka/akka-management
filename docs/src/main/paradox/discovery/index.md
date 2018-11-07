@@ -59,6 +59,7 @@ DNS discovery maps `Lookup` queries as follows:
 * Any query  missing any of the fields is mapped to a A/AAAA query for the `serviceName`
 
 The mapping between Akka service discovery terminology and SRV terminology:
+
 * SRV service = port
 * SRV name = serviceName
 * SRV protocol = protocol
