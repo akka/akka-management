@@ -112,6 +112,32 @@ case object Lookup {
    * and protocol
    */
   def create(serviceName: String): Lookup = new Lookup(serviceName, None, None)
+
+  private val SrvQuery = """^_(.+?)\._(.+?)\.(.+?)$""".r
+
+  /**
+   * Create a service Lookup from a string with format:
+   * _portName._protocol.serviceName.
+   *
+   * If the passed string conforms with this format, a SRV Lookup is returned.
+   *
+   * The string is parsed and dismembered to build a Lookup as following:
+   * Lookup(serviceName).withPortName(portName).withProtocol(protocol)
+   *
+   * If the string doesn't not conform with the SRV format, a simple A/AAAA Lookup is returned.
+   */
+  def parseSrvString(srv: String): Lookup =
+    srv match {
+      case SrvQuery(portName, protocol, serviceName) =>
+        Lookup(serviceName).withPortName(portName).withProtocol(protocol)
+      case _ => Lookup(srv)
+    }
+
+  /**
+   * Returns true if passed string conforms with SRV format. Otherwise returns false.
+   */
+  def isSrvString(srv: String): Boolean =
+    SrvQuery.pattern.asPredicate().test(srv)
 }
 
 /**
