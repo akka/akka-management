@@ -115,9 +115,12 @@ case object Lookup {
 
   private val SrvQuery = """^_(.+?)\._(.+?)\.(.+?)$""".r
 
+  private val DomainName = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$".r
+
   /**
    * Create a service Lookup from a string with format:
    * _portName._protocol.serviceName.
+   * (as specified by https://www.ietf.org/rfc/rfc2782.txt)
    *
    * If the passed string conforms with this format, a SRV Lookup is returned.
    *
@@ -125,19 +128,38 @@ case object Lookup {
    * Lookup(serviceName).withPortName(portName).withProtocol(protocol)
    *
    * If the string doesn't not conform with the SRV format, a simple A/AAAA Lookup is returned using the whole string as service name.
+   *
+   * @throws This method throws IllegalArgumentException if the service name is not a valid domain name.
    */
-  def fromString(str: String): Lookup =
-    srv match {
-      case SrvQuery(portName, protocol, serviceName) =>
-        Lookup(serviceName).withPortName(portName).withProtocol(protocol)
-      case _ => Lookup(srv)
+  def fromString(str: String): Lookup = {
+
+    def fromDomainName(name: String): Lookup = {
+      if (validDomainName(name))
+        Lookup(name)
+      else
+        throw new IllegalArgumentException(s"Illegal domain name lookup: $name")
     }
+
+    str match {
+      case SrvQuery(portName, protocol, serviceName) =>
+        fromDomainName(serviceName).withPortName(portName).withProtocol(protocol)
+
+      case _ => fromDomainName(str)
+    }
+  }
 
   /**
    * Returns true if passed string conforms with SRV format. Otherwise returns false.
    */
-  def isSrvString(srv: String): Boolean =
-    SrvQuery.pattern.asPredicate().test(srv)
+  def isValidSrv(srv: String): Boolean =
+    srv match {
+      case SrvQuery(_, _, serviceName) if validDomainName(serviceName) => true
+      case _ => false
+    }
+
+  private def validDomainName(name: String): Boolean =
+    DomainName.pattern.asPredicate().test(name)
+
 }
 
 /**
