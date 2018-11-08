@@ -27,7 +27,7 @@ class LookupSpec extends WordSpec with Matchers with OptionValues {
     "serviceName.local-",
   )
 
-  "Lookup.parseSrvString" should {
+  "Lookup.fromString" should {
 
     "generate a SRV Lookup from a SRV String" in {
       val name = "_portName._protocol.serviceName.local"
