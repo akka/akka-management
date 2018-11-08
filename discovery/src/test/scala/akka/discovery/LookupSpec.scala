@@ -38,7 +38,7 @@ class LookupSpec extends WordSpec with Matchers with OptionValues {
     }
 
     "generate a A/AAAA from any non-conforming SRV String" in {
-      noSrvLookups.foreach { str =>
+      (noSrvLookups ++ srvWithInvalidDomainNames).foreach { str =>
         withClue(s"parsing '$str'") {
           val lookup = Lookup.fromString(str)
           lookup.serviceName shouldBe str
