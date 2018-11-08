@@ -123,32 +123,20 @@ case object Lookup {
    * (as specified by https://www.ietf.org/rfc/rfc2782.txt)
    *
    * If the passed string conforms with this format, a SRV Lookup is returned.
+   * The serviceName part must be a valid domain name.
    *
    * The string is parsed and dismembered to build a Lookup as following:
    * Lookup(serviceName).withPortName(portName).withProtocol(protocol)
    *
-   * The serviceName part must be a valid domain name.
-   *
    * If the string doesn't not conform with the SRV format, a simple A/AAAA Lookup is returned using the whole string as service name.
-   *
-   * @throws IllegalArgumentException if the service name extracted from the SRV string is not a valid domain name.
    */
-  def fromString(str: String): Lookup = {
-
-    def fromDomainName(name: String): Lookup = {
-      if (validDomainName(name))
-        Lookup(name)
-      else
-        throw new IllegalArgumentException(s"Illegal domain name lookup: $name")
-    }
-
+  def fromString(str: String): Lookup =
     str match {
-      case SrvQuery(portName, protocol, serviceName) =>
-        fromDomainName(serviceName).withPortName(portName).withProtocol(protocol)
+      case SrvQuery(portName, protocol, serviceName) if validDomainName(serviceName) =>
+        Lookup(serviceName).withPortName(portName).withProtocol(protocol)
 
       case _ => Lookup(str)
     }
-  }
 
   /**
    * Returns true if passed string conforms with SRV format. Otherwise returns false.
