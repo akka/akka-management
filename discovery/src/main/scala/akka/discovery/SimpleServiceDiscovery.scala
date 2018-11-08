@@ -129,7 +129,7 @@ case object Lookup {
    *
    * If the string doesn't not conform with the SRV format, a simple A/AAAA Lookup is returned using the whole string as service name.
    *
-   * @throws This method throws IllegalArgumentException if the service name is not a valid domain name.
+   * @throws IllegalArgumentException if the service name is not a valid domain name.
    */
   def fromString(str: String): Lookup = {
 
