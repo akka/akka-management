@@ -124,7 +124,7 @@ case object Lookup {
    * The string is parsed and dismembered to build a Lookup as following:
    * Lookup(serviceName).withPortName(portName).withProtocol(protocol)
    *
-   * If the string doesn't not conform with the SRV format, a simple A/AAAA Lookup is returned.
+   * If the string doesn't not conform with the SRV format, a simple A/AAAA Lookup is returned using the whole string as service name.
    */
   def parseSrvString(srv: String): Lookup =
     srv match {
