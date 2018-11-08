@@ -3,6 +3,7 @@
  */
 package akka.discovery
 
+import java.lang.invoke.MethodHandles
 import java.net.InetAddress
 import java.util.Optional
 import java.util.concurrent.CompletionStage
@@ -127,9 +128,11 @@ case object Lookup {
    * The string is parsed and dismembered to build a Lookup as following:
    * Lookup(serviceName).withPortName(portName).withProtocol(protocol)
    *
+   * The serviceName part must be a valid domain name.
+   *
    * If the string doesn't not conform with the SRV format, a simple A/AAAA Lookup is returned using the whole string as service name.
    *
-   * @throws IllegalArgumentException if the service name is not a valid domain name.
+   * @throws IllegalArgumentException if the service name extracted from the SRV string is not a valid domain name.
    */
   def fromString(str: String): Lookup = {
 
@@ -144,7 +147,7 @@ case object Lookup {
       case SrvQuery(portName, protocol, serviceName) =>
         fromDomainName(serviceName).withPortName(portName).withProtocol(protocol)
 
-      case _ => fromDomainName(str)
+      case _ => Lookup(str)
     }
   }
 
