@@ -50,7 +50,7 @@ class LookupSpec extends WordSpec with Matchers with OptionValues {
 
   }
 
-  "Lookup.isSrvString" should {
+  "Lookup.isValidSrv" should {
 
     "return true for any conforming SRV String" in {
       Lookup.isValidSrv("_portName._protocol.serviceName.local") shouldBe true
