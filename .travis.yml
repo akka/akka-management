@@ -5,6 +5,9 @@ language: scala
 jdk:
   - oraclejdk8
 
+services:
+  - docker
+
 before_install:
   - curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.10.1/install.sh | bash && . ~/.jabba/jabba.sh
 
