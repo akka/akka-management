@@ -109,19 +109,28 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
             log.debug("Kubernetes API entity: [{}]", entity.data.utf8String)
             val unmarshalled = Unmarshal(entity).to[PodList]
             unmarshalled.failed.foreach { t =>
-              log.error(t, "Failed to unmarshal Kubernetes API response.  Status code: [{}]; Response body: [{}]",
-                response.status.value, entity)
+              log.warning(
+                  "Failed to unmarshal Kubernetes API response.  Status code: [{}]; Response body: [{}]. Ex: [{}]",
+                  response.status.value, entity, t.getMessage)
             }
             unmarshalled
           case StatusCodes.Forbidden =>
-            log.error("Forbidden to communicate with Kubernetes API server; check RBAC settings. Response: [{}]",
-              entity)
+            Unmarshal(entity).to[String].foreach { body =>
+              log.warning("Forbidden to communicate with Kubernetes API server; check RBAC settings. Response: [{}]",
+                body)
+            }
             Future.failed(
                 new KubernetesApiException(
                     "Forbidden when communicating with the Kubernetes API. Check RBAC settings."))
           case other =>
-            log.error("Non-200 when communicating with Kubernetes API server. Status code: [{}]. Response body: [{}]",
-              other, entity)
+            Unmarshal(entity).to[String].foreach { body =>
+              log.warning(
+                "Non-200 when communicating with Kubernetes API server. Status code: [{}]. Response body: [{}]",
+                other,
+                body
+              )
+            }
+
             Future.failed(new KubernetesApiException(s"Non-200 from Kubernetes API server: $other"))
         }
 
