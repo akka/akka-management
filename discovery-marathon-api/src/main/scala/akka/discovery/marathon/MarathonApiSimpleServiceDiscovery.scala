@@ -105,7 +105,7 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
         unmarshalled
       }
 
-    } yield Resolved(lookup.serviceName, targets(appList, settings.portName))
+    } yield Resolved(lookup.serviceName, targets(appList, portName))
   }
 
 }
