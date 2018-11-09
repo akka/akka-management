@@ -3,7 +3,7 @@ import Keys._
 
 object Dependencies {
 
-  val AkkaVersion = "2.5.15"
+  val AkkaVersion = "2.5-SNAPSHOT"
   val AkkaHttpVersion = "10.0.13" // TODO #281 update to 10.1.x when play and lagom are released
 
   val JUnitVersion = "4.12"
@@ -15,7 +15,8 @@ object Dependencies {
     )
   )
 
-
+  val dockerClient = "com.spotify" % "docker-client" % "8.13.1" % "test" // ApacheV2
+  
   private object DependencyGroups {
     val AkkaActor = Seq(
       "com.typesafe.akka" %% "akka-actor"                         % AkkaVersion
@@ -58,6 +59,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
       "ch.qos.logback" % "logback-classic" % "1.2.3"
     )
+
   }
 
   val Discovery = Seq(
@@ -69,7 +71,8 @@ object Dependencies {
   val DiscoveryDns = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting
+      DependencyGroups.AkkaTesting ++
+      Seq(dockerClient)
   )
 
   val DiscoveryConfig = Seq(
