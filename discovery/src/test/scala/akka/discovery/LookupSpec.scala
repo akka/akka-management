@@ -24,7 +24,7 @@ class LookupSpec extends WordSpec with Matchers with OptionValues {
     "_serviceName.local",
     "_serviceName,local",
     "-serviceName.local",
-    "serviceName.local-",
+    "serviceName.local-"
   )
 
   "Lookup.fromString" should {
