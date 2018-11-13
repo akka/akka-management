@@ -16,15 +16,15 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.FileIO
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 import com.typesafe.sslconfig.ssl.TrustStoreConfig
+
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
-
 import JsonFormat._
 import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
-import scala.util.control.NonFatal
 
+import scala.util.control.{ NoStackTrace, NonFatal }
 import akka.event.Logging
 
 object KubernetesApiSimpleServiceDiscovery {
@@ -51,6 +51,9 @@ object KubernetesApiSimpleServiceDiscovery {
         port = Some(port.containerPort),
         address = Some(InetAddress.getByName(ip))
       )
+
+  class KubernetesApiException(msg: String) extends RuntimeException(msg) with NoStackTrace
+
 }
 
 /**
@@ -58,6 +61,7 @@ object KubernetesApiSimpleServiceDiscovery {
  * you to define readiness/health checks that don't affect the bootstrap mechanism.
  */
 class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+
   import akka.discovery.kubernetes.KubernetesApiSimpleServiceDiscovery._
   import system.dispatcher
 
@@ -99,16 +103,37 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
       entity <- response.entity.toStrict(resolveTimeout)
 
       podList <- {
-        log.debug("Kubernetes API entity: [{}]", entity.data.utf8String)
 
-        val unmarshalled = Unmarshal(entity).to[PodList]
+        response.status match {
+          case StatusCodes.OK =>
+            log.debug("Kubernetes API entity: [{}]", entity.data.utf8String)
+            val unmarshalled = Unmarshal(entity).to[PodList]
+            unmarshalled.failed.foreach { t =>
+              log.warning(
+                  "Failed to unmarshal Kubernetes API response.  Status code: [{}]; Response body: [{}]. Ex: [{}]",
+                  response.status.value, entity, t.getMessage)
+            }
+            unmarshalled
+          case StatusCodes.Forbidden =>
+            Unmarshal(entity).to[String].foreach { body =>
+              log.warning("Forbidden to communicate with Kubernetes API server; check RBAC settings. Response: [{}]",
+                body)
+            }
+            Future.failed(
+                new KubernetesApiException(
+                    "Forbidden when communicating with the Kubernetes API. Check RBAC settings."))
+          case other =>
+            Unmarshal(entity).to[String].foreach { body =>
+              log.warning(
+                "Non-200 when communicating with Kubernetes API server. Status code: [{}]. Response body: [{}]",
+                other,
+                body
+              )
+            }
 
-        unmarshalled.failed.foreach { t =>
-          log.error(t, "Failed to unmarshal Kubernetes API response status [{}]; check RBAC settings",
-            response.status.value)
+            Future.failed(new KubernetesApiException(s"Non-200 from Kubernetes API server: $other"))
         }
 
-        unmarshalled
       }
 
     } yield {
