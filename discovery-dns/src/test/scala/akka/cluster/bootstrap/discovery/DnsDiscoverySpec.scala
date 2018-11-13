@@ -22,8 +22,9 @@ object DnsDiscoverySpec {
   val config = ConfigFactory.parseString(s"""
      //#configure-dns
      akka {
-       discovery.method = akka-dns
-       io.dns.resolver = async-dns
+       discovery {
+        method = akka-dns
+       }
      }
      //#configure-dns
      akka {
@@ -33,6 +34,10 @@ object DnsDiscoverySpec {
     """)
 
   lazy val dockerDnsServerPort = SocketUtil.temporaryLocalPort()
+
+  val configWithAsyncDnsResolverAsDefault = ConfigFactory.parseString("""
+      akka.io.dns.resolver = "async-dns"
+    """).withFallback(config)
 
 }
 
@@ -44,12 +49,16 @@ class DnsDiscoverySpec
     with ScalaFutures
     with DockerBindDnsService {
 
+  import DnsDiscoverySpec._
+
   override val hostPort: Int = DnsDiscoverySpec.dockerDnsServerPort
   override val log: LoggingAdapter = system.log
 
+  val systemWithAsyncDnsAsResolver = ActorSystem("AsyncDnsSystem", configWithAsyncDnsResolverAsDefault)
+
   implicit val patience: PatienceConfig = PatienceConfig(timeout = Span(11, Seconds), interval = Span(250, Millis))
 
-  "Dns Discovery" must {
+  "Dns Discovery with isolated resolver" must {
 
     "work with SRV records" in {
       val discovery = ServiceDiscovery(system).discovery
@@ -75,6 +84,35 @@ class DnsDiscoverySpec
         ResolvedTarget("192.168.1.20", None)
       )
     }
+
+    "be using its own resolver" in {
+      // future will fail if it it doesn't exist
+      system.actorSelection("/system/SD-DNS/async-dns").resolveOne(2.seconds).futureValue
+    }
+
+  }
+
+  "Dns discovery with the system resolver" must {
+    "work with SRV records" in {
+      val discovery = ServiceDiscovery(systemWithAsyncDnsAsResolver).discovery
+      val name = "_service._tcp.foo.test."
+      val result =
+        discovery
+          .lookup(Lookup("foo.test.").withPortName("service").withProtocol("tcp"), resolveTimeout = 10.seconds)
+          .futureValue
+      result.addresses.toSet shouldEqual Set(
+        ResolvedTarget("a-single.foo.test", Some(5060), Some(InetAddress.getByName("192.168.1.20"))),
+        ResolvedTarget("a-double.foo.test", Some(65535), Some(InetAddress.getByName("192.168.1.21"))),
+        ResolvedTarget("a-double.foo.test", Some(65535), Some(InetAddress.getByName("192.168.1.22")))
+      )
+      result.serviceName shouldEqual name
+    }
+
+    "be using the system resolver" in {
+      // check the service discovery one doesn't exist
+      systemWithAsyncDnsAsResolver.actorSelection("/system/SD-DNS/async-dns").resolveOne(2.seconds).failed.futureValue
+    }
+
   }
 
   override def afterAll(): Unit = {
