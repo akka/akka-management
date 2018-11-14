@@ -13,7 +13,7 @@ class LookupSpec extends WordSpec with Matchers with OptionValues {
     "_portName._protocol.service_name.local",
     "_portName._protocol.servicename,local",
     "_portName._protocol.servicename.local-",
-    "_portName._protocol.-servicename.local",
+    "_portName._protocol.-servicename.local"
   )
 
   // No SRV that should result in simple A/AAAA lookups
