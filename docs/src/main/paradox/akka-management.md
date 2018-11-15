@@ -93,7 +93,8 @@ Java
 
 ### Enabling TLS/SSL (HTTPS) for Cluster HTTP Management
 
-To enable SSL you need to provide an `SSLContext`. You can find more information about it in @extref[Server side https support](akka-http-docs:scala/http/server-side-https-support)
+To enable SSL you need to provide an `SSLContext`. You can find more information about it in
+@extref[Server HTTPS Support](akka-http-docs:/server-side/server-https-support).
 
 Scala
 :   @@snip[AkkaManagementHttpEndpointSpec.scala](/management/src/test/scala/akka/management/http/AkkaManagementHttpEndpointSpec.scala){ #start-akka-management-with-https-context }
