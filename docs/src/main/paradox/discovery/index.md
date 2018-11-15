@@ -477,8 +477,8 @@ setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
     akka.discovery.aws-api-ec2-tag-based.tag-key = "akka-cluster"
     ```
 
-* If your service is running in a docker container, you will need to configure akka management with separate
-  IPs for binding and discovery. This is because akka management needs to _bind_ to the internal docker IP,
+* If your service is running in a docker container, you will need to configure Akka Management with separate
+  IPs for binding and discovery. This is because Akka Management needs to _bind_ to the internal docker IP,
   but will _discover_ the "host" IP (the EC2 private IP) on the AWS API. See @ref:[Basic
   Configuration](../akka-management.md) on how to separate the bind IP from the discovery IP.
 

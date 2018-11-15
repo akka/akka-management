@@ -46,7 +46,7 @@ You can configure hostname and port to use for the HTTP Cluster management by ov
 Note that the default value for hostname is `InetAddress.getLocalHost.getHostAddress`, which may or may not evaluate to
 `127.0.0.1`.
 
-When running akka nodes behind NATs or inside docker containers in bridge mode,
+When running Akka nodes behind NATs or inside docker containers in bridge mode,
 it is necessary to set different hostname and port number to bind for the HTTP Server for Http Cluster Management:
 
 application.conf
@@ -68,7 +68,7 @@ application.conf
     akka.management.http.base-path = "myClusterName"
     ```
 
-In this example, with this configuration, then the akka management routes will will be exposed at under the `/myClusterName/...`,
+In this example, with this configuration, then the Akka Management routes will will be exposed at under the `/myClusterName/...`,
 base path. For example, when using Akka Cluster Management routes the members information would then be available under
 `/myClusterName/shards/{name}` etc.
 
@@ -77,7 +77,7 @@ base path. For example, when using Akka Cluster Management routes the members in
 
 @@@ note
 
-HTTPS is not enabled by default as additional configuration from the developer is required. This module does not provide security by default.
+HTTPS is not enabled by default, as additional configuration from the developer is required. This module does not provide security by default.
 It is the developer's choice to add security to this API, and when. If enabled, it is generally advisable not to expose management endpoints
 publicly.
 
@@ -146,7 +146,7 @@ logic for these are implemented inside the `akka-management-cluster-http`.
 
 An extension can contribute to the exposed HTTP routes by appending to the `akka.management.http.route-providers` list in
 its own `reference.conf` (make sure to use `+=` instead of `=`). The core `AkkaManagement` extension
-then collects all the routes and serves them together under the management HTTP server. This
+then collects all the routes and serves them together under the Management HTTP server. This
 avoids having to start an additional HTTP server for each additional extension, and additionally allows
 easy extension of routes served by including libraries that offer new capabilities (such as health-checks or
 cluster information etc).
