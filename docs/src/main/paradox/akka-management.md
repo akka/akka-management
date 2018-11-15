@@ -1,7 +1,7 @@
 <a id="akka-management"></a>
 # Akka Management
 
-Akka Management is the core module of the management utilities that provides a central HTTP endpoint for Akka
+Akka Management is the core module of the management utilities which provides a central HTTP endpoint for Akka
 management extensions.
 
 ## Dependencies
