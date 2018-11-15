@@ -207,8 +207,8 @@ Java
 
 ## Stopping Akka Management
 
-In a dynamic environment you might stop instances of Akka Management, for example if you don't want to free up resources
-taken by the HTTP server serving the management routes.
+In a dynamic environment you might stop instances of Akka Management, for example if you want to free up resources
+taken by the HTTP server serving the Management routes.
 
 You can do so by calling `stop()` on @scaladoc[AkkaManagement](akka.management.http.AkkaManagement).
 This method return a `Future[Done]` to inform when the server has been stopped.
@@ -243,7 +243,7 @@ logic for these are implemented inside the `akka-management-cluster-http`.
 
 An extension can contribute to the exposed HTTP routes by appending to the `akka.management.http.route-providers` list in
 its own `reference.conf` (make sure to use `+=` instead of `=`). The core `AkkaManagement` extension
-then collects all the routes and serves them together under the management HTTP server. This is in order
+then collects all the routes and serves them together under the management HTTP server. This
 avoids having to start an additional HTTP server for each additional extension, and additionally allows
 easy extension of routes served by including libraries that offer new capabilities (such as health-checks or
 cluster information etc).

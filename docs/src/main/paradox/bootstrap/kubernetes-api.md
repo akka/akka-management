@@ -1,6 +1,6 @@
 # Kubernetes API
 
-An example project that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-api`.
+An example project that can be deployed to Kubernetes via minikube is in `bootstrap-demo/kubernetes-api`.
 
 This demo shows how to form an Akka Cluster in Kubernetes using the `kubernetes-api` discovery mechanism. The `kubernetes-api`
 mechanism queries the Kubernetes API server to find pods with a given label. A Kubernetes service isn't required
