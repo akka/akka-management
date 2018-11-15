@@ -458,7 +458,7 @@ character. For example:
 
 * By default, this module is configured for clusters with one Akka node per EC2 instance: it
   separates cluster members solely by their EC2 IP address. However, we can change the default configuration to indicate multiple ports per discovered EC2 IP, and achieve
-a setup with multiple Akka nodes (i.e. multiple JVMs) per EC2 instance. 
+a setup with multiple Akka nodes (i.e. multiple JVMs) per EC2 instance.
     ```
     akka {
       discovery {
@@ -477,8 +477,8 @@ setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
     akka.discovery.aws-api-ec2-tag-based.tag-key = "akka-cluster"
     ```
 
-* If your service is running in a docker container, you will need to configure akka management with separate
-  IPs for binding and discovery. This is because akka management needs to _bind_ to the internal docker IP,
+* If your service is running in a docker container, you will need to configure Akka Management with separate
+  IPs for binding and discovery. This is because Akka Management needs to _bind_ to the internal docker IP,
   but will _discover_ the "host" IP (the EC2 private IP) on the AWS API. See @ref:[Basic
   Configuration](../akka-management.md) on how to separate the bind IP from the discovery IP.
 
