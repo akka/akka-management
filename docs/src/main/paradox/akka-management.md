@@ -146,13 +146,12 @@ logic for these are implemented inside the `akka-management-cluster-http`.
 
 An extension can contribute to the exposed HTTP routes by appending to the `akka.management.http.route-providers` list in
 its own `reference.conf` (make sure to use `+=` instead of `=`). The core `AkkaManagement` extension
-then collects all the routes and serves them together under the Management HTTP server. This
-avoids having to start an additional HTTP server for each additional extension, and additionally allows
-easy extension of routes served by including libraries that offer new capabilities (such as health-checks or
-cluster information etc).
+collects all the routes and serves them together under the Management HTTP server. This enables
+easy extension of management capabilities (such as health-checks or cluster information etc)
+without the boilerplate and overhead to start separate HTTP servers for each extension.
 
-Management extensions whose nature is "active", e.g. they do something proactively, should not be
-started automatically, but rather started manually by the user. One example of that is the Cluster
-Bootstrap, which on one hand does contributes routes to Akka Management, however the bootstrapping process
-does not start unless `ClusterBootstrap().start()` is invoked, which allows the user to decide when exactly
-One example of the recommended manual operations is Cluster Bootstrap, which contributes routes to Akka Management. The bootstrapping process does not start unless `ClusterBootstrap().start()` is invoked, allowing the user to decide exactly when it is ready to start joining an existing cluster.
+As a best practice, Management extensions that do something proactively should not be
+started automatically, but rather manually by the user. One example of that is Cluster Bootstrap.
+It contributes routes to Akka Management, but the bootstrapping process does not start unless
+`ClusterBootstrap().start()` is invoked. Thus, the user can decide when exactly
+the application is ready to start joining an existing cluster.
