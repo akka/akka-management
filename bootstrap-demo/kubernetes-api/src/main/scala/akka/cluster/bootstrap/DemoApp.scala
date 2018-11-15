@@ -19,18 +19,24 @@ object DemoApp extends App {
   import system.log
   import system.dispatcher
   implicit val mat = ActorMaterializer()
-  implicit val cluster = Cluster(system)
+  val cluster = Cluster(system)
 
   log.info(s"Started [$system], cluster.selfAddress = ${cluster.selfAddress}")
 
+  //#start-akka-management
   AkkaManagement(system).start()
+  //#start-akka-management
   ClusterBootstrap(system).start()
 
   cluster
     .subscribe(system.actorOf(Props[ClusterWatcher]), ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
 
+  val k8sHealthChecks = new KubernetesHealthCheck(system)
+
+  val routes = k8sHealthChecks.k8sHealthChecks // add real app routes here
+
   import akka.http.scaladsl.server.Directives._
-  Http().bindAndHandle(complete("Hello world"), "0.0.0.0", 8080)
+  Http().bindAndHandle(routes, "0.0.0.0", 8080)
 
   Cluster(system).registerOnMemberUp({
     log.info("Cluster member is up!")
@@ -39,7 +45,7 @@ object DemoApp extends App {
 }
 
 class ClusterWatcher extends Actor with ActorLogging {
-  implicit val cluster = Cluster(context.system)
+  val cluster = Cluster(context.system)
 
   override def receive = {
     case msg ⇒ log.info(s"Cluster ${cluster.selfAddress} >>> " + msg)

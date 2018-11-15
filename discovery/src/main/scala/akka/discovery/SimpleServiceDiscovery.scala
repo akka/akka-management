@@ -14,6 +14,7 @@ import akka.annotation.ApiMayChange
 import scala.collection.immutable
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
+import scala.util.Try
 
 /**
  * Implement to provide basic service discovery mechanism.
@@ -34,22 +35,17 @@ object SimpleServiceDiscovery {
   }
 
   object ResolvedTarget {
-    implicit val addressOrdering: Ordering[ResolvedTarget] = Ordering.fromLessThan[ResolvedTarget] { (a, b) ⇒
-      if (a eq b) false
-      else if (a.host != b.host) a.host.compareTo(b.host) < 0
-      else if (a.port != b.port) a.port.getOrElse(0) < b.port.getOrElse(0)
-      else false
+    // Simply compare the bytes of the address.
+    // This may not work in exotic cases such as IPv4 addresses encoded as IPv6 addresses.
+    private implicit val inetAddressOrdering: Ordering[InetAddress] =
+      Ordering.by[InetAddress, Iterable[Byte]](_.getAddress)
+
+    implicit val addressOrdering: Ordering[ResolvedTarget] = Ordering.by { t =>
+      (t.address, t.host, t.port)
     }
 
-    private val IPv4 = """^((?:[0-9]{1,3}\.){3}[0-9]{1,3})$""".r
-
-    def apply(host: String, port: Option[Int]): ResolvedTarget = {
-      val address = host match {
-        case IPv4(_) => Some(InetAddress.getByName(host))
-        case _ => None
-      }
-      new ResolvedTarget(host, port, address)
-    }
+    def apply(host: String, port: Option[Int]): ResolvedTarget =
+      ResolvedTarget(host, port, Try(InetAddress.getByName(host)).toOption)
   }
 
   /**

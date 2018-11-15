@@ -12,11 +12,11 @@ unzip awscli-bundle.zip
 ./awscli-bundle/install -b ~/bin/aws
 export PATH=~/bin:$PATH
 
-sbt bootstrap-joining-demo-aws-api-ec2-tag-based/universal:packageBin
+sbt bootstrap-demo-aws-api-ec2-tag-based/universal:packageBin
 # create bucket if it doesn't already exist
 aws s3api create-bucket --bucket $BUCKET --region us-east-1
-aws s3 cp bootstrap-joining-demo/aws-api-ec2/target/universal/app.zip s3://$BUCKET/$BUILD_ID/ --acl public-read
+aws s3 cp bootstrap-demo/aws-api-ec2/target/universal/app.zip s3://$BUCKET/$BUILD_ID/ --acl public-read
 # run the actual integration test
-sbt bootstrap-joining-demo-aws-api-ec2-tag-based/it:test
+sbt bootstrap-demo-aws-api-ec2-tag-based/it:test
 # delete file (save a few cents)
 aws s3 rm s3://$BUCKET/$BUILD_ID/app.zip

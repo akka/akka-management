@@ -21,6 +21,7 @@ lazy val `akka-management-root` = project
     `bootstrap-demo-local`,
     `bootstrap-demo-aws-api-ecs`,
     `bootstrap-demo-kubernetes-api`,
+    `bootstrap-demo-kubernetes-api-java`,
     `bootstrap-demo-kubernetes-dns`,
     `bootstrap-demo-marathon-api-docker`,
     `cluster-http`,
@@ -180,11 +181,28 @@ lazy val `bootstrap-demo-kubernetes-api` = project
     whitesourceIgnore := true,
     Dependencies.BootstrapDemoKubernetesApi
   ).dependsOn(
-    `akka-management`,
-    `cluster-http`,
-    `cluster-bootstrap`,
-    `akka-discovery-kubernetes-api`
-  )
+  `akka-management`,
+  `cluster-http`,
+  `cluster-bootstrap`,
+  `akka-discovery-kubernetes-api`
+)
+
+lazy val `bootstrap-demo-kubernetes-api-java` = project
+  .in(file("bootstrap-demo/kubernetes-api-java"))
+  .enablePlugins(NoPublish)
+  .disablePlugins(BintrayPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    skip in publish := true,
+    sources in (Compile, doc) := Seq.empty,
+    whitesourceIgnore := true,
+    Dependencies.BootstrapDemoKubernetesApi
+  ).dependsOn(
+  `akka-management`,
+  `cluster-http`,
+  `cluster-bootstrap`,
+  `akka-discovery-kubernetes-api`
+)
 
 lazy val `bootstrap-demo-kubernetes-dns` = project
   .in(file("bootstrap-demo/kubernetes-dns"))
@@ -291,7 +309,7 @@ lazy val docs = project
     paradox in Compile := (paradox in Compile).dependsOn(unidocTask).value,
     paradoxProperties ++= Map(
       "version" -> version.value,
-      "scala.binaryVersion" -> scalaBinaryVersion.value,
+      "scala.binary_version" -> scalaBinaryVersion.value,
       "extref.akka-docs.base_url" -> s"http://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s",
       "extref.akka-http-docs.base_url" -> s"http://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s.html",
       "extref.java-api.base_url" -> "https://docs.oracle.com/javase/8/docs/api/index.html?%s.html",

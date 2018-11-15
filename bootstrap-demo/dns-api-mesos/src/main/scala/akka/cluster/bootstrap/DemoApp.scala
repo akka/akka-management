@@ -22,7 +22,7 @@ object DemoApp extends App {
   import system.log
   import system.dispatcher
   implicit val mat = ActorMaterializer()
-  implicit val cluster = Cluster(system)
+  val cluster = Cluster(system)
 
   log.info("Started [{}], cluster.selfAddress = {}", system, cluster.selfAddress)
 
@@ -38,7 +38,7 @@ object DemoApp extends App {
 }
 
 class ClusterWatcher extends Actor with ActorLogging {
-  implicit val cluster = Cluster(context.system)
+  val cluster = Cluster(context.system)
 
   override def receive = {
     case msg ⇒ log.info("Cluster {} >>> {}", msg, cluster.selfAddress)

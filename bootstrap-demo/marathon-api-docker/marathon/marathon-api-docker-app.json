@@ -1,5 +1,5 @@
 {
-  "id": "/bootstrap-joining-demo-marathon-api-docker",
+  "id": "/bootstrap-demo-marathon-api-docker",
   "instances": 2,
   "labels": {
     "ACTOR_SYSTEM_NAME": "marathon-api-docker-app-label"
@@ -18,7 +18,7 @@
     "type": "DOCKER",
     "volumes": [],
     "docker": {
-      "image": "$DOCKER_USER/akka-management-bootstrap-joining-demo-marathon-api-docker:1.0",
+      "image": "$DOCKER_USER/akka-management-bootstrap-demo-marathon-api-docker:1.0",
       "network": "BRIDGE",
       "portMappings": [
         {

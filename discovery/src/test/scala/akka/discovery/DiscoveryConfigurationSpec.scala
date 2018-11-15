@@ -5,8 +5,8 @@ package akka.discovery
 
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
-
 import akka.actor.ActorSystem
+import akka.discovery.SimpleServiceDiscovery.Resolved
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.Matchers
@@ -130,13 +130,52 @@ class DiscoveryConfigurationSpec extends WordSpec with Matchers {
         ServiceDiscovery(sys).discovery should be theSameInstanceAs ServiceDiscovery(sys).loadServiceDiscovery("mock1")
       } finally TestKit.shutdownActorSystem(sys)
     }
+
+    "throw a specific discovery method exception" in {
+      val className = classOf[ExceptionThrowingDiscovery].getCanonicalName
+
+      val sys = ActorSystem("DiscoveryConfigurationSpec", ConfigFactory.parseString(s"""
+            akka.discovery {
+              method = "$className"
+            }
+        """).withFallback(ConfigFactory.load()))
+
+      try {
+        an[DiscoveryException] should be thrownBy ServiceDiscovery(sys).discovery
+      } finally TestKit.shutdownActorSystem(sys)
+    }
+
+    "throw an illegal argument exception for not existing method" in {
+      val className = "className"
+
+      val sys = ActorSystem("DiscoveryConfigurationSpec", ConfigFactory.parseString(s"""
+            akka.discovery {
+              method = "$className"
+            }
+        """).withFallback(ConfigFactory.load()))
+
+      try {
+        an[IllegalArgumentException] should be thrownBy ServiceDiscovery(sys).discovery
+      } finally TestKit.shutdownActorSystem(sys)
+    }
+
   }
 
 }
 
 class FakeTestDiscovery extends SimpleServiceDiscovery {
 
-  override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[SimpleServiceDiscovery.Resolved] = ???
+  override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = ???
 }
 
 class FakeTestDiscovery2 extends FakeTestDiscovery
+
+class DiscoveryException(message: String) extends Exception
+
+class ExceptionThrowingDiscovery extends SimpleServiceDiscovery {
+
+  def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = ???
+
+  throw new DiscoveryException("Test Exception")
+
+}

@@ -11,40 +11,14 @@ The operations exposed are comparable to the Command Line Management tool or the
 The Akka Cluster HTTP Management is a separate jar file.
 Make sure to include it along with the core akka-management library in your project:
 
-
-sbt
-:   @@@vars
-    ```scala
-    libraryDependencies += "com.lightbend.akka.management" %% "akka-management"              % "$version$"
-    libraryDependencies += "com.lightbend.akka.management" %% "akka-management-cluster-http" % "$version$"
-    ```
-    @@@
-
-Maven
-:   @@@vars
-    ```xml
-    <dependency>
-      <groupId>com.lightbend.akka.management</groupId>
-      <artifactId>akka-management-cluster-http_$scala.binaryVersion$</artifactId>
-      <version>$version$</version>
-    </dependency>
-    <dependency>
-      <groupId>com.lightbend.akka.management</groupId>
-      <artifactId>akka-management_$scala.binaryVersion$</artifactId>
-      <version>$version$</version>
-    </dependency>
-    ```
-    @@@
-
-Gradle
-:   @@@vars
-    ```gradle
-    dependencies {
-      compile group: "com.lightbend.akka.management", name: "akka-management-cluster-http_$scala.binaryVersion$", version: "$version$"
-      compile group: "com.lightbend.akka.management", name: "akka-management_$scala.binaryVersion$", version: "$version$"
-    }
-    ```
-    @@@
+@@dependency[sbt,Gradle,Maven] {
+  group=com.lightbend.akka.management
+  artifact=akka-management_$scala.binary_version$
+  version=$version$
+  group2=com.lightbend.akka.management
+  artifact2=akka-management-cluster-http_$scala.binary.version$
+  version2=$version$
+}
 
 ## Running
 

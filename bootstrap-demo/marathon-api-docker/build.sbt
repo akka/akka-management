@@ -1,6 +1,6 @@
 import com.typesafe.sbt.packager.docker._
 
-name := "bootstrap-joining-demo-marathon-api-docker"
+name := "bootstrap-demo-marathon-api-docker"
 
 version := "0.1.0"
 

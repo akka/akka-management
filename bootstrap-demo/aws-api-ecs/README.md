@@ -37,7 +37,7 @@ mechanisms will do this for us.
 # Step 2: Create the ECR repository
 
 You can do this manually via the web console by creating an ECR repository
-called `bootstrap-joining-demo-aws-api-ecs`, _or_ by running the included
+called `bootstrap-demo-aws-api-ecs`, _or_ by running the included
 CloudFormation wrapper script:
 
 `./scripts/deploy-infrastucture.sh create`

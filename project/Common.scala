@@ -26,7 +26,7 @@ object Common extends AutoPlugin {
 
     licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
 
-    // scala versions are determined from the .travis.yml file
+    crossScalaVersions := Seq("2.11.12", "2.12.7"),
 
     crossVersion := CrossVersion.binary,
 
@@ -38,7 +38,8 @@ object Common extends AutoPlugin {
       "-Xlint",
       "-Yno-adapted-args",
       "-Ywarn-dead-code",
-      "-Xfuture"
+      "-Xfuture",
+      "-target:jvm-1.8"
     ),
 
     javacOptions ++= Seq(

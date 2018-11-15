@@ -68,7 +68,7 @@ Resources:
             Options:
               awslogs-group: !Ref LogGroup
               awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: bootstrap-joining-demo-aws-api-ecs
+              awslogs-stream-prefix: bootstrap-demo-aws-api-ecs
           Environment:
             - Name: JAVA_OPTS
               Value: !Sub "-Dakka.management.cluster.bootstrap.\

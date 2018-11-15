@@ -18,11 +18,6 @@ class KubernetesHealthChecks(system: ActorSystem) {
   //#health
   private val readyStates: Set[MemberStatus] = Set(MemberStatus.Up, MemberStatus.WeaklyUp)
 
-  // Removed is the initial state before joining. See https://github.com/akka/akka/issues/25663
-  private val aliveStates: Set[MemberStatus] =
-    Set(MemberStatus.Joining, MemberStatus.WeaklyUp, MemberStatus.Up, MemberStatus.Leaving, MemberStatus.Exiting,
-      MemberStatus.Removed)
-
   val k8sHealthChecks: Route =
     concat(
         path("ready") {
@@ -35,10 +30,11 @@ class KubernetesHealthChecks(system: ActorSystem) {
         },
         path("alive") {
           get {
-            val selfState = cluster.selfMember.status
-            log.debug("alive? clusterState {}", selfState)
-            if (aliveStates.contains(selfState)) complete(StatusCodes.OK)
-            else complete(StatusCodes.InternalServerError)
+            // When Akka HTTP can respond to requests, that is sufficient
+            // to consider ourselves 'live': we don't want K8s to kill us even
+            // when we're in the process of shutting down (only stop sending
+            // us traffic, which is done due to the readyness check then failing)
+            complete(StatusCodes.OK)
           }
         })
   //#health

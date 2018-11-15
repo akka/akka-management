@@ -8,6 +8,8 @@ import java.util.function.{ Function => JFunction }
 
 import akka.actor._
 
+import scala.util.{ Failure, Success }
+
 final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Extension {
 
   private val implementations = new ConcurrentHashMap[String, SimpleServiceDiscovery]
@@ -58,28 +60,34 @@ final class ServiceDiscovery(implicit system: ExtendedActorSystem) extends Exten
       dynamic
         .createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ExtendedActorSystem] → system) :: Nil)
         .recoverWith {
-          case _ ⇒
+          case _: ClassNotFoundException | _: NoSuchMethodException ⇒
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, (classOf[ActorSystem] → system) :: Nil)
         }
         .recoverWith {
-          case _ ⇒
+          case _: ClassNotFoundException | _: NoSuchMethodException ⇒
             dynamic.createInstanceFor[SimpleServiceDiscovery](clazzName, Nil)
         }
     }
 
     val configName = "akka.discovery." + method + ".class"
-    val instance = create(classNameFromConfig(configName)).recoverWith {
-      case _ ⇒ create(classNameFromConfig(method + ".class"))
+    val instanceTry = create(classNameFromConfig(configName)).recoverWith {
+      case _: ClassNotFoundException | _: NoSuchMethodException ⇒
+        create(classNameFromConfig(method + ".class"))
     }.recoverWith {
-      case _ ⇒ create(method) // so perhaps, it is a classname?
+      case _: ClassNotFoundException | _: NoSuchMethodException ⇒
+        create(method) // so perhaps, it is a classname?
     }
 
-    instance.getOrElse(
-      throw new IllegalArgumentException(
-          s"Illegal [$configName] value or incompatible class! " +
-          "The implementation class MUST extend akka.discovery.SimpleServiceDiscovery and take an " +
-          "ExtendedActorSystem as constructor argument.", instance.failed.get)
-    )
+    instanceTry match {
+      case Failure(e @ (_: ClassNotFoundException | _: NoSuchMethodException)) =>
+        throw new IllegalArgumentException(
+            s"Illegal [$configName] value or incompatible class! " +
+            "The implementation class MUST extend akka.discovery.SimpleServiceDiscovery and take an " +
+            "ExtendedActorSystem as constructor argument.", e)
+      case Failure(e) => throw e
+      case Success(instance) => instance
+    }
+
   }
 
 }

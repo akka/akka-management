@@ -48,11 +48,8 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
         discovery
 
       case otherDiscoveryMechanism ⇒
-        val implClazz = system.settings.config.getString(otherDiscoveryMechanism + ".class")
-        log.info("Bootstrap using [{}] discovery mechanism, instantiating [{}]", otherDiscoveryMechanism, implClazz)
-        system.dynamicAccess
-          .createInstanceFor[SimpleServiceDiscovery](implClazz, List(classOf[ActorSystem] → system))
-          .get
+        log.info("Bootstrap using `akka.discovery` mechanism: {}", otherDiscoveryMechanism)
+        ServiceDiscovery(system).loadServiceDiscovery(otherDiscoveryMechanism)
     }
 
   private val joinDecider: JoinDecider = {

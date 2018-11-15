@@ -23,40 +23,14 @@ Add `akka-management-cluster-bootstrap` and one or more discovery mechanisms to 
 
 For example, you might choose to use the DNS discovery and bootstrap extensions:
 
-sbt
-:   @@@vars
-    ```scala
-    libraryDependencies += "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % "$version$"
-    libraryDependencies += "com.lightbend.akka.discovery" %% "akka-discovery-dns"                % "$version$"
-    ```
-    @@@
-
-Maven
-:   @@@vars
-    ```xml
-    <dependency>
-      <groupId>com.lightbend.akka.management</groupId>
-      <artifactId>akka-management-cluster-bootstrap_$scala.binaryVersion$</artifactId>
-      <version>$version$</version>
-    </dependency>
-    <dependency>
-      <groupId>com.lightbend.akka.discovery</groupId>
-      <artifactId>akka-discovery-dns_$scala.binaryVersion$</artifactId>
-      <version>$version$</version>
-    </dependency>
-    ```
-    @@@
-
-Gradle
-:   @@@vars
-    ```gradle
-    dependencies {
-      compile group: "com.lightbend.akka.management", name: "akka-management-cluster-bootstrap_$scala.binaryVersion$", version: "$version$"
-      compile group: "com.lightbend.akka.discovery", name: "akka-discovery-dns_$scala.binaryVersion$", version: "$version$"
-    }
-    ```
-    @@@
-
+@@dependency[sbt,Gradle,Maven] {
+  group=com.lightbend.akka.management
+  artifact=akka-management-cluster-bootstrap_$scala.binary_version$
+  version=$version$
+  group2=com.lightbend.akka.discovery
+  artifact2=akka-discovery-dns_$scala.binary_version$
+  version2=$version$
+}
 
 
 ## Using

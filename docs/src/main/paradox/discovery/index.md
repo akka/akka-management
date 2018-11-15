@@ -59,6 +59,7 @@ DNS discovery maps `Lookup` queries as follows:
 * Any query  missing any of the fields is mapped to a A/AAAA query for the `serviceName`
 
 The mapping between Akka service discovery terminology and SRV terminology:
+
 * SRV service = port
 * SRV name = serviceName
 * SRV protocol = protocol
@@ -74,12 +75,7 @@ To use `akka-discovery-dns` depend on the library:
 And configure it to be used as discovery implementation in your `application.conf` and `async-dns` to be uses
 as the Akka DNS resolver:
 
-```
-akka {
-  discovery.method = akka-dns
-  io.dns.resolver = async-dns
-}
-```
+@@snip[application.conf](/discovery-dns/src/test/scala/akka/cluster/bootstrap/discovery/DnsDiscoverySpec.scala){ #configure-dns }
 
 From there on, you can use the generic API that hides the fact which discovery method is being used by calling::
 
@@ -409,7 +405,7 @@ defined in `application.conf`, if you're using this module for bootstrapping you
 
 Screenshot of two tagged EC2 instances:
 
-![EC2 instances](images/discovery-aws-ec2-tagged-instances.png)
+![EC2 instances](../images/discovery-aws-ec2-tagged-instances.png)
 
 Note the tag **service** -> *products-api*. It is set on both instances.
 
@@ -488,7 +484,7 @@ setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
 
 Demo:
 
-* A working demo app is available in the [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api-ec2)
+* A working demo app is available in the [bootstrap-demo](https://github.com/akka/akka-management/tree/master/bootstrap-demo/aws-api-ec2)
 folder.
 
 
@@ -505,7 +501,7 @@ ECS service itself.
 Screenshot of two ECS task instances (the service name is
 `liquidity-application`):
 
-![ECS task instances](images/discovery-aws-ecs-task-instances.png)
+![ECS task instances](../images/discovery-aws-ecs-task-instances.png)
 
 
 #### Dependencies and usage
@@ -605,7 +601,7 @@ Notes:
 Demo:
 
 * A working demo app is available in the
-  [bootstrap-joining-demo](https://github.com/akka/akka-management/tree/master/bootstrap-joining-demo/aws-api-ecs)
+  [bootstrap-demo](https://github.com/akka/akka-management/tree/master/bootstrap-demo/aws-api-ecs)
   folder. It includes CloudFormation templates with minimal permissions w.r.t to
   IAM policies and security group ingress, and so is a good starting point for
   any deployment that integrates the

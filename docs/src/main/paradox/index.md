@@ -28,3 +28,11 @@ You don't have to use all the modules but if you do here's how these modules wor
   - [Akka Cluster Management (JMX)](cluster-jmx-management.md)
 
 @@@
+
+
+## Compatibility & support
+
+This project does not yet have to obey the rule of staying binary compatible between releases that is common 
+for Akka libraries. Breaking API changes may be introduced without notice as we refine and simplify based on your feedback.
+
+Akka Management is currently *Incubating*. The Lightbend subscription does not yet cover support for this project.

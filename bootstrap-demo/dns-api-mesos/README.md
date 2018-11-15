@@ -5,10 +5,10 @@ Build and publish docker image into the local repo.
 `sbt docker:publishLocal`
 
 Tag built image:
-`docker tag bootstrap-joining-demo-dns-api:1.0 <dockerhub-id>/bootstrap-joining-demo-dns-api:1.0`
+`docker tag bootstrap-demo-dns-api:1.0 <dockerhub-id>/bootstrap-demo-dns-api:1.0`
 
 Push image into DockerHub 
-`docker push <dockerhub-id>/bootstrap-joining-demo-dns-api:1.0`
+`docker push <dockerhub-id>/bootstrap-demo-dns-api:1.0`
 
 Mesosphere DC/OS
 ================

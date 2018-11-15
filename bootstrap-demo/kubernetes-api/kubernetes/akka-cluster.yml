@@ -22,6 +22,10 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 8558
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
         ports:
         # akka remoting
         - name: remoting
@@ -31,6 +35,9 @@ spec:
         # must match up with contact-point-discovery.port-name for bootstrap
         - name: management
           containerPort: 8558
+          protocol: TCP
+        - name: http
+          containerPort: 8080
           protocol: TCP
 #namespace
         env:
