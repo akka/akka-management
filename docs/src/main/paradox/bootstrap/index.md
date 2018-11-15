@@ -2,10 +2,10 @@
 # Akka Cluster Bootstrap
 
 Akka Cluster Bootstrap helps forming (or joining to) a cluster by using @ref:[Akka Discovery](../discovery/index.md)
-to discover peer nodes.  It is an alternative to configuring  static `seed-nodes` in common dynamic deployment environments
-like on kubernetes or on AWS.
+to discover peer nodes.  It is an alternative to configuring static `seed-nodes` in common dynamic deployment environments
+such as on Kubernetes or AWS.
 
-It builds on the flexibility of Akka Discovery to make use of a range of different discovery mechanisms depending on the
+It builds on the flexibility of Akka Discovery, leveraging a range of discovery mechanisms depending on the
 environment you want to run your cluster in.
 
 ## Prerequisites
@@ -101,8 +101,8 @@ As Akka Cluster allows nodes to join to a cluster using a few methods, the prece
 is strictly defined and is as follows:
 
 - If `akka.cluster.seed-nodes` (in your `application.conf`) are non-empty, those nodes will be joined, and bootstrap
-  will NOT execute even if `start()` is called (a warning will be logged, though).
-- If an explicit `cluster.join` or `cluster.joinSeedNodes` is invoked before the bootstrap completes that
+  will NOT execute even if `start()` is called, however a warning will be logged.
+- If an explicit `cluster.join` or `cluster.joinSeedNodes` is invoked before the bootstrap completes, that
   joining would take precedence over the bootstrap (but it's not recommended to do so, see below).
 - The Cluster Bootstrap mechanism takes some time to complete, but eventually issues a `joinSeednodes`.
 

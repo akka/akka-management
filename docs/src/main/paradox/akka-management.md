@@ -10,7 +10,7 @@ Akka management requires Akka 2.5 or later.
 
 The main Akka Management dependency is called `akka-management`. By itself however it does not provide any capabilities,
 and you have to combine it with the management extension libraries that you want to make use of (e.g. cluster http management,
-or cluster bootstrap). This design choice was made to make users able to include only the minimal set of features that they
+or cluster bootstrap). This design choice enables users to include only the minimal set of features they
 actually want to use (and load) in their project.
 
 @@dependency[sbt,Gradle,Maven] {
@@ -37,7 +37,7 @@ Java
     AkkaManagement.get(system).start();
     ```
 
-This is in order to allow users to prepare anything else they might want to prepare or start before exposing routes for
+This allows users to prepare anything further before exposing routes for
 the bootstrap joining process and other purposes.
 
 
@@ -120,8 +120,8 @@ base path. For example, when using Akka Cluster Management routes the members in
 
 @@@ note
 
-HTTPS is not enabled by default as additional configuration from the developer is required This module does not provide security by default.
-It's the developer's choice to add security to this API. It is generally advisable not to expose management endpoints
+HTTPS is not enabled by default as additional configuration from the developer is required. This module does not provide security by default.
+It is the developer's choice to add security to this API, and when. If enabled, it is generally advisable not to expose management endpoints
 on the internet.
 
 @@@
@@ -232,7 +232,7 @@ Java
 
 ## Developing Extensions
 
-This project provides a set of management extensions. If you want to write third-party extensions to Akka management here
+This project provides a set of management extensions. To write third-party extensions to Akka Management, here
 are few pointers about how it all works together.
 
 The `akka-management` module provides the central HTTP endpoint to which extensions can register themselves.
@@ -244,12 +244,12 @@ logic for these are implemented inside the `akka-management-cluster-http`.
 An extension can contribute to the exposed HTTP routes by appending to the `akka.management.http.route-providers` list in
 its own `reference.conf` (make sure to use `+=` instead of `=`). The core `AkkaManagement` extension
 then collects all the routes and serves them together under the management HTTP server. This is in order
-to avoid having to start an additional HTTP server for each additional extension, and also, it allows
+avoids having to start an additional HTTP server for each additional extension, and additionally allows
 easy extension of routes served by including libraries that offer new capabilities (such as health-checks or
 cluster information etc).
 
-Management extensions whose nature is "active" (as in, they "do something proactively") should not be
-started automatically, but should instead be started manually by the user. One example of that is the Cluster
+Management extensions whose nature is "active", e.g. they do something proactively, should not be
+started automatically, but rather started manually by the user. One example of that is the Cluster
 Bootstrap, which on one hand does contributes routes to Akka Management, however the bootstrapping process
 does not start unless `ClusterBootstrap().start()` is invoked, which allows the user to decide when exactly
-it is ready and wants to start joining an existing cluster.
+One example of the recommended manual operations is Cluster Bootstrap, which contributes routes to Akka Management. The bootstrapping process does not start unless `ClusterBootstrap().start()` is invoked, allowing the user to decide exactly when it is ready to start joining an existing cluster.
