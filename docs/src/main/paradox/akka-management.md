@@ -140,15 +140,15 @@ are few pointers about how it all works together.
 
 The `akka-management` module provides the central HTTP endpoint to which extensions can register themselves.
 
-For example, the "Cluster HTTP Management" module exposes HTTP routes that can be used to monitor,
-and even trigger joining/leaving/downing decisions via HTTP calls to these routes. The routes and
-logic for these are implemented inside the `akka-management-cluster-http`.
-
 An extension can contribute to the exposed HTTP routes by appending to the `akka.management.http.route-providers` list in
 its own `reference.conf` (make sure to use `+=` instead of `=`). The core `AkkaManagement` extension
 collects all the routes and serves them together under the Management HTTP server. This enables
 easy extension of management capabilities (such as health-checks or cluster information etc)
 without the boilerplate and overhead to start separate HTTP servers for each extension.
+
+For example, the "Cluster HTTP Management" module exposes HTTP routes that can be used to monitor,
+and even trigger joining/leaving/downing decisions via HTTP calls to these routes. The routes and
+logic for these are implemented inside the `akka-management-cluster-http`.
 
 As a best practice, Management extensions that do something proactively should not be
 started automatically, but rather manually by the user. One example of that is Cluster Bootstrap.
