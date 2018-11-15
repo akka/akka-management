@@ -122,7 +122,7 @@ base path. For example, when using Akka Cluster Management routes the members in
 
 HTTPS is not enabled by default as additional configuration from the developer is required. This module does not provide security by default.
 It is the developer's choice to add security to this API, and when. If enabled, it is generally advisable not to expose management endpoints
-on the internet.
+publicly.
 
 @@@
 
