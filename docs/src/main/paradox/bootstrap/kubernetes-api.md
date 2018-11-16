@@ -24,3 +24,5 @@ variable that can be injected into the pod via:
 
 @@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml)  { #namespace }
 
+For more details on how to configure the Kubernetes deployment see @ref:[recipes](recipes.md).
+

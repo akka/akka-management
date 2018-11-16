@@ -31,4 +31,5 @@ Then to configure your application:
 
 The same configuration will work for any environment that has an SRV record for your Akka Clustered application.
 
+For more details on how to configure the Kubernetes deployment see @ref:[recipes](recipes.md).
 
