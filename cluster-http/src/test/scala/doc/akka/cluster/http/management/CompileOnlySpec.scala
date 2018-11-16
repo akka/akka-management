@@ -4,12 +4,26 @@
 package doc.akka.cluster.http.management
 
 import akka.actor.ActorSystem
-import akka.management.cluster.ClusterHttpManagement
+import akka.cluster.Cluster
+import akka.http.scaladsl.server.Route
+import akka.management.AkkaManagement
+import akka.management.cluster.{ClusterHttpManagement, ClusterHttpManagementRoutes}
 
 object CompileOnlySpec {
 
   //#loading
   val system = ActorSystem()
-  val httpMgmt = ClusterHttpManagement(system)
+  // Automatically loads Cluster Http Routes
+  AkkaManagement(system).start()
   //#loading
+
+
+  //#all
+  val cluster = Cluster(system)
+  val allRoutes: Route = ClusterHttpManagementRoutes(cluster)
+  //#all
+
+  //#read-only
+  val readOnlyRoutes: Route = ClusterHttpManagementRoutes.readOnly(cluster)
+  //#read-only
 }

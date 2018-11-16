@@ -18,7 +18,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
 
   import akka.http.scaladsl.server.Directives._
 
-  private def routeGetMembers(cluster: Cluster) =
+  def routeGetMembers(cluster: Cluster): Route =
     get {
       complete {
         val readView = ClusterReadViewAccess.internalReacView(cluster)
@@ -41,7 +41,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       }
     }
 
-  private def routePostMembers(cluster: Cluster) =
+  def routePostMembers(cluster: Cluster): Route =
     post {
       formField('address) { addressString ⇒
         complete {
@@ -52,14 +52,14 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       }
     }
 
-  private def routeGetMember(cluster: Cluster, member: Member) =
+  def routeGetMember(cluster: Cluster, member: Member): Route =
     get {
       complete {
         memberToClusterMember(member)
       }
     }
 
-  private def routeDeleteMember(cluster: Cluster, member: Member) =
+  def routeDeleteMember(cluster: Cluster, member: Member): Route =
     delete {
       complete {
         cluster.leave(member.uniqueAddress.address)
@@ -67,7 +67,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       }
     }
 
-  private def routePutMember(cluster: Cluster, member: Member) =
+  def routePutMember(cluster: Cluster, member: Member) =
     put {
       formField('operation) { operation ⇒
         ClusterHttpManagementOperation.fromString(operation) match {
@@ -143,4 +143,22 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       }
     )
 
+  /**
+   * Creates an instance of [[ClusterHttpManagementRoutes]] with only the read only routes.
+   * the specified path `pathPrefixName`.
+   */
+  def readOnly(cluster: Cluster): Route =
+    concat(
+      pathPrefix("cluster" / "members") {
+        concat(
+          pathEndOrSingleSlash {
+            routeGetMembers(cluster)
+          },
+          routesMember(cluster)
+        )
+      },
+      pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
+        routeGetShardInfo(cluster, shardRegionName)
+      }
+    )
 }

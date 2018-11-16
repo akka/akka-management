@@ -10,7 +10,6 @@ import akka.http.scaladsl.Http
 import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
-import com.typesafe.config.ConfigFactory
 
 object DemoApp extends App {
 

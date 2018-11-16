@@ -4,13 +4,28 @@
 package jdoc.akka.cluster.http.management;
 
 import akka.actor.ActorSystem;
-import akka.management.cluster.ClusterHttpManagement;
+import akka.management.AkkaManagement;
+import akka.cluster.Cluster;
+//#imports
+import akka.http.javadsl.server.Route;
+import akka.management.cluster.javadsl.ClusterHttpManagementRoutes;
+//#imports
 
 public class CompileOnlyTest {
     public static void example() {
         //#loading
-        ActorSystem as = ActorSystem.create();
-        ClusterHttpManagement httpMgmt = ClusterHttpManagement.get(as);
+        ActorSystem system = ActorSystem.create();
+        AkkaManagement.get(system).start();
         //#loading
+
+
+        //#all
+        Cluster cluster = Cluster.get(system);
+        Route allRoutes = ClusterHttpManagementRoutes.all(cluster);
+        //#all
+
+        //#read-only
+        Route readOnlyRoutes = ClusterHttpManagementRoutes.readOnly(cluster);
+        //#read-only
     }
 }
