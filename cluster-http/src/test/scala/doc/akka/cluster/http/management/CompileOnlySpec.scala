@@ -7,7 +7,7 @@ import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.http.scaladsl.server.Route
 import akka.management.AkkaManagement
-import akka.management.cluster.{ClusterHttpManagement, ClusterHttpManagementRoutes}
+import akka.management.cluster.{ ClusterHttpManagement, ClusterHttpManagementRoutes }
 
 object CompileOnlySpec {
 
@@ -16,7 +16,6 @@ object CompileOnlySpec {
   // Automatically loads Cluster Http Routes
   AkkaManagement(system).start()
   //#loading
-
 
   //#all
   val cluster = Cluster(system)
