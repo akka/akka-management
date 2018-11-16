@@ -9,35 +9,7 @@ The project shows how to:
     * Note that this requires the use of the `publishNotReadyAddresses`, which replaces the `service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"` annotation , so bootstrap can see the pods before they are ready. Check your Kubernetes environment supports this feature
 * If required use a separate service and/or ingress for user-facing endpoints, for example [HTTP](https://doc.akka.io/docs/akka-http/current/) or [gRPC](https://developer.lightbend.com/docs/akka-grpc/current/)
 
-## Deployments
-
-Use a regular deployment (not a StatefulSet).
-
-### Update strategy
-
-For small clusters it may make sense to set `maxUnavailable` to 0 and `maxSurge` to 1.
-This means that a new pod is created before removing any existing pods so if the new pod fails the cluster remains
-at full strength until a rollback happens. For large clusters it may be too slow to do 1 pod at a time.
-
-If using [SBR](https://developer.lightbend.com/docs/akka-commercial-addons/current/split-brain-resolver.html) have a `maxUnavailable` that will not cause downing
-
-### Cluster singletons
-
-Deployments order pods by pod state and then time spent ready when deciding which to remove first. This works well
-with cluster singletons as they are typically removed last and then the cluster singletons move the the oldest new pod.
-
-### Health checks
-
-Health checks can be used check a node is part of a cluster e.g.
-
-@@snip [health-checks](/bootstrap-demo/kubernetes-dns/src/main/scala/akka/cluster/bootstrap/KubernetesHealthChecks.scala)  { #health }
-
-This will mean that a pod won't get traffic until it is part of a cluster, which is important
-if either `ClusterSharding` or `ClusterSingleton` are used.
-
-## Services
-
-### Internal headless service
+### Internal headless service for bootstrap
 
 For Akka Cluster / Management use a headless service. This allows the solution to not be coupled to k8s as well
 as there is no use case for load balancing across management/remoting ports.
@@ -59,15 +31,5 @@ Then to configure your application:
 
 The same configuration will work for any environment that has an SRV record for your Akka Clustered application.
 
-### External service
-
-For production traffic e.g. HTTP use a regular service or an alternative ingress mechanism.
-With an appropriate readiness check this results in traffic not being routed until bootstrap has finished.
-
-@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #public }
-
-This will result in a ClusterIP being created and only added to `Endpoints` when the pods are `ready`
-
-Note that the `appName` is the same for both services as they both refer to the same pods.
-
+For more details on how to configure the Kubernetes deployment see @ref:[recipes](recipes.md).
 
