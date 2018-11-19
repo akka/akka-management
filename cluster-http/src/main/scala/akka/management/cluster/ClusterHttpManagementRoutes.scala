@@ -19,7 +19,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
 
   import akka.http.scaladsl.server.Directives._
 
-  private def routeGetMembers(cluster: Cluster) =
+  private def routeGetMembers(cluster: Cluster): Route =
     get {
       complete {
         val readView = ClusterReadViewAccess.internalReacView(cluster)
@@ -42,7 +42,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       }
     }
 
-  private def routePostMembers(cluster: Cluster) =
+  private def routePostMembers(cluster: Cluster): Route =
     post {
       formField('address) { addressString ⇒
         complete {
@@ -53,14 +53,14 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       }
     }
 
-  private def routeGetMember(cluster: Cluster, member: Member) =
+  private def routeGetMember(cluster: Cluster, member: Member): Route =
     get {
       complete {
         memberToClusterMember(member)
       }
     }
 
-  private def routeDeleteMember(cluster: Cluster, member: Member) =
+  private def routeDeleteMember(cluster: Cluster, member: Member): Route =
     delete {
       complete {
         cluster.leave(member.uniqueAddress.address)
@@ -90,7 +90,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         m ⇒ s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress)
   }
 
-  private def routesMember(cluster: Cluster) =
+  private def routeFindMember(cluster: Cluster) =
     path(Remaining) { memberAddress ⇒
       findMember(cluster, memberAddress) match {
         case Some(member) ⇒
@@ -126,8 +126,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
 
   /**
    * Creates an instance of [[ClusterHttpManagementRoutes]] to manage the specified
-   * [[akka.cluster.Cluster]] instance. This version does not provide Basic Authentication. It uses
-   * the specified path `pathPrefixName`.
+   * [[akka.cluster.Cluster]] instance. This version does not provide Basic Authentication.
    */
   def apply(cluster: Cluster): Route =
     concat(
@@ -136,7 +135,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
           pathEndOrSingleSlash {
             routeGetMembers(cluster) ~ routePostMembers(cluster)
           },
-          routesMember(cluster)
+          routeFindMember(cluster)
         )
       },
       pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
@@ -144,4 +143,21 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       }
     )
 
+  /**
+   * Creates an instance of [[ClusterHttpManagementRoutes]] with only the read only routes.
+   */
+  def readOnly(cluster: Cluster): Route =
+    concat(
+      pathPrefix("cluster" / "members") {
+        concat(
+          pathEndOrSingleSlash {
+            routeGetMembers(cluster)
+          },
+          routeFindMember(cluster)
+        )
+      },
+      pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
+        routeGetShardInfo(cluster, shardRegionName)
+      }
+    )
 }

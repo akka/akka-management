@@ -4,7 +4,6 @@
 
 package akka.management.cluster
 
-import akka.cluster.Member
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json.DefaultJsonProtocol
 

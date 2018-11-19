@@ -146,3 +146,23 @@ Example response:
          }
        ]
      }
+
+## Hosting the routes in an existing Akka HTTP server
+
+Starting `AkkaMangement` starts an Akka HTTP server and hosts the Cluster HTTP Routes. The routes can also be added
+to an existing Akka HTTP server. To access all the routes:
+
+Scala
+:  @@snip [CompileOnlySpec.scala](/cluster-http/src/test/scala/doc/akka/cluster/http/management/CompileOnlySpec.scala) { #all }
+
+Java
+:  @@snip [CompileOnlyTest.java](/cluster-http/src/test/java/jdoc/akka/cluster/http/management/CompileOnlyTest.java) { #all }
+
+Just the read only routes can be accessed:
+
+Scala
+:  @@snip [CompileOnlySpec.scala](/cluster-http/src/test/scala/doc/akka/cluster/http/management/CompileOnlySpec.scala) { #read-only }
+
+Java
+:  @@snip [CompileOnlyTest.java](/cluster-http/src/test/java/jdoc/akka/cluster/http/management/CompileOnlyTest.java) { #read-only }
+
