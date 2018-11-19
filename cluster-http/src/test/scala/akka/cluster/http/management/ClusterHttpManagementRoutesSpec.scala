@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
+
 package akka.cluster.http.management
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
