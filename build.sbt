@@ -30,9 +30,6 @@ lazy val `akka-management-root` = project
   )
   .settings(
     parallelExecution in GlobalScope := false
-//    inThisBuild(List(
-//      resolvers += Resolver.sonatypeRepo("comtypesafe-2189")
-//    ))
   )
 
 // interfaces and extension for Discovery
