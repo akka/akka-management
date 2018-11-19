@@ -89,7 +89,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         m ⇒ s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress)
   }
 
-  private def routeGetMember(cluster: Cluster) =
+  private def routeFindMember(cluster: Cluster) =
     path(Remaining) { memberAddress ⇒
       findMember(cluster, memberAddress) match {
         case Some(member) ⇒
@@ -134,7 +134,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
           pathEndOrSingleSlash {
             routeGetMembers(cluster) ~ routePostMembers(cluster)
           },
-          routeGetMember(cluster)
+          routeFindMember(cluster)
         )
       },
       pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
@@ -152,7 +152,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
           pathEndOrSingleSlash {
             routeGetMembers(cluster)
           },
-          routeGetMember(cluster)
+          routeFindMember(cluster)
         )
       },
       pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
