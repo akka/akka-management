@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
+
 package akka.discovery.awsapi.ec2
 
 import java.util.concurrent.TimeoutException

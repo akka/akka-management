@@ -2,30 +2,31 @@
 apiVersion: "apps/v1beta2"
 kind: Deployment
 metadata:
-  name: "bootstrap-demo-kubernetes-dns"
+  name: akka-bootstrap-demo
   labels:
-    appName: "bootstrap-demo-kubernetes-dns"
+    app: akka-bootstrap-demo
+  namespace: akka-bootstrap
 spec:
   replicas: 3
   selector:
     matchLabels:
-      appName: "bootstrap-demo-kubernetes-dns"
+      app: akka-bootstrap-demo
 #update
   strategy:
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 1
+      maxUnavailable: 0
     type: RollingUpdate
  #update
 
   template:
     metadata:
       labels:
-        appName: "bootstrap-demo-kubernetes-dns"
+        app: akka-bootstrap-demo
     spec:
       restartPolicy: Always
       containers:
-      - name: "bootstrap-demo-kubernetes-dns"
+      - name: akka-bootstrap-demo
         image: "bootstrap-demo-kubernetes-dns:1.3.3.7"
         imagePullPolicy: IfNotPresent
         readinessProbe:
@@ -36,24 +37,28 @@ spec:
           httpGet:
             path: /alive
             port: 8080
-        env:
         ports:
         - containerPort: 8558
           name: management
         - containerPort: 2552
           name: remoting
-        volumeMounts: []
-      volumes: []
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+
 ---
 #headless
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    appName: "bootstrap-demo-kubernetes-dns"
+    app: akka-bootstrap-demo
   annotations:
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
   name: "bootstrap-demo-kubernetes-dns-internal"
+  namespace: akka-bootstrap
 spec:
   ports:
   - name: management
@@ -65,7 +70,7 @@ spec:
     protocol: TCP
     targetPort: 2552
   selector:
-    appName: "bootstrap-demo-kubernetes-dns"
+    app: akka-bootstrap-demo
   clusterIP: None
   publishNotReadyAddresses: true
 #headless
@@ -75,8 +80,9 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    appName: "bootstrap-demo-kubernetes-dns"
+    app: akka-bootstrap-demo
   name: "bootstrap-demo-kubernetes-dns"
+  namespace: akka-bootstrap
 spec:
   ports:
   - name: http
@@ -84,6 +90,6 @@ spec:
     protocol: TCP
     targetPort: 8080
   selector:
-    appName: "bootstrap-demo-kubernetes-dns"
+    app: "bootstrap-demo-kubernetes-dns"
   type: LoadBalancer
 #public

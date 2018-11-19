@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
+
 package jdoc.akka.cluster.http.management;
 
 import akka.actor.ActorSystem;
