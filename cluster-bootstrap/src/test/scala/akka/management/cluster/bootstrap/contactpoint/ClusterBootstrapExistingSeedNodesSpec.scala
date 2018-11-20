@@ -4,12 +4,6 @@
 
 package akka.management.cluster.bootstrap.contactpoint
 
-/*
- * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
- */
-
-import java.util.Locale
-
 import akka.actor.{ ActorSystem, Address }
 import akka.cluster.Cluster
 import akka.discovery.MockDiscovery
