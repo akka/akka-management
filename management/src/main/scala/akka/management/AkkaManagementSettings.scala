@@ -51,3 +51,22 @@ final class AkkaManagementSettings(val config: Config) {
   }
 
 }
+
+private[management] object AkkaManagementSettings {
+
+  implicit class HasDefined(val config: Config) {
+    def hasDefined(key: String): Boolean =
+      config.hasPath(key) &&
+      config.getString(key).trim.nonEmpty &&
+      config.getString(key) != s"<$key>"
+
+    def optDefinedValue(key: String): Option[String] =
+      if (hasDefined(key)) Some(config.getString(key)) else None
+
+    def optValue(key: String): Option[String] =
+      config.getString(key) match {
+        case "" => None
+        case other => Some(other)
+      }
+  }
+}
