@@ -54,11 +54,21 @@ Note that the `app` is the same for both services as they both refer to the same
 
 ### Health checks
 
-TODO make health check part of [Akka management](https://github.com/akka/akka-management/issues/364)
+`akka-cluster-http-management` includes an Akka Management route provider for a readiness and a liveness check. To use it
+add the following dependency:
 
-Health checks can be used check a node is part of a cluster e.g.
+@@dependency[sbt,Gradle,Maven] {
+  group=com.lightbend.akka.management
+  artifact=akka-management_$scala.binary_version$
+  version=$version$
+}
 
-@@snip [health-checks](/bootstrap-demo/kubernetes-dns/src/main/scala/akka/cluster/bootstrap/KubernetesHealthChecks.scala)  { #health }
+The readiness check is exposed on the Akka Management port as a `GET` on `/ready` and the liveness check is a `GET` on `/alive`
+
+Configure them to be used in your deployment:
+
+@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #health }
+
 
 This will mean that a pod won't get traffic until it is part of a cluster, which is important
 if either `ClusterSharding` or `ClusterSingleton` are used. 

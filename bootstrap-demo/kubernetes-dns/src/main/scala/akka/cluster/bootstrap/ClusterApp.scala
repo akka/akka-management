@@ -5,10 +5,12 @@
 package akka.cluster.bootstrap
 
 import akka.actor.{ Actor, ActorLogging, ActorSystem, PoisonPill, Props }
-import akka.cluster.{ Cluster, ClusterEvent }
 import akka.cluster.ClusterEvent.ClusterDomainEvent
 import akka.cluster.singleton.{ ClusterSingletonManager, ClusterSingletonManagerSettings }
+import akka.cluster.{ Cluster, ClusterEvent }
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives._
 import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
@@ -20,26 +22,44 @@ object ClusterApp {
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
     implicit val executionContext = system.dispatcher
+    val cluster = Cluster(system)
 
     system.log.info("Starting Akka Management")
     AkkaManagement(system).start()
     ClusterBootstrap(system).start()
 
-    system.actorOf(ClusterSingletonManager.props(Props[NoisySingleton], PoisonPill,
-        ClusterSingletonManagerSettings(system)))
-    Cluster(system)
-      .subscribe(system.actorOf(Props[ClusterWatcher]), ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
+    system.actorOf(
+      ClusterSingletonManager.props(
+        Props[NoisySingleton],
+        PoisonPill,
+        ClusterSingletonManagerSettings(system)
+      )
+    )
+    Cluster(system).subscribe(
+      system.actorOf(Props[ClusterWatcher]),
+      ClusterEvent.InitialStateAsEvents,
+      classOf[ClusterDomainEvent]
+    )
 
-    val k8sHealthChecks = new KubernetesHealthChecks(system)
-
-    val routes = k8sHealthChecks.k8sHealthChecks // add real app routes here
-
-    // TODO do this on joining the cluster
-    system.log.info("Starting Main App")
+    // add real app routes here
+    val routes =
+      path("hello") {
+        get {
+          complete(
+            HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello</h1>")
+          )
+        }
+      }
 
     Http().bindAndHandle(routes, "0.0.0.0", 8080)
 
-    system.log.info(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
+    system.log.info(
+      s"Server online at http://localhost:8080/\nPress RETURN to stop..."
+    )
+
+    cluster.registerOnMemberUp(() => {
+      system.log.info("Cluster member is up!")
+    })
   }
 
   class ClusterWatcher extends Actor with ActorLogging {
