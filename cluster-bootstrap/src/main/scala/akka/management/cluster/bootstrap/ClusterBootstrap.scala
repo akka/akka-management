@@ -25,8 +25,6 @@ import akka.management.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator
 import akka.management.http.ManagementRouteProvider
 import akka.management.http.ManagementRouteProviderSettings
-import akka.pattern.ask
-import akka.util.Timeout
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
@@ -80,15 +78,8 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
       val bootstrapProps = BootstrapCoordinator.props(discovery, joinDecider, settings)
       val bootstrap = system.systemActorOf(bootstrapProps, "bootstrapCoordinator")
-
-      // the boot timeout not really meant to be exceeded
-      implicit val bootTimeout: Timeout = Timeout(settings.bootTimeout)
-      val bootstrapCompleted = (bootstrap ? BootstrapCoordinator.Protocol.InitiateBootstrapping).mapTo[
-          BootstrapCoordinator.Protocol.BootstrappingCompleted]
-
-      bootstrapCompleted.failed.foreach { _ =>
-        log.warning("Failed to complete bootstrap within {}!", bootTimeout)
-      }
+      // Bootstrap already logs in several other execution points when it can't form a cluster, and why.
+      bootstrap ! BootstrapCoordinator.Protocol.InitiateBootstrapping
     } else log.warning("Bootstrap already initiated, yet start() method was called again. Ignoring.")
 
   /**

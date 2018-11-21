@@ -15,10 +15,8 @@ import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.testkit.SocketUtil
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
-import org.scalatest.concurrent.ScalaFutures
 
-abstract class JoinDeciderSpec extends WordSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll {
+abstract class JoinDeciderSpec extends AbstractBootstrapSpec {
 
   val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
 
@@ -201,14 +199,6 @@ class SelfAwareJoinDeciderSpec extends JoinDeciderSpec {
   }
 
   "SelfAwareJoinDecider" should {
-
-    "have the expected ClusterBootstrapSettings " in {
-      settings.newClusterEnabled should ===(false)
-      // 1 day seems excessive but it was originally hardcoded as 1.day
-      settings.bootTimeout should ===(1.day)
-      settings.contactPointDiscovery.selfDiscoveryTimeout should ===(10.seconds)
-      settings.joinDecider.selfDerivedHost.isEmpty should ===(true)
-    }
 
     "return true if a target matches selfContactPoints" in {
       ClusterBootstrap(system).setSelfContactPoint(s"http://10.0.0.2:$managementPort/test")

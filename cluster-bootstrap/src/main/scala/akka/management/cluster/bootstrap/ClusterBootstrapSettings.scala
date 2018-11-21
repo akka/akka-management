@@ -8,6 +8,7 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
+import akka.util.Helpers._
 import com.typesafe.config.Config
 
 import scala.concurrent.duration.{ FiniteDuration, _ }
@@ -20,9 +21,9 @@ final class ClusterBootstrapSettings(config: Config) {
 
   private val bootConfig = config.getConfig("akka.management.cluster.bootstrap")
 
-  val newClusterEnabled: Boolean = bootConfig.getBoolean("new-cluster-enabled")
-
-  val bootTimeout: FiniteDuration = bootConfig.getDuration("timeout", TimeUnit.MILLISECONDS).millis
+  val newClusterEnabled: Boolean =
+    bootConfig.getBoolean("new-cluster-enabled") requiring (!bootConfig.hasPath("form-new-cluster"),
+    "'form-new-cluster' is deprecated, please update your configuration to use 'new-cluster-enabled'.")
 
   object contactPointDiscovery {
     private val discoveryConfig: Config = bootConfig.getConfig("contact-point-discovery")
@@ -48,9 +49,6 @@ final class ClusterBootstrapSettings(config: Config) {
       }
 
     val discoveryMethod: String = discoveryConfig.getString("discovery-method")
-
-    val selfDiscoveryTimeout: FiniteDuration =
-      discoveryConfig.getDuration("self-discovery-timeout", TimeUnit.MILLISECONDS).millis
 
     val stableMargin: FiniteDuration =
       discoveryConfig.getDuration("stable-margin", TimeUnit.MILLISECONDS).millis

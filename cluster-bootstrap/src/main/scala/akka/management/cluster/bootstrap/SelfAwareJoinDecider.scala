@@ -9,6 +9,7 @@ import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.event.Logging
 
 import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.util.Try
 
 /**
@@ -20,8 +21,6 @@ private[bootstrap] abstract class SelfAwareJoinDecider(system: ActorSystem, sett
 
   protected val log = Logging(system, getClass)
 
-  private def discoveryTimeout = settings.contactPointDiscovery.selfDiscoveryTimeout
-
   /** Returns the current `selfContactPoints` as a String for logging, e.g. [127.0.0.1:64714]. */
   protected def contactPointsString(contactPoints: Set[(String, Int)]): String =
     contactPoints.map(_.productIterator.mkString(":")).mkString("[", ",", "]")
@@ -32,7 +31,7 @@ private[bootstrap] abstract class SelfAwareJoinDecider(system: ActorSystem, sett
    * this initialization.
    */
   private[bootstrap] def selfContactPoints: Set[(String, Int)] =
-    Try(Await.result(ClusterBootstrap(system).selfContactPoints, discoveryTimeout))
+    Try(Await.result(ClusterBootstrap(system).selfContactPoints, 10.seconds))
       .getOrElse(throw new IllegalStateException(
             "'Bootstrap.selfContactPoint' was NOT set, but is required for the bootstrap to work " +
             "if binding bootstrap routes manually and not via akka-management."))
