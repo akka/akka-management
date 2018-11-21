@@ -36,10 +36,15 @@ class ClusterHealthCheckRoutesSpec extends WordSpec with Matchers with Scalatest
           status shouldEqual StatusCodes.OK
         }
       }
+
     }
 
     "return 500 for unready state" in {
-
+      withRoute(MemberStatus.WeaklyUp) { route =>
+        Get("/ready") ~> route ~> check {
+          status shouldEqual StatusCodes.InternalServerError
+        }
+      }
       withRoute(MemberStatus.Down) { route =>
         Get("/ready") ~> route ~> check {
           status shouldEqual StatusCodes.InternalServerError
