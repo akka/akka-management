@@ -37,6 +37,12 @@ done
 
 if [ $i -eq 10 ]
 then
-  echo "No 2 MemberUp log events found"
+  echo "No 3 MemberUp log events found"
+  echo "=============================="
+  for POD in $(kubectl get pods | grep demo-kubernetes-dns | grep Running | awk '{ print $1 }')
+  do
+   echo "Logging for $POD"
+    kubectl logs $POD bootstrap-demo-kubernetes-dns
+  done
   exit -1
 fi

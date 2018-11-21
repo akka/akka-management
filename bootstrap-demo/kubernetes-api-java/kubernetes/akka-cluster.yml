@@ -25,17 +25,10 @@ spec:
       containers:
       - name: akka-boostrap-demo
         image: bootstrap-demo-kubernetes-api:1.3.3.7
-        imagePullPolicy: Never # using local image, change for production
-        #health
+        imagePullPolicy: Never
         livenessProbe:
-          httpGet:
-            path: /alive
-            port: management
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: management
-        #health
+          tcpSocket:
+            port: 8558
         ports:
         # akka remoting
         - name: remoting
