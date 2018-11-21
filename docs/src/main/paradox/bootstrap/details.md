@@ -66,7 +66,7 @@ The illustration below may be of help in visualising this process:
 ![project structure](../images/bootstrap-forming-cluster.png)
 
 Cluster Bootstrap will always attempt to join an existing cluster if possible. However if no contact points are found during service discovery, a
-new cluster will be formed. A setting is provided, `akka.management.cluster.bootstrap.new-cluster-enabled` that can be disabled to only allow the
+new cluster will be formed by default. A setting is provided, `akka.management.cluster.bootstrap.new-cluster-enabled` that can be disabled to only allow the
 node to join existing clusters (Case 2 below). This can be used to provide additional safety during the typical deployment, even when scaling out an initial deployment, as it is relatively rare that no cluster exists. 
 
 * On initial deployment use the default `akka.management.cluster.bootstrap.new-cluster-enabled=on`
