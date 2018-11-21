@@ -5,29 +5,25 @@
 package akka.management.cluster.bootstrap
 
 import java.time.LocalDateTime
+import java.net.InetAddress
 
 import scala.concurrent.duration._
 
-import java.net.InetAddress
 import akka.actor.ActorSystem
 import akka.actor.Address
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
 import akka.testkit.SocketUtil
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
-import org.scalatest.Matchers
-import org.scalatest.WordSpecLike
-import org.scalatest.concurrent.ScalaFutures
 
-class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with ScalaFutures {
+abstract class JoinDeciderSpec extends AbstractBootstrapSpec {
 
-  "LowestAddressJoinDecider" should {
+  val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
 
-    val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
-    val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+  val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
 
-    val config =
-      ConfigFactory.parseString(s"""
+  val config =
+    ConfigFactory.parseString(s"""
         akka {
           loglevel = INFO
 
@@ -53,24 +49,25 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
           }
         }
         """)
-    val system = ActorSystem("sys", config)
-    val settings = ClusterBootstrapSettings(system.settings.config)
 
-    val contactA = ResolvedTarget(
-      host = "10-0-0-2.default.pod.cluster.local",
-      port = None,
-      address = Some(InetAddress.getByName("10.0.0.2"))
-    )
-    val contactB = ResolvedTarget(
-      host = "10-0-0-3.default.pod.cluster.local",
-      port = None,
-      address = Some(InetAddress.getByName("10.0.0.3"))
-    )
-    val contactC = ResolvedTarget(
-      host = "10-0-0-4.default.pod.cluster.local",
-      port = None,
-      address = Some(InetAddress.getByName("10.0.0.4"))
-    )
+  val contactA = ResolvedTarget(host = "10-0-0-2.default.pod.cluster.local", port = None,
+    address = Some(InetAddress.getByName("10.0.0.2")))
+
+  val contactB = ResolvedTarget(host = "10-0-0-3.default.pod.cluster.local", port = None,
+    address = Some(InetAddress.getByName("10.0.0.3")))
+
+  val contactC = ResolvedTarget(host = "10-0-0-4.default.pod.cluster.local", port = None,
+    address = Some(InetAddress.getByName("10.0.0.4")))
+
+  val system = ActorSystem("sys", config)
+
+  override def afterAll(): Unit = TestKit.shutdownActorSystem(system, 5.seconds)
+}
+
+class LowestAddressJoinDeciderSpec extends JoinDeciderSpec {
+
+  "LowestAddressJoinDecider" should {
+    val settings = ClusterBootstrapSettings(system.settings.config)
 
     "sort ResolvedTarget by lowest hostname:port" in {
       List(ResolvedTarget("c", None, None), ResolvedTarget("a", None, None),
@@ -162,6 +159,7 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
     }
 
     "join self when all conditions met and self has the lowest address" in {
+      settings.newClusterEnabled should ===(true)
       ClusterBootstrap(system).setSelfContactPoint(s"http://10.0.0.2:$managementPort/test")
       val decider = new LowestAddressJoinDecider(system, settings)
       val now = LocalDateTime.now()
@@ -176,11 +174,51 @@ class LowestAddressJoinDeciderSpec extends WordSpecLike with Matchers with Scala
       )
       decider.decide(info).futureValue should ===(JoinSelf)
     }
+  }
+}
 
-    "terminate system" in {
-      TestKit.shutdownActorSystem(system, 5.seconds)
-    }
+class SelfAwareJoinDeciderSpec extends JoinDeciderSpec {
 
+  override val remotingPort = 0
+
+  val disabled =
+    ConfigFactory.parseString("akka.management.cluster.bootstrap.new-cluster-enabled=off")
+
+  override val system = ActorSystem("sys", disabled.withFallback(config))
+
+  val settings = ClusterBootstrapSettings(system.settings.config)
+
+  def seedNodes = {
+    val now = LocalDateTime.now()
+    new SeedNodesInformation(currentTime = now, contactPointsChangedAt = now.minusSeconds(6),
+      contactPoints = Set(contactA, contactB, contactC),
+      seedNodesObservations = Set(new SeedNodesObservation(now.minusSeconds(1), contactA,
+          Address("akka", "sys", "10.0.0.2", 2552), Set.empty),
+        new SeedNodesObservation(now.minusSeconds(1), contactB, Address("akka", "sys", "b", 2552), Set.empty),
+        new SeedNodesObservation(now.minusSeconds(1), contactC, Address("akka", "sys", "c", 2552), Set.empty)))
   }
 
+  "SelfAwareJoinDecider" should {
+
+    "return true if a target matches selfContactPoints" in {
+      ClusterBootstrap(system).setSelfContactPoint(s"http://10.0.0.2:$managementPort/test")
+      val decider = new LowestAddressJoinDecider(system, settings)
+      val selfContactPoints = decider.selfContactPoints
+      val info = seedNodes
+      val target = info.seedNodesObservations.toList.map(_.contactPoint).sorted.headOption
+      target.exists(decider.matchesSelf(_, selfContactPoints)) should ===(true)
+    }
+
+    "be able to join self if all conditions met" in {
+      val decider = new LowestAddressJoinDecider(system, settings)
+      val info = seedNodes
+      val target = info.seedNodesObservations.toList.map(_.contactPoint).sorted.headOption
+      target.exists(decider.canJoinSelf(_, info)) should ===(true)
+    }
+
+    "not join self if `new-cluster-enabled=off`, even if all conditions met" in {
+      val decider = new LowestAddressJoinDecider(system, settings)
+      decider.decide(seedNodes).futureValue should ===(KeepProbing)
+    }
+  }
 }

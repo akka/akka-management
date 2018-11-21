@@ -65,10 +65,16 @@ The illustration below may be of help in visualising this process:
 
 ![project structure](../images/bootstrap-forming-cluster.png)
 
-Additionally, a setting is provided, `akka.management.cluster.bootstrap.form-new-cluster` that can be disabled to only allow the
-node to join existing clusters (Case 2 below). This can be used to provide additional safety during the typical deployment
-as it is relatively rare that no cluster exists. It can be specified in your `application.conf` or provided as an
-argument to the process itself via `-Dakka.management.cluster.bootstrap.form-new-cluster=<true|false>`. By default, it is enabled.
+Cluster Bootstrap will always attempt to join an existing cluster if possible. However if no contact points are found during service discovery, a
+new cluster will be formed by default. A setting is provided, `akka.management.cluster.bootstrap.new-cluster-enabled` that can be disabled to only allow the
+node to join existing clusters (Case 2 below). This can be used to provide additional safety during the typical deployment, even when scaling out an initial deployment, as it is relatively rare that no cluster exists. 
+
+* On initial deployment use the default `akka.management.cluster.bootstrap.new-cluster-enabled=on`
+* Following the initial deployment it is recommended to set `akka.management.cluster.bootstrap.new-cluster-enabled=off` 
+  with an immediate re-deployment once the initial cluster has formed
+ 
+This can be specified in your `application.conf` or provided as an argument to the process itself via `-Dakka.management.cluster.bootstrap.new-cluster-enabled=<on|off>`. 
+By default, it is enabled.
 
 The reason to not use Akka's remoting in the contact point probing itself is to in the future enable upgrades semi-automatic between even not wire compatible binary versions or protocols (e.g. moving from a classic remoting based system to an Artery based one), or even more advanced deployment patterns.
 
@@ -82,7 +88,7 @@ Case 1, you already seen it in action.
     - This is NOT enough to safely join or form a cluster, some initial negotiation between the nodes must take place.
 - The node starts to probe the Contact Points of the discovered nodes (which are HTTP endpoints, exposed via
   Akka Management by the Bootstrap Management Extension) for known seeds to join.
-- A cluster exists already, and when probing the various nodes node X will receive at least one seed-node address, from the contact points.
+- A cluster exists already, and when probing the various nodes, node X will receive at least one seed-node address, from the contact points.
     - The node joins any discovered (via Contact Points probing) seed-node and immediately becomes part of the cluster.
     - The process is complete, the node has successfully joined the "right" cluster.
         - Notice that this phase is exactly the same as the "epidemic joining" in the more complicated Case 1 when a new
@@ -147,7 +153,7 @@ Lightbend provides [Split Brain Resolver](https://developer.lightbend.com/docs/a
 as a feature of the Lightbend Subscription. This module has a number of strategies that can ensure that the cluster
 continues to function during network partitions and node failures.
 
-## Customising join behavior
+## Customising Join Behavior
 
 The above section explains the default `JoinDecider` implementation. It is possible to replace the implementation with
 configuration property `akka.management.cluster.bootstrap.join-decider.class`. See `reference.conf` and API

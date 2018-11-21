@@ -8,48 +8,39 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
+import akka.util.Helpers._
 import com.typesafe.config.Config
 
 import scala.concurrent.duration.{ FiniteDuration, _ }
 
 final class ClusterBootstrapSettings(config: Config) {
-  private implicit class HasDefined(val config: Config) {
-    def hasDefined(key: String): Boolean =
-      config.hasPath(key) &&
-      config.getString(key).trim.nonEmpty &&
-      config.getString(key) != s"<$key>"
-  }
+  import akka.management.AkkaManagementSettings._
 
   val managementBasePath: Option[String] =
     Option(config.getString("akka.management.http.base-path")).filter(_.trim.nonEmpty)
 
   private val bootConfig = config.getConfig("akka.management.cluster.bootstrap")
 
-  val formNewCluster: Boolean = bootConfig.getBoolean("form-new-cluster")
+  val newClusterEnabled: Boolean =
+    bootConfig.getBoolean("new-cluster-enabled") requiring (!bootConfig.hasPath("form-new-cluster"),
+    "'form-new-cluster' is deprecated, please update your configuration to use 'new-cluster-enabled'.")
 
   object contactPointDiscovery {
     private val discoveryConfig: Config = bootConfig.getConfig("contact-point-discovery")
 
-    val serviceName: Option[String] =
-      if (discoveryConfig.hasDefined("service-name")) Some(discoveryConfig.getString("service-name"))
-      else None
+    val serviceName: Option[String] = discoveryConfig.optDefinedValue("service-name")
 
-    val serviceNamespace: Option[String] =
-      if (discoveryConfig.hasDefined("service-namespace")) Some(discoveryConfig.getString("service-namespace"))
-      else None
+    val serviceNamespace: Option[String] = discoveryConfig.optDefinedValue("service-namespace")
 
-    val portName = getOptionalString("port-name")
+    val portName: Option[String] = discoveryConfig.optValue("port-name")
 
-    val protocol = getOptionalString("protocol")
+    val protocol: Option[String] = discoveryConfig.optValue("protocol")
 
     def effectiveName(system: ActorSystem): String =
-      if (discoveryConfig.hasDefined("effective-name")) {
-        discoveryConfig.getString("effective-name")
-      } else {
-        val service = serviceName match {
-          case Some(name) ⇒ name
-          case _ ⇒ system.name.toLowerCase(Locale.ROOT).replaceAll(" ", "-").replace("_", "-")
-        }
+      discoveryConfig.optDefinedValue("effective-name").getOrElse {
+        val service =
+          serviceName.getOrElse(system.name.toLowerCase(Locale.ROOT).replaceAll(" ", "-").replace("_", "-"))
+
         val namespace = serviceNamespace match {
           case Some(ns) ⇒ s".$ns"
           case _ ⇒ ""
@@ -77,11 +68,6 @@ final class ClusterBootstrapSettings(config: Config) {
 
     val resolveTimeout: FiniteDuration = discoveryConfig.getDuration("resolve-timeout", TimeUnit.MILLISECONDS).millis
 
-    private def getOptionalString(path: String): Option[String] = discoveryConfig.getString(path) match {
-      case "" => None
-      case other => Some(other)
-    }
-
   }
 
   object contactPoint {
@@ -104,8 +90,12 @@ final class ClusterBootstrapSettings(config: Config) {
 
   object joinDecider {
     val implClass: String = bootConfig.getString("join-decider.class")
-  }
 
+    val selfDerivedHost: Option[String] = for {
+      domain <- config.optDefinedValue("akka.discovery.kubernetes-api.pod-domain")
+      namespace <- config.optDefinedValue("akka.discovery.kubernetes-api.pod-namespace")
+    } yield s"$namespace.pod.$domain"
+  }
 }
 
 object ClusterBootstrapSettings {

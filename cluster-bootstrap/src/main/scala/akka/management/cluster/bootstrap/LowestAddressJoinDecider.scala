@@ -6,15 +6,11 @@ package akka.management.cluster.bootstrap
 
 import java.time.Duration
 
-import scala.concurrent.Await
 import scala.concurrent.Future
-import scala.concurrent.duration._
-import scala.util.Try
 
 import akka.actor.ActorSystem
 import akka.actor.Address
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
-import akka.event.Logging
 
 /**
  * The decision of joining "self" is made by deterministically sorting the discovered services
@@ -27,8 +23,8 @@ import akka.event.Logging
  *
  * There must also be seed node observations from all discovered contact points before joining "self".
  */
-class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSettings) extends JoinDecider {
-  private val log = Logging(system, getClass)
+class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSettings)
+    extends SelfAwareJoinDecider(system, settings) {
 
   override def decide(info: SeedNodesInformation): Future[JoinDecision] =
     if (info.hasSeedNodes) {
@@ -54,24 +50,28 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
           Set.empty[ResolvedTarget]
       if (contactPointsWithoutSeedNodesObservations.isEmpty) {
         // got info from all contact points as expected
-        if (isAllowedToJoinSelf(info))
+        val lowestAddress = lowestAddressContactPoint(info)
+        // can the lowest address, if exists, join self
+        val isJoinSelfAble = lowestAddress.exists(canJoinSelf(_, info))
+
+        if (isJoinSelfAble && settings.newClusterEnabled)
           JoinSelf.asCompletedFuture
         else {
           if (log.isInfoEnabled) {
-            if (settings.formNewCluster)
+            if (settings.newClusterEnabled)
               log.info(
                   "Exceeded stable margins without locating seed-nodes, however this node {} is NOT the lowest address " +
                   "out of the discovered endpoints in this deployment, thus NOT joining self. Expecting node [{}] " +
                   "(out of [{}]) to perform the self-join and initiate the cluster.",
-                  selfContactPoints().map(_.productIterator.mkString(":")).mkString("[", ",", "]"),
-                  lowestAddressContactPoint(info).getOrElse(""), info.contactPoints.mkString(", "))
+                  contactPointsString(selfContactPoints), lowestAddress.getOrElse(""),
+                  info.contactPoints.mkString(", "))
             else
               log.warning(
                   "Exceeded stable margins without locating seed-nodes, however this node {} is configured with " +
-                  "form-new-cluster=off, thus NOT joining self. Expecting existing cluster or node [{}] " +
+                  "new-cluster-enabled=off, thus NOT joining self. Expecting existing cluster or node [{}] " +
                   "(out of [{}]) to perform the self-join and initiate the cluster.",
-                  selfContactPoints().map(_.productIterator.mkString(":")).mkString("[", ",", "]"),
-                  lowestAddressContactPoint(info).getOrElse(""), info.contactPoints.mkString(", "))
+                  contactPointsString(selfContactPoints), lowestAddress.getOrElse(""),
+                  info.contactPoints.mkString(", "))
           }
 
           // the probing will continue until the lowest addressed node decides to join itself.
@@ -125,54 +125,6 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
    */
   protected def isConfirmedCommunicationWithAllContactPointsRequired(info: SeedNodesInformation): Boolean =
     true
-
-  private def isAllowedToJoinSelf(info: SeedNodesInformation): Boolean = {
-    if (settings.formNewCluster) {
-      val bootstrap = ClusterBootstrap(system)
-
-      // we KNOW this await is safe, since we set the value before we bind the HTTP things even
-      val selfContactPoints =
-        Try(Await.result(bootstrap.selfContactPoints, 10.second)).getOrElse(throw new IllegalStateException(
-              "Bootstrap.selfContactPoint was NOT set! This is required for the bootstrap to work! " +
-              "If binding bootstrap routes manually and not via akka-management"))
-
-      // some discovery mechanism can return both host name and IP address. this checks for both.
-      def hostMatches(host: String, lowest: ResolvedTarget): Boolean =
-        (host == lowest.host) || (Some(host) == lowest.address.map(_.getHostAddress))
-
-      def matchesSelf(target: ResolvedTarget): Boolean = target.port match {
-        case None =>
-          selfContactPoints.exists { case (host, _) => hostMatches(host, target) }
-        case Some(lowestPort) =>
-          selfContactPoints.exists { case (host, port) => hostMatches(host, target) && port == lowestPort }
-      }
-
-      lowestAddressContactPoint(info) match {
-        case Some(lowest) =>
-          if (matchesSelf(lowest)) true
-          else {
-            if (!info.contactPoints.exists(matchesSelf)) {
-              log.warning("Self contact point [{}] not found in targets [{}]", selfContactPoints.mkString(", "),
-                info.contactPoints.mkString(", "))
-            }
-            false
-          }
-        case None =>
-          false
-      }
-    } else false
-  }
-
-  private def selfContactPoints(): Set[(String, Int)] = {
-    val bootstrap = ClusterBootstrap(system)
-
-    // we KNOW this await is safe, since we set the value before we bind the HTTP things even
-    val selfContactPoints =
-      Try(Await.result(bootstrap.selfContactPoints, 10.second)).getOrElse(throw new IllegalStateException(
-            "Bootstrap.selfContactPoint was NOT set! This is required for the bootstrap to work! " +
-            "If binding bootstrap routes manually and not via akka-management"))
-    selfContactPoints
-  }
 
   /**
    * Contact point with the "lowest" contact point address,
