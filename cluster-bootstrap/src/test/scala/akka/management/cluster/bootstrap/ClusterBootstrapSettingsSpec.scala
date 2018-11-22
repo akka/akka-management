@@ -26,7 +26,7 @@ class ClusterBootstrapSettingsSpec extends AbstractBootstrapSpec {
       settings.newClusterEnabled should ===(false)
     }
 
-    "detect if an old property is set and fail fast, directing users to the new property" in {
+    "fall back to old `form-new-cluster` if present for backward compatibility`" in {
       val settings =
         ClusterBootstrapSettings(config.withFallback(ConfigFactory.parseString("""
           akka.management.cluster.bootstrap {
