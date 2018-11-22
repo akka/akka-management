@@ -8,12 +8,12 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
-import akka.util.Helpers._
+import akka.event.LoggingAdapter
 import com.typesafe.config.Config
 
 import scala.concurrent.duration.{ FiniteDuration, _ }
 
-final class ClusterBootstrapSettings(config: Config) {
+final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
   import akka.management.AkkaManagementSettings._
 
   val managementBasePath: Option[String] =
@@ -21,9 +21,16 @@ final class ClusterBootstrapSettings(config: Config) {
 
   private val bootConfig = config.getConfig("akka.management.cluster.bootstrap")
 
-  val newClusterEnabled: Boolean =
-    bootConfig.getBoolean("new-cluster-enabled") requiring (!bootConfig.hasPath("form-new-cluster"),
-    "'form-new-cluster' is deprecated, please update your configuration to use 'new-cluster-enabled'.")
+  val newClusterEnabled: Boolean = {
+    if (bootConfig.hasPath("form-new-cluster")) {
+      val enabled = bootConfig.getBoolean("form-new-cluster")
+      log.info(
+          "Old `form-new-cluster` property set. Using value {} as `new-cluster-enabled` and ignoring `new-cluster-enabled`. Please update to using `new-cluster-enabled`")
+      enabled
+    } else {
+      bootConfig.getBoolean("new-cluster-enabled")
+    }
+  }
 
   object contactPointDiscovery {
     private val discoveryConfig: Config = bootConfig.getConfig("contact-point-discovery")
@@ -99,6 +106,6 @@ final class ClusterBootstrapSettings(config: Config) {
 }
 
 object ClusterBootstrapSettings {
-  def apply(config: Config): ClusterBootstrapSettings =
-    new ClusterBootstrapSettings(config)
+  def apply(config: Config, log: LoggingAdapter): ClusterBootstrapSettings =
+    new ClusterBootstrapSettings(config, log)
 }
