@@ -114,11 +114,34 @@ considered. The following configuration will result in your application being sh
 join the discovered seed nodes. In this case, the orchestrator (i.e. Kubernetes or Marathon) will restart your node
 and the operation will (presumably) eventually succeed. You'll want to specify the following in your `application.conf` file:
 
-```hocon
-akka.cluster.shutdown-after-unsuccessful-join-seed-nodes = 30s
-akka.coordinated-shutdown.exit-jvm = on
+@@snip [CompileOnly.scala](/bootstrap-demo/local/src/main/resources/application.conf) { #coorindated-shutdown }
 
-```
+### Rolling updates
+
+#### Graceful shutdown 
+
+Akka Cluster can handle hard failures using a downing provider such as Lightbend's split brain resolver discussed below.
+However this should not be relied upon for regular rolling redeploys. Features such as `ClusterSinglton`s and `ClusterSharding`
+can safely restart actors on new nodes far quicker when it is certain that a node has shutdown rather than crashed. 
+
+Graceful leaving will happen with the default settings as it is part of Coordinated Shutdown. Just ensure that
+a node is sent a `SIGTERM` and not a `SIGKILL`. Environments such as Kubernetes will do this, it is important to ensure 
+that if JVM is wrapped with a script that it forwards the signal. Upon receiving a `SIGTERM` Coordinated shutdown will:
+
+* Perform a `Cluster(system).leave` on its self
+* The `Leader` will then move the node to `Exiting` and then `Removed` allowing any shards to be shutdown gracefully
+  and `ClusterSingleton`s to be migrated if this was the oldest node
+
+#### Number of nodes to redeploy at once
+
+Akka bootstrap requires a `stable-period` where service discovery returns a stable set of contact points. When doing rolling
+updates it is best to wait for a node (or group of nodes) to finish joining the cluster before adding and removing other nodes.
+
+#### Cluster singletons
+
+`ClusterSingleton`s run on the oldest node in the cluster. To avoid singletons moving during every node deployment it is advised
+to start a rolling redeploy starting at the newest node. Then `ClusterSingleton`s only move once. This is the default behaviour 
+for Kubernetes deployments.
 
 ### Split brains and ungraceful shutdown
 
