@@ -8,10 +8,10 @@ import java.time.LocalDateTime
 import java.net.InetAddress
 
 import scala.concurrent.duration._
-
 import akka.actor.ActorSystem
 import akka.actor.Address
 import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
+import akka.event.NoLogging
 import akka.testkit.SocketUtil
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
@@ -67,7 +67,7 @@ abstract class JoinDeciderSpec extends AbstractBootstrapSpec {
 class LowestAddressJoinDeciderSpec extends JoinDeciderSpec {
 
   "LowestAddressJoinDecider" should {
-    val settings = ClusterBootstrapSettings(system.settings.config)
+    val settings = ClusterBootstrapSettings(system.settings.config, NoLogging)
 
     "sort ResolvedTarget by lowest hostname:port" in {
       List(ResolvedTarget("c", None, None), ResolvedTarget("a", None, None),
@@ -186,7 +186,7 @@ class SelfAwareJoinDeciderSpec extends JoinDeciderSpec {
 
   override val system = ActorSystem("sys", disabled.withFallback(config))
 
-  val settings = ClusterBootstrapSettings(system.settings.config)
+  val settings = ClusterBootstrapSettings(system.settings.config, NoLogging)
 
   def seedNodes = {
     val now = LocalDateTime.now()

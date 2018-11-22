@@ -35,7 +35,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
   private final val bootstrapStep = new AtomicReference[BootstrapStep](NotRunning)
 
-  val settings = ClusterBootstrapSettings(system.settings.config)
+  val settings = ClusterBootstrapSettings(system.settings.config, log)
 
   // used for initial discovery of contact points
   val discovery: SimpleServiceDiscovery =
@@ -60,7 +60,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   private[this] val _selfContactPointUri: Promise[Uri] = Promise()
 
   override def routes(routeProviderSettings: ManagementRouteProviderSettings): Route = {
-    log.info(s"Setting self contact point address: ${routeProviderSettings.selfBaseUri}")
+    log.info(s"Using self contact point address: ${routeProviderSettings.selfBaseUri}")
     this.setSelfContactPoint(routeProviderSettings.selfBaseUri)
 
     new HttpClusterBootstrapRoutes(settings).routes
