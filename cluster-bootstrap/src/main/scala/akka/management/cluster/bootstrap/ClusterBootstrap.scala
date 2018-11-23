@@ -42,11 +42,11 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     settings.contactPointDiscovery.discoveryMethod match {
       case "akka.discovery" ⇒
         val discovery = ServiceDiscovery(system).discovery
-        log.info("Bootstrap using default `akka.discovery` mechanism: {}", Logging.simpleName(discovery))
+        log.info("Bootstrap using default `akka.discovery` method: {}", Logging.simpleName(discovery))
         discovery
 
       case otherDiscoveryMechanism ⇒
-        log.info("Bootstrap using `akka.discovery` mechanism: {}", otherDiscoveryMechanism)
+        log.info("Bootstrap using `akka.discovery` method: {}", otherDiscoveryMechanism)
         ServiceDiscovery(system).loadServiceDiscovery(otherDiscoveryMechanism)
     }
 
