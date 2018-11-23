@@ -1,15 +1,15 @@
-# Initial bootstrap 
+# Bootstrap process 
 
 Below is a description of the bootstrap process in more detail.
-All configuration properties references below are in the `akka.management.cluster.bootstrap` object. 
+All configuration properties references below are in the `akka.management.cluster.bootstrap` section. 
 
-- Each node discovers its "neighbours" using Akka Dicvoery 
+- Each node discovers its "neighbours" using Akka Discovery 
     - This is NOT enough to safely join or form a cluster, some initial negotiation between the nodes must take place.
 - The node starts to probe the Contact Points of the discovered nodes (which are HTTP endpoints, exposed via
   Akka Management by the Bootstrap Management Extension) for known seeds to join.
 - Since no cluster exists yet, none of the contacted nodes return any seed nodes during the probing process. The following
   takes place to create a new cluster:
-    - A service discovey lookup is done every `contact-point-discovery.internval`
+    - A service discovey lookup is done every `contact-point-discovery.interval`
     - If discovery returns the same contact points for the `contact-point-discovery.stable-margin`. This is to prevent
       join decisions being made based on fluctuating contact points.
     - At least `contact-point-discovery.required-contact-point-nr` nodes have been discovered.
@@ -26,6 +26,8 @@ All configuration properties references below are in the `akka.management.cluste
     - Eventually all nodes have joined the same cluster, the process is complete.
 
 The illustration below may be of help in visualising this process:
+
+![project structure](../images/bootstrap-forming-cluster.png)
 
 ## Cluster formation in a dynamic environment 
 
@@ -51,17 +53,13 @@ even if the DNS system is not completely consistent.
 If however we are talking about an inconsistent DNS lookup response during the Initial Bootstrap, the nodes will be delayed
 forming the cluster as they expect the lookups to be consistent, this is checked by the stable-margin configuration option.
 
-For complete safety of the Initial Bootstrap it is recommended to set the `contact-point-discovery.required-contact-point-nr`
-setting to the exact number of nodes the initial startup of the cluster will be done. For example, if starting a cluster with
-4 nodes initially, and later scaling it out to many more nodes, be sure to set this setting to `4` for additional safety of
-the initial joining, even in face of an flaky discovery mechanism!
 
 @@@ note
   It *is* crucial for the nodes to have a consistent view of their neighbours for the Initial Bootstrap. Otherwise
-  different nodes could self join and start multiple clusters.
+  multiple nodes could self-join and start multiple clusters.
 @@@
 
-## Customising Join Behavior
+## Customizing Join Behavior
 
 The above section explains the default `JoinDecider` implementation. It is possible to replace the implementation with
 configuration property `join-decider.class`. See `reference.conf` and API
