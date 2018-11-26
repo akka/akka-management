@@ -88,7 +88,7 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
       case Some(name) => name
       case None => settings.appPortName
     }
-    
+
     for {
       response <- http.singleRequest(request)
 
