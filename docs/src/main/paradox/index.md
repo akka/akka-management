@@ -17,7 +17,7 @@ You don't have to use all the modules but if you do here's how these modules wor
 ![project structure](images/structure.png)
 
 
-@@ toc { .main depth=2 }
+@@ toc { .main depth=1 }
 
 @@@ index
 

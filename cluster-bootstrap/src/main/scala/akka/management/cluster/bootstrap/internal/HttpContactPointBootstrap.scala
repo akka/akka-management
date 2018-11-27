@@ -105,7 +105,7 @@ private[bootstrap] class HttpContactPointBootstrap(
       Future.firstCompletedOf(List(reply, afterTimeout)).pipeTo(self)
 
     case Status.Failure(cause) =>
-      log.error("Probing [{}] failed due to: {}", probeRequest.uri, cause.getMessage)
+      log.warning("Probing [{}] failed due to: {}", probeRequest.uri, cause.getMessage)
       if (probingKeepFailingDeadline.isOverdue()) {
         log.error("Overdue of probing-failure-timeout, stop probing, signaling that it's failed")
         context.parent ! BootstrapCoordinator.Protocol.ProbingFailed(contactPoint, cause)
