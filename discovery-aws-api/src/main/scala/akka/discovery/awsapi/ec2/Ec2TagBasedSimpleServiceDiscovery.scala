@@ -6,11 +6,11 @@ package akka.discovery.awsapi.ec2
 
 import java.util.concurrent.TimeoutException
 
-import akka.actor.ActorSystem
+import akka.actor.ExtendedActorSystem
 import akka.annotation.InternalApi
-import akka.discovery.{ Lookup, SimpleServiceDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery._
+import akka.discovery.{ Lookup, SimpleServiceDiscovery }
 import akka.event.Logging
 import akka.pattern.after
 import com.amazonaws.ClientConfiguration
@@ -23,6 +23,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success }
 
 /** INTERNAL API */
 @InternalApi private[ec2] object Ec2TagBasedSimpleServiceDiscovery {
@@ -40,20 +41,21 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 }
 
-class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+class Ec2TagBasedSimpleServiceDiscovery(system: ExtendedActorSystem) extends SimpleServiceDiscovery {
 
   private val log = Logging(system, classOf[Ec2TagBasedSimpleServiceDiscovery])
-
-  private val ec2Client: AmazonEC2 = {
-    val clientConfiguration = new ClientConfiguration()
-    // we have our own retry/back-off mechanism, so we don't need EC2Client's in addition
-    clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
-    AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
-  }
 
   private implicit val ec: ExecutionContext = system.dispatcher
 
   private val config = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
+
+  private val clientConfigFqcn: Option[String] = { // FQCN of a class that extends com.amazonaws.ClientConfiguration
+    if (config.hasPath("client-config")) {
+      Some(config.getString("client-config"))
+    } else {
+      None
+    }
+  }
 
   private val tagKey = config.getString("tag-key")
 
@@ -67,6 +69,33 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
     }
 
   private val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
+
+  lazy val defaultClientConfiguration = {
+    val clientConfiguration = new ClientConfiguration()
+    // we have our own retry/back-off mechanism (in Cluster Bootstrap), so we don't need EC2Client's in addition
+    clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+    clientConfiguration
+  }
+
+  private val ec2Client: AmazonEC2 = {
+    val clientConfiguration = clientConfigFqcn match {
+      case Some(clientConfigFqcn) ⇒
+        system.dynamicAccess.createInstanceFor[ClientConfiguration](clientConfigFqcn, Nil) match {
+          case Success(clientConfig: ClientConfiguration) ⇒
+            if (clientConfig.getRetryPolicy != PredefinedRetryPolicies.NO_RETRY_POLICY) {
+              log.warning(
+                  "Akka Cluster Bootstrap has its own retry/back-off mechanism, to avoid RequestLimitExceeded errors from AWS, " +
+                  "disable retries in the EC2 client configuration")
+            }
+            clientConfig
+          case Failure(ex) ⇒
+            throw new Exception(s"could not create instance of '$clientConfigFqcn'", ex)
+        }
+      case None ⇒
+        defaultClientConfiguration
+    }
+    AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
+  }
 
   @tailrec
   private final def getInstances(

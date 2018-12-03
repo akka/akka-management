@@ -482,6 +482,46 @@ setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
   but will _discover_ the "host" IP (the EC2 private IP) on the AWS API. See @ref:[Basic
   Configuration](../akka-management.md) on how to separate the bind IP from the discovery IP.
 
+* Configuration of the EC2 client is supported and can be done via `application.conf`, by setting
+`akka.discovery.aws-api-ec2-tag-based.client-config` to the fully qualified class name of a class that extends
+`com.amazonaws.ClientConfiguration`.
+
+    Scala
+    :   ```scala
+        package com.example
+        import com.amazonaws.ClientConfiguration
+        import com.amazonaws.retry.PredefinedRetryPolicies
+        class MyConfiguration extends ClientConfiguration {
+          setProxyHost("...")
+          setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+          // if you're using this module for bootstrapping your Akka cluster,
+          // Cluster Bootstrap already has its own retry/back-off mechanism, to avoid RequestLimitExceeded errors from AWS,
+          // disable retries in the EC2 client configuration.
+        }
+        ```
+
+    Java
+    :   ```java
+        package com.example;
+        import com.amazonaws.ClientConfiguration;
+        import com.amazonaws.retry.PredefinedRetryPolicies;
+        class MyConfiguration extends ClientConfiguration {
+          public MyConfiguration() {
+            setProxyHost("..");
+            setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY);
+            // if you're using this module for bootstrapping your Akka cluster,
+            // Cluster Bootstrap already has its own retry/back-off mechanism, to avoid RequestLimitExceeded errors from AWS,
+            // disable retries in the EC2 client configuration.
+          }
+        }
+        ```
+
+    And in `application.conf`:
+    ```
+    akka.discovery.aws-api-ec2-tag-based.client-config = "com.example.MyConfiguration"
+    ```
+
+
 Demo:
 
 * A working demo app is available in the [bootstrap-demo](https://github.com/akka/akka-management/tree/master/bootstrap-demo/aws-api-ec2)
