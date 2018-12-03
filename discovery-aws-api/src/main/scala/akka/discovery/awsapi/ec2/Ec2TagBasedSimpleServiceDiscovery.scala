@@ -79,8 +79,8 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ExtendedActorSystem) extends Sim
 
   private val ec2Client: AmazonEC2 = {
     val clientConfiguration = clientConfigFqcn match {
-      case Some(clientConfigFqcn) ⇒
-        system.dynamicAccess.createInstanceFor[ClientConfiguration](clientConfigFqcn, Nil) match {
+      case Some(fqcn) ⇒
+        system.dynamicAccess.createInstanceFor[ClientConfiguration](fqcn, Nil) match {
           case Success(clientConfig: ClientConfiguration) ⇒
             if (clientConfig.getRetryPolicy != PredefinedRetryPolicies.NO_RETRY_POLICY) {
               log.warning(
@@ -89,7 +89,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ExtendedActorSystem) extends Sim
             }
             clientConfig
           case Failure(ex) ⇒
-            throw new Exception(s"could not create instance of '$clientConfigFqcn'", ex)
+            throw new Exception(s"could not create instance of '$fqcn'", ex)
         }
       case None ⇒
         defaultClientConfiguration
