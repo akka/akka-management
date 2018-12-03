@@ -492,7 +492,7 @@ setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
         import com.amazonaws.ClientConfiguration
         import com.amazonaws.retry.PredefinedRetryPolicies
         class MyConfiguration extends ClientConfiguration {
-          setProxyHost("...")
+          setProxyHost("...") // and/or other things you would like to set
           setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
           // if you're using this module for bootstrapping your Akka cluster,
           // Cluster Bootstrap already has its own retry/back-off mechanism, to avoid RequestLimitExceeded errors from AWS,
@@ -507,7 +507,7 @@ setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
         import com.amazonaws.retry.PredefinedRetryPolicies;
         class MyConfiguration extends ClientConfiguration {
           public MyConfiguration() {
-            setProxyHost("..");
+            setProxyHost(".."); // and/or other things you would like to set
             setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY);
             // if you're using this module for bootstrapping your Akka cluster,
             // Cluster Bootstrap already has its own retry/back-off mechanism, to avoid RequestLimitExceeded errors from AWS,
