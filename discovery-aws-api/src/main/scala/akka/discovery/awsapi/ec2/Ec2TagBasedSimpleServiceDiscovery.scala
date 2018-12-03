@@ -51,7 +51,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
     AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
   }
 
-  private implicit val ec: ExecutionContext = system.dispatcher
+  private implicit val ec: ExecutionContext = system.dispatchers.lookup("akka.actor.default-blocking-io-dispatcher")
 
   private val config = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
 

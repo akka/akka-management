@@ -93,7 +93,7 @@ Unzip the package and run the app like this on each instance:
 $ unzip app.zip
 $ cd app/bin
 $ MY_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`
-$ ./akka-management-bootstrap-demo-aws-api-ec2-tag-based -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP
+$ ./bootstrap-demo-aws-api-ec2-tag-based -Dakka.management.http.hostname=$MY_IP -Dakka.remote.netty.tcp.hostname=$MY_IP
 ```
 
 Follow the logs and watch for signs of successful cluster formation (e.g., a welcome message from one of the nodes). 
