@@ -435,10 +435,11 @@ akka.discovery {
 
 Notes:
 
-* Since the implementation uses the Amazon EC2 API, you'll need to make sure that AWS credentials are provided.
-The simplest way to do this is to create an IAM role that includes permissions for Amazon EC2 API access.
-Attach this IAM role to the instances that make up the cluster. See the docs for
+* You will need to make sure that the proper privileges are in place for the discovery implementation to access
+the Amazon EC2 API. The simplest way to do this is by creating a IAM role that, at a minimum, allows the _DescribeInstances_ action.
+Attach this IAM role to the EC2 instances that need to access the discovery implementation. See the docs for
 [IAM Roles for Amazon EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html).
+
 
 * In general, for the EC2 instances to "talk to each other" (necessary for forming a cluster), they need to be in the
 same security group and [the proper rules have to be set](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-other-instances).
