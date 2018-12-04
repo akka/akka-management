@@ -8,8 +8,8 @@ import java.net.{ InetAddress, NetworkInterface }
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
-import akka.discovery.{ Lookup, SimpleServiceDiscovery }
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.discovery.awsapi.ecs.EcsSimpleServiceDiscovery._
 import akka.pattern.after
 import com.amazonaws.ClientConfiguration
@@ -23,7 +23,7 @@ import scala.collection.immutable.Seq
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 
-class EcsSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+class EcsSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs")
   private[this] val cluster = config.getString("cluster")

@@ -3,7 +3,7 @@ import Keys._
 
 object Dependencies {
 
-  val AkkaVersion = "2.5.15"
+  val AkkaVersion = "2.5-SNAPSHOT"
   val AkkaHttpVersion = "10.0.13" // TODO #281 update to 10.1.x when play and lagom are released
 
   val JUnitVersion = "4.12"
@@ -19,6 +19,10 @@ object Dependencies {
   private object DependencyGroups {
     val AkkaActor = Seq(
       "com.typesafe.akka" %% "akka-actor"                         % AkkaVersion
+    )
+
+    val AkkaDiscovery = Seq(
+      "com.typesafe.akka" %% "akka-discovery"                         % AkkaVersion
     )
 
     val AkkaHttpCore = Seq(
@@ -81,33 +85,11 @@ object Dependencies {
     )
   }
 
-  val Discovery = Seq(
-    libraryDependencies ++=
-      DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting
-  )
-
-  val DiscoveryDns = Seq(
-    libraryDependencies ++=
-      DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting
-  )
-
-  val DiscoveryConfig = Seq(
-    libraryDependencies ++=
-      DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting
-  )
-
-  val DiscoveryAggregate = Seq(
-    libraryDependencies ++=
-      DependencyGroups.AkkaActor ++
-      DependencyGroups.AkkaTesting
-  )
 
   val DiscoveryConsul = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
+      DependencyGroups.AkkaDiscovery ++
       DependencyGroups.AkkaTesting ++
       DependencyGroups.ConsulClient
   )
@@ -115,24 +97,28 @@ object Dependencies {
   val DiscoveryKubernetesApi = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
+      DependencyGroups.AkkaDiscovery ++
       DependencyGroups.AkkaHttp
   )
 
   val DiscoveryMarathonApi = Seq(
     libraryDependencies ++=
-      DependencyGroups.AkkaActor ++
-        DependencyGroups.AkkaHttp
+       DependencyGroups.AkkaActor ++
+       DependencyGroups.AkkaDiscovery ++
+       DependencyGroups.AkkaHttp
   )
 
   val DiscoveryAwsApi = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
+      DependencyGroups.AkkaDiscovery ++
       DependencyGroups.AwsJavaSdkEc2Ecs // aws depends on insecure version
   )
 
   val DiscoveryAwsApiAsync = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
+      DependencyGroups.AkkaDiscovery ++
       DependencyGroups.Aws2Ecs
   )
 
@@ -155,6 +141,7 @@ object Dependencies {
   val ClusterBootstrap = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaCluster ++
+      DependencyGroups.AkkaDiscovery ++
       DependencyGroups.AkkaHttpCore ++
       DependencyGroups.AkkaTesting ++
       DependencyGroups.AkkaHttpTesting ++ Seq(
@@ -162,8 +149,9 @@ object Dependencies {
     )
   )
 
-  val BootstrapDemoKubernetesApi = Seq(
-    libraryDependencies ++= DependencyGroups.Logging
+  val BootstrapDemos = Seq(
+    libraryDependencies ++= DependencyGroups.Logging ++
+      DependencyGroups.AkkaDiscovery
   )
 
 }

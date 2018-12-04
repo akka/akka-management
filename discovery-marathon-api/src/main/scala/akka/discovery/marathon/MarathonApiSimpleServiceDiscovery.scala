@@ -16,7 +16,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import AppList._
 import JsonFormat._
-import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.event.Logging
 
 object MarathonApiSimpleServiceDiscovery {
@@ -64,7 +64,7 @@ object MarathonApiSimpleServiceDiscovery {
 /**
  * Service discovery that uses the Marathon API.
  */
-class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
   import MarathonApiSimpleServiceDiscovery._
   import system.dispatcher
 

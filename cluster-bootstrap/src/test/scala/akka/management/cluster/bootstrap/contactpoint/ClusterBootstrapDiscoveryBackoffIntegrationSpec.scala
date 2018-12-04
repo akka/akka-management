@@ -6,18 +6,18 @@ package akka.management.cluster.bootstrap.contactpoint
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
-import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
-import akka.discovery.{ Lookup, MockDiscovery }
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.cluster.ClusterEvent.{CurrentClusterState, MemberUp}
+import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.{Lookup, MockDiscovery}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
-import akka.testkit.{ SocketUtil, TestKit, TestProbe }
-import com.typesafe.config.{ Config, ConfigFactory }
+import akka.testkit.{SocketUtil, TestKit, TestProbe}
+import com.typesafe.config.{Config, ConfigFactory}
 import org.scalactic.Tolerance
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ Matchers, WordSpecLike }
+import org.scalatest.{Matchers, WordSpecLike}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._

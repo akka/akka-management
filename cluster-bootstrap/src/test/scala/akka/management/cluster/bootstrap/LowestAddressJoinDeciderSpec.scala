@@ -10,7 +10,7 @@ import java.net.InetAddress
 import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import akka.actor.Address
-import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
+import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.event.NoLogging
 import akka.testkit.SocketUtil
 import akka.testkit.TestKit

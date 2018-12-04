@@ -8,8 +8,8 @@ import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.discovery.{ Lookup, SimpleServiceDiscovery }
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery._
 import akka.event.Logging
 import akka.pattern.after
@@ -40,7 +40,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 }
 
-class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private val log = Logging(system, classOf[Ec2TagBasedSimpleServiceDiscovery])
 

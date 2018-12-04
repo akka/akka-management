@@ -23,7 +23,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 import JsonFormat._
-import SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 
 import scala.util.control.{ NoStackTrace, NonFatal }
 import akka.event.Logging
@@ -61,7 +61,7 @@ object KubernetesApiSimpleServiceDiscovery {
  * An alternative implementation that uses the Kubernetes API. The main advantage of this method is that it allows
  * you to define readiness/health checks that don't affect the bootstrap mechanism.
  */
-class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   import akka.discovery.kubernetes.KubernetesApiSimpleServiceDiscovery._
   import system.dispatcher

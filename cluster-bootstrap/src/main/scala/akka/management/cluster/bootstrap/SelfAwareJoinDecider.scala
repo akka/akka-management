@@ -5,7 +5,7 @@
 package akka.management.cluster.bootstrap
 
 import akka.actor.ActorSystem
-import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
+import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.event.Logging
 
 import scala.concurrent.Await

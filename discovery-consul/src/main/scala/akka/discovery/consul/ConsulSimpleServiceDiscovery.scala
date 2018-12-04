@@ -8,17 +8,17 @@ import java.util
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
-import akka.discovery.{ Lookup, SimpleServiceDiscovery }
 
 import scala.collection.immutable.Seq
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import akka.pattern.after
 import com.google.common.net.HostAndPort
 import com.orbitz.consul.Consul
 import com.orbitz.consul.async.ConsulResponseCallback
 import com.orbitz.consul.model.ConsulResponse
 import ConsulSimpleServiceDiscovery._
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.{Lookup, ServiceDiscovery}
 import com.orbitz.consul.model.catalog.CatalogService
 import com.orbitz.consul.option.QueryOptions
 
@@ -26,7 +26,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
-class ConsulSimpleServiceDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+class ConsulSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private val settings = ConsulSettings.get(system)
   private val consul =
