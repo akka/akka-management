@@ -5,6 +5,7 @@
 package akka.management.cluster.bootstrap.contactpoint
 
 import akka.cluster.{ Cluster, ClusterEvent }
+import akka.event.NoLogging
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.testkit.{ SocketUtil, TestProbe }
@@ -30,7 +31,7 @@ class HttpContactPointRoutesSpec
 
   "Http Bootstrap routes" should {
 
-    val settings = ClusterBootstrapSettings(system.settings.config)
+    val settings = ClusterBootstrapSettings(system.settings.config, NoLogging)
     val httpBootstrap = new HttpClusterBootstrapRoutes(settings)
 
     "empty list if node is not part of a cluster" in {

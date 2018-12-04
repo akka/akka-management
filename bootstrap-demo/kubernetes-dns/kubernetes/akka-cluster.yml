@@ -29,14 +29,16 @@ spec:
       - name: akka-bootstrap-demo
         image: "bootstrap-demo-kubernetes-dns:1.3.3.7"
         imagePullPolicy: IfNotPresent
+        #health
         readinessProbe:
           httpGet:
             path: /ready
-            port: 8080
+            port: management
         livenessProbe:
           httpGet:
             path: /alive
-            port: 8080
+            port: management
+        #health
         ports:
         - containerPort: 8558
           name: management

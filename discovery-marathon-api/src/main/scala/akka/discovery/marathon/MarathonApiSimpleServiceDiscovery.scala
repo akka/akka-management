@@ -85,6 +85,11 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
 
     log.info("Requesting seed nodes by: {}", request.uri)
 
+    val portName = lookup.portName match {
+      case Some(name) => name
+      case None => settings.appPortName
+    }
+
     for {
       response <- http.singleRequest(request)
 
@@ -101,7 +106,7 @@ class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleServi
         unmarshalled
       }
 
-    } yield Resolved(lookup.serviceName, targets(appList, settings.appPortName))
+    } yield Resolved(lookup.serviceName, targets(appList, portName))
   }
 
 }

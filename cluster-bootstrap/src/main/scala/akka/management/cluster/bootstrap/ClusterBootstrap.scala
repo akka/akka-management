@@ -6,7 +6,6 @@ package akka.management.cluster.bootstrap
 
 import java.util.concurrent.atomic.AtomicReference
 
-import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.concurrent.Promise
 
@@ -26,8 +25,6 @@ import akka.management.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator
 import akka.management.http.ManagementRouteProvider
 import akka.management.http.ManagementRouteProviderSettings
-import akka.pattern.ask
-import akka.util.Timeout
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
@@ -38,18 +35,18 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
   private final val bootstrapStep = new AtomicReference[BootstrapStep](NotRunning)
 
-  val settings = ClusterBootstrapSettings(system.settings.config)
+  val settings = ClusterBootstrapSettings(system.settings.config, log)
 
   // used for initial discovery of contact points
   val discovery: SimpleServiceDiscovery =
     settings.contactPointDiscovery.discoveryMethod match {
       case "akka.discovery" ⇒
         val discovery = ServiceDiscovery(system).discovery
-        log.info("Bootstrap using default `akka.discovery` mechanism: {}", Logging.simpleName(discovery))
+        log.info("Bootstrap using default `akka.discovery` method: {}", Logging.simpleName(discovery))
         discovery
 
       case otherDiscoveryMechanism ⇒
-        log.info("Bootstrap using `akka.discovery` mechanism: {}", otherDiscoveryMechanism)
+        log.info("Bootstrap using `akka.discovery` method: {}", otherDiscoveryMechanism)
         ServiceDiscovery(system).loadServiceDiscovery(otherDiscoveryMechanism)
     }
 
@@ -63,7 +60,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   private[this] val _selfContactPointUri: Promise[Uri] = Promise()
 
   override def routes(routeProviderSettings: ManagementRouteProviderSettings): Route = {
-    log.info(s"Got self contact point address: ${routeProviderSettings.selfBaseUri}")
+    log.info(s"Using self contact point address: ${routeProviderSettings.selfBaseUri}")
     this.setSelfContactPoint(routeProviderSettings.selfBaseUri)
 
     new HttpClusterBootstrapRoutes(settings).routes
@@ -81,15 +78,8 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
       val bootstrapProps = BootstrapCoordinator.props(discovery, joinDecider, settings)
       val bootstrap = system.systemActorOf(bootstrapProps, "bootstrapCoordinator")
-
-      // the boot timeout not really meant to be exceeded
-      implicit val bootTimeout: Timeout = Timeout(1.day)
-      val bootstrapCompleted = (bootstrap ? BootstrapCoordinator.Protocol.InitiateBootstrapping).mapTo[
-          BootstrapCoordinator.Protocol.BootstrappingCompleted]
-
-      bootstrapCompleted.failed.foreach { _ =>
-        log.warning("Failed to complete bootstrap within {}!", bootTimeout)
-      }
+      // Bootstrap already logs in several other execution points when it can't form a cluster, and why.
+      bootstrap ! BootstrapCoordinator.Protocol.InitiateBootstrapping
     } else log.warning("Bootstrap already initiated, yet start() method was called again. Ignoring.")
 
   /**
@@ -109,20 +99,15 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   /** INTERNAL API */
   @InternalApi private[akka] def selfContactPoints: Future[Set[(String, Int)]] =
     _selfContactPointUri.future.map { uri =>
-      if (system.settings.config.hasPath("akka.discovery.kubernetes-api.pod-domain") && uri.authority.host.isIPv4()) {
-        val podNamespace = system.settings.config.getString("akka.discovery.kubernetes-api.pod-namespace")
-        val podDomain = system.settings.config.getString("akka.discovery.kubernetes-api.pod-domain")
-        val derivedHost = s"${uri.authority.host.toString.replace('.', '-')}.${podNamespace}.pod.${podDomain}"
-        log.info(s"Derived self contact point $derivedHost:${uri.authority.port}")
-        Set(
-          (uri.authority.host.toString, uri.authority.port),
-          (derivedHost, uri.authority.port)
-        )
-      } else {
-        Set((uri.authority.host.toString, uri.authority.port))
+      settings.joinDecider.selfDerivedHost match {
+        case Some(selfDerivedHost) if uri.authority.host.isIPv4 =>
+          val derivedHost = s"${uri.authority.host.toString.replace('.', '-')}.$selfDerivedHost"
+          log.info(s"Derived self contact point $derivedHost:${uri.authority.port}")
+          Set((uri.authority.host.toString, uri.authority.port), (derivedHost, uri.authority.port))
+        case _ =>
+          Set((uri.authority.host.toString, uri.authority.port))
       }
     }
-
 }
 
 object ClusterBootstrap extends ExtensionId[ClusterBootstrap] with ExtensionIdProvider {

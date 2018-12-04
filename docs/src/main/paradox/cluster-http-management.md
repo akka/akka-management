@@ -2,7 +2,8 @@
 # Cluster Http Management
 
 Akka Management Cluster HTTP is a Management extension that allows you interaction with an `akka-cluster` through an HTTP interface.
-This management extension exposes different operations to manage nodes in a cluster.
+This management extension exposes different operations to manage nodes in a cluster as well as a health checks based
+on the cluster state.
 
 The operations exposed are comparable to the Command Line Management tool or the JMX interface `akka-cluster` provides.
 
@@ -165,4 +166,12 @@ Scala
 
 Java
 :  @@snip [CompileOnlyTest.java](/cluster-http/src/test/java/jdoc/akka/cluster/http/management/CompileOnlyTest.java) { #read-only }
+
+## Health checks
+
+Two health checks are included in Cluster HTTP:
+
+* `/ready` - indicated that user traffic should be routed to the node. By defailt returns `200` when a node is either `Up` or `WeaklyUp`. Can be configured with `akka.management.cluster.http.heathcheck.ready-states`.
+* `/alive` - always returns 200. Can be used to check the process is running and responsive.
+
 

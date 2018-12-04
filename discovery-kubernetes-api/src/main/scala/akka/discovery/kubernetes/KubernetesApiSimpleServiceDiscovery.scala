@@ -90,8 +90,8 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
       case Some(name) => name
       case None => settings.podPortName
     }
-    log.info("Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}]", labelSelector,
-      settings.podNamespace, portName)
+    log.info("Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}] (from lookup? {})",
+      labelSelector, settings.podNamespace, portName, query.portName.isDefined)
 
     for {
       token <- apiToken()
@@ -138,9 +138,20 @@ class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends SimpleSer
       }
 
     } yield {
+      val addresses = targets(podList, portName, settings.podNamespace, settings.podDomain)
+      if (addresses.isEmpty && podList.items.nonEmpty) {
+        if (log.isInfoEnabled) {
+          val containerPortNames = podList.items.flatMap(_.spec).flatMap(_.containers).flatMap(_.ports).flatten.toSet
+          log.info(
+            "No targets found from pod list. Is the correct port name configured? Current configuration: [{}]. Ports on pods: [{}]",
+            portName,
+            containerPortNames
+          )
+        }
+      }
       Resolved(
         serviceName = query.serviceName,
-        addresses = targets(podList, portName, settings.podNamespace, settings.podDomain)
+        addresses = addresses
       )
     }
   }

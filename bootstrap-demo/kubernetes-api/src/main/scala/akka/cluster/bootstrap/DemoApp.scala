@@ -8,6 +8,8 @@ import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
 import akka.cluster.ClusterEvent.ClusterDomainEvent
 import akka.cluster.{ Cluster, ClusterEvent }
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives._
 import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
@@ -17,7 +19,6 @@ object DemoApp extends App {
   implicit val system = ActorSystem("Appka")
 
   import system.log
-  import system.dispatcher
   implicit val mat = ActorMaterializer()
   val cluster = Cluster(system)
 
@@ -28,14 +29,24 @@ object DemoApp extends App {
   //#start-akka-management
   ClusterBootstrap(system).start()
 
-  cluster
-    .subscribe(system.actorOf(Props[ClusterWatcher]), ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
+  cluster.subscribe(
+    system.actorOf(Props[ClusterWatcher]),
+    ClusterEvent.InitialStateAsEvents,
+    classOf[ClusterDomainEvent]
+  )
 
-  val k8sHealthChecks = new KubernetesHealthCheck(system)
-
-  val routes = k8sHealthChecks.k8sHealthChecks // add real app routes here
-
-  import akka.http.scaladsl.server.Directives._
+  // add real app routes here
+  val routes =
+    path("hello") {
+      get {
+        complete(
+          HttpEntity(
+            ContentTypes.`text/html(UTF-8)`,
+            "<h1>Hello</h1>"
+          )
+        )
+      }
+    }
   Http().bindAndHandle(routes, "0.0.0.0", 8080)
 
   Cluster(system).registerOnMemberUp({
