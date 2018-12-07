@@ -10,7 +10,7 @@ import java.util.concurrent.TimeoutException
 import akka.actor.ActorSystem
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.{ Lookup, ServiceDiscovery }
-import akka.discovery.awsapi.ecs.AsyncEcsSimpleServiceDiscovery._
+import akka.discovery.awsapi.ecs.AsyncEcsServiceDiscovery._
 import akka.pattern.after
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryPolicy
@@ -23,7 +23,7 @@ import scala.compat.java8.FutureConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 
-class AsyncEcsSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
+class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs-async")
   private[this] val cluster = config.getString("cluster")
@@ -60,7 +60,7 @@ class AsyncEcsSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscove
 
 }
 
-object AsyncEcsSimpleServiceDiscovery {
+object AsyncEcsServiceDiscovery {
 
   // InetAddress.getLocalHost.getHostAddress throws an exception when running
   // in awsvpc mode because the container name cannot be resolved.

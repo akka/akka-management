@@ -10,7 +10,7 @@ import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.{ Lookup, ServiceDiscovery }
-import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery._
+import akka.discovery.awsapi.ec2.Ec2TagBasedServiceDiscovery._
 import akka.event.Logging
 import akka.pattern.after
 import com.amazonaws.ClientConfiguration
@@ -25,7 +25,7 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 
 /** INTERNAL API */
-@InternalApi private[ec2] object Ec2TagBasedSimpleServiceDiscovery {
+@InternalApi private[ec2] object Ec2TagBasedServiceDiscovery {
 
   private[ec2] def parseFiltersString(filtersString: String): List[Filter] =
     filtersString
@@ -40,9 +40,9 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 }
 
-class Ec2TagBasedSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
+class Ec2TagBasedServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
-  private val log = Logging(system, classOf[Ec2TagBasedSimpleServiceDiscovery])
+  private val log = Logging(system, classOf[Ec2TagBasedServiceDiscovery])
 
   private val ec2Client: AmazonEC2 = {
     val clientConfiguration = new ClientConfiguration()

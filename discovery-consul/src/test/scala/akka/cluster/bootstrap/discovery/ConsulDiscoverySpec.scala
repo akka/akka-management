@@ -8,7 +8,7 @@ import java.net.InetAddress
 
 import akka.actor.ActorSystem
 import akka.discovery.ServiceDiscovery.ResolvedTarget
-import akka.discovery.consul.ConsulSimpleServiceDiscovery
+import akka.discovery.consul.ConsulServiceDiscovery
 import akka.testkit.TestKitBase
 import com.google.common.net.HostAndPort
 import com.orbitz.consul.Consul
@@ -54,7 +54,7 @@ class ConsulDiscoverySpec
             .build()
         )
 
-      val lookupService = new ConsulSimpleServiceDiscovery(system)
+      val lookupService = new ConsulServiceDiscovery(system)
       val resolved = lookupService.lookup("test", 10.seconds).futureValue
       resolved.addresses should contain(
         ResolvedTarget(

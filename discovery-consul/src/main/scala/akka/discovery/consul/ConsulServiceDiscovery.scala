@@ -16,7 +16,7 @@ import com.google.common.net.HostAndPort
 import com.orbitz.consul.Consul
 import com.orbitz.consul.async.ConsulResponseCallback
 import com.orbitz.consul.model.ConsulResponse
-import ConsulSimpleServiceDiscovery._
+import ConsulServiceDiscovery._
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.{ Lookup, ServiceDiscovery }
 import com.orbitz.consul.model.catalog.CatalogService
@@ -26,7 +26,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
-class ConsulSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
+class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private val settings = ConsulSettings.get(system)
   private val consul =
@@ -84,7 +84,7 @@ class ConsulSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery
 
 }
 
-object ConsulSimpleServiceDiscovery {
+object ConsulServiceDiscovery {
 
   implicit class ConsulResponseFutureDecorator[T](f: ConsulResponseCallback[T] => Unit) {
     def asFuture: Future[ConsulResponse[T]] = {
