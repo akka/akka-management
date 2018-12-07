@@ -38,12 +38,12 @@ class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers
           cluster.http.management.port = $managementPort
           remote.netty.tcp.port = $remotingPort
 
-          mock-dns.class = "akka.discovery.MockDiscovery"
+          discovery.mock-dns.class = "akka.discovery.MockDiscovery"
 
           management {
             cluster.bootstrap {
               contact-point-discovery {
-                discovery-method = akka.mock-dns
+                discovery-method = mock-dns
                 service-namespace = "svc.cluster.local"
                 required-contact-point-nr = 1
               }
