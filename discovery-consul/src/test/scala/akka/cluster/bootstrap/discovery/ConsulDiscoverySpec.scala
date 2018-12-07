@@ -5,8 +5,9 @@
 package akka.cluster.bootstrap.discovery
 
 import java.net.InetAddress
+
 import akka.actor.ActorSystem
-import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
+import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.discovery.consul.ConsulSimpleServiceDiscovery
 import akka.testkit.TestKitBase
 import com.google.common.net.HostAndPort

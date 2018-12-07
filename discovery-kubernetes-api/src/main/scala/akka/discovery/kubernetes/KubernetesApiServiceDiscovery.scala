@@ -28,7 +28,7 @@ import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import scala.util.control.{ NoStackTrace, NonFatal }
 import akka.event.Logging
 
-object KubernetesApiSimpleServiceDiscovery {
+object KubernetesApiServiceDiscovery {
 
   /**
    * Finds relevant targets given a pod list. Note that this doesn't filter by name as it is the job of the selector
@@ -61,9 +61,9 @@ object KubernetesApiSimpleServiceDiscovery {
  * An alternative implementation that uses the Kubernetes API. The main advantage of this method is that it allows
  * you to define readiness/health checks that don't affect the bootstrap mechanism.
  */
-class KubernetesApiSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
+class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
-  import akka.discovery.kubernetes.KubernetesApiSimpleServiceDiscovery._
+  import akka.discovery.kubernetes.KubernetesApiServiceDiscovery._
   import system.dispatcher
 
   private val http = Http()(system)

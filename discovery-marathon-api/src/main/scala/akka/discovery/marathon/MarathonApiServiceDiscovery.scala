@@ -19,7 +19,7 @@ import JsonFormat._
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.event.Logging
 
-object MarathonApiSimpleServiceDiscovery {
+object MarathonApiServiceDiscovery {
 
   /**
    * Finds relevant targets given a pod list. Note that this doesn't filter by name as it is the job of the selector
@@ -64,8 +64,8 @@ object MarathonApiSimpleServiceDiscovery {
 /**
  * Service discovery that uses the Marathon API.
  */
-class MarathonApiSimpleServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
-  import MarathonApiSimpleServiceDiscovery._
+class MarathonApiServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
+  import MarathonApiServiceDiscovery._
   import system.dispatcher
 
   private val log = Logging(system, getClass)
