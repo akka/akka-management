@@ -30,7 +30,6 @@ Scala
 Java
 :  @@snip [CompileOnlyTest.java](/discovery/src/test/java/jdoc/akka/discovery/CompileOnlyTest.java) { #simple }
 
-guration { public MyConfigurat
 `portName` and `protocol` are optional and their meaning is interpreted by the mechanism.
 
 Scala
