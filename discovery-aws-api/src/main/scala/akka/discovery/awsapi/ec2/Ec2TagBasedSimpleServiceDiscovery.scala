@@ -70,7 +70,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ExtendedActorSystem) extends Sim
 
   private val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
 
-  lazy val defaultClientConfiguration = {
+  private val defaultClientConfiguration = {
     val clientConfiguration = new ClientConfiguration()
     // we have our own retry/back-off mechanism (in Cluster Bootstrap), so we don't need EC2Client's in addition
     clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
@@ -81,7 +81,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ExtendedActorSystem) extends Sim
     val clientConfiguration = clientConfigFqcn match {
       case Some(fqcn) ⇒
         system.dynamicAccess.createInstanceFor[ClientConfiguration](fqcn, Nil) match {
-          case Success(clientConfig: ClientConfiguration) ⇒
+          case Success(clientConfig) ⇒
             if (clientConfig.getRetryPolicy != PredefinedRetryPolicies.NO_RETRY_POLICY) {
               log.warning(
                   "Akka Cluster Bootstrap has its own retry/back-off mechanism, to avoid RequestLimitExceeded errors from AWS, " +
@@ -89,7 +89,7 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ExtendedActorSystem) extends Sim
             }
             clientConfig
           case Failure(ex) ⇒
-            throw new Exception(s"could not create instance of '$fqcn'", ex)
+            throw new Exception(s"Could not create instance of '$fqcn'", ex)
         }
       case None ⇒
         defaultClientConfiguration
