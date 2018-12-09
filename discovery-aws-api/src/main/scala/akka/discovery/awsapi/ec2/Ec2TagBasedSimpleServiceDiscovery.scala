@@ -45,13 +45,6 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ExtendedActorSystem) extends Sim
 
   private val log = Logging(system, classOf[Ec2TagBasedSimpleServiceDiscovery])
 
-  private val ec2Client: AmazonEC2 = {
-    val clientConfiguration = new ClientConfiguration()
-    // we have our own retry/back-off mechanism, so we don't need EC2Client's in addition
-    clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
-    AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
-  }
-
   private implicit val ec: ExecutionContext = system.dispatchers.lookup("akka.actor.default-blocking-io-dispatcher")
 
   private val config = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
