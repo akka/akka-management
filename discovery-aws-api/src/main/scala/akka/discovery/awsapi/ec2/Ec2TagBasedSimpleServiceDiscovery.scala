@@ -84,8 +84,10 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ExtendedActorSystem) extends Sim
           case Success(clientConfig) ⇒
             if (clientConfig.getRetryPolicy != PredefinedRetryPolicies.NO_RETRY_POLICY) {
               log.warning(
-                  "Akka Cluster Bootstrap has its own retry/back-off mechanism, to avoid RequestLimitExceeded errors from AWS, " +
-                  "disable retries in the EC2 client configuration")
+                  "If you're using this module for bootstrapping your Akka cluster, " +
+                  "Cluster Bootstrap already has its own retry/back-off mechanism. " +
+                  "To avoid RequestLimitExceeded errors from AWS, " +
+                  "disable retries in the EC2 client configuration.")
             }
             clientConfig
           case Failure(ex) ⇒
