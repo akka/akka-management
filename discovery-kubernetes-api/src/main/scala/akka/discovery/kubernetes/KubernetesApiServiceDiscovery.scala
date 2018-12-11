@@ -4,8 +4,9 @@
 
 package akka.discovery.kubernetes
 
+import java.io.File
 import java.net.InetAddress
-import java.nio.file.Paths
+import java.nio.file.{ Files, Paths }
 
 import akka.actor.ActorSystem
 import akka.discovery._
@@ -91,12 +92,10 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
       case None => settings.podPortName
     }
     log.info("Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}] (from lookup? {})",
-      labelSelector, settings.podNamespace, portName, query.portName.isDefined)
+      labelSelector, podNamespace, portName, query.portName.isDefined)
 
     for {
-      token <- apiToken()
-
-      request <- optionToFuture(podRequest(token, settings.podNamespace, labelSelector),
+      request <- optionToFuture(podRequest(apiToken, podNamespace, labelSelector),
         s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})")
 
       response <- http.singleRequest(request, httpsContext)
@@ -138,7 +137,7 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
       }
 
     } yield {
-      val addresses = targets(podList, portName, settings.podNamespace, settings.podDomain)
+      val addresses = targets(podList, portName, podNamespace, settings.podDomain)
       if (addresses.isEmpty && podList.items.nonEmpty) {
         if (log.isInfoEnabled) {
           val containerPortNames = podList.items.flatMap(_.spec).flatMap(_.containers).flatMap(_.ports).flatten.toSet
@@ -156,8 +155,29 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
     }
   }
 
-  private def apiToken() =
-    FileIO.fromPath(Paths.get(settings.apiTokenPath)).runFold("")(_ + _.utf8String).recover { case NonFatal(_) => "" }
+  private val apiToken = readConfigVarFromFilesystem(settings.apiTokenPath, "api-token") getOrElse ""
+
+  private val podNamespace = settings.podNamespace orElse
+    readConfigVarFromFilesystem(settings.podNamespacePath, "pod-namespace") getOrElse "default"
+
+  /**
+   * This uses blocking IO, and so should only be used to read configuration at startup.
+   */
+  private def readConfigVarFromFilesystem(path: String, name: String): Option[String] = {
+    val file = Paths.get(path)
+    if (Files.exists(file)) {
+      try {
+        Some(new String(Files.readAllBytes(file), "utf-8"))
+      } catch {
+        case NonFatal(e) =>
+          log.error(e, "Error reading {} from {}", name, path)
+          None
+      }
+    } else {
+      log.warning("Unable to read {} from {} because it doesn't exist.", name, path)
+      None
+    }
+  }
 
   private def optionToFuture[T](option: Option[T], failMsg: String): Future[T] =
     option.fold(Future.failed[T](new NoSuchElementException(failMsg)))(Future.successful)
