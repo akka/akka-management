@@ -18,11 +18,9 @@ The following configuration is required:
 
 @@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-api/src/main/resources/application.conf) { #discovery-config }
 
-The lookup needs to know which namespace to look in. This can be configured with
-`akka.discovery.kubernetes-api.pod-namespace` or it will be picked up via the `NAMESPACE` environment
-variable that can be injected into the pod via:
-
-@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml)  { #namespace }
+The lookup needs to know which namespace to look in. By default, this will be detected by reading the namespace
+from the service account secret, in `/var/run/secrets/kubernetes.io/serviceaccount/namespace`, but can be overridden by
+setting `akka.discovery.kubernetes-api.pod-namespace`.
 
 For more details on how to configure the Kubernetes deployment see @ref:[recipes](recipes.md).
 
