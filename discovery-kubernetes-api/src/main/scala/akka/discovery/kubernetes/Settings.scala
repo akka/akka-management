@@ -5,8 +5,23 @@
 package akka.discovery.kubernetes
 
 import akka.actor._
+import com.typesafe.config.Config
 
 final class Settings(system: ExtendedActorSystem) extends Extension {
+
+  /**
+   * Copied from AkkaManagementSettings, which we don't depend on.
+   */
+  private implicit class HasDefined(val config: Config) {
+    def hasDefined(key: String): Boolean =
+      config.hasPath(key) &&
+      config.getString(key).trim.nonEmpty &&
+      config.getString(key) != s"<$key>"
+
+    def optDefinedValue(key: String): Option[String] =
+      if (hasDefined(key)) Some(config.getString(key)) else None
+  }
+
   private val kubernetesApi = system.settings.config.getConfig("akka.discovery.kubernetes-api")
 
   val apiCaPath: String =
@@ -21,8 +36,11 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
   val apiServicePortEnvName: String =
     kubernetesApi.getString("api-service-port-env-name")
 
-  val podNamespace: String =
-    kubernetesApi.getString("pod-namespace")
+  val podNamespacePath: String =
+    kubernetesApi.getString("pod-namespace-path")
+
+  val podNamespace: Option[String] =
+    kubernetesApi.optDefinedValue("pod-namespace")
 
   val podDomain: String =
     kubernetesApi.getString("pod-domain")
