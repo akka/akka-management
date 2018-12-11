@@ -26,10 +26,6 @@ lazy val `akka-management-root` = project
   )
   .settings(
     parallelExecution in GlobalScope := false
-//    inThisBuild(List(
-//      resolvers += Resolver.sonatypeRepo("comtypesafe-2276")
-//
-//    ))
   )
 
 lazy val `akka-discovery-kubernetes-api` = project
