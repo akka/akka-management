@@ -45,7 +45,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   /**
    * Set async authenticator to be used for management routes.
    *
-   * Must be called BEFORE `start()` to take effect.
+   * Must be called BEFORE [[start()]] and [[routes()]] to take effect.
    * Do not call concurrently.
    */
   def setAsyncAuthenticator(auth: AsyncAuthenticator[String]): Unit =
@@ -77,28 +77,33 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   private val bindingFuture = new AtomicReference[Future[Http.ServerBinding]]()
   private val selfUriPromise = Promise[Uri]() // TODO has to keep config as well as the Uri, so we can reject 2nd calls with diff uri
 
+  private def providerSettings = {
+    // port is on purpose never inferred from protocol, because this HTTP endpoint is not the "main" one for the app
+    val protocol = if (_connectionContext.isSecure) "https" else "http"
+    val selfBaseUri =
+      Uri(s"$protocol://${settings.Http.Hostname}:${settings.Http.Port}${settings.Http.BasePath.fold("")("/" + _)}")
+    ManagementRouteProviderSettingsImpl(selfBaseUri)
+  }
+
   /**
-   * Start the HTTP management endpoint
+   * Get the routes for the HTTP management endpoint.
+   *
+   * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
+   */
+  def routes: Try[Route] = prepareCombinedRoutes(providerSettings)
+
+  /**
+   * Start an Akka HTTP server to serve the HTTP management endpoint.
    */
   // FIXME make it accept config object that would have all the `withHttps`
   def start(): Future[Uri] = {
     val serverBindingPromise = Promise[Http.ServerBinding]()
     if (bindingFuture.compareAndSet(null, serverBindingPromise.future)) {
 
-      val hostname = settings.Http.Hostname
-      val port = settings.Http.Port
-
       val effectiveBindHostname = settings.Http.EffectiveBindHostname
       val effectiveBindPort = settings.Http.EffectiveBindPort
 
-      // port is on purpose never inferred from protocol, because this HTTP endpoint is not the "main" one for the app
-      val protocol = if (_connectionContext.isSecure) "https" else "http"
-      val selfBaseUri = Uri(s"$protocol://$hostname:$port${settings.Http.BasePath.fold("")("/" + _)}")
-      val providerSettings = ManagementRouteProviderSettingsImpl(selfBaseUri)
-
-      val combinedRoutes: Try[Route] = prepareCombinedRoutes(settings, providerSettings)
-
-      combinedRoutes match {
+      routes match {
         case Success(routes) ⇒
           // TODO instead of binding to hardcoded things here, discovery could also be used for this binding!
           // Basically: "give me the SRV host/port for the port called `akka-bootstrap`"
@@ -119,7 +124,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
 
           serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { _ =>
             log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
-            selfUriPromise.success(selfBaseUri).future
+            selfUriPromise.success(providerSettings.selfBaseUri).future
           }
 
         case Failure(ex) ⇒
@@ -129,14 +134,13 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
     } else selfUriPromise.future
   }
 
-  private def prepareCombinedRoutes(managementSettings: AkkaManagementSettings,
-                                    providerSettings: ManagementRouteProviderSettings): Try[Route] = {
+  private def prepareCombinedRoutes(providerSettings: ManagementRouteProviderSettings): Try[Route] = {
     val basePath: Directive[Unit] = {
       val pathPrefixName = settings.Http.BasePath.getOrElse("")
       if (pathPrefixName.isEmpty) rawPathPrefix(pathPrefixName) else pathPrefix(pathPrefixName)
     }
 
-    def wrapWithAuthenicatorIfPresent(inner: Route): Route =
+    def wrapWithAuthenticatorIfPresent(inner: Route): Route =
       _asyncAuthenticator match {
         case Some(asyncAuthenticator) ⇒
           authenticateBasicAsync[String](realm = "secured", asyncAuthenticator)(_ ⇒ inner)
@@ -151,7 +155,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
     Try {
       if (combinedRoutes.nonEmpty) {
         basePath {
-          wrapWithAuthenicatorIfPresent(Directives.concat(combinedRoutes: _*))
+          wrapWithAuthenticatorIfPresent(Directives.concat(combinedRoutes: _*))
         }
       } else
         throw new IllegalArgumentException(
