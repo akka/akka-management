@@ -2,9 +2,6 @@ sudo: required
 dist: xenial
 language: scala
 
-jdk:
-  - oraclejdk8
-
 before_install:
   - curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.10.1/install.sh | bash && . ~/.jabba/jabba.sh
 
@@ -37,8 +34,6 @@ jobs:
     env: K8S_API
   - script:
     - ./scripts/setup-minikube-for-linux.sh
-    - #344 minikube mixes kube-dns and coredns:
-    - kubectl --namespace=kube-system delete deployment kube-dns
     - ./bootstrap-demo/kubernetes-dns/test.sh
     env: K8S_DNS
   - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api-java/test.sh
