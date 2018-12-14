@@ -123,7 +123,7 @@ The resources in `kubernetes/akka-cluster.yml` are configured to run in the `akk
 you want to deploy to or ensure`akka-bootstrap` namespace exists either by creating it:
 
 ```
-kubectl create namespace akka-boostrap
+kubectl create namespace akka-bootstrap
 ```
 
 Or if running with `minishift` creating a project called `akka-bootstrap`:
@@ -135,11 +135,23 @@ oc new-project akka-bootstrap
 Next deploy the application:
 
 ```
-kubectl apply -f kubernetes/akka-cluster.yml
+# minikube using Kubernetes API
+kubectl apply -f bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml
 
 or
 
-oc apply -f kubernetes/akka-cluster.yaml
+# minikube using DNS
+kubectl apply -f bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml
+
+or
+
+# minishift using Kubernetes API
+oc apply -f bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yaml
+
+or
+
+# minishift using DNS
+oc apply -f bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yaml
 ```
 
 This will create and start running a number of Pods hosting the application. The application nodes will form a cluster. 
@@ -148,25 +160,33 @@ In order to observe the logs during the cluster formation you can
 pick one of the pods and issue the kubectl logs command on it:
 
 ```
-$ POD=$(kubectl get pods | grep appka | grep Running | head -n1 | awk '{ print $1 }'); echo $POD
-appka-6bfdf47ff6-l7cpb
+$ POD=$(kubectl get pods --namespace akka-bootstrap | grep akka-bootstrap | grep Running | head -n1 | awk '{ print $1 }'); echo $POD
+akka-bootstrap-demo-bcc456d8c-6qx87
 
-$ kubectl logs $POD -f
+$ kubectl logs $POD --namespace akka-bootstrap --follow | less
 ```
 
 ```
-[INFO] [09/11/2018 09:57:16.612] [Appka-akka.actor.default-dispatcher-4] [akka.tcp://Appka@172.17.0.14:2552/system/bootstrapCoordinator] Locating service members. Using discovery [akka.discovery.kubernetes.KubernetesApiSimpleServiceDiscovery], join decider [akka.management.cluster.bootstrap.LowestAddressJoinDecider]                                                                
-[INFO] [09/11/2018 09:57:16.613] [Appka-akka.actor.default-dispatcher-4] [akka.tcp://Appka@172.17.0.14:2552/system/bootstrapCoordinator] Looking up [Lookup(appka-service.default.svc.cluster.local,Some(management),Some(tcp))]                                                                                                                                                             
-[INFO] [09/11/2018 09:57:16.713] [Appka-akka.actor.default-dispatcher-19] [AkkaManagement(akka://Appka)] Bound Akka Management (HTTP) endpoint to: 172.17.0.14:8558
-[INFO] [09/11/2018 09:57:16.746] [Appka-akka.actor.default-dispatcher-17] [akka.actor.ActorSystemImpl(Appka)] Querying for pods with label selector: [actorSystemName=appka]
-[INFO] [09/11/2018 09:57:17.710] [Appka-akka.actor.default-dispatcher-3] [HttpClusterBootstrapRoutes(akka://Appka)] Bootstrap request from 172.17.0.15:55502: Contact Point returning 0 seed-nodes ([Set()])                                                                                                                                                                                 
-[INFO] [09/11/2018 09:57:17.718] [Appka-akka.actor.default-dispatcher-17] [akka.tcp://Appka@172.17.0.14:2552/system/bootstrapCoordinator] Located service members based on: [Lookup(appka-service.default.svc.cluster.local,Some(management),Some(tcp))]: [ResolvedTarget(172-17-0-14.default.pod.cluster.local,Some(8558),Some(/172.17.0.14)), ResolvedTarget(172-17-0-15.default.pod.cluster
-.local,Some(8558),Some(/172.17.0.15))]
-[INFO] [09/11/2018 09:57:23.636] [Appka-akka.actor.default-dispatcher-17] [akka.tcp://Appka@172.17.0.14:2552/system/bootstrapCoordinator] Initiating new cluster, self-joining [akka.tcp://Appka@172.17.0.14:2552]. Other nodes are expected to locate this cluster via continued contact-point probing.                                                                                     
-[INFO] [09/11/2018 09:57:23.650] [Appka-akka.actor.default-dispatcher-19] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.14:2552] - Node [akka.tcp://Appka@172.17.0.14:2552] is JOINING itself (with roles [dc-default]) and forming new cluster                                                                                                               
-[INFO] [09/11/2018 09:57:23.655] [Appka-akka.actor.default-dispatcher-19] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.14:2552] - Cluster Node [akka.tcp://Appka@172.17.0.14:2552] dc [default] is the new leader                                                                                                                                            
-[INFO] [09/11/2018 09:57:23.676] [Appka-akka.actor.default-dispatcher-19] [akka.cluster.Cluster(akka://Appka)] Cluster Node [akka.tcp://Appka@172.17.0.14:2552] - Leader is moving node [akka.tcp://Appka@172.17.0.14:2552] to [Up]                                                                                                                                                          
-[INFO] [09/11/2018 09:57:23.680] [Appka-akka.actor.default-dispatcher-17] [akka.actor.ActorSystemImpl(Appka)] Cluster member is up!
-
+[INFO] [12/13/2018 07:13:42.867] [main] [ClusterBootstrap(akka://default)] Initiating bootstrap procedure using akka.discovery.akka-dns method...
+[DEBUG] [12/13/2018 07:13:42.906] [default-akka.actor.default-dispatcher-2] [TimerScheduler(akka://default)] Start timer [resolve-key] with generation [1]
+[DEBUG] [12/13/2018 07:13:42.919] [default-akka.actor.default-dispatcher-2] [TimerScheduler(akka://default)] Start timer [decide-key] with generation [2]
+[INFO] [12/13/2018 07:13:42.924] [default-akka.actor.default-dispatcher-2] [akka.tcp://default@172.17.0.7:2552/system/bootstrapCoordinator] Locating service members. Using discovery [akka.discovery.dns.DnsSimpleServiceDiscovery], join decider [akka.management.cluster.bootstrap.LowestAddressJoinDecider]
+[INFO] [12/13/2018 07:13:42.933] [default-akka.actor.default-dispatcher-2] [akka.tcp://default@172.17.0.7:2552/system/bootstrapCoordinator] Looking up [Lookup(bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local,Some(management),Some(tcp))]
+[DEBUG] [12/13/2018 07:13:42.936] [default-akka.actor.default-dispatcher-2] [DnsSimpleServiceDiscovery(akka://default)] Lookup [Lookup(bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local,Some(management),Some(tcp))] translated to SRV query [_management._tcp.bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local] as contains portName and protocol
+[DEBUG] [12/13/2018 07:13:42.995] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS] Resolution request for _management._tcp.bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local Srv from Actor[akka://default/temp/$a]
+[DEBUG] [12/13/2018 07:13:43.011] [default-akka.actor.default-dispatcher-6] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS/async-dns/$a] Attempting to resolve _management._tcp.bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local with Actor[akka://default/system/IO-DNS/async-dns/$a/$a#1272991285]
+[DEBUG] [12/13/2018 07:13:43.049] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-TCP/selectors/$a/0] Successfully bound to /0.0.0.0:8558
+[DEBUG] [12/13/2018 07:13:43.134] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS/async-dns/$a/$a] Resolving [_management._tcp.bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local] (SRV)
+[INFO] [12/13/2018 07:13:43.147] [default-akka.actor.default-dispatcher-6] [AkkaManagement(akka://default)] Bound Akka Management (HTTP) endpoint to: 0.0.0.0:8558
+[DEBUG] [12/13/2018 07:13:43.156] [default-akka.actor.default-dispatcher-5] [akka.tcp://default@172.17.0.7:2552/system/IO-TCP/selectors/$a/1] Successfully bound to /0.0.0.0:8080
+[INFO] [12/13/2018 07:13:43.180] [main] [akka.actor.ActorSystemImpl(default)] Server online at http://localhost:8080/
+....
+[INFO] [12/13/2018 07:13:50.631] [default-akka.actor.default-dispatcher-5] [akka.cluster.Cluster(akka://default)] Cluster Node [akka.tcp://default@172.17.0.7:2552] - Welcome from [akka.tcp://default@172.17.0.6:2552]
+[DEBUG] [12/13/2018 07:13:50.644] [default-akka.remote.default-remote-dispatcher-22] [akka.serialization.Serialization(akka://default)] Using serializer [akka.cluster.protobuf.ClusterMessageSerializer] for message [akka.cluster.GossipEnvelope]
+[INFO] [12/13/2018 07:13:50.659] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/user/$b] Cluster akka.tcp://default@172.17.0.7:2552 >>> MemberUp(Member(address = akka.tcp://default@172.17.0.6:2552, status = Up))
+[INFO] [12/13/2018 07:13:50.676] [default-akka.actor.default-dispatcher-20] [akka.tcp://default@172.17.0.7:2552/user/$b] Cluster akka.tcp://default@172.17.0.7:2552 >>> MemberJoined(Member(address = akka.tcp://default@172.17.0.7:2552, status = Joining))
+[INFO] [12/13/2018 07:13:50.716] [default-akka.actor.default-dispatcher-6] [akka.tcp://default@172.17.0.7:2552/user/$b] Cluster akka.tcp://default@172.17.0.7:2552 >>> LeaderChanged(Some(akka.tcp://default@172.17.0.6:2552))
+[INFO] [12/13/2018 07:13:50.720] [default-akka.actor.default-dispatcher-3] [akka.tcp://default@172.17.0.7:2552/user/$b] Cluster akka.tcp://default@172.17.0.7:2552 >>> RoleLeaderChanged(dc-default,Some(akka.tcp://default@172.17.0.6:2552))
+[INFO] [12/13/2018 07:13:50.727] [default-akka.actor.default-dispatcher-6] [akka.tcp://default@172.17.0.7:2552/user/$b] Cluster akka.tcp://default@172.17.0.7:2552 >>> SeenChanged(true,Set(akka.tcp://default@172.17.0.6:2552, akka.tcp://default@172.17.0.7:2552))
+[INFO] [12/13/2018 07:13:50.733] [default-akka.actor.default-dispatcher-5] [akka.tcp://default@172.17.0.7:2552/user/$b] Cluster akka.tcp://default@172.17.0.7:2552 >>> ReachabilityChanged()
 ```
-
