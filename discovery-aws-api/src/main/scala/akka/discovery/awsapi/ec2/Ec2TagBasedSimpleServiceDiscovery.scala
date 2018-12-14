@@ -50,10 +50,9 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ExtendedActorSystem) extends Sim
   private val config = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
 
   private val clientConfigFqcn: Option[String] = { // FQCN of a class that extends com.amazonaws.ClientConfiguration
-    if (config.hasPath("client-config")) {
-      Some(config.getString("client-config"))
-    } else {
-      None
+    config.getString("client-config") match {
+      case "" ⇒ None
+      case fqcn ⇒ Some(fqcn)
     }
   }
 
