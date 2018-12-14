@@ -7,8 +7,8 @@ package akka.management.cluster.bootstrap.contactpoint
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.{ Lookup, MockDiscovery }
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
@@ -54,7 +54,7 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
           cluster.jmx.multi-mbeans-in-same-jvm = on
 
           # this can be referred to in tests to use the mock discovery implementation
-          mock-dns.class = "akka.discovery.MockDiscovery"
+          discovery.mock-dns.class = "akka.discovery.MockDiscovery"
 
           cluster.http.management.port = $managementPort
           remote.netty.tcp.port = $remotingPort
@@ -63,7 +63,7 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
 
             cluster.bootstrap {
               contact-point-discovery {
-                discovery-method = akka.mock-dns
+                discovery-method = mock-dns
 
                 service-namespace = "svc.cluster.local"
 

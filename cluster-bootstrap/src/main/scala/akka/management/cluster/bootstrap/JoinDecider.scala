@@ -8,9 +8,8 @@ import java.time.LocalDateTime
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-
 import akka.actor.Address
-import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
+import akka.discovery.ServiceDiscovery.ResolvedTarget
 
 /**
  * The decisions of joining existing seed-nodes or join self to form new

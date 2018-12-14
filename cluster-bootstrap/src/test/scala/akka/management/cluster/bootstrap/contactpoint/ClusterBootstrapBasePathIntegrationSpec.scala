@@ -7,8 +7,8 @@ package akka.management.cluster.bootstrap.contactpoint
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.{ Lookup, MockDiscovery }
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
@@ -38,12 +38,12 @@ class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers
           cluster.http.management.port = $managementPort
           remote.netty.tcp.port = $remotingPort
 
-          mock-dns.class = "akka.discovery.MockDiscovery"
+          discovery.mock-dns.class = "akka.discovery.MockDiscovery"
 
           management {
             cluster.bootstrap {
               contact-point-discovery {
-                discovery-method = akka.mock-dns
+                discovery-method = mock-dns
                 service-namespace = "svc.cluster.local"
                 required-contact-point-nr = 1
               }

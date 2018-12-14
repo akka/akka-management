@@ -7,10 +7,9 @@ package akka.management.cluster.bootstrap
 import java.time.Duration
 
 import scala.concurrent.Future
-
 import akka.actor.ActorSystem
 import akka.actor.Address
-import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
+import akka.discovery.ServiceDiscovery.ResolvedTarget
 
 /**
  * The decision of joining "self" is made by deterministically sorting the discovered services

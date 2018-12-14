@@ -6,9 +6,10 @@ package akka.management.cluster.bootstrap
 
 import java.util.concurrent.atomic.AtomicReference
 
+import akka.AkkaVersion
+
 import scala.concurrent.Future
 import scala.concurrent.Promise
-
 import akka.actor.ActorSystem
 import akka.actor.ExtendedActorSystem
 import akka.actor.Extension
@@ -16,8 +17,7 @@ import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.ServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery
+import akka.discovery.{ Discovery, ServiceDiscovery }
 import akka.event.Logging
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
@@ -35,19 +35,21 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
   private final val bootstrapStep = new AtomicReference[BootstrapStep](NotRunning)
 
+  AkkaVersion.require("cluster-bootstrap", "2.5.19")
+
   val settings = ClusterBootstrapSettings(system.settings.config, log)
 
   // used for initial discovery of contact points
-  val discovery: SimpleServiceDiscovery =
+  val discovery: ServiceDiscovery =
     settings.contactPointDiscovery.discoveryMethod match {
       case "akka.discovery" ⇒
-        val discovery = ServiceDiscovery(system).discovery
+        val discovery = Discovery(system).discovery
         log.info("Bootstrap using default `akka.discovery` method: {}", Logging.simpleName(discovery))
         discovery
 
       case otherDiscoveryMechanism ⇒
         log.info("Bootstrap using `akka.discovery` method: {}", otherDiscoveryMechanism)
-        ServiceDiscovery(system).loadServiceDiscovery(otherDiscoveryMechanism)
+        Discovery(system).loadServiceDiscovery(otherDiscoveryMechanism)
     }
 
   private val joinDecider: JoinDecider = {

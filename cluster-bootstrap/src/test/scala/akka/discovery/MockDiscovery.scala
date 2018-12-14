@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.discovery.SimpleServiceDiscovery.Resolved
+import akka.discovery.ServiceDiscovery.Resolved
 import akka.event.Logging
 
 import scala.concurrent.Future
@@ -32,7 +32,7 @@ object MockDiscovery {
 }
 
 @InternalApi
-final class MockDiscovery(system: ActorSystem) extends SimpleServiceDiscovery {
+final class MockDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private val log = Logging(system, getClass)
 

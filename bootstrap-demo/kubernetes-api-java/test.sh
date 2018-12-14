@@ -38,11 +38,12 @@ done
 if [ $i -eq 10 ]
 then
   echo "No 3 MemberUp log events found"
+  kubectl get pods --namespace akka-bootstrap
   echo "=============================="
-  for POD in $(kubectl get pods | grep demo-kubernetes-dns | grep Running | awk '{ print $1 }')
+  for POD in $(kubectl get pods --namespace akka-bootstrap | grep akka-bootstrap-demo | grep Running | awk '{ print $1 }')
   do
    echo "Logging for $POD"
-    kubectl logs $POD bootstrap-demo-kubernetes-dns
+    kubectl logs $POD --namespace akka-bootstrap
   done
   exit -1
 fi
