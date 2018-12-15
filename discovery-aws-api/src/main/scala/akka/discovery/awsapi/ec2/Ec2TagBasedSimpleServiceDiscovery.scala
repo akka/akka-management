@@ -23,7 +23,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Failure, Success }
+import scala.util.{ Failure, Success, Try }
 
 /** INTERNAL API */
 @InternalApi private[ec2] object Ec2TagBasedSimpleServiceDiscovery {
@@ -76,10 +76,18 @@ class Ec2TagBasedSimpleServiceDiscovery(system: ExtendedActorSystem) extends Sim
     clientConfiguration
   }
 
-  private val ec2Client: AmazonEC2 = {
+  private def getCustomClientConfigurationInstance(fqcn: String): Try[ClientConfiguration] = {
+    system.dynamicAccess.createInstanceFor[ClientConfiguration](fqcn,
+      List(classOf[ExtendedActorSystem] → system)) recoverWith {
+      case _: NoSuchMethodException ⇒
+        system.dynamicAccess.createInstanceFor[ClientConfiguration](fqcn, Nil)
+    }
+  }
+
+  protected val ec2Client: AmazonEC2 = {
     val clientConfiguration = clientConfigFqcn match {
       case Some(fqcn) ⇒
-        system.dynamicAccess.createInstanceFor[ClientConfiguration](fqcn, Nil) match {
+        getCustomClientConfigurationInstance(fqcn) match {
           case Success(clientConfig) ⇒
             if (clientConfig.getRetryPolicy != PredefinedRetryPolicies.NO_RETRY_POLICY) {
               log.warning(
