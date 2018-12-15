@@ -1,4 +1,4 @@
-# Kubernetes using DNS
+# Kubernetes via DNS
 
 An example project that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-dns`.
 

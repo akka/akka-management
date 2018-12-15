@@ -7,13 +7,9 @@ lazy val `akka-management-root` = project
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .aggregate(
-    `akka-discovery`,
-    `akka-discovery-aggregrate`,
     `akka-discovery-aws-api`,
     `akka-discovery-aws-api-async`,
-    `akka-discovery-config`,
     `akka-discovery-consul`,
-    `akka-discovery-dns`,
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
@@ -32,52 +28,6 @@ lazy val `akka-management-root` = project
     parallelExecution in GlobalScope := false
   )
 
-// interfaces and extension for Discovery
-lazy val `akka-discovery` = project
-  .in(file("discovery"))
-  .enablePlugins(AutomateHeaderPlugin)
-  .settings(unidocSettings)
-  .settings(
-    name := "akka-discovery",
-    organization := "com.lightbend.akka.discovery",
-    Dependencies.Discovery
-  )
-
-// DNS implementation of discovery, default and works well for Kubernetes among other things
-lazy val `akka-discovery-dns` = project
-  .in(file("discovery-dns"))
-  .enablePlugins(AutomateHeaderPlugin)
-  .settings(unidocSettings)
-  .settings(
-    name := "akka-discovery-dns",
-    organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryDns
-  )
-  .dependsOn(`akka-discovery`)
-
-lazy val `akka-discovery-config` = project
-  .in(file("discovery-config"))
-  .enablePlugins(AutomateHeaderPlugin)
-  .settings(unidocSettings)
-  .settings(
-    name := "akka-discovery-config",
-    organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryConfig
-  )
-  .dependsOn(`akka-discovery`)
-
-lazy val `akka-discovery-aggregrate` = project
-  .in(file("discovery-aggregate"))
-  .enablePlugins(AutomateHeaderPlugin)
-  .settings(unidocSettings)
-  .settings(
-    name := "akka-discovery-aggregate",
-    organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryAggregate
-  )
-  .dependsOn(`akka-discovery`)
-  .dependsOn(`akka-discovery-config` % "test")
-
 lazy val `akka-discovery-kubernetes-api` = project
   .in(file("discovery-kubernetes-api"))
   .enablePlugins(AutomateHeaderPlugin)
@@ -87,9 +37,7 @@ lazy val `akka-discovery-kubernetes-api` = project
     organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryKubernetesApi
   )
-  .dependsOn(`akka-discovery`)
 
-// Marathon API implementation of discovery, allows port discovery and formation to work even when readiness/health checks are failing
 lazy val `akka-discovery-marathon-api` = project
   .in(file("discovery-marathon-api"))
   .enablePlugins(AutomateHeaderPlugin)
@@ -99,9 +47,7 @@ lazy val `akka-discovery-marathon-api` = project
     organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryMarathonApi
   )
-  .dependsOn(`akka-discovery`)
 
-// AWS implementation of discovery
 lazy val `akka-discovery-aws-api` = project
   .in(file("discovery-aws-api"))
   .enablePlugins(AutomateHeaderPlugin)
@@ -111,9 +57,7 @@ lazy val `akka-discovery-aws-api` = project
     organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryAwsApi
   )
-  .dependsOn(`akka-discovery`)
 
-// Non-blocking AWS implementation of discovery
 lazy val `akka-discovery-aws-api-async` = project
   .in(file("discovery-aws-api-async"))
   .enablePlugins(AutomateHeaderPlugin)
@@ -123,7 +67,6 @@ lazy val `akka-discovery-aws-api-async` = project
     organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryAwsApiAsync
   )
-  .dependsOn(`akka-discovery`)
 
 lazy val `akka-discovery-consul` = project
   .in(file("discovery-consul"))
@@ -134,7 +77,6 @@ lazy val `akka-discovery-consul` = project
     organization := "com.lightbend.akka.discovery",
     Dependencies.DiscoveryConsul
   )
-  .dependsOn(`akka-discovery`)
 
 // gathers all enabled routes and serves them (HTTP or otherwise)
 lazy val `akka-management` = project
@@ -162,7 +104,7 @@ lazy val `cluster-bootstrap` = project
     name := "akka-management-cluster-bootstrap",
     Dependencies.ClusterBootstrap
   )
-  .dependsOn(`akka-management`, `akka-discovery`)
+  .dependsOn(`akka-management`)
 
 lazy val `bootstrap-demo-kubernetes-api` = project
   .in(file("bootstrap-demo/kubernetes-api"))
@@ -173,7 +115,7 @@ lazy val `bootstrap-demo-kubernetes-api` = project
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
-    Dependencies.BootstrapDemoKubernetesApi
+    Dependencies.BootstrapDemos
   ).dependsOn(
   `akka-management`,
   `cluster-http`,
@@ -190,7 +132,7 @@ lazy val `bootstrap-demo-kubernetes-api-java` = project
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
-    Dependencies.BootstrapDemoKubernetesApi
+    Dependencies.BootstrapDemos
   ).dependsOn(
   `akka-management`,
   `cluster-http`,
@@ -206,12 +148,12 @@ lazy val `bootstrap-demo-kubernetes-dns` = project
   .settings(
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true
+    whitesourceIgnore := true,
+    Dependencies.BootstrapDemos
   ).dependsOn(
     `akka-management`,
     `cluster-http`,
-    `cluster-bootstrap`,
-    `akka-discovery-dns`
+    `cluster-bootstrap`
   )
 
 lazy val `bootstrap-demo-aws-api-ec2-tag-based` = project
@@ -245,7 +187,6 @@ lazy val `bootstrap-demo-marathon-api-docker` = project
   ).dependsOn(
     `akka-management`,
     `cluster-http`,
-    `akka-discovery-dns`,
     `cluster-bootstrap`,
     `akka-discovery-marathon-api`
   )
@@ -281,12 +222,12 @@ lazy val `bootstrap-demo-local` = project
     name := "akka-bootstrap-local",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true
+    whitesourceIgnore := true,
+    Dependencies.BootstrapDemos
   ).dependsOn(
     `akka-management`,
     `cluster-http`,
-    `cluster-bootstrap`,
-    `akka-discovery-config`
+    `cluster-bootstrap`
   )
   .enablePlugins(JavaAppPackaging, AshScriptPlugin)
 

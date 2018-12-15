@@ -4,7 +4,7 @@
 
 package akka.discovery.awsapi.ec2
 
-import akka.discovery.awsapi.ec2.Ec2TagBasedSimpleServiceDiscovery.parseFiltersString
+import akka.discovery.awsapi.ec2.Ec2TagBasedServiceDiscovery.parseFiltersString
 import com.amazonaws.services.ec2.model.Filter
 import org.scalatest.{ FunSuite, Matchers }
 

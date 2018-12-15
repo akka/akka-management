@@ -10,7 +10,7 @@ import java.net.InetAddress
 import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import akka.actor.Address
-import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
+import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.event.NoLogging
 import akka.testkit.SocketUtil
 import akka.testkit.TestKit
@@ -30,12 +30,14 @@ abstract class JoinDeciderSpec extends AbstractBootstrapSpec {
           cluster.http.management.port = $managementPort
           remote.netty.tcp.port = $remotingPort
 
-          mock-dns.class = "akka.discovery.MockDiscovery"
+          discovery {
+            mock-dns.class = "akka.discovery.MockDiscovery"
+          }
 
           management {
             cluster.bootstrap {
               contact-point-discovery {
-                discovery-method = akka.mock-dns
+                discovery-method = mock-dns
                 service-namespace = "svc.cluster.local"
                 required-contact-point-nr = 3
               }

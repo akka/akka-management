@@ -18,8 +18,8 @@ import akka.actor.Status.Failure
 import akka.actor.Timers
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.{ Lookup, SimpleServiceDiscovery }
-import akka.discovery.SimpleServiceDiscovery.ResolvedTarget
+import akka.discovery.{ Lookup, ServiceDiscovery }
+import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.http.scaladsl.model.Uri
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.JoinDecider
@@ -38,7 +38,7 @@ import scala.util.Try
 @InternalApi
 private[akka] object BootstrapCoordinator {
 
-  def props(discovery: SimpleServiceDiscovery, joinDecider: JoinDecider, settings: ClusterBootstrapSettings): Props =
+  def props(discovery: ServiceDiscovery, joinDecider: JoinDecider, settings: ClusterBootstrapSettings): Props =
     Props(new BootstrapCoordinator(discovery, joinDecider, settings))
 
   object Protocol {
@@ -102,7 +102,7 @@ private[akka] object BootstrapCoordinator {
 // also known as the "Baron von Bootstrappen"
 /** INTERNAL API */
 @InternalApi
-private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery,
+private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
                                                joinDecider: JoinDecider,
                                                settings: ClusterBootstrapSettings)
     extends Actor
@@ -173,7 +173,7 @@ private[akka] final class BootstrapCoordinator(discovery: SimpleServiceDiscovery
       // the next round of discovery will be performed once this one returns
       discoverContactPoints()
 
-    case SimpleServiceDiscovery.Resolved(_, contactPoints) ⇒
+    case ServiceDiscovery.Resolved(_, contactPoints) ⇒
       log.info("Located service members based on: [{}]: [{}]", lookup, contactPoints.mkString(", "))
       onContactPointsResolved(contactPoints)
       resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals

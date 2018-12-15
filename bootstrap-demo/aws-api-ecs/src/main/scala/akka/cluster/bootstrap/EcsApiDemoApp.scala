@@ -7,7 +7,7 @@ package akka.cluster.bootstrap
 import java.net.InetAddress
 
 import akka.actor.ActorSystem
-import akka.discovery.awsapi.ecs.AsyncEcsSimpleServiceDiscovery
+import akka.discovery.awsapi.ecs.AsyncEcsServiceDiscovery
 import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import com.typesafe.config.ConfigFactory
@@ -37,7 +37,7 @@ object EcsApiDemoApp {
   }
 
   private[this] def getPrivateAddressOrExit: InetAddress =
-    AsyncEcsSimpleServiceDiscovery.getContainerAddress match {
+    AsyncEcsServiceDiscovery.getContainerAddress match {
       case Left(error) =>
         System.err.println(s"$error Halting.")
         sys.exit(1)

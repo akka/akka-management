@@ -62,13 +62,13 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
           remote.netty.tcp.port = $remotingPort
 
           # this can be referred to in tests to use the mock discovery implementation
-          mock-dns.class = "akka.discovery.MockDiscovery"
+          discovery.mock-dns.class = "akka.discovery.MockDiscovery"
 
           management {
 
             cluster.bootstrap {
               contact-point-discovery {
-                discovery-method = akka.mock-dns
+                discovery-method = mock-dns
 
                 service-namespace = "svc.cluster.local"
 
