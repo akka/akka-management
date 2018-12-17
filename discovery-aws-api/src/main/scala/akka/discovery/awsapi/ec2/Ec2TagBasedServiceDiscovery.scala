@@ -6,11 +6,11 @@ package akka.discovery.awsapi.ec2
 
 import java.util.concurrent.TimeoutException
 
-import akka.actor.ActorSystem
+import akka.actor.ExtendedActorSystem
 import akka.annotation.InternalApi
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.discovery.awsapi.ec2.Ec2TagBasedServiceDiscovery._
+import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.event.Logging
 import akka.pattern.after
 import com.amazonaws.ClientConfiguration
@@ -23,6 +23,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 /** INTERNAL API */
 @InternalApi private[ec2] object Ec2TagBasedServiceDiscovery {
@@ -40,20 +41,20 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 }
 
-class Ec2TagBasedServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
+class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDiscovery {
 
   private val log = Logging(system, classOf[Ec2TagBasedServiceDiscovery])
-
-  private val ec2Client: AmazonEC2 = {
-    val clientConfiguration = new ClientConfiguration()
-    // we have our own retry/back-off mechanism, so we don't need EC2Client's in addition
-    clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
-    AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
-  }
 
   private implicit val ec: ExecutionContext = system.dispatchers.lookup("akka.actor.default-blocking-io-dispatcher")
 
   private val config = system.settings.config.getConfig("akka.discovery.aws-api-ec2-tag-based")
+
+  private val clientConfigFqcn: Option[String] = { // FQCN of a class that extends com.amazonaws.ClientConfiguration
+    config.getString("client-config") match {
+      case "" ⇒ None
+      case fqcn ⇒ Some(fqcn)
+    }
+  }
 
   private val tagKey = config.getString("tag-key")
 
@@ -67,6 +68,43 @@ class Ec2TagBasedServiceDiscovery(system: ActorSystem) extends ServiceDiscovery 
     }
 
   private val runningInstancesFilter = new Filter("instance-state-name", List("running").asJava)
+
+  private val defaultClientConfiguration = {
+    val clientConfiguration = new ClientConfiguration()
+    // we have our own retry/back-off mechanism (in Cluster Bootstrap), so we don't need EC2Client's in addition
+    clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+    clientConfiguration
+  }
+
+  private def getCustomClientConfigurationInstance(fqcn: String): Try[ClientConfiguration] = {
+    system.dynamicAccess.createInstanceFor[ClientConfiguration](fqcn,
+      List(classOf[ExtendedActorSystem] → system)) recoverWith {
+      case _: NoSuchMethodException ⇒
+        system.dynamicAccess.createInstanceFor[ClientConfiguration](fqcn, Nil)
+    }
+  }
+
+  protected val ec2Client: AmazonEC2 = {
+    val clientConfiguration = clientConfigFqcn match {
+      case Some(fqcn) ⇒
+        getCustomClientConfigurationInstance(fqcn) match {
+          case Success(clientConfig) ⇒
+            if (clientConfig.getRetryPolicy != PredefinedRetryPolicies.NO_RETRY_POLICY) {
+              log.warning(
+                  "If you're using this module for bootstrapping your Akka cluster, " +
+                  "Cluster Bootstrap already has its own retry/back-off mechanism. " +
+                  "To avoid RequestLimitExceeded errors from AWS, " +
+                  "disable retries in the EC2 client configuration.")
+            }
+            clientConfig
+          case Failure(ex) ⇒
+            throw new Exception(s"Could not create instance of '$fqcn'", ex)
+        }
+      case None ⇒
+        defaultClientConfiguration
+    }
+    AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
+  }
 
   @tailrec
   private final def getInstances(
