@@ -43,7 +43,7 @@ jobs:
   - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api-java/test.sh
     env: K8S_API_MAVEN
   - stage: whitesource
-    script: sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
+    script: git branch -f "$TRAVIS_BRANCH" && sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
     env: WHITESOURCE
 
 stages:
