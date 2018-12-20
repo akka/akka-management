@@ -12,7 +12,7 @@ import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.discovery.awsapi.ecs.AsyncEcsServiceDiscovery._
 import akka.pattern.after
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryPolicy
 import software.amazon.awssdk.services.ecs._
 import software.amazon.awssdk.services.ecs.model._
@@ -29,8 +29,8 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
   private[this] val cluster = config.getString("cluster")
 
   private[this] lazy val ecsClient = {
-    val conf = ClientOverrideConfiguration.builder().retryPolicy(RetryPolicy.NONE).build()
-    ECSAsyncClient.builder().overrideConfiguration(conf).build()
+    val conf = ClientOverrideConfiguration.builder().retryPolicy(RetryPolicy.none).build()
+    EcsAsyncClient.builder().overrideConfiguration(conf).build()
   }
 
   private[this] implicit val ec: ExecutionContext = system.dispatcher
@@ -83,7 +83,7 @@ object AsyncEcsServiceDiscovery {
         Left(s"Exactly one private address must be configured (found: $other).")
     }
 
-  private def resolveTasks(ecsClient: ECSAsyncClient, cluster: String, serviceName: String)(
+  private def resolveTasks(ecsClient: EcsAsyncClient, cluster: String, serviceName: String)(
       implicit ec: ExecutionContext): Future[Seq[Task]] =
     for {
       taskArns <- listTaskArns(ecsClient, cluster, serviceName)
@@ -91,7 +91,7 @@ object AsyncEcsServiceDiscovery {
     } yield task
 
   private[this] def listTaskArns(
-      ecsClient: ECSAsyncClient,
+      ecsClient: EcsAsyncClient,
       cluster: String,
       serviceName: String,
       pageTaken: Option[String] = None,
@@ -124,7 +124,7 @@ object AsyncEcsServiceDiscovery {
       }
     } yield taskArns
 
-  private[this] def describeTasks(ecsClient: ECSAsyncClient, cluster: String, taskArns: Seq[String])(
+  private[this] def describeTasks(ecsClient: EcsAsyncClient, cluster: String, taskArns: Seq[String])(
       implicit ec: ExecutionContext): Future[Seq[Task]] =
     for {
       // Each DescribeTasksRequest can contain at most 100 task ARNs.
