@@ -28,7 +28,7 @@ import akka.management.http.ManagementRouteProviderSettings
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
-  import ClusterBootstrap._
+  import ClusterBootstrap.Internal._
   import system.dispatcher
 
   private val log = Logging(system, classOf[ClusterBootstrap])
@@ -37,7 +37,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
   AkkaVersion.require("cluster-bootstrap", "2.5.19")
 
-  val settings = ClusterBootstrapSettings(system.settings.config, log)
+  val settings: ClusterBootstrapSettings = ClusterBootstrapSettings(system.settings.config, log)
 
   // used for initial discovery of contact points
   val discovery: ServiceDiscovery =
@@ -120,10 +120,15 @@ object ClusterBootstrap extends ExtensionId[ClusterBootstrap] with ExtensionIdPr
 
   override def createExtension(system: ExtendedActorSystem): ClusterBootstrap = new ClusterBootstrap()(system)
 
-  private[bootstrap] sealed trait BootstrapStep
-  private[bootstrap] case object NotRunning extends BootstrapStep
-  private[bootstrap] case object Initializing extends BootstrapStep
-  // TODO get the Initialized state once done
-  private[bootstrap] case object Initialized extends BootstrapStep
+  /**
+   * INTERNAL API
+   */
+  private[bootstrap] object Internal {
+    sealed trait BootstrapStep
+    case object NotRunning extends BootstrapStep
+    case object Initializing extends BootstrapStep
+    // TODO get the Initialized state once done
+    case object Initialized extends BootstrapStep
+  }
 
 }

@@ -5,19 +5,23 @@
 package akka.management.cluster.bootstrap
 
 import java.util.Locale
+import java.util.Optional
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
 import com.typesafe.config.Config
-
 import scala.concurrent.duration.{ FiniteDuration, _ }
+import scala.compat.java8.OptionConverters._
+import akka.util.JavaDurationConverters._
 
 final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
   import akka.management.AkkaManagementSettings._
 
   val managementBasePath: Option[String] =
     Option(config.getString("akka.management.http.base-path")).filter(_.trim.nonEmpty)
+
+  def getManagementBasePath: Optional[String] = managementBasePath.asJava
 
   private val bootConfig = config.getConfig("akka.management.cluster.bootstrap")
 
@@ -77,11 +81,49 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
 
   }
 
+  /** Java API */
+  def getContactPointDiscoveryServiceName: Optional[String] = contactPointDiscovery.serviceName.asJava
+
+  /** Java API */
+  def getContactPointDiscoveryServiceNamespace: Optional[String] = contactPointDiscovery.serviceNamespace.asJava
+
+  /** Java API */
+  def getContactPointDiscoveryPortName: Optional[String] = contactPointDiscovery.portName.asJava
+
+  /** Java API */
+  def getContactPointDiscoveryProtocol: Optional[String] = contactPointDiscovery.protocol.asJava
+
+  /** Java API */
+  def getContactPointDiscoveryEffectiveName(system: ActorSystem): String = contactPointDiscovery.effectiveName(system)
+
+  /** Java API */
+  def getContactPointDiscoveryMethod: String = contactPointDiscovery.discoveryMethod
+
+  /** Java API */
+  def getContactPointDiscoveryStableMargin: java.time.Duration = contactPointDiscovery.stableMargin.asJava
+
+  /** Java API */
+  def getContactPointDiscoveryInterval: java.time.Duration = contactPointDiscovery.interval.asJava
+
+  /** Java API */
+  def getContactPointDiscoveryExponentialBackoffRandomFactor: Double =
+    contactPointDiscovery.exponentialBackoffRandomFactor
+
+  /** Java API */
+  def getContactPointDiscoveryExponentialBackoffMax: java.time.Duration =
+    contactPointDiscovery.exponentialBackoffMax.asJava
+
+  /** Java API */
+  def getContactPointDiscoveryRequiredContactPointsNr: Int = contactPointDiscovery.requiredContactPointsNr
+
+  /** Java API */
+  def getContactPointDiscoveryResolveTimeout: java.time.Duration = contactPointDiscovery.resolveTimeout.asJava
+
   object contactPoint {
     private val contactPointConfig = bootConfig.getConfig("contact-point")
 
     // FIXME this has to be the same as the management one, we currently override this value when starting management, any better way?
-    val fallbackPort = contactPointConfig.getInt("fallback-port")
+    val fallbackPort: Int = contactPointConfig.getInt("fallback-port")
 
     val probingFailureTimeout: FiniteDuration =
       contactPointConfig.getDuration("probing-failure-timeout", TimeUnit.MILLISECONDS).millis
@@ -95,6 +137,12 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
     val httpMaxSeedNodesToExpose: Int = 5
   }
 
+  /** Java API */
+  def getContactPointFallbackPort: Int = contactPoint.fallbackPort
+
+  /** Java API */
+  def getContactPointProbingFailureTimeout: java.time.Duration = contactPoint.probingFailureTimeout.asJava
+
   object joinDecider {
     val implClass: String = bootConfig.getString("join-decider.class")
 
@@ -103,6 +151,12 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
       namespace <- config.optDefinedValue("akka.discovery.kubernetes-api.pod-namespace")
     } yield s"$namespace.pod.$domain"
   }
+
+  /** Java API */
+  def getJoinDeciderImplClass: String = joinDecider.implClass
+
+  /** Java API */
+  def getJoinDeciderSelfDerivedHost: Optional[String] = joinDecider.selfDerivedHost.asJava
 }
 
 object ClusterBootstrapSettings {

@@ -6,16 +6,36 @@ package akka.management
 
 import java.util.concurrent.atomic.AtomicReference
 
+import scala.collection.immutable
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
+
 import akka.Done
-import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
+import akka.actor.ActorSystem
+import akka.actor.ExtendedActorSystem
+import akka.actor.Extension
+import akka.actor.ExtensionId
+import akka.actor.ExtensionIdProvider
 import akka.event.Logging
 import akka.http.javadsl.HttpsConnectionContext
+import akka.http.javadsl.server.directives.RouteAdapter
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri
-import akka.http.scaladsl.server.Directives.{ authenticateBasicAsync, pathPrefix, rawPathPrefix, AsyncAuthenticator }
-import akka.http.scaladsl.server.{ Directive, Directives, Route, RouteResult }
+import akka.http.scaladsl.server.Directives.AsyncAuthenticator
+import akka.http.scaladsl.server.Directives.authenticateBasicAsync
+import akka.http.scaladsl.server.Directives.pathPrefix
+import akka.http.scaladsl.server.Directives.rawPathPrefix
+import akka.http.scaladsl.server.Directive
+import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.settings.ServerSettings
-import akka.management.http.{ ManagementRouteProvider, ManagementRouteProviderSettings }
+import akka.management.http.ManagementRouteProviderSettingsImpl
+import akka.management.http.ManagementRouteProvider
+import akka.management.http.ManagementRouteProviderSettings
 import akka.stream.ActorMaterializer
 import akka.util.ManifestInfo
 import scala.collection.immutable
@@ -46,7 +66,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
     ),
     logWarning = true)
 
-  val log = Logging(system, getClass)
+  private val log = Logging(system, getClass)
   val settings = new AkkaManagementSettings(system.settings.config)
 
   private implicit val materializer = ActorMaterializer()
@@ -70,7 +90,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
           "Attempted to set authenticator AFTER start() was called, so this call has no effect! " +
           "You are running WITHOUT authentication enabled! Make sure to call setAsyncAuthenticator BEFORE calling start().")
 
-  // FIXME replace with config object and withs?
+  // FIXME API replace with config object and withs?
   private[this] var _asyncAuthenticator: Option[AsyncAuthenticator[String]] = None
 
   /**
@@ -100,17 +120,28 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   }
 
   /**
-   * Get the routes for the HTTP management endpoint.
+   * Scala API: Get the routes for the HTTP management endpoint.
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
    */
   def routes: Try[Route] = prepareCombinedRoutes(providerSettings)
 
+  // FIXME should `routes` return `Try` of throw IllegalArgumentException?
+
+  /**
+   * Java API: Get the routes for the HTTP management endpoint.
+   *
+   * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
+   * @throws IllegalArgumentException if routes configured for akka management
+   */
+  def getRoutes: akka.http.javadsl.server.Route = RouteAdapter(routes.get)
+
   /**
    * Start an Akka HTTP server to serve the HTTP management endpoint.
    */
-  // FIXME make it accept config object that would have all the `withHttps`
   def start(): Future[Uri] = {
+    // FIXME API make it accept config object that would have all the `withHttps`
+    // FIXME API return CompletionStage for Java API, must use different name
     val serverBindingPromise = Promise[Http.ServerBinding]()
     if (bindingFuture.compareAndSet(null, serverBindingPromise.future)) {
 
@@ -179,6 +210,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   }
 
   def stop(): Future[Done] = {
+    // FIXME API return CompletionStage for Java API, must use different name
     val binding = bindingFuture.get()
 
     if (binding == null) {

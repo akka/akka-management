@@ -5,6 +5,7 @@
 package akka.management.http
 
 import akka.actor.Extension
+import akka.annotation.InternalApi
 import akka.http.scaladsl.model.Uri
 
 /** Extend this trait in your extension in order to allow it to contribute routes to Akka Management starts its HTTP endpoint */
@@ -12,6 +13,8 @@ trait ManagementRouteProvider extends Extension {
 
   /** Routes to be exposed by Akka cluster management */
   def routes(settings: ManagementRouteProviderSettings): akka.http.scaladsl.server.Route
+
+  // FIXME API Java API, do we need two different ManagementRouteProvider for Scala implementations vs Java implementations?
 
 }
 
@@ -27,3 +30,10 @@ trait ManagementRouteProviderSettings {
    */
   def selfBaseUri: Uri
 }
+
+/**
+ * INTERNAL API
+ */
+@InternalApi private[akka] final case class ManagementRouteProviderSettingsImpl(
+    override val selfBaseUri: Uri
+) extends ManagementRouteProviderSettings
