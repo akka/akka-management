@@ -16,12 +16,12 @@ import com.amazonaws.ClientConfiguration
 import com.amazonaws.retry.PredefinedRetryPolicies
 import com.amazonaws.services.ecs.model.{ DescribeTasksRequest, DesiredStatus, ListTasksRequest, Task }
 import com.amazonaws.services.ecs.{ AmazonECS, AmazonECSClientBuilder }
-
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
+import scala.util.Try
 
 class EcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
@@ -52,7 +52,7 @@ class EcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
               networkInterface <- container.getNetworkInterfaces.asScala
             } yield {
               val address = networkInterface.getPrivateIpv4Address
-              ResolvedTarget(host = address, port = None)
+              ResolvedTarget(host = address, port = None, address = Try(InetAddress.getByName(address)).toOption)
             }
           )
         }

@@ -16,12 +16,12 @@ import software.amazon.awssdk.core.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryPolicy
 import software.amazon.awssdk.services.ecs._
 import software.amazon.awssdk.services.ecs.model._
-
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.Try
 
 class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
@@ -51,7 +51,7 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
                 networkInterface <- container.networkInterfaces().asScala
               } yield {
                 val address = networkInterface.privateIpv4Address()
-                ResolvedTarget(host = address, port = None)
+                ResolvedTarget(host = address, port = None, address = Try(InetAddress.getByName(address)).toOption)
               }
           )
         )

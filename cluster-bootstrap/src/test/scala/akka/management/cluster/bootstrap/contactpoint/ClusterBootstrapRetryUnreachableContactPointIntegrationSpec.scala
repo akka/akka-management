@@ -4,6 +4,8 @@
 
 package akka.management.cluster.bootstrap.contactpoint
 
+import java.net.InetAddress
+
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
@@ -16,7 +18,6 @@ import akka.stream.ActorMaterializer
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalatest.{ Matchers, WordSpecLike }
-
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -95,11 +96,13 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSp
             List(
               ResolvedTarget(
                 host = clusterA.selfAddress.host.get,
-                port = contactPointPorts.get("A")
+                port = contactPointPorts.get("A"),
+                address = Option(InetAddress.getByName(clusterA.selfAddress.host.get))
               ),
               ResolvedTarget(
                 host = clusterB.selfAddress.host.get,
-                port = contactPointPorts.get("B")
+                port = contactPointPorts.get("B"),
+                address = Option(InetAddress.getByName(clusterB.selfAddress.host.get))
               )
             ))
         else
@@ -107,11 +110,13 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSp
             List(
               ResolvedTarget(
                 host = clusterA.selfAddress.host.get,
-                port = unreachablePorts.get("A")
+                port = unreachablePorts.get("A"),
+                address = Option(InetAddress.getByName(clusterA.selfAddress.host.get))
               ),
               ResolvedTarget(
                 host = clusterB.selfAddress.host.get,
-                port = unreachablePorts.get("B")
+                port = unreachablePorts.get("B"),
+                address = Option(InetAddress.getByName(clusterB.selfAddress.host.get))
               )
             ))
       )

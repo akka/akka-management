@@ -4,6 +4,8 @@
 
 package akka.management.cluster.bootstrap.contactpoint
 
+import java.net.InetAddress
+
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
@@ -14,7 +16,6 @@ import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{ Matchers, WordSpecLike }
-
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -73,7 +74,8 @@ class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers
         Future.successful(
           Resolved(name,
             List(
-              ResolvedTarget(host = "127.0.0.1", port = Some(managementPort))
+              ResolvedTarget(host = "127.0.0.1", port = Some(managementPort),
+                address = Option(InetAddress.getByName("127.0.0.1")))
             ))
       ))
 
