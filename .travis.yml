@@ -3,14 +3,19 @@ dist: xenial
 language: scala
 
 before_install:
-  - curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.10.1/install.sh | bash && . ~/.jabba/jabba.sh
   # make comparing to origin/master work
   - git remote set-branches --add origin master && git fetch
   # fetch full history for correct current and previous version detection
   - git fetch --unshallow
+  # using jabba for custom jdk management
+  - curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.11.1/install.sh | bash && . ~/.jabba/jabba.sh
+  - jabba install adopt@1.8.192-12
+  - jabba install adopt@1.11.0-1
 
-install:
-  - $JABBA_HOME/bin/jabba install $TRAVIS_JDK && export JAVA_HOME="$JABBA_HOME/jdk/$TRAVIS_JDK" && export PATH="$JAVA_HOME/bin:$PATH" && java -Xmx32m -version
+script:
+  - jabba use ${JDK:=adopt@1.8.192-12}
+  - java -version
+  - sbt -jvm-opts .jvmopts-travis "$CMD"
 
 before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" -print -delete
@@ -29,19 +34,30 @@ jobs:
   include:
   - stage: test
     script:
+    - jabba use "adopt@1.8.192-12"
     - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
-    - sbt -J-XX:ReservedCodeCacheSize=128m ";+test:compile;docs/paradox"
+    - sbt -jvm-opts .jvmopts-travis ";+test:compile;docs/paradox"
     - git diff --exit-code --color || { echo "[error] Unformatted code found. Please run 'test:compile' and commit the reformatted code."; false; }
     env: TEST
-  - script: sbt -J-XX:ReservedCodeCacheSize=128m "+test"
+  
+  - stage: test
+    env: CMD="+test"
+
+  - env:
+    - JDK="adopt@1.11.0-1"
+    - CMD="+test"
+
   - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api/test.sh
     env: K8S_API
+
   - script:
     - ./scripts/setup-minikube-for-linux.sh
     - ./bootstrap-demo/kubernetes-dns/test.sh
     env: K8S_DNS
+
   - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api-java/test.sh
     env: K8S_API_MAVEN
+
   - stage: whitesource
     script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
     env: WHITESOURCE
@@ -65,8 +81,6 @@ deploy:
     
 env:
   global:
-    - TRAVIS_JDK=1.8.192
-    - JABBA_HOME=/home/travis/.jabba
     # encrypt with: travis encrypt WHITESOURCE_KEY=...
     - secure: "KK7AsqpqUBRl3vnPzVfmlfogl/HMq7Xb2t6EHHB9pi8QWmK25ufPAxF6G+vx0mIAAP7r6n/lkdVBnuZC1jp6G1/I4adsXJOkCF6YTSb9XmH9jK+YhI6xuqFx5vRqxb2faK+6VY6IJXQFD8/1gkdVr0hN3Hq4I5Yg0GAUxAaKKNWeh7VsFmrFiMCj7Q8s2U4+aGSgyKnptQ35JV63SPZV0rgPPIv1kZuqLi526fQMwOIfhpaRh763v7wgINJjZhvAjIbpicGmayZSnZPhs0+Z/jh9pK8sja1S+dUJSEe4IIfGMJINko58fKNPrxaenk05pwTJ+pWKmYWwxyEIiJrTkNHHUnXYCaJf7Qfiyv+sdZ9opGTs0xXS+/kaI9WPQ/vToyMTSjhZnCx0D9vJMuIVDM0OD+1GO66LqdBWK5nC+tgSstf79HK0gZP7hLzhxNj+4mXajECBlg+GucN6wmhrUB2UMGZ6/NvfIdzuXFFQCuSf3Hp+4z7yDV+FgqZeiedLLlZrvaE0IKrNaJ1CfzZ8jIzhjYXFFG9ERMeyGp7n8/7LW2NcHOI+BvKcaNOV4umRXWcXh7mQqzmZ+t3t+4IQFCR1lTrYj59KA4UI2Z9viZBefwIll1X2UNJ2uzbcCqdQSNrTi8LPfuqU39hdxYcw69it7K55Ktah6qiFwKpPlUc="
     # encrypt with: travis encrypt BINTRAY_USER=...
