@@ -69,7 +69,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   private val log = Logging(system, getClass)
   val settings = new AkkaManagementSettings(system.settings.config)
 
-  private implicit val materializer = ActorMaterializer()
+  @volatile private var materializer: Option[ActorMaterializer] = None
   import system.dispatcher
 
   private val routeProviders: immutable.Seq[ManagementRouteProvider] = loadRouteProviders()
@@ -144,12 +144,14 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
     // FIXME API return CompletionStage for Java API, must use different name
     val serverBindingPromise = Promise[Http.ServerBinding]()
     if (bindingFuture.compareAndSet(null, serverBindingPromise.future)) {
-
       val effectiveBindHostname = settings.Http.EffectiveBindHostname
       val effectiveBindPort = settings.Http.EffectiveBindPort
 
       routes match {
         case Success(routes) ⇒
+          implicit val mat: ActorMaterializer = ActorMaterializer()
+          materializer = Some(mat)
+
           // TODO instead of binding to hardcoded things here, discovery could also be used for this binding!
           // Basically: "give me the SRV host/port for the port called `akka-bootstrap`"
           // discovery.lookup("_akka-bootstrap" + ".effective-name.default").find(myaddress)
@@ -217,7 +219,12 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
       Future.successful(Done)
     } else if (bindingFuture.compareAndSet(binding, null)) {
       val stopFuture = binding.flatMap(_.unbind()).map((_: Any) => Done)
-      bindingFuture.set(null)
+      stopFuture.onComplete(
+          _ =>
+            materializer.foreach { mat =>
+            mat.shutdown()
+            materializer = None
+        })
       stopFuture
     } else stop() // retry, CAS was not successful, someone else completed the stop()
   }
