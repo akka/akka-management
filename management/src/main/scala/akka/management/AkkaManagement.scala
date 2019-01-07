@@ -17,7 +17,7 @@ import akka.http.scaladsl.server.{ Directive, Directives, Route, RouteResult }
 import akka.http.scaladsl.settings.ServerSettings
 import akka.management.http.{ ManagementRouteProvider, ManagementRouteProviderSettings }
 import akka.stream.ActorMaterializer
-
+import akka.util.ManifestInfo
 import scala.collection.immutable
 import scala.concurrent.{ Future, Promise }
 import scala.util.{ Failure, Success, Try }
@@ -32,6 +32,20 @@ object AkkaManagement extends ExtensionId[AkkaManagement] with ExtensionIdProvid
 }
 
 final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extension {
+
+  ManifestInfo(system).checkSameVersion(productName = "Akka Management",
+    dependencies = List(
+      "akka-discovery-consul",
+      "akka-discovery-aws-api",
+      "akka-discovery-marathon-api",
+      "akka-discovery-aws-api-async",
+      "akka-discovery-kubernetes-api",
+      "akka-management",
+      "akka-management-cluster-bootstrap",
+      "akka-management-cluster-http"
+    ),
+    logWarning = true)
+
   val log = Logging(system, getClass)
   val settings = new AkkaManagementSettings(system.settings.config)
 
