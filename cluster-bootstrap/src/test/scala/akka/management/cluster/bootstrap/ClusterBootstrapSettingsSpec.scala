@@ -17,7 +17,6 @@ class ClusterBootstrapSettingsSpec extends AbstractBootstrapSpec {
     "have the expected defaults " in {
       val settings = ClusterBootstrapSettings(config, NoLogging)
       settings.newClusterEnabled should ===(true)
-      settings.joinDecider.selfDerivedHost.isEmpty should ===(true)
     }
 
     "have the expected overrides " in {

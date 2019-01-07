@@ -99,16 +99,9 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     _selfContactPointUri.success(baseUri)
 
   /** INTERNAL API */
-  @InternalApi private[akka] def selfContactPoints: Future[Set[(String, Int)]] =
+  @InternalApi private[akka] def selfContactPoint: Future[(String, Int)] =
     _selfContactPointUri.future.map { uri =>
-      settings.joinDecider.selfDerivedHost match {
-        case Some(selfDerivedHost) if uri.authority.host.isIPv4 =>
-          val derivedHost = s"${uri.authority.host.toString.replace('.', '-')}.$selfDerivedHost"
-          log.info(s"Derived self contact point $derivedHost:${uri.authority.port}")
-          Set((uri.authority.host.toString, uri.authority.port), (derivedHost, uri.authority.port))
-        case _ =>
-          Set((uri.authority.host.toString, uri.authority.port))
-      }
+      (uri.authority.host.toString, uri.authority.port)
     }
 }
 
