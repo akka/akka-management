@@ -127,8 +127,6 @@ object ClusterBootstrap extends ExtensionId[ClusterBootstrap] with ExtensionIdPr
     sealed trait BootstrapStep
     case object NotRunning extends BootstrapStep
     case object Initializing extends BootstrapStep
-    // TODO get the Initialized state once done
-    case object Initialized extends BootstrapStep
   }
 
 }
