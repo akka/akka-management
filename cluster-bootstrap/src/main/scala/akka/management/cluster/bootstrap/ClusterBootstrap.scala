@@ -23,7 +23,7 @@ import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator
-import akka.management.http.ManagementRouteProvider
+import akka.management.http.scaladsl.ManagementRouteProvider
 import akka.management.http.ManagementRouteProviderSettings
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {

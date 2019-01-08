@@ -24,23 +24,22 @@ import akka.http.javadsl.HttpsConnectionContext
 import akka.http.javadsl.server.directives.RouteAdapter
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.server.Directive
+import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.server.Directives.AsyncAuthenticator
 import akka.http.scaladsl.server.Directives.authenticateBasicAsync
 import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.server.Directives.rawPathPrefix
-import akka.http.scaladsl.server.Directive
-import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.settings.ServerSettings
-import akka.management.http.ManagementRouteProviderSettingsImpl
-import akka.management.http.ManagementRouteProvider
 import akka.management.http.ManagementRouteProviderSettings
+import akka.management.http.ManagementRouteProviderSettingsImpl
+import akka.management.http.javadsl.{ ManagementRouteProvider => JManagementRouteProvider }
+import akka.management.http.scaladsl.ManagementRouteProvider
+import akka.management.http.scaladsl.ManagementRouteProviderAdapter
 import akka.stream.ActorMaterializer
 import akka.util.ManifestInfo
-import scala.collection.immutable
-import scala.concurrent.{ Future, Promise }
-import scala.util.{ Failure, Success, Try }
 
 object AkkaManagement extends ExtensionId[AkkaManagement] with ExtensionIdProvider {
   override def lookup: AkkaManagement.type = AkkaManagement
@@ -245,16 +244,33 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
       } recoverWith {
         case _ ⇒
           dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
+      } recoverWith {
+        case _ ⇒
+          dynamicAccess.createInstanceFor[JManagementRouteProvider](fqcn, Nil)
+      } recoverWith {
+        case _ ⇒
+          dynamicAccess.createInstanceFor[JManagementRouteProvider](fqcn,
+            (classOf[ExtendedActorSystem], system) :: Nil)
       } match {
         case Success(p: ExtensionIdProvider) ⇒
-          val extension = system.registerExtension(p.lookup())
-          extension.asInstanceOf[ManagementRouteProvider]
+          system.registerExtension(p.lookup()) match {
+            case provider: ManagementRouteProvider => provider
+            case provider: JManagementRouteProvider => new ManagementRouteProviderAdapter(provider)
+            case other =>
+              throw new RuntimeException(
+                  s"Extension [$fqcn] should create a 'ManagementRouteProvider' but was " +
+                  s"[${other.getClass.getName}]")
+          }
 
-        case Success(p: ManagementRouteProvider) ⇒
-          p
+        case Success(provider: ManagementRouteProvider) ⇒
+          provider
+
+        case Success(provider: JManagementRouteProvider) ⇒
+          new ManagementRouteProviderAdapter(provider)
 
         case Success(_) ⇒
-          throw new RuntimeException(s"[$fqcn] is not an 'ExtensionIdProvider' or 'ExtensionId'")
+          throw new RuntimeException(
+              s"[$fqcn] is not an 'ExtensionIdProvider', 'ExtensionId' or 'ManagementRouteProvider'")
 
         case Failure(problem) ⇒
           throw new RuntimeException(s"While trying to load extension [$fqcn]", problem)

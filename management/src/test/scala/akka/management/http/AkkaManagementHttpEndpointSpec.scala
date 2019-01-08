@@ -6,8 +6,8 @@ package akka.management.http
 
 import java.io.InputStream
 import java.security.{ KeyStore, SecureRandom }
-import javax.net.ssl.{ KeyManagerFactory, SSLContext, TrustManagerFactory }
 
+import javax.net.ssl.{ KeyManagerFactory, SSLContext, TrustManagerFactory }
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
 import akka.http.scaladsl.model.{ HttpRequest, StatusCodes }
@@ -17,13 +17,33 @@ import akka.http.scaladsl.{ ConnectionContext, Http, HttpsConnectionContext }
 import akka.management.AkkaManagement
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{ Matchers, WordSpecLike }
-
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 
-class HttpManagementEndpointSpecRoutes extends ManagementRouteProvider with Directives {
+import akka.http.javadsl.server.directives.RouteAdapter
+import akka.management.http.scaladsl.ManagementRouteProvider
+import akka.management.http.javadsl.{ ManagementRouteProvider => JManagementRouteProvider }
+import akka.stream.ActorMaterializer
+import akka.testkit.SocketUtil
+
+class HttpManagementEndpointSpecRoutesScaladsl extends ManagementRouteProvider with Directives {
   override def routes(settings: ManagementRouteProviderSettings): Route =
-    complete("hello world")
+    path("scaladsl") {
+      get {
+        complete("hello Scala")
+      }
+    }
+}
+
+class HttpManagementEndpointSpecRoutesJavadsl extends JManagementRouteProvider with Directives {
+  override def routes(settings: ManagementRouteProviderSettings): akka.http.javadsl.server.Route =
+    RouteAdapter {
+      path("javadsl") {
+        get {
+          complete("hello Java")
+        }
+      }
+    }
 }
 
 class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
@@ -39,37 +59,50 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
   "Http Cluster Management" should {
     "start and stop" when {
       "not setting any security" in {
+        val httpPort = SocketUtil.temporaryLocalPort()
         val configClusterHttpManager = ConfigFactory.parseString(
-          """
+          s"""
             //#management-host-port
             akka.management.http.hostname = "127.0.0.1"
             akka.management.http.port = 8558
             //#management-host-port
-            akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutes"
+            akka.management.http.port = $httpPort
+            akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutesScaladsl"
+            akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutesJavadsl"
           """
         )
 
         implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+        implicit val mat = ActorMaterializer() // needed for toStrict
 
         val management = AkkaManagement(system)
-        management.settings.Http.RouteProviders should contain("akka.management.http.HttpManagementEndpointSpecRoutes")
+        management.settings.Http.RouteProviders should contain(
+            "akka.management.http.HttpManagementEndpointSpecRoutesScaladsl")
+        management.settings.Http.RouteProviders should contain(
+            "akka.management.http.HttpManagementEndpointSpecRoutesJavadsl")
         management.start()
 
-        val responseFuture = Http().singleRequest(HttpRequest(uri = "http://127.0.0.1:8558/"))
-        val response = Await.result(responseFuture, 5.seconds)
+        val responseFuture1 = Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:$httpPort/scaladsl"))
+        val response1 = Await.result(responseFuture1, 5.seconds)
+        response1.status shouldEqual StatusCodes.OK
+        Await.result(response1.entity.toStrict(3.seconds, 1000), 3.seconds).data.utf8String should ===("hello Scala")
 
-        response.status shouldEqual StatusCodes.OK
+        val responseFuture2 = Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:$httpPort/javadsl"))
+        val response2 = Await.result(responseFuture2, 5.seconds)
+        response2.status shouldEqual StatusCodes.OK
+        Await.result(response2.entity.toStrict(3.seconds, 1000), 3.seconds).data.utf8String should ===("hello Java")
 
         try Await.ready(management.stop(), 5.seconds)
         finally system.terminate()
       }
 
       "setting basic authentication" in {
+        val httpPort = SocketUtil.temporaryLocalPort()
         val configClusterHttpManager = ConfigFactory.parseString(
-          """
+          s"""
             |akka.management.http.hostname = "127.0.0.1"
-            |akka.management.http.port = 20000
-            |akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutes"
+            |akka.management.http.port = $httpPort
+            |akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutesScaladsl"
           """.stripMargin
         )
 
@@ -91,7 +124,7 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         management.setAsyncAuthenticator(myUserPassAuthenticator)
         management.start()
 
-        val httpRequest = HttpRequest(uri = "http://127.0.0.1:20000/").addHeader(
+        val httpRequest = HttpRequest(uri = s"http://127.0.0.1:$httpPort/scaladsl").addHeader(
             Authorization(BasicHttpCredentials("user", "p4ssw0rd")))
         val responseGetMembersFuture = Http().singleRequest(httpRequest)
         val responseGetMembers = Await.result(responseGetMembersFuture, 5.seconds)
@@ -103,11 +136,12 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
       }
 
       "setting ssl" in {
+        val httpPort = SocketUtil.temporaryLocalPort()
         val configClusterHttpManager = ConfigFactory.parseString(
-          """
+          s"""
             |akka.management.http.hostname = "127.0.0.1"
-            |akka.management.http.port = 20001
-            |akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutes"
+            |akka.management.http.port = $httpPort
+            |akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutesScaladsl"
             |
             |akka.ssl-config {
             |  loose {
@@ -144,7 +178,7 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         management.start()
         //#start-akka-management-with-https-context
 
-        val httpRequest = HttpRequest(uri = "https://127.0.0.1:20001/")
+        val httpRequest = HttpRequest(uri = s"https://127.0.0.1:$httpPort/scaladsl")
         val responseGetMembersFuture = Http().singleRequest(httpRequest, connectionContext = https)
         val responseGetMembers = Await.result(responseGetMembersFuture, 5.seconds)
         responseGetMembers.status shouldEqual StatusCodes.OK

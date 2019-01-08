@@ -24,8 +24,6 @@ trait JoinDecider {
    */
   def decide(info: SeedNodesInformation): Future[JoinDecision]
 
-  // FIXME API support implementations in Java, returning CompletionStage?
-
 }
 
 /**
