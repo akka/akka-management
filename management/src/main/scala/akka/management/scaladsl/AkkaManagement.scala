@@ -11,7 +11,7 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.util.Failure
 import scala.util.Success
-import scala.util.Try
+import scala.util.control.NonFatal
 
 import akka.Done
 import akka.actor.ActorSystem
@@ -118,8 +118,10 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
    * Get the routes for the HTTP management endpoint.
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
+   *
+   * @throws IllegalArgumentException if routes not configured for akka management
    */
-  def routes: Try[Route] = prepareCombinedRoutes(providerSettings)
+  def routes: Route = prepareCombinedRoutes(providerSettings)
 
   // FIXME should `routes` return `Try` of throw IllegalArgumentException?
 
@@ -130,44 +132,44 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
     // FIXME API make it accept config object that would have all the `withHttps`
     val serverBindingPromise = Promise[Http.ServerBinding]()
     if (bindingFuture.compareAndSet(null, serverBindingPromise.future)) {
-      val effectiveBindHostname = settings.Http.EffectiveBindHostname
-      val effectiveBindPort = settings.Http.EffectiveBindPort
+      try {
+        val effectiveBindHostname = settings.Http.EffectiveBindHostname
+        val effectiveBindPort = settings.Http.EffectiveBindPort
 
-      routes match {
-        case Success(routes) ⇒
-          implicit val mat: ActorMaterializer = ActorMaterializer()
-          materializer = Some(mat)
+        implicit val mat: ActorMaterializer = ActorMaterializer()
+        materializer = Some(mat)
 
-          // TODO instead of binding to hardcoded things here, discovery could also be used for this binding!
-          // Basically: "give me the SRV host/port for the port called `akka-bootstrap`"
-          // discovery.lookup("_akka-bootstrap" + ".effective-name.default").find(myaddress)
-          // ----
-          // FIXME -- think about the style of how we want to make these available
+        // TODO instead of binding to hardcoded things here, discovery could also be used for this binding!
+        // Basically: "give me the SRV host/port for the port called `akka-bootstrap`"
+        // discovery.lookup("_akka-bootstrap" + ".effective-name.default").find(myaddress)
+        // ----
+        // FIXME -- think about the style of how we want to make these available
 
-          log.info("Binding Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
+        log.info("Binding Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
 
-          val serverFutureBinding =
-            Http().bindAndHandle(
-              RouteResult.route2HandlerFlow(routes),
-              effectiveBindHostname,
-              effectiveBindPort,
-              connectionContext = this._connectionContext,
-              settings = ServerSettings(system).withRemoteAddressHeader(true)
-            )
+        val serverFutureBinding =
+          Http().bindAndHandle(
+            RouteResult.route2HandlerFlow(routes),
+            effectiveBindHostname,
+            effectiveBindPort,
+            connectionContext = this._connectionContext,
+            settings = ServerSettings(system).withRemoteAddressHeader(true)
+          )
 
-          serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { _ =>
-            log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
-            selfUriPromise.success(providerSettings.selfBaseUri).future
-          }
+        serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { _ =>
+          log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
+          selfUriPromise.success(providerSettings.selfBaseUri).future
+        }
 
-        case Failure(ex) ⇒
+      } catch {
+        case NonFatal(ex) =>
           log.warning(ex.getMessage)
           Future.failed(new IllegalArgumentException("Failed to start Akka Management HTTP endpoint.", ex))
       }
     } else selfUriPromise.future
   }
 
-  private def prepareCombinedRoutes(providerSettings: ManagementRouteProviderSettings): Try[Route] = {
+  private def prepareCombinedRoutes(providerSettings: ManagementRouteProviderSettings): Route = {
     val basePath: Directive[Unit] = {
       val pathPrefixName = settings.Http.BasePath.getOrElse("")
       if (pathPrefixName.isEmpty) rawPathPrefix(pathPrefixName) else pathPrefix(pathPrefixName)
@@ -185,16 +187,14 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
       provider.routes(providerSettings)
     }
 
-    Try {
-      if (combinedRoutes.nonEmpty) {
-        basePath {
-          wrapWithAuthenticatorIfPresent(Directives.concat(combinedRoutes: _*))
-        }
-      } else
-        throw new IllegalArgumentException(
-            "No routes configured for akka management! " +
-            "Double check your `akka.management.http.route-providers` config.")
-    }
+    if (combinedRoutes.nonEmpty) {
+      basePath {
+        wrapWithAuthenticatorIfPresent(Directives.concat(combinedRoutes: _*))
+      }
+    } else
+      throw new IllegalArgumentException(
+          "No routes configured for akka management! " +
+          "Double check your `akka.management.http.route-providers` config.")
   }
 
   def stop(): Future[Done] = {
