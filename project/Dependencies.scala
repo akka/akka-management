@@ -59,7 +59,7 @@ object Dependencies {
 
     // often called-in transitively with insecure versions of databind / core
     val JacksonDatabind = Seq(
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.8"
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.7"
     )
 
     val ConsulClient = Seq(

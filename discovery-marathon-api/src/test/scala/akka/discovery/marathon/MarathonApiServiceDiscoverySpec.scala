@@ -4,10 +4,11 @@
 
 package akka.discovery.marathon
 
+import java.net.InetAddress
+
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import org.scalatest.{ Matchers, WordSpec }
 import spray.json._
-
 import scala.io.Source
 
 class MarathonApiServiceDiscoverySpec extends WordSpec with Matchers {
@@ -18,8 +19,10 @@ class MarathonApiServiceDiscoverySpec extends WordSpec with Matchers {
       val appList = JsonFormat.appListFormat.read(data.parseJson)
 
       MarathonApiServiceDiscovery.targets(appList, "akka-mgmt-http") shouldBe List(
-          ResolvedTarget(host = "192.168.65.60", port = Some(23236)),
-          ResolvedTarget(host = "192.168.65.111", port = Some(6850)))
+          ResolvedTarget(host = "192.168.65.60", port = Some(23236),
+            address = Option(InetAddress.getByName("192.168.65.60"))),
+          ResolvedTarget(host = "192.168.65.111", port = Some(6850),
+            address = Option(InetAddress.getByName("192.168.65.111"))))
     }
     "calculate the correct list of resolved targets for docker" in {
       val data = resourceAsString("docker-app.json")
@@ -27,7 +30,9 @@ class MarathonApiServiceDiscoverySpec extends WordSpec with Matchers {
       val appList = JsonFormat.appListFormat.read(data.parseJson)
 
       MarathonApiServiceDiscovery.targets(appList, "akkamgmthttp") shouldBe List(ResolvedTarget(host = "10.121.48.204",
-          port = Some(29480)), ResolvedTarget(host = "10.121.48.204", port = Some(10136)))
+          port = Some(29480), address = Option(InetAddress.getByName("10.121.48.204"))),
+        ResolvedTarget(host = "10.121.48.204", port = Some(10136),
+          address = Option(InetAddress.getByName("10.121.48.204"))))
     }
   }
 

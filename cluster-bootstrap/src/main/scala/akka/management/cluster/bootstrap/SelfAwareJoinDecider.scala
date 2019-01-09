@@ -4,19 +4,23 @@
 
 package akka.management.cluster.bootstrap
 
-import akka.actor.ActorSystem
-import akka.discovery.ServiceDiscovery.ResolvedTarget
-import akka.event.Logging
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 
+import akka.actor.ActorSystem
+import akka.annotation.InternalApi
+import akka.discovery.ServiceDiscovery.ResolvedTarget
+import akka.event.Logging
+
 /**
+ * INTERNAL API
+ *
  * Class for further behavior in a [[akka.management.cluster.bootstrap.JoinDecider]]
  * leveraging self host logic.
  */
-private[bootstrap] abstract class SelfAwareJoinDecider(system: ActorSystem, settings: ClusterBootstrapSettings)
+@InternalApi private[bootstrap] abstract class SelfAwareJoinDecider(system: ActorSystem,
+                                                                    settings: ClusterBootstrapSettings)
     extends JoinDecider {
 
   protected val log = Logging(system, getClass)

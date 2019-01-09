@@ -6,21 +6,40 @@ package akka.management
 
 import java.util.concurrent.atomic.AtomicReference
 
+import scala.collection.immutable
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
+
 import akka.Done
-import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
+import akka.actor.ActorSystem
+import akka.actor.ExtendedActorSystem
+import akka.actor.Extension
+import akka.actor.ExtensionId
+import akka.actor.ExtensionIdProvider
 import akka.event.Logging
 import akka.http.javadsl.HttpsConnectionContext
+import akka.http.javadsl.server.directives.RouteAdapter
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri
-import akka.http.scaladsl.server.Directives.{ authenticateBasicAsync, pathPrefix, rawPathPrefix, AsyncAuthenticator }
-import akka.http.scaladsl.server.{ Directive, Directives, Route, RouteResult }
+import akka.http.scaladsl.server.Directive
+import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.Directives.AsyncAuthenticator
+import akka.http.scaladsl.server.Directives.authenticateBasicAsync
+import akka.http.scaladsl.server.Directives.pathPrefix
+import akka.http.scaladsl.server.Directives.rawPathPrefix
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.settings.ServerSettings
-import akka.management.http.{ ManagementRouteProvider, ManagementRouteProviderSettings }
+import akka.management.http.ManagementRouteProviderSettings
+import akka.management.http.ManagementRouteProviderSettingsImpl
+import akka.management.http.javadsl.{ ManagementRouteProvider => JManagementRouteProvider }
+import akka.management.http.scaladsl.ManagementRouteProvider
+import akka.management.http.scaladsl.ManagementRouteProviderAdapter
 import akka.stream.ActorMaterializer
 import akka.util.ManifestInfo
-import scala.collection.immutable
-import scala.concurrent.{ Future, Promise }
-import scala.util.{ Failure, Success, Try }
 
 object AkkaManagement extends ExtensionId[AkkaManagement] with ExtensionIdProvider {
   override def lookup: AkkaManagement.type = AkkaManagement
@@ -46,10 +65,10 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
     ),
     logWarning = true)
 
-  val log = Logging(system, getClass)
+  private val log = Logging(system, getClass)
   val settings = new AkkaManagementSettings(system.settings.config)
 
-  private implicit val materializer = ActorMaterializer()
+  @volatile private var materializer: Option[ActorMaterializer] = None
   import system.dispatcher
 
   private val routeProviders: immutable.Seq[ManagementRouteProvider] = loadRouteProviders()
@@ -70,7 +89,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
           "Attempted to set authenticator AFTER start() was called, so this call has no effect! " +
           "You are running WITHOUT authentication enabled! Make sure to call setAsyncAuthenticator BEFORE calling start().")
 
-  // FIXME replace with config object and withs?
+  // FIXME API replace with config object and withs?
   private[this] var _asyncAuthenticator: Option[AsyncAuthenticator[String]] = None
 
   /**
@@ -100,25 +119,38 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   }
 
   /**
-   * Get the routes for the HTTP management endpoint.
+   * Scala API: Get the routes for the HTTP management endpoint.
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
    */
   def routes: Try[Route] = prepareCombinedRoutes(providerSettings)
 
+  // FIXME should `routes` return `Try` of throw IllegalArgumentException?
+
+  /**
+   * Java API: Get the routes for the HTTP management endpoint.
+   *
+   * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
+   * @throws IllegalArgumentException if routes configured for akka management
+   */
+  def getRoutes: akka.http.javadsl.server.Route = RouteAdapter(routes.get)
+
   /**
    * Start an Akka HTTP server to serve the HTTP management endpoint.
    */
-  // FIXME make it accept config object that would have all the `withHttps`
   def start(): Future[Uri] = {
+    // FIXME API make it accept config object that would have all the `withHttps`
+    // FIXME API return CompletionStage for Java API, must use different name
     val serverBindingPromise = Promise[Http.ServerBinding]()
     if (bindingFuture.compareAndSet(null, serverBindingPromise.future)) {
-
       val effectiveBindHostname = settings.Http.EffectiveBindHostname
       val effectiveBindPort = settings.Http.EffectiveBindPort
 
       routes match {
         case Success(routes) ⇒
+          implicit val mat: ActorMaterializer = ActorMaterializer()
+          materializer = Some(mat)
+
           // TODO instead of binding to hardcoded things here, discovery could also be used for this binding!
           // Basically: "give me the SRV host/port for the port called `akka-bootstrap`"
           // discovery.lookup("_akka-bootstrap" + ".effective-name.default").find(myaddress)
@@ -179,13 +211,19 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   }
 
   def stop(): Future[Done] = {
+    // FIXME API return CompletionStage for Java API, must use different name
     val binding = bindingFuture.get()
 
     if (binding == null) {
       Future.successful(Done)
     } else if (bindingFuture.compareAndSet(binding, null)) {
       val stopFuture = binding.flatMap(_.unbind()).map((_: Any) => Done)
-      bindingFuture.set(null)
+      stopFuture.onComplete(
+          _ =>
+            materializer.foreach { mat =>
+            mat.shutdown()
+            materializer = None
+        })
       stopFuture
     } else stop() // retry, CAS was not successful, someone else completed the stop()
   }
@@ -206,16 +244,33 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
       } recoverWith {
         case _ ⇒
           dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
+      } recoverWith {
+        case _ ⇒
+          dynamicAccess.createInstanceFor[JManagementRouteProvider](fqcn, Nil)
+      } recoverWith {
+        case _ ⇒
+          dynamicAccess.createInstanceFor[JManagementRouteProvider](fqcn,
+            (classOf[ExtendedActorSystem], system) :: Nil)
       } match {
         case Success(p: ExtensionIdProvider) ⇒
-          val extension = system.registerExtension(p.lookup())
-          extension.asInstanceOf[ManagementRouteProvider]
+          system.registerExtension(p.lookup()) match {
+            case provider: ManagementRouteProvider => provider
+            case provider: JManagementRouteProvider => new ManagementRouteProviderAdapter(provider)
+            case other =>
+              throw new RuntimeException(
+                  s"Extension [$fqcn] should create a 'ManagementRouteProvider' but was " +
+                  s"[${other.getClass.getName}]")
+          }
 
-        case Success(p: ManagementRouteProvider) ⇒
-          p
+        case Success(provider: ManagementRouteProvider) ⇒
+          provider
+
+        case Success(provider: JManagementRouteProvider) ⇒
+          new ManagementRouteProviderAdapter(provider)
 
         case Success(_) ⇒
-          throw new RuntimeException(s"[$fqcn] is not an 'ExtensionIdProvider' or 'ExtensionId'")
+          throw new RuntimeException(
+              s"[$fqcn] is not an 'ExtensionIdProvider', 'ExtensionId' or 'ManagementRouteProvider'")
 
         case Failure(problem) ⇒
           throw new RuntimeException(s"While trying to load extension [$fqcn]", problem)

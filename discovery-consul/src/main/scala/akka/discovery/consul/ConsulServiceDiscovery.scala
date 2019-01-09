@@ -4,13 +4,14 @@
 
 package akka.discovery.consul
 
+import java.net.InetAddress
 import java.util
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
-
 import scala.collection.immutable.Seq
 import scala.concurrent.{ ExecutionContext, Future, Promise }
+
 import akka.pattern.after
 import com.google.common.net.HostAndPort
 import com.orbitz.consul.Consul
@@ -21,7 +22,6 @@ import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.{ Lookup, ServiceDiscovery }
 import com.orbitz.consul.model.catalog.CatalogService
 import com.orbitz.consul.option.QueryOptions
-
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
@@ -69,7 +69,8 @@ class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
     val address = catalogService.getServiceAddress
     ResolvedTarget(
       host = address,
-      port = Some(port.getOrElse(catalogService.getServicePort))
+      port = Some(port.getOrElse(catalogService.getServicePort)),
+      address = Try(InetAddress.getByName(address)).toOption
     )
   }
 

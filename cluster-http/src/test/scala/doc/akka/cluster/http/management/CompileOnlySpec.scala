@@ -8,7 +8,7 @@ import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.http.scaladsl.server.Route
 import akka.management.AkkaManagement
-import akka.management.cluster.{ ClusterHttpManagement, ClusterHttpManagementRoutes }
+import akka.management.cluster.ClusterHttpManagementRoutes
 
 object CompileOnlySpec {
 

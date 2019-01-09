@@ -18,7 +18,7 @@ public class ClusterReadViewAccess {
    * Exposes the internal {@code readView} of the Akka Cluster, not reachable from Scala code because it is {@code private[cluster]}.
    */
   @InternalApi
-  public static ClusterReadView internalReacView(Cluster cluster) {
+  public static ClusterReadView internalReadView(Cluster cluster) {
     return cluster.readView();
   }
 }
