@@ -8,22 +8,22 @@ import java.io.InputStream
 import java.security.KeyStore
 import java.security.SecureRandom
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
 import akka.http.javadsl.server.directives.RouteAdapter
-import akka.http.scaladsl.model.headers.Authorization
-import akka.http.scaladsl.model.headers.BasicHttpCredentials
-import akka.http.scaladsl.model.HttpRequest
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.headers.Authorization
+import akka.http.scaladsl.model.headers.BasicHttpCredentials
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.directives.Credentials
 import akka.management.scaladsl.AkkaManagement
 import akka.management.scaladsl.ManagementRouteProvider
 import akka.management.scaladsl.ManagementRouteProviderSettings
@@ -131,8 +131,7 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
           }
 
         val management = AkkaManagement(system)
-        management.setAsyncAuthenticator(myUserPassAuthenticator)
-        management.start()
+        management.start(_.withAuth(myUserPassAuthenticator))
 
         val httpRequest = HttpRequest(uri = s"http://127.0.0.1:$httpPort/scaladsl").addHeader(
             Authorization(BasicHttpCredentials("user", "p4ssw0rd")))
@@ -184,8 +183,7 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         val management = AkkaManagement(system)
 
         val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
-        management.setHttpsContext(https)
-        management.start()
+        management.start(_.withHttpsConnectionContext(https))
         //#start-akka-management-with-https-context
 
         val httpRequest = HttpRequest(uri = s"https://127.0.0.1:$httpPort/scaladsl")
