@@ -123,8 +123,6 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
    */
   def routes: Route = prepareCombinedRoutes(providerSettings)
 
-  // FIXME should `routes` return `Try` of throw IllegalArgumentException?
-
   /**
    * Start an Akka HTTP server to serve the HTTP management endpoint.
    */

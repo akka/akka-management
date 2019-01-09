@@ -13,6 +13,7 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
+import akka.http.javadsl.server.directives.RouteAdapter
 import akka.http.scaladsl.model.headers.Authorization
 import akka.http.scaladsl.model.headers.BasicHttpCredentials
 import akka.http.scaladsl.model.HttpRequest
@@ -21,7 +22,11 @@ import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
+import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.Route
 import akka.management.scaladsl.AkkaManagement
+import akka.management.scaladsl.ManagementRouteProvider
+import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.stream.ActorMaterializer
 import akka.testkit.SocketUtil
 import com.typesafe.config.ConfigFactory
@@ -30,6 +35,26 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import org.scalatest.Matchers
 import org.scalatest.WordSpecLike
+
+class HttpManagementEndpointSpecRoutesScaladsl extends ManagementRouteProvider with Directives {
+  override def routes(settings: ManagementRouteProviderSettings): Route =
+    path("scaladsl") {
+      get {
+        complete("hello Scala")
+      }
+    }
+}
+
+class HttpManagementEndpointSpecRoutesJavadsl extends javadsl.ManagementRouteProvider with Directives {
+  override def routes(settings: javadsl.ManagementRouteProviderSettings): akka.http.javadsl.server.Route =
+    RouteAdapter {
+      path("javadsl") {
+        get {
+          complete("hello Java")
+        }
+      }
+    }
+}
 
 class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
 
