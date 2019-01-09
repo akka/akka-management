@@ -6,8 +6,8 @@ package akka.cluster.bootstrap
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
-import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
+import akka.management.scaladsl.AkkaManagement
 import com.typesafe.config.ConfigFactory
 
 //#main

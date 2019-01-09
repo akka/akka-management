@@ -31,7 +31,7 @@ import akka.event.Logging
 
   /**
    * The value `ClusterBootstrap(system).selfContactPoints` is set prior to HTTP binding,
-   * during [[akka.management.AkkaManagement.start()]], hence we accept blocking on
+   * during [[akka.management.scaladsl.AkkaManagement.start()]], hence we accept blocking on
    * this initialization.
    */
   private[bootstrap] def selfContactPoints: Set[(String, Int)] =

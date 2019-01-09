@@ -8,8 +8,8 @@ import java.net.InetAddress
 
 import akka.actor.ActorSystem
 import akka.discovery.awsapi.ecs.AsyncEcsServiceDiscovery
-import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
+import akka.management.scaladsl.AkkaManagement
 import com.typesafe.config.ConfigFactory
 
 object EcsApiDemoApp {

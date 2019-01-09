@@ -2,13 +2,13 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.http;
+package akka.management;
 
 import akka.actor.ActorSystem;
 import akka.http.javadsl.ConnectionContext;
 import akka.http.javadsl.HttpsConnectionContext;
 import akka.http.javadsl.server.directives.SecurityDirectives;
-import akka.management.AkkaManagement;
+import akka.management.scaladsl.AkkaManagement;
 
 import javax.net.ssl.SSLContext;
 import java.util.Optional;

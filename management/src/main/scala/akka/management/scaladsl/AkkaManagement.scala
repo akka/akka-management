@@ -2,7 +2,7 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management
+package akka.management.scaladsl
 
 import java.util.concurrent.atomic.AtomicReference
 
@@ -21,7 +21,6 @@ import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.event.Logging
 import akka.http.javadsl.HttpsConnectionContext
-import akka.http.javadsl.server.directives.RouteAdapter
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Directive
@@ -33,11 +32,8 @@ import akka.http.scaladsl.server.Directives.rawPathPrefix
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.settings.ServerSettings
-import akka.management.http.ManagementRouteProviderSettings
-import akka.management.http.ManagementRouteProviderSettingsImpl
-import akka.management.http.javadsl.{ ManagementRouteProvider => JManagementRouteProvider }
-import akka.management.http.scaladsl.ManagementRouteProvider
-import akka.management.http.scaladsl.ManagementRouteProviderAdapter
+import akka.management.AkkaManagementSettings
+import akka.management.javadsl
 import akka.stream.ActorMaterializer
 import akka.util.ManifestInfo
 
@@ -50,7 +46,7 @@ object AkkaManagement extends ExtensionId[AkkaManagement] with ExtensionIdProvid
     new AkkaManagement()(system)
 }
 
-final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extension {
+final class AkkaManagement(implicit private[akka] val system: ExtendedActorSystem) extends Extension {
 
   ManifestInfo(system).checkSameVersion(productName = "Akka Management",
     dependencies = List(
@@ -119,7 +115,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   }
 
   /**
-   * Scala API: Get the routes for the HTTP management endpoint.
+   * Get the routes for the HTTP management endpoint.
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
    */
@@ -128,19 +124,10 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   // FIXME should `routes` return `Try` of throw IllegalArgumentException?
 
   /**
-   * Java API: Get the routes for the HTTP management endpoint.
-   *
-   * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
-   * @throws IllegalArgumentException if routes configured for akka management
-   */
-  def getRoutes: akka.http.javadsl.server.Route = RouteAdapter(routes.get)
-
-  /**
    * Start an Akka HTTP server to serve the HTTP management endpoint.
    */
   def start(): Future[Uri] = {
     // FIXME API make it accept config object that would have all the `withHttps`
-    // FIXME API return CompletionStage for Java API, must use different name
     val serverBindingPromise = Promise[Http.ServerBinding]()
     if (bindingFuture.compareAndSet(null, serverBindingPromise.future)) {
       val effectiveBindHostname = settings.Http.EffectiveBindHostname
@@ -211,7 +198,6 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
   }
 
   def stop(): Future[Done] = {
-    // FIXME API return CompletionStage for Java API, must use different name
     val binding = bindingFuture.get()
 
     if (binding == null) {
@@ -246,16 +232,16 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
           dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
       } recoverWith {
         case _ ⇒
-          dynamicAccess.createInstanceFor[JManagementRouteProvider](fqcn, Nil)
+          dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn, Nil)
       } recoverWith {
         case _ ⇒
-          dynamicAccess.createInstanceFor[JManagementRouteProvider](fqcn,
+          dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn,
             (classOf[ExtendedActorSystem], system) :: Nil)
       } match {
         case Success(p: ExtensionIdProvider) ⇒
           system.registerExtension(p.lookup()) match {
             case provider: ManagementRouteProvider => provider
-            case provider: JManagementRouteProvider => new ManagementRouteProviderAdapter(provider)
+            case provider: javadsl.ManagementRouteProvider => new ManagementRouteProviderAdapter(provider)
             case other =>
               throw new RuntimeException(
                   s"Extension [$fqcn] should create a 'ManagementRouteProvider' but was " +
@@ -265,7 +251,7 @@ final class AkkaManagement(implicit system: ExtendedActorSystem) extends Extensi
         case Success(provider: ManagementRouteProvider) ⇒
           provider
 
-        case Success(provider: JManagementRouteProvider) ⇒
+        case Success(provider: javadsl.ManagementRouteProvider) ⇒
           new ManagementRouteProviderAdapter(provider)
 
         case Success(_) ⇒

@@ -2,10 +2,9 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.http.javadsl
+package akka.management.javadsl
 
 import akka.actor.Extension
-import akka.management.http.ManagementRouteProviderSettings
 import akka.http.javadsl.server.Route
 
 /** Extend this trait in your extension in order to allow it to contribute routes to Akka Management starts its HTTP endpoint */

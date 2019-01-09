@@ -2,49 +2,34 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.http
+package akka.management
 
 import java.io.InputStream
-import java.security.{ KeyStore, SecureRandom }
+import java.security.KeyStore
+import java.security.SecureRandom
 
-import javax.net.ssl.{ KeyManagerFactory, SSLContext, TrustManagerFactory }
-import akka.actor.ActorSystem
-import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
-import akka.http.scaladsl.model.{ HttpRequest, StatusCodes }
-import akka.http.scaladsl.server.directives.Credentials
-import akka.http.scaladsl.server.{ Directives, Route }
-import akka.http.scaladsl.{ ConnectionContext, Http, HttpsConnectionContext }
-import akka.management.AkkaManagement
-import com.typesafe.config.ConfigFactory
-import org.scalatest.{ Matchers, WordSpecLike }
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 
-import akka.http.javadsl.server.directives.RouteAdapter
-import akka.management.http.scaladsl.ManagementRouteProvider
-import akka.management.http.javadsl.{ ManagementRouteProvider => JManagementRouteProvider }
+import akka.actor.ActorSystem
+import akka.http.scaladsl.model.headers.Authorization
+import akka.http.scaladsl.model.headers.BasicHttpCredentials
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.directives.Credentials
+import akka.http.scaladsl.ConnectionContext
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.HttpsConnectionContext
+import akka.management.scaladsl.AkkaManagement
 import akka.stream.ActorMaterializer
 import akka.testkit.SocketUtil
-
-class HttpManagementEndpointSpecRoutesScaladsl extends ManagementRouteProvider with Directives {
-  override def routes(settings: ManagementRouteProviderSettings): Route =
-    path("scaladsl") {
-      get {
-        complete("hello Scala")
-      }
-    }
-}
-
-class HttpManagementEndpointSpecRoutesJavadsl extends JManagementRouteProvider with Directives {
-  override def routes(settings: ManagementRouteProviderSettings): akka.http.javadsl.server.Route =
-    RouteAdapter {
-      path("javadsl") {
-        get {
-          complete("hello Java")
-        }
-      }
-    }
-}
+import com.typesafe.config.ConfigFactory
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import org.scalatest.Matchers
+import org.scalatest.WordSpecLike
 
 class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
 
@@ -67,8 +52,8 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
             akka.management.http.port = 8558
             //#management-host-port
             akka.management.http.port = $httpPort
-            akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutesScaladsl"
-            akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutesJavadsl"
+            akka.management.http.route-providers += "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
+            akka.management.http.route-providers += "akka.management.HttpManagementEndpointSpecRoutesJavadsl"
           """
         )
 
@@ -77,9 +62,9 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
 
         val management = AkkaManagement(system)
         management.settings.Http.RouteProviders should contain(
-            "akka.management.http.HttpManagementEndpointSpecRoutesScaladsl")
+            "akka.management.HttpManagementEndpointSpecRoutesScaladsl")
         management.settings.Http.RouteProviders should contain(
-            "akka.management.http.HttpManagementEndpointSpecRoutesJavadsl")
+            "akka.management.HttpManagementEndpointSpecRoutesJavadsl")
         management.start()
 
         val responseFuture1 = Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:$httpPort/scaladsl"))
@@ -102,7 +87,7 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
           s"""
             |akka.management.http.hostname = "127.0.0.1"
             |akka.management.http.port = $httpPort
-            |akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutesScaladsl"
+            |akka.management.http.route-providers += "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
           """.stripMargin
         )
 
@@ -141,7 +126,7 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
           s"""
             |akka.management.http.hostname = "127.0.0.1"
             |akka.management.http.port = $httpPort
-            |akka.management.http.route-providers += "akka.management.http.HttpManagementEndpointSpecRoutesScaladsl"
+            |akka.management.http.route-providers += "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
             |
             |akka.ssl-config {
             |  loose {

@@ -5,8 +5,8 @@
 package doc.akka.management.cluster.bootstrap
 
 import akka.actor.ActorSystem
-import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
+import akka.management.scaladsl.AkkaManagement
 
 object ClusterBootstrapCompileOnly {
 
