@@ -9,7 +9,6 @@ import akka.actor.ExtendedActorSystem;
 import akka.management.javadsl.HealthChecks;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
 import org.scalatest.junit.JUnitSuite;
 
@@ -28,9 +27,6 @@ public class HealthCheckTest extends JUnitSuite {
 
     @SuppressWarnings("unused")
     public static class Ok implements Supplier<CompletionStage<Boolean>> {
-        public Ok(ActorSystem eas) {
-        }
-
         @Override
         public CompletionStage<Boolean> get() {
             return CompletableFuture.completedFuture(true);
@@ -68,7 +64,8 @@ public class HealthCheckTest extends JUnitSuite {
                 healthChecks,
                 healthChecks,
                 "ready",
-                "alive"
+                "alive",
+                java.time.Duration.ofSeconds(1)
         ));
         assertEquals(checks.alive().toCompletableFuture().get(), true);
         assertEquals(checks.ready().toCompletableFuture().get(), true);
@@ -81,7 +78,8 @@ public class HealthCheckTest extends JUnitSuite {
                 healthChecks,
                 healthChecks,
                 "ready",
-                "alive"
+                "alive",
+                java.time.Duration.ofSeconds(1)
         ));
         assertEquals(checks.alive().toCompletableFuture().get(), true);
         assertEquals(checks.ready().toCompletableFuture().get(), true);
@@ -94,7 +92,8 @@ public class HealthCheckTest extends JUnitSuite {
                 healthChecks,
                 healthChecks,
                 "ready",
-                "alive"
+                "alive",
+                java.time.Duration.ofSeconds(1)
         ));
         try {
             checks.alive().toCompletableFuture().get();
