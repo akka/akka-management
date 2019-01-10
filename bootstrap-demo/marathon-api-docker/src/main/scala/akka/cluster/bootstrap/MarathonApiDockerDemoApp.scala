@@ -9,8 +9,8 @@ import akka.cluster.{ Cluster, MemberStatus }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
-import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
+import akka.management.scaladsl.AkkaManagement
 import akka.stream.ActorMaterializer
 
 object MarathonApiDockerDemoApp extends App {

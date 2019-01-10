@@ -11,13 +11,14 @@ import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.{ Lookup, MockDiscovery }
-import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{ Matchers, WordSpecLike }
 import scala.concurrent.Future
 import scala.concurrent.duration._
+
+import akka.management.scaladsl.AkkaManagement
 
 /**
  * This test ensures that the client and server both respect the base-path setting and thus that the boostrapping

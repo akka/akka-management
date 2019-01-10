@@ -7,9 +7,9 @@ package akka.management.cluster.bootstrap
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.AkkaVersion
-
 import scala.concurrent.Future
 import scala.concurrent.Promise
+
 import akka.actor.ActorSystem
 import akka.actor.ExtendedActorSystem
 import akka.actor.Extension
@@ -23,8 +23,8 @@ import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator
-import akka.management.http.scaladsl.ManagementRouteProvider
-import akka.management.http.ManagementRouteProviderSettings
+import akka.management.scaladsl.ManagementRouteProviderSettings
+import akka.management.scaladsl.ManagementRouteProvider
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
