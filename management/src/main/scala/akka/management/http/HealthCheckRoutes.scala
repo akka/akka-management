@@ -19,9 +19,9 @@ import scala.util.{ Failure, Success, Try }
  * for ManagementRouteProviders
  */
 @InternalApi
-final private[akka] class HealthCheckRoutes(aes: ExtendedActorSystem) extends ManagementRouteProvider {
+private[akka] class HealthCheckRoutes(aes: ExtendedActorSystem) extends ManagementRouteProvider {
 
-  val settings: HealthCheckSettings = HealthCheckSettings(
+  private val settings: HealthCheckSettings = HealthCheckSettings(
     aes.settings.config.getConfig("akka.management.http.health-checks")
   )
 

@@ -21,7 +21,8 @@ import scala.util.{ Failure, Success }
  * INTERNAL API
  */
 @InternalApi
-private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings: HealthCheckSettings) extends HealthChecks {
+final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings: HealthCheckSettings)
+    extends HealthChecks {
   import HealthChecks._
   import system.dispatcher
 
@@ -30,9 +31,7 @@ private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings: Heal
   log.info("Loading readiness checks {}", settings.readinessChecks)
   log.info("Loading liveness checks {}", settings.livenessChecks)
 
-  private val readiness: immutable.Seq[HealthCheck] = load(
-    settings.readinessChecks
-  )
+  private val readiness: immutable.Seq[HealthCheck] = load(settings.readinessChecks)
 
   private val liveness: immutable.Seq[HealthCheck] = load(settings.livenessChecks)
 

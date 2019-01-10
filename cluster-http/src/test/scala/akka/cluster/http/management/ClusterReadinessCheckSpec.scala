@@ -6,7 +6,6 @@ package akka.cluster.http.management
 
 import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.cluster.MemberStatus
-import akka.management.cluster.ClusterReadinessCheckSettings
 import akka.management.cluster.scaladsl.{ ClusterReadinessCheck, ClusterReadinessCheckSettings }
 import akka.testkit.TestKit
 import org.scalatest.concurrent.ScalaFutures
