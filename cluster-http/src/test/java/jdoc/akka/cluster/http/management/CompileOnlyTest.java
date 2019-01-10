@@ -5,7 +5,7 @@
 package jdoc.akka.cluster.http.management;
 
 import akka.actor.ActorSystem;
-import akka.management.AkkaManagement;
+import akka.management.scaladsl.AkkaManagement;
 import akka.cluster.Cluster;
 //#imports
 import akka.http.javadsl.server.Route;

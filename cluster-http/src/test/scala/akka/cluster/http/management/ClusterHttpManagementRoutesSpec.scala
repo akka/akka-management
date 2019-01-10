@@ -5,27 +5,35 @@
 package akka.cluster.http.management
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
-import akka.actor.{ Actor, ActorSystem, Address, ExtendedActorSystem, Props }
+import scala.collection.immutable._
+import scala.concurrent.Await
+
+import akka.actor.Actor
+import akka.actor.ActorSystem
+import akka.actor.Address
+import akka.actor.ExtendedActorSystem
+import akka.actor.Props
 import akka.cluster.ClusterEvent.CurrentClusterState
 import akka.cluster.InternalClusterAction.LeaderActionsTick
-import akka.cluster.MemberStatus.{ Joining, Up }
+import akka.cluster.MemberStatus.Joining
+import akka.cluster.MemberStatus.Up
 import akka.cluster._
 import akka.cluster.http.management.ClusterHttpManagementRoutesSpec.TestShardedActor
-import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
+import akka.cluster.sharding.ClusterSharding
+import akka.cluster.sharding.ClusterShardingSettings
+import akka.cluster.sharding.ShardRegion
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.cluster._
-import akka.management.http.ManagementRouteProviderSettings
+import akka.management.scaladsl.ManagementRouteProviderSettingsImpl
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.{ Matchers, WordSpecLike }
-
-import scala.collection.immutable._
-import scala.concurrent.Await
+import org.scalatest.Matchers
+import org.scalatest.WordSpecLike
 
 class ClusterHttpManagementRoutesSpec
     extends WordSpecLike
@@ -303,6 +311,7 @@ class ClusterHttpManagementRoutesSpec
 
       "calling GET /cluster/shard_regions/{name}" in {
         import scala.concurrent.duration._
+
         import akka.pattern.ask
 
         val config = ConfigFactory.parseString(
@@ -344,9 +353,7 @@ class ClusterHttpManagementRoutesSpec
         Await.result(initializeEntityActorAsk, 3.seconds)
 
         val clusterHttpManagement = ClusterHttpManagement(system)
-        val settings = new ManagementRouteProviderSettings {
-          override def selfBaseUri: Uri = "http://127.0.0.1:20100"
-        }
+        val settings = ManagementRouteProviderSettingsImpl(selfBaseUri = "http://127.0.0.1:20100")
         val binding =
           Await.result(Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100), 3.seconds)
 

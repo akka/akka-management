@@ -7,8 +7,8 @@ package akka.management.cluster
 import akka.actor.{ ActorSystem, ExtendedActorSystem, ExtensionId, ExtensionIdProvider }
 import akka.cluster.Cluster
 import akka.http.scaladsl.server.Route
-import akka.management.http.ManagementRouteProviderSettings
-import akka.management.http.scaladsl.ManagementRouteProvider
+import akka.management.scaladsl.ManagementRouteProviderSettings
+import akka.management.scaladsl.ManagementRouteProvider
 
 object ClusterHttpManagement extends ExtensionId[ClusterHttpManagement] with ExtensionIdProvider {
   override def lookup: ClusterHttpManagement.type = ClusterHttpManagement
