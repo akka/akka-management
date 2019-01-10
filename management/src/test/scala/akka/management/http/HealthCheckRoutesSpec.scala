@@ -6,6 +6,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.http.scaladsl.server._
 import Directives._
 import akka.actor.{ActorSystem, ExtendedActorSystem}
+import akka.management.http.scaladsl.HealthChecks
 import akka.testkit.TestKit
 
 import scala.concurrent.Future

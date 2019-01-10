@@ -8,7 +8,7 @@ import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.management.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 
 //#main
 object Node1 extends App {
@@ -25,7 +25,7 @@ object Node3 extends App {
 
 class Main(nr: Int) {
 
-  val config = ConfigFactory.parseString(s"""
+  val config: Config = ConfigFactory.parseString(s"""
       akka.remote.artery.canonical.hostname = "127.0.0.$nr"
       akka.management.http.hostname = "127.0.0.$nr"
     """).withFallback(ConfigFactory.load())

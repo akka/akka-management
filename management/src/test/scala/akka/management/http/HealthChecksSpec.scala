@@ -4,7 +4,7 @@ import akka.testkit.TestKit
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import HealthChecksSpec._
-import akka.management.http.HealthChecks.InvalidHealthCheckException
+import akka.management.http.scaladsl.HealthChecks
 
 import scala.concurrent.Future
 import scala.collection.{immutable => im}
