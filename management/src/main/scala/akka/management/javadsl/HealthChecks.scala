@@ -2,13 +2,13 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.http.javadsl
+package akka.management.javadsl
 import java.util.concurrent.CompletionStage
 
 import akka.actor.ExtendedActorSystem
 import akka.dispatch.ExecutionContexts
-import akka.management.http.HealthCheckSettings
-import akka.management.http.internal.HealthChecksImpl
+import akka.management.HealthCheckSettings
+import akka.management.internal.HealthChecksImpl
 
 import scala.compat.java8.FutureConverters._
 

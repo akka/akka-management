@@ -2,11 +2,11 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.http.scaladsl
+package akka.management.scaladsl
 import akka.actor.ExtendedActorSystem
 import akka.annotation.DoNotInherit
-import akka.management.http.HealthCheckSettings
-import akka.management.http.internal.HealthChecksImpl
+import akka.management.HealthCheckSettings
+import akka.management.internal.HealthChecksImpl
 
 import scala.concurrent.Future
 

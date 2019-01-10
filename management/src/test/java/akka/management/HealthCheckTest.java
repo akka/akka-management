@@ -2,11 +2,11 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.http;
+package akka.management;
 
 import akka.actor.ActorSystem;
 import akka.actor.ExtendedActorSystem;
-import akka.management.http.javadsl.HealthChecks;
+import akka.management.javadsl.HealthChecks;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -63,7 +63,7 @@ public class HealthCheckTest extends JUnitSuite {
 
     @Test
     public void okReturnsTrue() throws Exception {
-        List<String> healthChecks = Collections.singletonList("akka.management.http.HealthCheckTest$Ok");
+        List<String> healthChecks = Collections.singletonList("akka.management.HealthCheckTest$Ok");
         HealthChecks checks = new HealthChecks(eas, HealthCheckSettings.create(
                 healthChecks,
                 healthChecks,
@@ -76,7 +76,7 @@ public class HealthCheckTest extends JUnitSuite {
 
     @Test
     public void notOkayReturnsFalse() throws Exception {
-        List<String> healthChecks = Collections.singletonList("akka.management.http.HealthCheckTest$Ok");
+        List<String> healthChecks = Collections.singletonList("akka.management.HealthCheckTest$Ok");
         HealthChecks checks = new HealthChecks(eas, HealthCheckSettings.create(
                 healthChecks,
                 healthChecks,
@@ -89,7 +89,7 @@ public class HealthCheckTest extends JUnitSuite {
 
     @Test
     public void throwsReturnsFailed() throws Exception {
-        List<String> healthChecks = Collections.singletonList("akka.management.http.HealthCheckTest$Throws");
+        List<String> healthChecks = Collections.singletonList("akka.management.HealthCheckTest$Throws");
         HealthChecks checks = new HealthChecks(eas, HealthCheckSettings.create(
                 healthChecks,
                 healthChecks,

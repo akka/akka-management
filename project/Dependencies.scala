@@ -129,7 +129,9 @@ object Dependencies {
     libraryDependencies ++=
       DependencyGroups.AkkaHttp ++
       DependencyGroups.AkkaTesting ++
-      DependencyGroups.AkkaHttpTesting
+      DependencyGroups.AkkaHttpTesting ++ Seq(
+        "com.typesafe.akka" %% "akka-cluster"              % AkkaVersion     % "test"
+      )
   )
 
   val ClusterHttp = Seq(

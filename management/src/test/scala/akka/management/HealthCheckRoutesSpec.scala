@@ -2,12 +2,13 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.http
+package akka.management
+
 import akka.actor.ExtendedActorSystem
 import akka.http.scaladsl.model.{ StatusCodes, Uri }
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import akka.management.http.scaladsl.HealthChecks
+import akka.management.scaladsl.{ HealthChecks, ManagementRouteProviderSettingsImpl }
 import org.scalatest.{ Matchers, WordSpec }
 
 import scala.concurrent.Future

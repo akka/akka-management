@@ -2,13 +2,14 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.http
+package akka.management
+
 import akka.actor.ExtendedActorSystem
 import akka.annotation.InternalApi
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ PathMatchers, Route }
-import akka.management.http.scaladsl.{ HealthChecks, ManagementRouteProvider }
+import akka.management.scaladsl.{ HealthChecks, ManagementRouteProvider, ManagementRouteProviderSettings }
 
 import scala.util.{ Failure, Success, Try }
 

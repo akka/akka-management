@@ -2,15 +2,15 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.http.internal
+package akka.management.internal
 
 import java.util.concurrent.CompletionStage
 
 import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.annotation.InternalApi
 import akka.event.Logging
-import akka.management.http.scaladsl.HealthChecks
-import akka.management.http.{ HealthCheckSettings, InvalidHealthCheckException }
+import akka.management.{ HealthCheckSettings, InvalidHealthCheckException }
+import akka.management.scaladsl.HealthChecks
 
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters._
