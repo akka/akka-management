@@ -6,26 +6,24 @@ package akka.management.internal
 
 import java.util.concurrent.CompletionStage
 
-import akka.actor.{ActorSystem, ExtendedActorSystem}
+import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.annotation.InternalApi
 import akka.event.Logging
-import akka.management.{HealthCheckSettings, InvalidHealthCheckException}
+import akka.management.{ HealthCheckSettings, InvalidHealthCheckException }
 import akka.management.scaladsl.HealthChecks
 
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
-final case class CheckTimeoutException(msg: String)
-    extends RuntimeException(msg)
+final case class CheckTimeoutException(msg: String) extends RuntimeException(msg)
 
 /**
-  * INTERNAL API
-  */
+ * INTERNAL API
+ */
 @InternalApi
-final private[akka] class HealthChecksImpl(system: ExtendedActorSystem,
-                                           settings: HealthCheckSettings)
+final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings: HealthCheckSettings)
     extends HealthChecks {
   import HealthChecks._
   import system.dispatcher
@@ -51,8 +49,7 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem,
       )
       .recoverWith {
         case _: NoSuchMethodException =>
-          system.dynamicAccess
-            .createInstanceFor[HealthCheck](fqcn, Nil)
+          system.dynamicAccess.createInstanceFor[HealthCheck](fqcn, Nil)
 
       }
   }
@@ -65,25 +62,23 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem,
       )
       .recoverWith {
         case _: NoSuchMethodException =>
-          system.dynamicAccess
-            .createInstanceFor[java.util.function.Supplier[CompletionStage[
-              Boolean
-            ]]](fqcn, Nil)
+          system.dynamicAccess.createInstanceFor[java.util.function.Supplier[CompletionStage[
+            Boolean
+          ]]](fqcn, Nil)
       }
       .map(sup => () => sup.get().toScala)
   }
 
   private def load(
-    checks: immutable.Seq[String]
+      checks: immutable.Seq[String]
   ): immutable.Seq[HealthCheck] = {
     checks
       .map(
         fqcn =>
-          tryLoadScalaHealthCheck(fqcn)
-            .recoverWith {
-              case _: ClassCastException =>
-                tryLoadJavaHealthCheck(fqcn)
-          }
+          tryLoadScalaHealthCheck(fqcn).recoverWith {
+            case _: ClassCastException =>
+              tryLoadJavaHealthCheck(fqcn)
+        }
       )
       .map {
         case Success(c) => c
@@ -115,15 +110,19 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem,
     check(liveness)
   }
 
+  private def runCheck(check: HealthCheck): Future[Boolean] = {
+    Future.fromTry(Try(check())).flatten
+  }
+
   private def check(checks: immutable.Seq[HealthCheck]): Future[Boolean] = {
     val timeout = akka.pattern.after(settings.checkTimeout, system.scheduler)(
       Future.failed(
-        new CheckTimeoutException(s"Timeout after ${settings.checkTimeout}")
+        CheckTimeoutException(s"Timeout after ${settings.checkTimeout}")
       )
     )
     Future.firstCompletedOf(
       Seq(
-        Future.traverse(checks)(check => check()).map(_.forall(identity)),
+        Future.traverse(checks)(runCheck).map(_.forall(identity)),
         timeout
       )
     )

@@ -59,6 +59,12 @@ class Slow(system: ActorSystem) extends (() => Future[Boolean]) {
   }
 }
 
+class Naughty() extends (() => Future[Boolean]) {
+  override def apply(): Future[Boolean] = {
+    throw new RuntimeException("bad")
+  }
+}
+
 class WrongType() {}
 
 class CtrException(system: ActorSystem) extends (() => Future[Boolean]) {
@@ -132,7 +138,7 @@ class HealthChecksSpec
       checks.ready().failed.futureValue shouldEqual failedCause
       checks.alive().failed.futureValue shouldEqual failedCause
     }
-    "return failure for if any of the checks fail" in {
+    "return failure if any of the checks fail" in {
       val checks = im.Seq(
         "akka.management.Ok",
         "akka.management.Throws",
@@ -141,6 +147,14 @@ class HealthChecksSpec
       val hc = HealthChecks(eas, settings(checks, checks))
       hc.ready().failed.futureValue shouldEqual failedCause
       hc.alive().failed.futureValue shouldEqual failedCause
+    }
+    "return failure if check throws" in {
+      val checks = im.Seq(
+        "akka.management.Naughty",
+      )
+      val hc = HealthChecks(eas, settings(checks, checks))
+      hc.ready().failed.futureValue.getMessage shouldEqual "bad"
+      hc.alive().failed.futureValue.getMessage shouldEqual "bad"
     }
     "return failure if checks timeout" in {
       val checks = im.Seq(
