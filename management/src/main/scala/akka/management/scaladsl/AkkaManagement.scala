@@ -4,9 +4,12 @@
 
 package akka.management.scaladsl
 
+import java.util.Optional
 import java.util.concurrent.atomic.AtomicReference
 
 import scala.collection.immutable
+import scala.compat.java8.FutureConverters._
+import scala.compat.java8.OptionConverters._
 import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.util.Failure
@@ -20,17 +23,17 @@ import akka.actor.Extension
 import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.event.Logging
-import akka.http.javadsl.HttpsConnectionContext
+import akka.http.javadsl.server.directives.SecurityDirectives.ProvidedCredentials
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Directive
 import akka.http.scaladsl.server.Directives
-import akka.http.scaladsl.server.Directives.AsyncAuthenticator
 import akka.http.scaladsl.server.Directives.authenticateBasicAsync
 import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.server.Directives.rawPathPrefix
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteResult
+import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.settings.ServerSettings
 import akka.management.AkkaManagementSettings
 import akka.management.javadsl
@@ -62,56 +65,22 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
     logWarning = true)
 
   private val log = Logging(system, getClass)
-  val settings = new AkkaManagementSettings(system.settings.config)
+  val settings: AkkaManagementSettings = new AkkaManagementSettings(system.settings.config)
 
   @volatile private var materializer: Option[ActorMaterializer] = None
   import system.dispatcher
 
   private val routeProviders: immutable.Seq[ManagementRouteProvider] = loadRouteProviders()
 
-  private[this] val runningUri = new AtomicReference[Uri]
-
-  /**
-   * Set async authenticator to be used for management routes.
-   *
-   * Must be called BEFORE [[start()]] and [[routes()]] to take effect.
-   * Do not call concurrently.
-   */
-  def setAsyncAuthenticator(auth: AsyncAuthenticator[String]): Unit =
-    if (runningUri.get() eq null) {
-      _asyncAuthenticator = Option(auth)
-    } else
-      throw new IllegalStateException(
-          "Attempted to set authenticator AFTER start() was called, so this call has no effect! " +
-          "You are running WITHOUT authentication enabled! Make sure to call setAsyncAuthenticator BEFORE calling start().")
-
-  // FIXME API replace with config object and withs?
-  private[this] var _asyncAuthenticator: Option[AsyncAuthenticator[String]] = None
-
-  /**
-   * Set the HTTP(S) context that should be used when binding the management HTTP server.
-   *
-   * Set this to `akka.http.[javadsl|scaladsl].HttpsConnectionContext` to bind the server using HTTPS.
-   * Refer to the Akka HTTP documentation for details about configuring HTTPS for it.
-   */
-  def setHttpsContext(context: HttpsConnectionContext): Unit =
-    if (runningUri.get() eq null) {
-      _connectionContext = context.asInstanceOf[akka.http.scaladsl.ConnectionContext]
-    } else
-      throw new IllegalStateException(
-          "Attempted to set HTTPS Context AFTER start() was called, so this call has no effect! " +
-          "You are running Akka Management over PLAIN HTTP! Make sure to call `setHttpsContext` BEFORE calling `start()`.")
-  private[this] var _connectionContext: akka.http.scaladsl.ConnectionContext = Http().defaultServerHttpContext
-
   private val bindingFuture = new AtomicReference[Future[Http.ServerBinding]]()
   private val selfUriPromise = Promise[Uri]() // TODO has to keep config as well as the Uri, so we can reject 2nd calls with diff uri
 
-  private def providerSettings = {
+  private def providerSettings: ManagementRouteProviderSettings = {
     // port is on purpose never inferred from protocol, because this HTTP endpoint is not the "main" one for the app
-    val protocol = if (_connectionContext.isSecure) "https" else "http"
+    val protocol = "http" // changed to "https" if ManagementRouteProviderSettings.withHttpsConnectionContext is used
     val selfBaseUri =
       Uri(s"$protocol://${settings.Http.Hostname}:${settings.Http.Port}${settings.Http.BasePath.fold("")("/" + _)}")
-    ManagementRouteProviderSettingsImpl(selfBaseUri)
+    ManagementRouteProviderSettings(selfBaseUri)
   }
 
   /**
@@ -124,15 +93,36 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
   def routes: Route = prepareCombinedRoutes(providerSettings)
 
   /**
+   * Amend the [[ManagementRouteProviderSettings]] and get the routes for the HTTP management endpoint.
+   *
+   * Use this when adding authentication and HTTPS.
+   *
+   * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
+   *
+   * @throws IllegalArgumentException if routes not configured for akka management
+   */
+  def routes(transformSettings: ManagementRouteProviderSettings => ManagementRouteProviderSettings): Route =
+    prepareCombinedRoutes(transformSettings(providerSettings))
+
+  /**
    * Start an Akka HTTP server to serve the HTTP management endpoint.
    */
-  def start(): Future[Uri] = {
-    // FIXME API make it accept config object that would have all the `withHttps`
+  def start(): Future[Uri] =
+    start(identity)
+
+  /**
+   * Amend the [[ManagementRouteProviderSettings]] and start an Akka HTTP server to serve
+   * the HTTP management endpoint.
+   *
+   * Use this when adding authentication and HTTPS.
+   */
+  def start(transformSettings: ManagementRouteProviderSettings => ManagementRouteProviderSettings): Future[Uri] = {
     val serverBindingPromise = Promise[Http.ServerBinding]()
     if (bindingFuture.compareAndSet(null, serverBindingPromise.future)) {
       try {
         val effectiveBindHostname = settings.Http.EffectiveBindHostname
         val effectiveBindPort = settings.Http.EffectiveBindPort
+        val effectiveProviderSettings = transformSettings(providerSettings)
 
         implicit val mat: ActorMaterializer = ActorMaterializer()
         materializer = Some(mat)
@@ -145,18 +135,23 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
         log.info("Binding Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
 
+        val combinedRoutes = prepareCombinedRoutes(effectiveProviderSettings)
+
+        val connectionContext =
+          effectiveProviderSettings.httpsConnectionContext.getOrElse(Http().defaultServerHttpContext)
+
         val serverFutureBinding =
           Http().bindAndHandle(
-            RouteResult.route2HandlerFlow(routes),
+            RouteResult.route2HandlerFlow(combinedRoutes),
             effectiveBindHostname,
             effectiveBindPort,
-            connectionContext = this._connectionContext,
+            connectionContext = connectionContext,
             settings = ServerSettings(system).withRemoteAddressHeader(true)
           )
 
         serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { _ =>
           log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
-          selfUriPromise.success(providerSettings.selfBaseUri).future
+          selfUriPromise.success(effectiveProviderSettings.selfBaseUri).future
         }
 
       } catch {
@@ -173,12 +168,27 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
       if (pathPrefixName.isEmpty) rawPathPrefix(pathPrefixName) else pathPrefix(pathPrefixName)
     }
 
-    def wrapWithAuthenticatorIfPresent(inner: Route): Route =
-      _asyncAuthenticator match {
-        case Some(asyncAuthenticator) ⇒
+    def wrapWithAuthenticatorIfPresent(inner: Route): Route = {
+      val providerSettingsImpl = providerSettings.asInstanceOf[ManagementRouteProviderSettingsImpl]
+      (providerSettingsImpl.scaladslAuth, providerSettingsImpl.javadslAuth) match {
+        case (None, None) =>
+          inner
+
+        case (Some(asyncAuthenticator), None) =>
           authenticateBasicAsync[String](realm = "secured", asyncAuthenticator)(_ ⇒ inner)
-        case _ ⇒ inner
+
+        case (None, Some(auth)) =>
+          def credsToJava(cred: Credentials): Optional[ProvidedCredentials] = cred match {
+            case provided: Credentials.Provided ⇒ Optional.of(ProvidedCredentials(provided))
+            case _ ⇒ Optional.empty()
+          }
+          authenticateBasicAsync(realm = "secured", c ⇒ auth.apply(credsToJava(c)).toScala.map(_.asScala)).optional
+            .apply(_ ⇒ inner)
+
+        case (Some(_), Some(_)) =>
+          throw new IllegalStateException("Unexpected that both scaladsl and javadsl auth were defined")
       }
+    }
 
     val combinedRoutes = routeProviders.map { provider =>
       log.info("Including HTTP management routes for {}", Logging.simpleName(provider))

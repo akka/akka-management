@@ -26,8 +26,7 @@ object CompileOnly {
     }
   // ...
   val management = AkkaManagement(system)
-  management.setAsyncAuthenticator(myUserPassAuthenticator)
-  management.start()
+  management.start(_.withAuth(myUserPassAuthenticator))
   //#basic-auth
 
   object stopping {

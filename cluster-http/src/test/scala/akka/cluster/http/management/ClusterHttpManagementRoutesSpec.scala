@@ -27,7 +27,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.cluster._
-import akka.management.scaladsl.ManagementRouteProviderSettingsImpl
+import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
@@ -353,7 +353,7 @@ class ClusterHttpManagementRoutesSpec
         Await.result(initializeEntityActorAsk, 3.seconds)
 
         val clusterHttpManagement = ClusterHttpManagement(system)
-        val settings = ManagementRouteProviderSettingsImpl(selfBaseUri = "http://127.0.0.1:20100")
+        val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100")
         val binding =
           Await.result(Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100), 3.seconds)
 

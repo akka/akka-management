@@ -8,7 +8,7 @@ import akka.actor.ActorSystem;
 import akka.http.javadsl.ConnectionContext;
 import akka.http.javadsl.HttpsConnectionContext;
 import akka.http.javadsl.server.directives.SecurityDirectives;
-import akka.management.scaladsl.AkkaManagement;
+import akka.management.javadsl.AkkaManagement;
 
 import javax.net.ssl.SSLContext;
 import java.util.Optional;
@@ -26,8 +26,7 @@ public class CodeExamples {
     AkkaManagement management = AkkaManagement.get(system);
 
     HttpsConnectionContext https = ConnectionContext.https(sslContext);
-    management.setHttpsContext(https);
-    management.start();
+    management.start(settings -> settings.withHttpsConnectionContext(https));
     //#start-akka-management-with-https-context
   }
 
@@ -44,9 +43,7 @@ public class CodeExamples {
       }
     };
     // ...
-    // FIXME https://github.com/akka/akka-management/issues/338
-    // management.setAsyncAuthenticator(myUserPassAuthenticator);
-    management.start();
+    management.start(settings -> settings.withAuth(myUserPassAuthenticator));
     //#basic-auth
   }
 
