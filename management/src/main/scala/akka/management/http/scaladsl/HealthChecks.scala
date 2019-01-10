@@ -1,6 +1,7 @@
 package akka.management.http.scaladsl
 import akka.actor.ExtendedActorSystem
-import akka.management.http.{HealthCheckSettings, HealthChecksImpl}
+import akka.management.http.HealthCheckSettings
+import akka.management.http.internal.HealthChecksImpl
 
 import scala.concurrent.Future
 

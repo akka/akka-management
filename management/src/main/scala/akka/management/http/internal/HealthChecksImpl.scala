@@ -1,4 +1,4 @@
-package akka.management.http
+package akka.management.http.internal
 
 import java.util.concurrent.CompletionStage
 
@@ -6,11 +6,12 @@ import akka.actor.ExtendedActorSystem
 import akka.annotation.InternalApi
 import akka.event.Logging
 import akka.management.http.scaladsl.HealthChecks
+import akka.management.http.{HealthCheckSettings, InvalidHealthCheckException}
 
 import scala.collection.immutable
+import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
-import scala.compat.java8.FutureConverters._
 
 /**
 * INTERNAL API
@@ -23,9 +24,6 @@ private[akka] class HealthChecksImpl(system: ExtendedActorSystem,
   import system.dispatcher
 
   private val log = Logging(system, classOf[HealthChecksImpl])
-
-  // TODO support various shapes e.g. Java Function with CompletionStage
-
 
   log.info("Loading readiness checks {}", settings.readinessChecks)
   log.info("Loading liveness checks {}", settings.livenessChecks)
@@ -45,7 +43,7 @@ private[akka] class HealthChecksImpl(system: ExtendedActorSystem,
           system.dynamicAccess.createInstanceFor[HealthCheck](
             fqcn,
             immutable.Seq((classOf[ExtendedActorSystem], system))
-        ).recover {
+        ).recoverWith {
             case _: ClassCastException =>
               system.dynamicAccess.createInstanceFor[java.util.function.Supplier[CompletionStage[Boolean]]](
                 fqcn,

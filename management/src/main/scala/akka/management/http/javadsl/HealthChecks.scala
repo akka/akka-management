@@ -2,7 +2,9 @@ package akka.management.http.javadsl
 import java.util.concurrent.CompletionStage
 
 import akka.actor.ExtendedActorSystem
-import akka.management.http.{HealthCheckSettings, HealthChecksImpl}
+import akka.management.http.HealthCheckSettings
+import akka.management.http.internal.HealthChecksImpl
+
 import scala.compat.java8.FutureConverters._
 
 /**

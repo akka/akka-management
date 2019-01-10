@@ -1,40 +1,21 @@
 package akka.management.http
 import akka.actor.ExtendedActorSystem
 import akka.annotation.InternalApi
-import akka.event.Logging
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{PathMatchers, Route}
 import akka.management.http.scaladsl.{HealthChecks, ManagementRouteProvider}
-import com.typesafe.config.Config
 
-import scala.collection.JavaConverters._
-import scala.collection.immutable
 import scala.util.{Failure, Success, Try}
 
-object HealthCheckSettings {
-  def apply(config: Config): HealthCheckSettings =
-    new HealthCheckSettings(
-      config.getStringList("readiness-checks").asScala.toList,
-      config.getStringList("liveness-checks").asScala.toList,
-      config.getString("readiness-path"),
-      config.getString("liveness-path")
-    )
-
-  def create(readinessChecks: java.util.List[String],
-             livenessChecks: java.util.List[String],
-             readinessPath: String,
-             livenessPath: String
-            ) = new HealthCheckSettings(readinessChecks.asScala.toList,
-    livenessChecks.asScala.toList, readinessPath, livenessPath)
-}
-
-final class HealthCheckSettings(val readinessChecks: immutable.Seq[String],
-                                val livenessChecks: immutable.Seq[String],
-                                val readinessPath: String,
-                                val livenessPath: String)
-
-class HealthCheckRoutes(aes: ExtendedActorSystem)
+/**
+  * INTERNAL API
+  *
+  * We could make this public so users can add it to their own server, not sure
+  * for ManagementRouteProviders
+  */
+@InternalApi
+private[akka] class HealthCheckRoutes(aes: ExtendedActorSystem)
     extends ManagementRouteProvider {
 
   val settings: HealthCheckSettings = HealthCheckSettings(
