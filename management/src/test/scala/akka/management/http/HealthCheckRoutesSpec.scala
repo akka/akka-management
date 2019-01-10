@@ -1,26 +1,24 @@
+/*
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ */
+
 package akka.management.http
-import akka.http.scaladsl.testkit.ScalatestRouteTest
-import org.scalatest.{Matchers, WordSpec, WordSpecLike}
-import akka.http.scaladsl.model.{StatusCodes, Uri}
-import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.actor.ExtendedActorSystem
+import akka.http.scaladsl.model.{ StatusCodes, Uri }
 import akka.http.scaladsl.server._
-import Directives._
-import akka.actor.{ActorSystem, ExtendedActorSystem}
+import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.management.http.scaladsl.HealthChecks
-import akka.testkit.TestKit
+import org.scalatest.{ Matchers, WordSpec }
 
 import scala.concurrent.Future
 
-class HealthCheckRoutesSpec
-    extends WordSpec
-    with Matchers
-    with ScalatestRouteTest {
+class HealthCheckRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest {
 
   val aes = system.asInstanceOf[ExtendedActorSystem]
 
   private def testRoute(
-    readyResult: Future[Boolean] = Future.successful(true),
-    aliveResult: Future[Boolean] = Future.successful(true)
+      readyResult: Future[Boolean] = Future.successful(true),
+      aliveResult: Future[Boolean] = Future.successful(true)
   ): Route = {
     new HealthCheckRoutes(aes) {
       override protected val healthChecks: HealthChecks = new HealthChecks {

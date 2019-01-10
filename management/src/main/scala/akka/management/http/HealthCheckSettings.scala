@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ */
+
 package akka.management.http
 
 import com.typesafe.config.Config
@@ -15,13 +19,13 @@ object HealthCheckSettings {
     )
 
   /**
-  * Java API
-    */
+   * Java API
+   */
   def create(config: Config): HealthCheckSettings = apply(config)
 
   /**
-  * Java API
-    */
+   * Java API
+   */
   def create(readinessChecks: java.util.List[String],
              livenessChecks: java.util.List[String],
              readinessPath: String,
@@ -35,24 +39,24 @@ object HealthCheckSettings {
 }
 
 /**
-  * @param readinessChecks List of FQCN of readiness checks
-  * @param livenessChecks List of FQCN of liveness checks
-  * @param readinessPath The path to serve readiness on
-  * @param livenessPath The path to serve liveness on
-  */
+ * @param readinessChecks List of FQCN of readiness checks
+ * @param livenessChecks List of FQCN of liveness checks
+ * @param readinessPath The path to serve readiness on
+ * @param livenessPath The path to serve liveness on
+ */
 final class HealthCheckSettings(val readinessChecks: immutable.Seq[String],
                                 val livenessChecks: immutable.Seq[String],
                                 val readinessPath: String,
                                 val livenessPath: String) {
 
   /**
-  * Java API
-    */
+   * Java API
+   */
   def getReadinessChecks(): java.util.List[String] = readinessChecks.asJava
 
   /**
-  * Java API
-    */
+   * Java API
+   */
   def getLivenessChecks(): java.util.List[String] = livenessChecks.asJava
 
 }

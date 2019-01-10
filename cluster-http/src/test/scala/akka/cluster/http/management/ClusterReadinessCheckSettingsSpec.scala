@@ -5,8 +5,8 @@
 package akka.cluster.http.management
 
 import akka.cluster.MemberStatus
-import akka.management.cluster.ClusterReadinessCheckSettings
-import org.scalatest.{Matchers, WordSpec}
+import akka.management.cluster.scaladsl.ClusterReadinessCheckSettings
+import org.scalatest.{ Matchers, WordSpec }
 
 class ClusterReadinessCheckSettingsSpec extends WordSpec with Matchers {
 

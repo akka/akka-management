@@ -1,22 +1,25 @@
+/*
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ */
+
 package akka.management.http
 import akka.actor.ExtendedActorSystem
 import akka.annotation.InternalApi
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{PathMatchers, Route}
-import akka.management.http.scaladsl.{HealthChecks, ManagementRouteProvider}
+import akka.http.scaladsl.server.{ PathMatchers, Route }
+import akka.management.http.scaladsl.{ HealthChecks, ManagementRouteProvider }
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 /**
-  * INTERNAL API
-  *
-  * We could make this public so users can add it to their own server, not sure
-  * for ManagementRouteProviders
-  */
+ * INTERNAL API
+ *
+ * We could make this public so users can add it to their own server, not sure
+ * for ManagementRouteProviders
+ */
 @InternalApi
-private[akka] class HealthCheckRoutes(aes: ExtendedActorSystem)
-    extends ManagementRouteProvider {
+final private[akka] class HealthCheckRoutes(aes: ExtendedActorSystem) extends ManagementRouteProvider {
 
   val settings: HealthCheckSettings = HealthCheckSettings(
     aes.settings.config.getConfig("akka.management.http.health-checks")
@@ -36,15 +39,16 @@ private[akka] class HealthCheckRoutes(aes: ExtendedActorSystem)
   }
 
   override def routes(mrps: ManagementRouteProviderSettings): Route = {
-    concat(path(PathMatchers.separateOnSlashes(settings.readinessPath)) {
-      get {
-        onComplete(healthChecks.ready())(healthCheckResponse)
-      }
-    }, path(PathMatchers.separateOnSlashes(settings.livenessPath)) {
-      get {
-        onComplete(healthChecks.alive())(healthCheckResponse)
-      }
-    })
+    concat(
+        path(PathMatchers.separateOnSlashes(settings.readinessPath)) {
+          get {
+            onComplete(healthChecks.ready())(healthCheckResponse)
+          }
+        },
+        path(PathMatchers.separateOnSlashes(settings.livenessPath)) {
+          get {
+            onComplete(healthChecks.alive())(healthCheckResponse)
+          }
+        })
   }
 }
-

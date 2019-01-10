@@ -1,13 +1,17 @@
+/*
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ */
+
 package akka.management.http
-import akka.actor.{ActorSystem, ExtendedActorSystem}
+import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.testkit.TestKit
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 import HealthChecksSpec._
 import akka.management.http.scaladsl.HealthChecks
 
 import scala.concurrent.Future
-import scala.collection.{immutable => im}
+import scala.collection.{ immutable => im }
 import scala.util.control.NoStackTrace
 
 object HealthChecksSpec {
@@ -17,18 +21,18 @@ object HealthChecksSpec {
 
 class TE extends RuntimeException with NoStackTrace
 
-class Ok(system: ExtendedActorSystem) extends (() => Future[Boolean]) {
+class Ok(system: ActorSystem) extends (() => Future[Boolean]) {
   override def apply(): Future[Boolean] = {
     Future.successful(true)
   }
 }
 
-class False(system: ExtendedActorSystem) extends (() => Future[Boolean]) {
+class False(system: ActorSystem) extends (() => Future[Boolean]) {
   override def apply(): Future[Boolean] = {
     Future.successful(false)
   }
 }
-class Throws(system: ExtendedActorSystem) extends (() => Future[Boolean]) {
+class Throws(system: ActorSystem) extends (() => Future[Boolean]) {
   override def apply(): Future[Boolean] = {
     Future.failed(failedCause)
   }
@@ -40,10 +44,9 @@ class NoArgsCtr() extends (() => Future[Boolean]) {
 
 class WrongType() {}
 
-class CtrException(system: ExtendedActorSystem)
-    extends (() => Future[Boolean]) {
-  throw ctxException
+class CtrException(system: ActorSystem) extends (() => Future[Boolean]) {
   override def apply(): Future[Boolean] = ???
+  throw ctxException
 }
 
 class HealthChecksSpec
@@ -115,7 +118,7 @@ class HealthChecksSpec
       intercept[InvalidHealthCheckException] {
         val checks = im.Seq("akka.management.http.NoArgsCtr")
         HealthChecks(eas, settings(checks, checks))
-      }.getMessage shouldEqual "Health checks: [akka.management.http.NoArgsCtr] must have a single argument constructor that takes an ExtendedActorSystem"
+      }.getMessage shouldEqual "Health checks: [akka.management.http.NoArgsCtr] must have a single argument constructor that takes an ActorSystem"
     }
     "provide useful error if invalid type" in {
       intercept[InvalidHealthCheckException] {

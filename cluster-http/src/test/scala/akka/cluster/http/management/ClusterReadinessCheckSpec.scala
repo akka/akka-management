@@ -4,15 +4,19 @@
 
 package akka.cluster.http.management
 
-import akka.actor.{ActorSystem, ExtendedActorSystem}
+import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.cluster.MemberStatus
-import akka.management.cluster.{
-  ClusterReadinessCheck, ClusterReadinessCheckSettings}
+import akka.management.cluster.ClusterReadinessCheckSettings
+import akka.management.cluster.scaladsl.{ ClusterReadinessCheck, ClusterReadinessCheckSettings }
 import akka.testkit.TestKit
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.{ Matchers, WordSpecLike }
 
-class ClusterReadinessCheckSpec extends TestKit(ActorSystem("ClusterHealthCheck")) with WordSpecLike with Matchers with ScalaFutures {
+class ClusterReadinessCheckSpec
+    extends TestKit(ActorSystem("ClusterHealthCheck"))
+    with WordSpecLike
+    with Matchers
+    with ScalaFutures {
 
   val aes = system.asInstanceOf[ExtendedActorSystem]
 
@@ -24,8 +28,8 @@ class ClusterReadinessCheckSpec extends TestKit(ActorSystem("ClusterHealthCheck"
       chc().futureValue shouldEqual false
     }
     "be unhealthy if current state is one of healthy states" in {
-      val chc = new ClusterReadinessCheck(aes, () => MemberStatus.Up,
-        new ClusterReadinessCheckSettings(Set(MemberStatus.Up)))
+      val chc =
+        new ClusterReadinessCheck(aes, () => MemberStatus.Up, new ClusterReadinessCheckSettings(Set(MemberStatus.Up)))
 
       chc().futureValue shouldEqual true
     }

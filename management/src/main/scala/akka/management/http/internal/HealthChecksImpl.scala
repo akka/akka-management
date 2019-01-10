@@ -1,25 +1,27 @@
+/*
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ */
+
 package akka.management.http.internal
 
 import java.util.concurrent.CompletionStage
 
-import akka.actor.ExtendedActorSystem
+import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.annotation.InternalApi
 import akka.event.Logging
 import akka.management.http.scaladsl.HealthChecks
-import akka.management.http.{HealthCheckSettings, InvalidHealthCheckException}
+import akka.management.http.{ HealthCheckSettings, InvalidHealthCheckException }
 
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 /**
-* INTERNAL API
-  */
+ * INTERNAL API
+ */
 @InternalApi
-private[akka] class HealthChecksImpl(system: ExtendedActorSystem,
-                                     settings: HealthCheckSettings)
-    extends HealthChecks {
+private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings: HealthCheckSettings) extends HealthChecks {
   import HealthChecks._
   import system.dispatcher
 
@@ -35,26 +37,29 @@ private[akka] class HealthChecksImpl(system: ExtendedActorSystem,
   private val liveness: immutable.Seq[HealthCheck] = load(settings.livenessChecks)
 
   private def load(
-    checks: immutable.Seq[String]
+      checks: immutable.Seq[String]
   ): immutable.Seq[HealthCheck] = {
     checks
       .map(
         fqcn =>
-          system.dynamicAccess.createInstanceFor[HealthCheck](
-            fqcn,
-            immutable.Seq((classOf[ExtendedActorSystem], system))
-        ).recoverWith {
-            case _: ClassCastException =>
-              system.dynamicAccess.createInstanceFor[java.util.function.Supplier[CompletionStage[Boolean]]](
-                fqcn,
-                immutable.Seq((classOf[ExtendedActorSystem], system))).map(sup => () => sup.get().toScala)
+          system.dynamicAccess
+            .createInstanceFor[HealthCheck](
+              fqcn,
+              immutable.Seq((classOf[ActorSystem], system))
+            )
+            .recoverWith {
+              case _: ClassCastException =>
+                system.dynamicAccess
+                  .createInstanceFor[java.util.function.Supplier[CompletionStage[Boolean]]](fqcn,
+                    immutable.Seq((classOf[ActorSystem], system)))
+                  .map(sup => () => sup.get().toScala)
           }
       )
       .map {
         case Success(c) => c
         case Failure(_: NoSuchMethodException) =>
           throw new InvalidHealthCheckException(
-            s"Health checks: [${checks.mkString(",")}] must have a single argument constructor that takes an ExtendedActorSystem"
+            s"Health checks: [${checks.mkString(",")}] must have a single argument constructor that takes an ActorSystem"
           )
         case Failure(_: ClassCastException) =>
           throw new InvalidHealthCheckException(

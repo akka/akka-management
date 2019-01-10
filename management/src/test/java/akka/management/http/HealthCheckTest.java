@@ -1,25 +1,34 @@
+/*
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ */
+
 package akka.management.http;
 
 import akka.actor.ActorSystem;
 import akka.actor.ExtendedActorSystem;
 import akka.management.http.javadsl.HealthChecks;
 import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.scalatest.junit.JUnitSuite;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 
-public class HealthCheckTest {
+public class HealthCheckTest extends JUnitSuite {
     private static Throwable cause = new RuntimeException("oh dear");
+
 
     @SuppressWarnings("unused")
     public static class Ok implements Supplier<CompletionStage<Boolean>> {
-        public Ok(ExtendedActorSystem eas) {
+        public Ok(ActorSystem eas) {
         }
 
         @Override
@@ -30,7 +39,7 @@ public class HealthCheckTest {
 
     @SuppressWarnings("unused")
     public static class NotOk implements Supplier<CompletionStage<Boolean>> {
-        public NotOk(ExtendedActorSystem eas) {
+        public NotOk(ActorSystem eas) {
         }
 
         @Override
@@ -41,7 +50,7 @@ public class HealthCheckTest {
 
     @SuppressWarnings("unused")
     public static class Throws implements Supplier<CompletionStage<Boolean>> {
-        public Throws(ExtendedActorSystem eas) {
+        public Throws(ActorSystem eas) {
         }
 
         @Override
@@ -87,8 +96,12 @@ public class HealthCheckTest {
                 "ready",
                 "alive"
         ));
-        assertEquals(checks.alive().toCompletableFuture().exceptionally(t -> t).get(), cause);
-        assertEquals(checks.ready().toCompletableFuture().exceptionally(t -> t).get(), cause);
+        try {
+            checks.alive().toCompletableFuture().get();
+            Assert.fail("Expected exception");
+        } catch (ExecutionException re) {
+            assertEquals(re.getCause(), cause);
+        }
     }
 
     @AfterClass
