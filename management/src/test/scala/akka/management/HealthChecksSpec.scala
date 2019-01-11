@@ -161,7 +161,7 @@ class HealthChecksSpec
     }
     "return failure if check throws" in {
       val checks = im.Seq(
-        NaughtyCheck,
+        NaughtyCheck
       )
       val hc = HealthChecks(eas, settings(checks, checks))
       hc.ready().failed.futureValue.getMessage shouldEqual "bad"
@@ -170,7 +170,7 @@ class HealthChecksSpec
     "return failure if checks timeout" in {
       val checks = im.Seq(
         SlowCheck,
-        OkCheck,
+        OkCheck
       )
       val hc = HealthChecks(eas, settings(checks, checks))
       Await.result(hc.ready().failed, 1.second) shouldEqual CheckTimeoutException("Timeout after 500 milliseconds")
