@@ -85,7 +85,18 @@ class HealthChecksSpec
     TestKit.shutdownActorSystem(system)
   }
 
-  def settings(readiness: im.Seq[String], liveness: im.Seq[String]) =
+  val OkCheck = NamedHealthCheck("Ok", "akka.management.Ok")
+  val FalseCheck = NamedHealthCheck("False", "akka.management.False")
+  val ThrowsCheck = NamedHealthCheck("Throws", "akka.management.Throws")
+  val SlowCheck = NamedHealthCheck("Slow", "akka.management.Slow")
+  val NoArgsCtrCheck = NamedHealthCheck("NoArgsCtr", "akka.management.NoArgsCtr")
+  val NaughtyCheck = NamedHealthCheck("Naughty", "akka.management.Naughty")
+  val InvalidCtrCheck = NamedHealthCheck("InvalidCtr", "akka.management.InvalidCtr")
+  val WrongTypeCheck = NamedHealthCheck("WrongType", "akka.management.WrongType")
+  val DoesNotExist = NamedHealthCheck("DoesNotExist", "akka.management.DoesNotExist")
+  val CtrExceptionCheck = NamedHealthCheck("CtrExceptionCheck", "akka.management.CtrCheck")
+
+  def settings(readiness: im.Seq[NamedHealthCheck], liveness: im.Seq[NamedHealthCheck]) =
     new HealthCheckSettings(readiness, liveness, "ready", "alive", 500.millis)
 
   "HealthCheck" should {
@@ -98,8 +109,8 @@ class HealthChecksSpec
       val checks = HealthChecks(
         eas,
         settings(
-          im.Seq("akka.management.Ok"),
-          im.Seq("akka.management.Ok")
+          im.Seq(OkCheck),
+          im.Seq(OkCheck)
         )
       )
       checks.alive().futureValue shouldEqual true
@@ -109,8 +120,8 @@ class HealthChecksSpec
       val checks = HealthChecks(
         eas,
         settings(
-          im.Seq("akka.management.NoArgsCtr"),
-          im.Seq("akka.management.NoArgsCtr")
+          im.Seq(NoArgsCtrCheck),
+          im.Seq(NoArgsCtrCheck)
         )
       )
       checks.alive().futureValue shouldEqual true
@@ -120,8 +131,8 @@ class HealthChecksSpec
       val checks = HealthChecks(
         eas,
         settings(
-          im.Seq("akka.management.False"),
-          im.Seq("akka.management.False")
+          im.Seq(FalseCheck),
+          im.Seq(FalseCheck)
         )
       )
       checks.ready().futureValue shouldEqual false
@@ -131,8 +142,8 @@ class HealthChecksSpec
       val checks = HealthChecks(
         eas,
         settings(
-          im.Seq("akka.management.Throws"),
-          im.Seq("akka.management.Throws")
+          im.Seq(ThrowsCheck),
+          im.Seq(ThrowsCheck)
         )
       )
       checks.ready().failed.futureValue shouldEqual failedCause
@@ -140,9 +151,9 @@ class HealthChecksSpec
     }
     "return failure if any of the checks fail" in {
       val checks = im.Seq(
-        "akka.management.Ok",
-        "akka.management.Throws",
-        "akka.management.False"
+        OkCheck,
+        ThrowsCheck,
+        FalseCheck
       )
       val hc = HealthChecks(eas, settings(checks, checks))
       hc.ready().failed.futureValue shouldEqual failedCause
@@ -150,7 +161,7 @@ class HealthChecksSpec
     }
     "return failure if check throws" in {
       val checks = im.Seq(
-        "akka.management.Naughty",
+        NaughtyCheck,
       )
       val hc = HealthChecks(eas, settings(checks, checks))
       hc.ready().failed.futureValue.getMessage shouldEqual "bad"
@@ -158,8 +169,8 @@ class HealthChecksSpec
     }
     "return failure if checks timeout" in {
       val checks = im.Seq(
-        "akka.management.Slow",
-        "akka.management.Ok",
+        SlowCheck,
+        OkCheck,
       )
       val hc = HealthChecks(eas, settings(checks, checks))
       Await.result(hc.ready().failed, 1.second) shouldEqual CheckTimeoutException("Timeout after 500 milliseconds")
@@ -167,27 +178,27 @@ class HealthChecksSpec
     }
     "provide useful error if user's ctr is invalid" in {
       intercept[InvalidHealthCheckException] {
-        val checks = im.Seq("akka.management.InvalidCtr")
+        val checks = im.Seq(InvalidCtrCheck)
         HealthChecks(eas, settings(checks, checks))
       }.getMessage shouldEqual "Health checks: [akka.management.InvalidCtr] must have a no args constructor or a single argument constructor that takes an ActorSystem"
     }
     "provide useful error if invalid type" in {
       intercept[InvalidHealthCheckException] {
-        val checks = im.Seq("akka.management.WrongType")
+        val checks = im.Seq(WrongTypeCheck)
         HealthChecks(eas, settings(checks, checks))
       }.getMessage shouldEqual "Health checks: [akka.management.WrongType] must have type: () => Future[Boolean]"
     }
     "provide useful error if class not found" in {
       intercept[InvalidHealthCheckException] {
         val checks =
-          im.Seq("akka.management.DoesNotExist", "akka.management.Ok")
+          im.Seq(DoesNotExist, OkCheck)
         HealthChecks(eas, settings(checks, checks))
       }.getMessage shouldEqual "Health check: [akka.management.DoesNotExist] not found"
     }
     "provide useful error if class ctr throws" in {
       intercept[InvalidHealthCheckException] {
         val checks =
-          im.Seq("akka.management.Ok", "akka.management.CtrException")
+          im.Seq(OkCheck, CtrExceptionCheck)
         HealthChecks(eas, settings(checks, checks))
       }.getCause shouldEqual ctxException
     }

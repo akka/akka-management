@@ -11,11 +11,32 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.concurrent.duration.FiniteDuration
 
+final case class NamedHealthCheck(name: String, fullyQualifiedClassName: String)
+
+// TODO filter out blank strings
 object HealthCheckSettings {
   def apply(config: Config): HealthCheckSettings =
     new HealthCheckSettings(
-      config.getStringList("readiness-checks").asScala.toList,
-      config.getStringList("liveness-checks").asScala.toList,
+      config
+        .getConfig("readiness-checks")
+        .root
+        .unwrapped
+        .asScala
+        .map {
+          case (name, value) => NamedHealthCheck(name, value.toString)
+        }
+        .toList
+        .filter(_.fullyQualifiedClassName != ""),
+      config
+        .getConfig("liveness-checks")
+        .root
+        .unwrapped
+        .asScala
+        .map {
+          case (name, value) => NamedHealthCheck(name, value.toString)
+        }
+        .toList
+        .filter(_.fullyQualifiedClassName != ""),
       config.getString("readiness-path"),
       config.getString("liveness-path"),
       config.getDuration("check-timeout").asScala
@@ -29,8 +50,8 @@ object HealthCheckSettings {
   /**
    * Java API
    */
-  def create(readinessChecks: java.util.List[String],
-             livenessChecks: java.util.List[String],
+  def create(readinessChecks: java.util.List[NamedHealthCheck],
+             livenessChecks: java.util.List[NamedHealthCheck],
              readinessPath: String,
              livenessPath: String,
              checkDuration: java.time.Duration) =
@@ -50,8 +71,8 @@ object HealthCheckSettings {
  * @param livenessPath The path to serve liveness on
  * @param checkTimeout how long to wait for all health checks to complete
  */
-final class HealthCheckSettings(val readinessChecks: immutable.Seq[String],
-                                val livenessChecks: immutable.Seq[String],
+final class HealthCheckSettings(val readinessChecks: immutable.Seq[NamedHealthCheck],
+                                val livenessChecks: immutable.Seq[NamedHealthCheck],
                                 val readinessPath: String,
                                 val livenessPath: String,
                                 val checkTimeout: FiniteDuration) {
@@ -59,12 +80,12 @@ final class HealthCheckSettings(val readinessChecks: immutable.Seq[String],
   /**
    * Java API
    */
-  def getReadinessChecks(): java.util.List[String] = readinessChecks.asJava
+  def getReadinessChecks(): java.util.List[NamedHealthCheck] = readinessChecks.asJava
 
   /**
    * Java API
    */
-  def getLivenessChecks(): java.util.List[String] = livenessChecks.asJava
+  def getLivenessChecks(): java.util.List[NamedHealthCheck] = livenessChecks.asJava
 
   /**
    * Java API

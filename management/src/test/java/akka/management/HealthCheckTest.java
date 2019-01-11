@@ -59,7 +59,7 @@ public class HealthCheckTest extends JUnitSuite {
 
     @Test
     public void okReturnsTrue() throws Exception {
-        List<String> healthChecks = Collections.singletonList("akka.management.HealthCheckTest$Ok");
+        List<NamedHealthCheck> healthChecks = Collections.singletonList(new NamedHealthCheck("Ok", "akka.management.HealthCheckTest$Ok"));
         HealthChecks checks = new HealthChecks(eas, HealthCheckSettings.create(
                 healthChecks,
                 healthChecks,
@@ -73,7 +73,7 @@ public class HealthCheckTest extends JUnitSuite {
 
     @Test
     public void notOkayReturnsFalse() throws Exception {
-        List<String> healthChecks = Collections.singletonList("akka.management.HealthCheckTest$Ok");
+        List<NamedHealthCheck> healthChecks = Collections.singletonList(new NamedHealthCheck("Ok", "akka.management.HealthCheckTest$Ok"));
         HealthChecks checks = new HealthChecks(eas, HealthCheckSettings.create(
                 healthChecks,
                 healthChecks,
@@ -87,7 +87,8 @@ public class HealthCheckTest extends JUnitSuite {
 
     @Test
     public void throwsReturnsFailed() throws Exception {
-        List<String> healthChecks = Collections.singletonList("akka.management.HealthCheckTest$Throws");
+        List<NamedHealthCheck> healthChecks = Collections.singletonList(
+                new NamedHealthCheck("Throws", "akka.management.HealthCheckTest$Throws"));
         HealthChecks checks = new HealthChecks(eas, HealthCheckSettings.create(
                 healthChecks,
                 healthChecks,

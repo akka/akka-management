@@ -9,7 +9,7 @@ import java.util.concurrent.CompletionStage
 import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.annotation.InternalApi
 import akka.event.Logging
-import akka.management.{ HealthCheckSettings, InvalidHealthCheckException }
+import akka.management.{ HealthCheckSettings, InvalidHealthCheckException, NamedHealthCheck }
 import akka.management.scaladsl.HealthChecks
 
 import scala.collection.immutable
@@ -70,14 +70,14 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
   }
 
   private def load(
-      checks: immutable.Seq[String]
+      checks: immutable.Seq[NamedHealthCheck]
   ): immutable.Seq[HealthCheck] = {
     checks
       .map(
-        fqcn =>
-          tryLoadScalaHealthCheck(fqcn).recoverWith {
+        namedHealthCheck =>
+          tryLoadScalaHealthCheck(namedHealthCheck.fullyQualifiedClassName).recoverWith {
             case _: ClassCastException =>
-              tryLoadJavaHealthCheck(fqcn)
+              tryLoadJavaHealthCheck(namedHealthCheck.fullyQualifiedClassName)
         }
       )
       .map {
