@@ -16,7 +16,7 @@ good overview of how to use readiness and liveness probes.
 
 ## Defining a Health Check
 
-A health check must extend @scala[`Function0[Future[Boolean]]`]@java[`Supplier[CompletionStage[Boolean]]`] and have either no argument constructor or a constructor
+A health check must extend @scala[`Function0[Future[Boolean]]`]@java[`Supplier[CompletionStage[Boolean]]`] and have either a no argument constructor or a constructor
 with a single argument of type `ActorSystem.` A general type is used rather than a specific interface so that modules such as `akka-cluster` can 
 provide health checks without depending on Akka management.
 
@@ -46,15 +46,13 @@ Any of the above health checks can be configured as either readiness checks or l
 
 Health checks are picked up from configuration. Modules are expected to provide health checks e.g. [Cluster Http Management](cluster-http-management.md) provides a cluster readiness check.
 
-Application specific health checks can be added by appending the fully qualified class name to `akka.management.health-checks.readiness-checks` or `akka.management.health-checks.liveness-checks` e.g.
+Application specific health checks can be added a `name = <fully qualified class name>` to `akka.management.health-checks.readiness-checks` or `akka.management.health-checks.liveness-checks` e.g.
 
 @@snip [reference.conf](/cluster-http/src/main/resources/reference.conf)  { #health }
 
-Note the `+=` to add a health check to the list rather than overriding the existing property.
-
 ## Hosting health checks as an Akka Management Route
 
-Health checks can be hosted as via the Akka management HTTP server. To enable this add the `HealthCheckRoutes` as an Akka management route provider:
+Health checks can be hosted via the Akka management HTTP server. To enable this add the `HealthCheckRoutes` as an Akka management route provider:
 
 @@snip [application.conf](/bootstrap-demo/local/src/main/resources/application.conf)  { #health-route }
 
