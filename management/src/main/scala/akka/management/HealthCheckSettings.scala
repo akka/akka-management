@@ -13,7 +13,6 @@ import scala.concurrent.duration.FiniteDuration
 
 final case class NamedHealthCheck(name: String, fullyQualifiedClassName: String)
 
-// TODO filter out blank strings
 object HealthCheckSettings {
   def apply(config: Config): HealthCheckSettings =
     new HealthCheckSettings(
