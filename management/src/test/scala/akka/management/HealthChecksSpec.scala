@@ -69,7 +69,7 @@ class WrongType() {}
 
 class CtrException(system: ActorSystem) extends (() => Future[Boolean]) {
   override def apply(): Future[Boolean] = ???
-  throw ctxException
+  if (System.currentTimeMillis() != -1) throw ctxException // avoid compiler warnign
 }
 
 class HealthChecksSpec

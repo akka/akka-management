@@ -230,19 +230,19 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
       dynamicAccess.getObjectFor[ExtensionIdProvider](fqcn) recoverWith {
         case _ ⇒ dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, Nil)
       } recoverWith {
-        case _ ⇒
+        case _: ClassCastException | _: NoSuchMethodException ⇒
           dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
       } recoverWith {
-        case _ ⇒
+        case _: ClassCastException | _: NoSuchMethodException ⇒
           dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, Nil)
       } recoverWith {
-        case _ ⇒
+        case _: ClassCastException | _: NoSuchMethodException ⇒
           dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
       } recoverWith {
-        case _ ⇒
+        case _: ClassCastException | _: NoSuchMethodException ⇒
           dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn, Nil)
       } recoverWith {
-        case _ ⇒
+        case _: ClassCastException | _: NoSuchMethodException ⇒
           dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn,
             (classOf[ExtendedActorSystem], system) :: Nil)
       } match {
