@@ -17,7 +17,7 @@ import scala.concurrent.Future
  * Internal API
  */
 @InternalApi
-private[akka] object ClusterReadinessCheckSettings {
+private[akka] object ClusterMembershipCheckSettings {
   def memberStatus(status: String): MemberStatus =
     Helpers.toRootLowerCase(status) match {
       case "weaklyup" => MemberStatus.WeaklyUp
@@ -32,20 +32,20 @@ private[akka] object ClusterReadinessCheckSettings {
           s"'$invalid' is not a valid MemberStatus. See reference.conf for valid values"
         )
     }
-  def apply(config: Config): ClusterReadinessCheckSettings =
-    new ClusterReadinessCheckSettings(config.getStringList("ready-states").asScala.map(memberStatus).toSet)
+  def apply(config: Config): ClusterMembershipCheckSettings =
+    new ClusterMembershipCheckSettings(config.getStringList("ready-states").asScala.map(memberStatus).toSet)
 }
 
-final class ClusterReadinessCheckSettings(val readyStates: Set[MemberStatus])
+final class ClusterMembershipCheckSettings(val readyStates: Set[MemberStatus])
 
-final class ClusterReadinessCheck @InternalApi private[akka] (system: ActorSystem,
-                                                              selfStatus: () => MemberStatus,
-                                                              settings: ClusterReadinessCheckSettings)
+final class ClusterMembershipCheck @InternalApi private[akka] (system: ActorSystem,
+                                                               selfStatus: () => MemberStatus,
+                                                               settings: ClusterMembershipCheckSettings)
     extends (() => Future[Boolean]) {
 
   def this(system: ActorSystem) =
     this(system, () => Cluster(system).selfMember.status,
-      ClusterReadinessCheckSettings(system.settings.config.getConfig("akka.management.cluster.http.healthcheck")))
+      ClusterMembershipCheckSettings(system.settings.config.getConfig("akka.management.cluster.healthcheck")))
 
   override def apply(): Future[Boolean] = {
     Future.successful(settings.readyStates.contains(selfStatus()))

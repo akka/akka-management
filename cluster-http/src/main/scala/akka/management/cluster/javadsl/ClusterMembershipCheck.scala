@@ -6,13 +6,13 @@ package akka.management.cluster.javadsl
 
 import java.util.concurrent.CompletionStage
 
-import akka.management.cluster.scaladsl.{ ClusterReadinessCheck => ScalaClusterReadinessCheck }
+import akka.management.cluster.scaladsl.{ ClusterMembershipCheck => ScalaClusterReadinessCheck }
 
 import scala.compat.java8.FutureConverters._
 import akka.actor.ActorSystem
 import akka.dispatch.ExecutionContexts
 
-class ClusterReadinessCheck(system: ActorSystem)
+class ClusterMembershipCheck(system: ActorSystem)
     extends java.util.function.Supplier[CompletionStage[java.lang.Boolean]] {
 
   private val delegate = new ScalaClusterReadinessCheck(system)

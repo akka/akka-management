@@ -5,7 +5,7 @@
 package akka.management.http.javadsl;
 
 import akka.actor.ActorSystem;
-import akka.management.cluster.javadsl.ClusterReadinessCheck;
+import akka.management.cluster.javadsl.ClusterMembershipCheck;
 
 import java.util.concurrent.CompletionStage;
 
@@ -16,7 +16,7 @@ public class ClusterReadinessCheckTest {
 
    // test type works
    public static CompletionStage<Boolean> worksFromJava() throws Exception {
-      ClusterReadinessCheck check = new ClusterReadinessCheck(system);
+      ClusterMembershipCheck check = new ClusterMembershipCheck(system);
       return check.get();
    }
 }
