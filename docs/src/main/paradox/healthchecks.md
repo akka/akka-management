@@ -14,11 +14,12 @@ This matches [Kubernetes Health checks](https://kubernetes.io/docs/tasks/configu
 
 ## Defining a Health Check
 
-A health check is conceptually of the shape @scala[`ActorSystem => Future[Boolean]`]@java[`ActorSystem => CompletionStage<Boolean>`].
+A health check must extend @scala[`Function0[Future[Boolean]]`]@java[`Supplier[CompletionStage[Boolean]]`] and have either no argument constructor or a constructor
+with a single argument of type `ActorSystem.` A general type is used rather than a specific interface so that modules such as `akka-cluster` can 
+provide health checks without depending on Akka management.
+
 Having access to the `ActorSystem` allows loading of any external resource via an Akka extension e.g. `Cluster` or a database connection. Health checks
 return a @scala[`Future`]@java[`CompletionStage`] so that an asynchronous action can be taken.
-
-To allow health checks to contain state and to be instantiated from configuration they are defined as follows:
 
 Scala
 : @@snip [ExampleHealthCheck.scala](/management/src/test/scala/doc/akka/management/ExampleHealthCheck.scala)  { #basic}
@@ -26,9 +27,6 @@ Scala
 Java
 : @@snip [ExampleHealthCheck.java](/management/src/test/java/jdoc/akka/management/BasicHealthCheck.java)  { #basic}
 
-A health check must extend @scala[`Function0[Future[Boolean]]`]@java[`Supplier[CompletionStage[Boolean]]`] and have a constructor
-with a single argument of type `ActorSystem.` A general type is used rather than a specific interface so that modules such as `akka-cluster` can 
-provide health checks without depending on Akka management.
 
 Typically the `ActorSystem` is used to get a hold of any state needed to execute the check e.g.
 
