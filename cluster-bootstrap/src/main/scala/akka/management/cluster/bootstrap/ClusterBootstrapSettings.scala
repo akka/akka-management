@@ -145,11 +145,6 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
 
   object joinDecider {
     val implClass: String = bootConfig.getString("join-decider.class")
-
-    val selfDerivedHost: Option[String] = for {
-      domain <- config.optDefinedValue("akka.discovery.kubernetes-api.pod-domain")
-      namespace <- config.optDefinedValue("akka.discovery.kubernetes-api.pod-namespace")
-    } yield s"$namespace.pod.$domain"
   }
 
   /** Java API */

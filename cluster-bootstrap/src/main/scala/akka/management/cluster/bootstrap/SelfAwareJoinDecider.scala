@@ -26,42 +26,41 @@ import akka.event.Logging
   protected val log = Logging(system, getClass)
 
   /** Returns the current `selfContactPoints` as a String for logging, e.g. [127.0.0.1:64714]. */
-  protected def contactPointsString(contactPoints: Set[(String, Int)]): String =
-    contactPoints.map(_.productIterator.mkString(":")).mkString("[", ",", "]")
+  protected def contactPointString(contactPoint: (String, Int)): String =
+    contactPoint.productIterator.mkString(":")
 
   /**
    * The value `ClusterBootstrap(system).selfContactPoints` is set prior to HTTP binding,
    * during [[akka.management.scaladsl.AkkaManagement.start()]], hence we accept blocking on
    * this initialization.
    */
-  private[bootstrap] def selfContactPoints: Set[(String, Int)] =
-    Try(Await.result(ClusterBootstrap(system).selfContactPoints, 10.seconds))
-      .getOrElse(throw new IllegalStateException(
-            "'Bootstrap.selfContactPoint' was NOT set, but is required for the bootstrap to work " +
-            "if binding bootstrap routes manually and not via akka-management."))
+  private[bootstrap] def selfContactPoint: (String, Int) =
+    Try(Await.result(ClusterBootstrap(system).selfContactPoint, 10.seconds)).getOrElse(throw new IllegalStateException(
+          "'Bootstrap.selfContactPoint' was NOT set, but is required for the bootstrap to work " +
+          "if binding bootstrap routes manually and not via akka-management."))
 
   /**
    * Determines whether it has the need and ability to join self and create a new cluster.
    */
   private[bootstrap] def canJoinSelf(target: ResolvedTarget, info: SeedNodesInformation): Boolean = {
-    val self = selfContactPoints
+    val self = selfContactPoint
     if (matchesSelf(target, self)) true
     else {
       if (!info.contactPoints.exists(matchesSelf(_, self))) {
-        log.warning("Self contact point [{}] not found in targets {}", contactPointsString(selfContactPoints),
+        log.warning("Self contact point [{}] not found in targets {}", contactPointString(selfContactPoint),
           info.contactPoints.mkString(", "))
       }
       false
     }
   }
 
-  private[bootstrap] def matchesSelf(target: ResolvedTarget, contactPoints: Set[(String, Int)]): Boolean =
+  private[bootstrap] def matchesSelf(target: ResolvedTarget, contactPoint: (String, Int)): Boolean = {
+    val (host, port) = contactPoint
     target.port match {
-      case None =>
-        contactPoints.exists { case (host, _) => hostMatches(host, target) }
-      case Some(lowestPort) =>
-        contactPoints.exists { case (host, port) => hostMatches(host, target) && port == lowestPort }
+      case None => hostMatches(host, target)
+      case Some(lowestPort) => hostMatches(host, target) && port == lowestPort
     }
+  }
 
   /**
    * Checks for both host name and IP address for discovery mechanisms that return both.
