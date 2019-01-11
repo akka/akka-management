@@ -82,6 +82,8 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
 
   private val httpsContext = http.createClientHttpsContext(httpsConfig)
 
+  log.debug("Settings {}", settings)
+
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     val labelSelector = settings.podLabelSelector(query.serviceName)
 
