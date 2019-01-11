@@ -17,6 +17,32 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
 
   val appLabelQuery: String =
     marathonApi.getString("app-label-query")
+
+  private val authentication = marathonApi.getConfig("authentication")
+
+  val authType: String =
+    authentication.getString("type")
+
+  val authLoginUrl: String =
+    authentication.getString("login-url")
+
+  val authUsername: String =
+    authentication.getString("username")
+
+  val authPassword: String =
+    authentication.getString("password")
+
+  val authServiceAccountId: String =
+    authentication.getString("service-account-id")
+
+  val authPrivateKey: String =
+    authentication.getString("private-key")
+
+  val authAlgorithm: String =
+    authentication.getString("algorithm")
+
+  val authExpiry: Int =
+    authentication.getInt("expiry")
 }
 
 object Settings extends ExtensionId[Settings] with ExtensionIdProvider {

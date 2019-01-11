@@ -81,6 +81,10 @@ object Dependencies {
       "software.amazon.awssdk" % "ecs" % "2.0.0-preview-9"
     ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
+    val Jwt = Seq(
+      "com.pauldijou" %% "jwt-core" % "1.0.0"
+    )
+
     // For demos
     val Logging = Seq(
       "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
@@ -106,9 +110,10 @@ object Dependencies {
 
   val DiscoveryMarathonApi = Seq(
     libraryDependencies ++=
-       DependencyGroups.AkkaActor ++
-       DependencyGroups.AkkaDiscovery ++
-       DependencyGroups.AkkaHttp
+      DependencyGroups.AkkaActor ++
+      DependencyGroups.AkkaDiscovery ++
+      DependencyGroups.AkkaHttp ++
+      DependencyGroups.Jwt
   )
 
   val DiscoveryAwsApi = Seq(
