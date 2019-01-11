@@ -111,7 +111,7 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
   }
 
   private def runCheck(check: HealthCheck): Future[Boolean] = {
-    Future.fromTry(Try(check())).flatten
+    Future.fromTry(Try(check())).flatMap(identity)
   }
 
   private def check(checks: immutable.Seq[HealthCheck]): Future[Boolean] = {
