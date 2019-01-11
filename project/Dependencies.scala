@@ -157,7 +157,8 @@ object Dependencies {
 
   val BootstrapDemos = Seq(
     libraryDependencies ++= DependencyGroups.Logging ++
-      DependencyGroups.AkkaDiscovery
+      DependencyGroups.AkkaDiscovery ++
+      DependencyGroups.AkkaTesting
   )
 
 }

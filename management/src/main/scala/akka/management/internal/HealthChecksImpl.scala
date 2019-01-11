@@ -30,8 +30,8 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
 
   private val log = Logging(system, classOf[HealthChecksImpl])
 
-  log.debug("Loading readiness checks {}", settings.readinessChecks)
-  log.debug("Loading liveness checks {}", settings.livenessChecks)
+  log.info("Loading readiness checks {}", settings.readinessChecks)
+  log.info("Loading liveness checks {}", settings.livenessChecks)
 
   private val readiness: immutable.Seq[HealthCheck] = load(
     settings.readinessChecks
