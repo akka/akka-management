@@ -15,7 +15,7 @@ import scala.concurrent.Future
 
 class HealthCheckRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest {
 
-  val aes = system.asInstanceOf[ExtendedActorSystem]
+  private val aes = system.asInstanceOf[ExtendedActorSystem]
 
   private def testRoute(
       readyResult: Future[Boolean] = Future.successful(true),
@@ -26,7 +26,7 @@ class HealthCheckRoutesSpec extends WordSpec with Matchers with ScalatestRouteTe
         override def ready(): Future[Boolean] = readyResult
         override def alive(): Future[Boolean] = aliveResult
       }
-    }.routes(ManagementRouteProviderSettingsImpl(Uri("http://whocares")))
+    }.routes(ManagementRouteProviderSettingsImpl(Uri("http://whocares"), None, None, None))
   }
 
   tests("/ready", result => testRoute(readyResult = result))

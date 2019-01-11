@@ -23,9 +23,8 @@ trait ManagementRouteProvider extends Extension {
 @InternalApi private[akka] final class ManagementRouteProviderAdapter(delegate: javadsl.ManagementRouteProvider)
     extends ManagementRouteProvider {
   override def routes(settings: ManagementRouteProviderSettings): Route = {
-    val javadslSettings =
-      javadsl.ManagementRouteProviderSettingsImpl(akka.http.javadsl.model.Uri.create(settings.selfBaseUri))
-    delegate.routes(javadslSettings).asScala
+    val settingsImpl = settings.asInstanceOf[ManagementRouteProviderSettingsImpl]
+    delegate.routes(settingsImpl.asJava).asScala
   }
 
 }

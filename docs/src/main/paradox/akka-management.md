@@ -115,10 +115,11 @@ Scala
 Java
 :  @@snip[CodeExamples.java](/management/src/test/java/akka/management/CodeExamples.java){ #basic-auth }
 
-@@@ note
-  You can combine the two security options in order to enable HTTPS as well as basic authentication.
-  In order to do this, invoke both `setAsyncAuthenticator` as well as `setHttpsContext` *before* calling `start()`.
-@@@
+
+You can combine the two security options in order to enable HTTPS as well as basic authentication.
+In order to do this, invoke `start(transformSettings)` where `transformSettings` is a function
+to amend the `ManagementRouteProviderSettings`. Use `.withAuth` and `.withHttpsConnectionContext`
+if the `ManagementRouteProviderSettings` to enable authentication and HTTPS respectively.
 
 ## Stopping Akka Management
 

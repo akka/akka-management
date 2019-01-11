@@ -15,7 +15,9 @@ import akka.management.scaladsl.HealthChecks
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
-import scala.util.{ Failure, Success }
+import scala.util.{ Failure, Success, Try }
+
+final case class CheckTimeoutException(msg: String) extends RuntimeException(msg)
 
 /**
  * INTERNAL API
@@ -28,12 +30,44 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
 
   private val log = Logging(system, classOf[HealthChecksImpl])
 
-  log.info("Loading readiness checks {}", settings.readinessChecks)
-  log.info("Loading liveness checks {}", settings.livenessChecks)
+  log.debug("Loading readiness checks {}", settings.readinessChecks)
+  log.debug("Loading liveness checks {}", settings.livenessChecks)
 
-  private val readiness: immutable.Seq[HealthCheck] = load(settings.readinessChecks)
+  private val readiness: immutable.Seq[HealthCheck] = load(
+    settings.readinessChecks
+  )
 
-  private val liveness: immutable.Seq[HealthCheck] = load(settings.livenessChecks)
+  private val liveness: immutable.Seq[HealthCheck] = load(
+    settings.livenessChecks
+  )
+
+  private def tryLoadScalaHealthCheck(fqcn: String): Try[HealthCheck] = {
+    system.dynamicAccess
+      .createInstanceFor[HealthCheck](
+        fqcn,
+        immutable.Seq((classOf[ActorSystem], system))
+      )
+      .recoverWith {
+        case _: NoSuchMethodException =>
+          system.dynamicAccess.createInstanceFor[HealthCheck](fqcn, Nil)
+
+      }
+  }
+
+  private def tryLoadJavaHealthCheck(fqcn: String): Try[HealthCheck] = {
+    system.dynamicAccess
+      .createInstanceFor[java.util.function.Supplier[CompletionStage[Boolean]]](
+        fqcn,
+        immutable.Seq((classOf[ActorSystem], system))
+      )
+      .recoverWith {
+        case _: NoSuchMethodException =>
+          system.dynamicAccess.createInstanceFor[java.util.function.Supplier[CompletionStage[
+            Boolean
+          ]]](fqcn, Nil)
+      }
+      .map(sup => () => sup.get().toScala)
+  }
 
   private def load(
       checks: immutable.Seq[String]
@@ -41,24 +75,16 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
     checks
       .map(
         fqcn =>
-          system.dynamicAccess
-            .createInstanceFor[HealthCheck](
-              fqcn,
-              immutable.Seq((classOf[ActorSystem], system))
-            )
-            .recoverWith {
-              case _: ClassCastException =>
-                system.dynamicAccess
-                  .createInstanceFor[java.util.function.Supplier[CompletionStage[Boolean]]](fqcn,
-                    immutable.Seq((classOf[ActorSystem], system)))
-                  .map(sup => () => sup.get().toScala)
-          }
+          tryLoadScalaHealthCheck(fqcn).recoverWith {
+            case _: ClassCastException =>
+              tryLoadJavaHealthCheck(fqcn)
+        }
       )
       .map {
         case Success(c) => c
         case Failure(_: NoSuchMethodException) =>
           throw new InvalidHealthCheckException(
-            s"Health checks: [${checks.mkString(",")}] must have a single argument constructor that takes an ActorSystem"
+            s"Health checks: [${checks.mkString(",")}] must have a no args constructor or a single argument constructor that takes an ActorSystem"
           )
         case Failure(_: ClassCastException) =>
           throw new InvalidHealthCheckException(
@@ -84,7 +110,21 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
     check(liveness)
   }
 
+  private def runCheck(check: HealthCheck): Future[Boolean] = {
+    Future.fromTry(Try(check())).flatten
+  }
+
   private def check(checks: immutable.Seq[HealthCheck]): Future[Boolean] = {
-    Future.traverse(checks)(check => check()).map(_.forall(identity))
+    val timeout = akka.pattern.after(settings.checkTimeout, system.scheduler)(
+      Future.failed(
+        CheckTimeoutException(s"Timeout after ${settings.checkTimeout}")
+      )
+    )
+    Future.firstCompletedOf(
+      Seq(
+        Future.traverse(checks)(runCheck).map(_.forall(identity)),
+        timeout
+      )
+    )
   }
 }
