@@ -28,11 +28,7 @@ private[akka] object ClusterHealthCheckRoutes {
         () => cluster.selfMember.status).routes
   }
 
-  /**
-   * INTERNAL API
-   */
-  @InternalApi
-  private[akka] def memberStatus(status: String): MemberStatus = Helpers.toRootLowerCase(status) match {
+  def memberStatus(status: String): MemberStatus = Helpers.toRootLowerCase(status) match {
     case "weaklyup" => MemberStatus.WeaklyUp
     case "up" => MemberStatus.Up
     case "exiting" => MemberStatus.Exiting
@@ -45,7 +41,7 @@ private[akka] object ClusterHealthCheckRoutes {
           s"'$invalid' is not a valid MemberStatus. See reference.conf for valid values")
   }
 
-  private[akka] class ClusterHealthCheckSettings(config: Config) {
+  class ClusterHealthCheckSettings(config: Config) {
     val readyStates: Set[MemberStatus] = config.getStringList("ready-states").asScala.map(memberStatus).toSet
   }
 }

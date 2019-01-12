@@ -6,7 +6,8 @@ package akka.management.cluster
 import akka.actor.ExtendedActorSystem
 import akka.cluster.Cluster
 import akka.http.scaladsl.server.Route
-import akka.management.http.{ ManagementRouteProvider, ManagementRouteProviderSettings }
+import akka.management.scaladsl.ManagementRouteProviderSettings
+import akka.management.scaladsl.ManagementRouteProvider
 
 final class ClusterHealthCheck(system: ExtendedActorSystem) extends ManagementRouteProvider {
 

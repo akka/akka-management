@@ -4,6 +4,8 @@
 
 package akka.management.cluster.bootstrap.contactpoint
 
+import java.net.InetAddress
+
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
@@ -18,7 +20,6 @@ import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalactic.Tolerance
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ Matchers, WordSpecLike }
-
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -119,11 +120,13 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
                 List(
                   ResolvedTarget(
                     host = clusterA.selfAddress.host.get,
-                    port = contactPointPorts.get("A")
+                    port = contactPointPorts.get("A"),
+                    address = Option(InetAddress.getByName(clusterA.selfAddress.host.get))
                   ),
                   ResolvedTarget(
                     host = clusterB.selfAddress.host.get,
-                    port = contactPointPorts.get("B")
+                    port = contactPointPorts.get("B"),
+                    address = Option(InetAddress.getByName(clusterB.selfAddress.host.get))
                   )
                 )))
 

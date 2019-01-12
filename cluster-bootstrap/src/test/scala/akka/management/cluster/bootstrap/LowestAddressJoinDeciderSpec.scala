@@ -202,13 +202,13 @@ class SelfAwareJoinDeciderSpec extends JoinDeciderSpec {
 
   "SelfAwareJoinDecider" should {
 
-    "return true if a target matches selfContactPoints" in {
+    "return true if a target matches selfContactPoint" in {
       ClusterBootstrap(system).setSelfContactPoint(s"http://10.0.0.2:$managementPort/test")
       val decider = new LowestAddressJoinDecider(system, settings)
-      val selfContactPoints = decider.selfContactPoints
+      val selfContactPoint = decider.selfContactPoint
       val info = seedNodes
       val target = info.seedNodesObservations.toList.map(_.contactPoint).sorted.headOption
-      target.exists(decider.matchesSelf(_, selfContactPoints)) should ===(true)
+      target.exists(decider.matchesSelf(_, selfContactPoint)) should ===(true)
     }
 
     "be able to join self if all conditions met" in {

@@ -41,7 +41,7 @@ the bootstrap joining process and other purposes.
 
 You can configure hostname and port to use for the HTTP Cluster management by overriding the following:
 
-@@snip[application.conf](/management/src/test/scala/akka/management/http/AkkaManagementHttpEndpointSpec.scala){ #management-host-port }
+@@snip[application.conf](/management/src/test/scala/akka/management/AkkaManagementHttpEndpointSpec.scala){ #management-host-port }
 
 Note that the default value for hostname is `InetAddress.getLocalHost.getHostAddress`, which may or may not evaluate to
 `127.0.0.1`.
@@ -97,12 +97,12 @@ To enable SSL you need to provide an `SSLContext`. You can find more information
 @extref[Server HTTPS Support](akka-http-docs:/server-side/server-https-support).
 
 Scala
-:   @@snip[AkkaManagementHttpEndpointSpec.scala](/management/src/test/scala/akka/management/http/AkkaManagementHttpEndpointSpec.scala){ #start-akka-management-with-https-context }
+:   @@snip[AkkaManagementHttpEndpointSpec.scala](/management/src/test/scala/akka/management/AkkaManagementHttpEndpointSpec.scala){ #start-akka-management-with-https-context }
 
 Java
-:   @@snip[CodeExamples.java](/management/src/test/java/akka/management/http/CodeExamples.java){ #start-akka-management-with-https-context }
+:   @@snip[CodeExamples.java](/management/src/test/java/akka/management/CodeExamples.java){ #start-akka-management-with-https-context }
 
-You can also refer to [AkkaManagementHttpEndpointSpec](https://github.com/akka/akka-management/blob/119ad1871c3907c2ca528720361b8ccb20234c55/management/src/test/scala/akka/management/http/AkkaManagementHttpEndpointSpec.scala#L124-L148) where a full example configuring the HTTPS context is shown.
+You can also refer to [AkkaManagementHttpEndpointSpec](https://github.com/akka/akka-management/blob/119ad1871c3907c2ca528720361b8ccb20234c55/management/src/test/scala/akka/management/AkkaManagementHttpEndpointSpec.scala#L124-L148) where a full example configuring the HTTPS context is shown.
 
 ### Enabling Basic Authentication
 
@@ -110,29 +110,30 @@ To enable Basic Authentication you need to provide an authenticator object befor
 You can find more information in @extref:[Authenticate Basic Async directive](akka-http-docs:scala/http/routing-dsl/directives/security-directives/authenticateBasicAsync)
 
 Scala
-:  @@snip[CompileOnly.scala](/management/src/test/scala/akka/management/http/CompileOnly.scala){ #basic-auth }
+:  @@snip[CompileOnly.scala](/management/src/test/scala/akka/management/CompileOnly.scala){ #basic-auth }
 
 Java
-:  @@snip[CodeExamples.java](/management/src/test/java/akka/management/http/CodeExamples.java){ #basic-auth }
+:  @@snip[CodeExamples.java](/management/src/test/java/akka/management/CodeExamples.java){ #basic-auth }
 
-@@@ note
-  You can combine the two security options in order to enable HTTPS as well as basic authentication.
-  In order to do this, invoke both `setAsyncAuthenticator` as well as `setHttpsContext` *before* calling `start()`.
-@@@
+
+You can combine the two security options in order to enable HTTPS as well as basic authentication.
+In order to do this, invoke `start(transformSettings)` where `transformSettings` is a function
+to amend the `ManagementRouteProviderSettings`. Use `.withAuth` and `.withHttpsConnectionContext`
+if the `ManagementRouteProviderSettings` to enable authentication and HTTPS respectively.
 
 ## Stopping Akka Management
 
 In a dynamic environment you might stop instances of Akka Management, for example if you want to free up resources
 taken by the HTTP server serving the Management routes.
 
-You can do so by calling `stop()` on @scaladoc[AkkaManagement](akka.management.http.AkkaManagement).
+You can do so by calling `stop()` on @scaladoc[AkkaManagement](akka.management.scaladsl.AkkaManagement).
 This method return a `Future[Done]` to inform when the server has been stopped.
 
 Scala
-:  @@snip[CompileOnly.java](/management/src/test/scala/akka/management/http/CompileOnly.scala) { #stopping }
+:  @@snip[CompileOnly.java](/management/src/test/scala/akka/management/CompileOnly.scala) { #stopping }
 
 Java
-:  @@snip[CodeExamples.java](/management/src/test/scala/akka/management/http/CompileOnly.scala) { #stopping }
+:  @@snip[CodeExamples.java](/management/src/test/scala/akka/management/CompileOnly.scala) { #stopping }
 
 ## Developing Extensions
 

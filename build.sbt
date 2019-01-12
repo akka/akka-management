@@ -7,6 +7,8 @@ lazy val `akka-management-root` = project
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .aggregate(
+    // When this aggregate is updated the list of modules in ManifestInfo.checkSameVersion
+    // in AkkaManagement should also be updated
     `akka-discovery-aws-api`,
     `akka-discovery-aws-api-async`,
     `akka-discovery-consul`,

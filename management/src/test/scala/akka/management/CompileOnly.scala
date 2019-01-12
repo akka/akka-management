@@ -2,13 +2,13 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.http
+package akka.management
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.server.directives.Credentials
-import akka.management.AkkaManagement
-
 import scala.concurrent.Future
+
+import akka.management.scaladsl.AkkaManagement
 
 object CompileOnly {
   val system: ActorSystem = null
@@ -26,8 +26,7 @@ object CompileOnly {
     }
   // ...
   val management = AkkaManagement(system)
-  management.setAsyncAuthenticator(myUserPassAuthenticator)
-  management.start()
+  management.start(_.withAuth(myUserPassAuthenticator))
   //#basic-auth
 
   object stopping {

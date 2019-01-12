@@ -22,12 +22,12 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
   private def routeGetMembers(cluster: Cluster): Route =
     get {
       complete {
-        val readView = ClusterReadViewAccess.internalReacView(cluster)
+        val readView = ClusterReadViewAccess.internalReadView(cluster)
         val members = readView.state.members.map(memberToClusterMember)
 
-        val unreachable = readView.reachability.observersGroupedByUnreachable.toSeq.sortBy(_._1).map {
+        val unreachable = readView.reachability.observersGroupedByUnreachable.toVector.sortBy(_._1).map {
           case (subject, observers) ⇒
-            ClusterUnreachableMember(s"${subject.address}", observers.toSeq.sorted.map(m ⇒ s"${m.address}"))
+            ClusterUnreachableMember(s"${subject.address}", observers.toVector.sorted.map(m ⇒ s"${m.address}"))
         }
 
         val thisDcMembers =
@@ -85,7 +85,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
     }
 
   private def findMember(cluster: Cluster, memberAddress: String): Option[Member] = {
-    val readView = ClusterReadViewAccess.internalReacView(cluster)
+    val readView = ClusterReadViewAccess.internalReadView(cluster)
     readView.members.find(
         m ⇒ s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress)
   }
@@ -111,7 +111,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
               .ask(ShardRegion.GetShardRegionStats)
               .mapTo[ShardRegion.ShardRegionStats]
               .map { shardRegionStats =>
-                ShardDetails(shardRegionStats.stats.map(s => ShardRegionInfo(s._1, s._2)).toSeq)
+                ShardDetails(shardRegionStats.stats.map(s => ShardRegionInfo(s._1, s._2)).toVector)
               }
           } catch {
             case _: AskTimeoutException =>
