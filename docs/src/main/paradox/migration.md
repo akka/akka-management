@@ -4,8 +4,8 @@
 
 Version requirements:
 
-* Akka 2.5.19
-* Akka HTTP 10.1.7
+* Akka 2.5.19 or later
+* Akka HTTP 10.1.7 or later
 
 ### Source changes
 
