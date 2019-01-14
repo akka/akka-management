@@ -2,6 +2,25 @@
 
 ## 1.0 
 
+Version requirements:
+
+* Akka 2.5.19
+* Akka HTTP 10.1.7
+
+### Source changes
+
+* AkkaManagement moved to package `akka.management.scaladsl.AkkaManagement`, if using from Java use `akka.management.javadsl.AkkaManagement`
+* If implementing custom ManagementRouteProvider the package changed to `akka.management.scaladsl.ManagementRouteProvider`/`akka.management.javadsl.ManagementRouteProvider`
+* `AkkaManagement.start` and `AkkaManagement.routes` may throw IllegalArgumentException instead of returning Try
+* Auth and HTTPS has changed by using overloaded methods of `AkkaManagement.start` and `AkkaManagement.routes`, see the @ref[docs for more details](akka-management.md#enabling-basic-authentication)
+
+### Configuration changes
+
+* `akka.mananagement.cluster.http.healthcheck.ready-states` moved to `akka.mananagement.cluster.healthcheck.ready-states`
+* `akka.management.cluster.bootstrap.form-new-cluster` renamed to `akka.management.cluster.bootstrap.new-cluster-enabled`
+
+### Akka Discovery
+
 For Akka Management version 1.0 Service Discovery as well as the config, DNS and aggregate discovery methods 
 were made core Akka module. The following steps are required when upgrading to 1.0 of Akka Management.
 
@@ -48,7 +67,7 @@ to support SRV records.
 Kubernetes service discovery now automatically picks up the namespace at runtime. If previously hard coded or an environment variable used this can be removed
 from configuration and the deployment.
 
-Unless used for something other than service discovery / bootstrap the following can be removed from your application.conf
+Unless used for something other than service discovery / bootstrap the following can be removed from your deployment 
 
 ```
 - name: NAMESPACE	
