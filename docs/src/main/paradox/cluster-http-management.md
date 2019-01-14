@@ -169,9 +169,8 @@ Java
 
 ## Health checks
 
-Two health checks are included in Cluster HTTP:
+A cluster membership @ref:[health check](healthchecks.md) is included that is designed to be used as a readiness check.
 
-* `/ready` - indicated that user traffic should be routed to the node. By defailt returns `200` when a node is either `Up` or `WeaklyUp`. Can be configured with `akka.management.cluster.http.heathcheck.ready-states`.
-* `/alive` - always returns 200. Can be used to check the process is running and responsive.
+By default the health check returns `true` when a node is either `Up` or `WeaklyUp`. Can be configured with `akka.management.cluster.heath-checks.ready-states`.
 
 
