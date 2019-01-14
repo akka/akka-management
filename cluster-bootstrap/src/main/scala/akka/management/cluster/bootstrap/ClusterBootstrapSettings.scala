@@ -149,9 +149,6 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
 
   /** Java API */
   def getJoinDeciderImplClass: String = joinDecider.implClass
-
-  /** Java API */
-  def getJoinDeciderSelfDerivedHost: Optional[String] = joinDecider.selfDerivedHost.asJava
 }
 
 object ClusterBootstrapSettings {

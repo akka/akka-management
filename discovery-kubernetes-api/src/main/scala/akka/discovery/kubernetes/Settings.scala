@@ -57,6 +57,10 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
 
   val podPortName: String =
     kubernetesApi.getString("pod-port-name")
+
+  override def toString =
+    s"Settings($apiCaPath, $apiTokenPath, $apiServiceHostEnvName, $apiServicePortEnvName, " +
+    s"$podNamespacePath, $podNamespace, $podDomain, $podPortName)"
 }
 
 object Settings extends ExtensionId[Settings] with ExtensionIdProvider {
