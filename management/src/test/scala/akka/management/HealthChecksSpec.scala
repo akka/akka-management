@@ -98,7 +98,7 @@ class HealthChecksSpec
   val InvalidCtrCheck = NamedHealthCheck("InvalidCtr", "akka.management.InvalidCtr")
   val WrongTypeCheck = NamedHealthCheck("WrongType", "akka.management.WrongType")
   val DoesNotExist = NamedHealthCheck("DoesNotExist", "akka.management.DoesNotExist")
-  val CtrExceptionCheck = NamedHealthCheck("CtrExceptionCheck", "akka.management.CtrCheck")
+  val CtrExceptionCheck = NamedHealthCheck("CtrExceptionCheck", "akka.management.CtrException")
 
   def settings(readiness: im.Seq[NamedHealthCheck], liveness: im.Seq[NamedHealthCheck]) =
     new HealthCheckSettings(readiness, liveness, "ready", "alive", 500.millis)
@@ -184,13 +184,13 @@ class HealthChecksSpec
       intercept[InvalidHealthCheckException] {
         val checks = im.Seq(InvalidCtrCheck)
         HealthChecks(eas, settings(checks, checks))
-      }.getMessage shouldEqual "Health checks: [akka.management.InvalidCtr] must have a no args constructor or a single argument constructor that takes an ActorSystem"
+      }.getMessage shouldEqual "Health checks: [NamedHealthCheck(InvalidCtr,akka.management.InvalidCtr)] must have a no args constructor or a single argument constructor that takes an ActorSystem"
     }
     "provide useful error if invalid type" in {
       intercept[InvalidHealthCheckException] {
         val checks = im.Seq(WrongTypeCheck)
         HealthChecks(eas, settings(checks, checks))
-      }.getMessage shouldEqual "Health checks: [akka.management.WrongType] must have type: () => Future[Boolean]"
+      }.getMessage shouldEqual "Health checks: [NamedHealthCheck(WrongType,akka.management.WrongType)] must have type: () => Future[Boolean]"
     }
     "provide useful error if class not found" in {
       intercept[InvalidHealthCheckException] {
