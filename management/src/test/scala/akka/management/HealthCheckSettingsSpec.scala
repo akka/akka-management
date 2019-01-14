@@ -1,0 +1,34 @@
+/*
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ */
+
+package akka.management
+import com.typesafe.config.ConfigFactory
+import org.scalatest.{ Matchers, WordSpec }
+
+class HealthCheckSettingsSpec extends WordSpec with Matchers {
+
+  "Health Check Settings" should {
+    "filter out blank fqcn" in {
+      HealthCheckSettings(ConfigFactory.parseString("""
+         readiness-checks {
+          cluster-membership = ""
+         }
+         liveness-checks {}
+         readiness-path = ""
+         liveness-path = ""
+         check-timeout = 1s
+        """)).readinessChecks shouldEqual Nil
+      HealthCheckSettings(ConfigFactory.parseString("""
+         liveness-checks {
+          cluster-membership = ""
+         }
+         readiness-checks {}
+         readiness-path = ""
+         liveness-path = ""
+         check-timeout = 1s
+        """)).readinessChecks shouldEqual Nil
+    }
+  }
+
+}

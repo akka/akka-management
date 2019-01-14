@@ -4,7 +4,6 @@
 
 package akka.discovery.kubernetes
 
-import java.io.File
 import java.net.InetAddress
 import java.nio.file.{ Files, Paths }
 
@@ -15,7 +14,6 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.FileIO
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 import com.typesafe.sslconfig.ssl.TrustStoreConfig
 
@@ -83,6 +81,8 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
         s => s.withTrustManagerConfig(s.trustManagerConfig.withTrustStoreConfigs(Seq(httpsTrustStoreConfig))))
 
   private val httpsContext = http.createClientHttpsContext(httpsConfig)
+
+  log.debug("Settings {}", settings)
 
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     val labelSelector = settings.podLabelSelector(query.serviceName)

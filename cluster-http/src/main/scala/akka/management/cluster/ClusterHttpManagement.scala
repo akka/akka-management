@@ -7,7 +7,8 @@ package akka.management.cluster
 import akka.actor.{ ActorSystem, ExtendedActorSystem, ExtensionId, ExtensionIdProvider }
 import akka.cluster.Cluster
 import akka.http.scaladsl.server.Route
-import akka.management.http.{ ManagementRouteProvider, ManagementRouteProviderSettings }
+import akka.management.scaladsl.ManagementRouteProviderSettings
+import akka.management.scaladsl.ManagementRouteProvider
 
 object ClusterHttpManagement extends ExtensionId[ClusterHttpManagement] with ExtensionIdProvider {
   override def lookup: ClusterHttpManagement.type = ClusterHttpManagement
@@ -26,7 +27,7 @@ final class ClusterHttpManagement(system: ExtendedActorSystem) extends Managemen
 
   private val cluster = Cluster(system)
 
-  val settings = new ClusterHttpManagementSettings(system.settings.config)
+  val settings: ClusterHttpManagementSettings = new ClusterHttpManagementSettings(system.settings.config)
 
   /** Routes to be exposed by Akka cluster management */
   override def routes(routeProviderSettings: ManagementRouteProviderSettings): Route =

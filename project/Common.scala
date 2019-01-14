@@ -22,7 +22,7 @@ object Common extends AutoPlugin {
     licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>")),
 
-    crossScalaVersions := Seq("2.11.12", "2.12.7"),
+    crossScalaVersions := Seq("2.11.12", "2.12.8"),
 
     crossVersion := CrossVersion.binary,
 
@@ -54,7 +54,7 @@ object Common extends AutoPlugin {
     formatSbtFiles := false,
     scalafmtConfig := Some(baseDirectory.in(ThisBuild).value / ".scalafmt.conf"),
 
-    scalaVersion := "2.12.6",
+    scalaVersion := "2.12.8",
     ivyScala := ivyScala.value.map(_.copy(overrideScalaVersion = sbtPlugin.value)) // TODO Remove once this workaround no longer needed (https://github.com/sbt/sbt/issues/2786)!
   )
 }

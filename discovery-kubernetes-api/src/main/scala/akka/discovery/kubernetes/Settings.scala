@@ -4,8 +4,11 @@
 
 package akka.discovery.kubernetes
 
+import java.util.Optional
+
 import akka.actor._
 import com.typesafe.config.Config
+import scala.compat.java8.OptionConverters._
 
 final class Settings(system: ExtendedActorSystem) extends Extension {
 
@@ -39,8 +42,12 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
   val podNamespacePath: String =
     kubernetesApi.getString("pod-namespace-path")
 
+  /** Scala API */
   val podNamespace: Option[String] =
     kubernetesApi.optDefinedValue("pod-namespace")
+
+  /** Java API */
+  def getPodNamespace: Optional[String] = podNamespace.asJava
 
   val podDomain: String =
     kubernetesApi.getString("pod-domain")
@@ -50,6 +57,10 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
 
   val podPortName: String =
     kubernetesApi.getString("pod-port-name")
+
+  override def toString =
+    s"Settings($apiCaPath, $apiTokenPath, $apiServiceHostEnvName, $apiServicePortEnvName, " +
+    s"$podNamespacePath, $podNamespace, $podDomain, $podPortName)"
 }
 
 object Settings extends ExtensionId[Settings] with ExtensionIdProvider {

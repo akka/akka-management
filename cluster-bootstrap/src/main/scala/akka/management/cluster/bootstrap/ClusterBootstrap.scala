@@ -7,9 +7,9 @@ package akka.management.cluster.bootstrap
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.AkkaVersion
-
 import scala.concurrent.Future
 import scala.concurrent.Promise
+
 import akka.actor.ActorSystem
 import akka.actor.ExtendedActorSystem
 import akka.actor.Extension
@@ -23,12 +23,12 @@ import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator
-import akka.management.http.ManagementRouteProvider
-import akka.management.http.ManagementRouteProviderSettings
+import akka.management.scaladsl.ManagementRouteProviderSettings
+import akka.management.scaladsl.ManagementRouteProvider
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
-  import ClusterBootstrap._
+  import ClusterBootstrap.Internal._
   import system.dispatcher
 
   private val log = Logging(system, classOf[ClusterBootstrap])
@@ -37,7 +37,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
   AkkaVersion.require("cluster-bootstrap", "2.5.19")
 
-  val settings = ClusterBootstrapSettings(system.settings.config, log)
+  val settings: ClusterBootstrapSettings = ClusterBootstrapSettings(system.settings.config, log)
 
   // used for initial discovery of contact points
   val discovery: ServiceDiscovery =
@@ -99,16 +99,9 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     _selfContactPointUri.success(baseUri)
 
   /** INTERNAL API */
-  @InternalApi private[akka] def selfContactPoints: Future[Set[(String, Int)]] =
+  @InternalApi private[akka] def selfContactPoint: Future[(String, Int)] =
     _selfContactPointUri.future.map { uri =>
-      settings.joinDecider.selfDerivedHost match {
-        case Some(selfDerivedHost) if uri.authority.host.isIPv4 =>
-          val derivedHost = s"${uri.authority.host.toString.replace('.', '-')}.$selfDerivedHost"
-          log.info(s"Derived self contact point $derivedHost:${uri.authority.port}")
-          Set((uri.authority.host.toString, uri.authority.port), (derivedHost, uri.authority.port))
-        case _ =>
-          Set((uri.authority.host.toString, uri.authority.port))
-      }
+      (uri.authority.host.toString, uri.authority.port)
     }
 }
 
@@ -120,10 +113,13 @@ object ClusterBootstrap extends ExtensionId[ClusterBootstrap] with ExtensionIdPr
 
   override def createExtension(system: ExtendedActorSystem): ClusterBootstrap = new ClusterBootstrap()(system)
 
-  private[bootstrap] sealed trait BootstrapStep
-  private[bootstrap] case object NotRunning extends BootstrapStep
-  private[bootstrap] case object Initializing extends BootstrapStep
-  // TODO get the Initialized state once done
-  private[bootstrap] case object Initialized extends BootstrapStep
+  /**
+   * INTERNAL API
+   */
+  private[bootstrap] object Internal {
+    sealed trait BootstrapStep
+    case object NotRunning extends BootstrapStep
+    case object Initializing extends BootstrapStep
+  }
 
 }

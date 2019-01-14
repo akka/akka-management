@@ -7,6 +7,7 @@ package akka.discovery.marathon
 import java.security.KeyFactory
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Base64
+import java.net.InetAddress
 
 import akka.actor.ActorSystem
 import akka.discovery._
@@ -14,10 +15,11 @@ import akka.http.scaladsl._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
-
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
+import scala.util.Try
+
 import AppList._
 import JsonFormat._
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
@@ -65,7 +67,10 @@ object MarathonApiServiceDiscovery {
       taskHost <- task.host
       taskPorts <- task.ports
       taskAkkaManagementPort <- taskPorts.lift(portNumber)
-    } yield ResolvedTarget(host = taskHost, port = Some(taskAkkaManagementPort))
+    } yield {
+      ResolvedTarget(host = taskHost, port = Some(taskAkkaManagementPort),
+        address = Try(InetAddress.getByName(taskHost)).toOption)
+    }
   }
 }
 

@@ -5,11 +5,14 @@
 package akka.management
 
 import java.net.InetAddress
-
-import com.typesafe.config.Config
+import java.util.Optional
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable
+import scala.compat.java8.OptionConverters._
+
+import akka.annotation.InternalApi
+import com.typesafe.config.Config
 
 final class AkkaManagementSettings(val config: Config) {
   private val managementConfig = config.getConfig("akka.management")
@@ -50,9 +53,30 @@ final class AkkaManagementSettings(val config: Config) {
 
   }
 
+  /** Java API */
+  def getHttpHostname: String = Http.Hostname
+
+  /** Java API */
+  def getHttpPort: Int = Http.Port
+
+  /** Java API */
+  def getHttpEffectiveBindHostname: String = Http.EffectiveBindHostname
+
+  /** Java API */
+  def getHttpEffectiveBindPort: Int = Http.EffectiveBindPort
+
+  /** Java API */
+  def getBasePath: Optional[String] = Http.BasePath.asJava
+
+  /** Java API */
+  def getHttpRouteProviders: java.util.List[String] = Http.RouteProviders.asJava
+
 }
 
-private[management] object AkkaManagementSettings {
+/**
+ * INTERNAL API
+ */
+@InternalApi private[akka] object AkkaManagementSettings {
 
   implicit class HasDefined(val config: Config) {
     def hasDefined(key: String): Boolean =

@@ -4,7 +4,7 @@ import Keys._
 object Dependencies {
 
   val AkkaVersion = "2.5.19"
-  val AkkaHttpVersion = "10.0.13" // TODO #281 update to 10.1.x when play and lagom are released
+  val AkkaHttpVersion = "10.1.7"
 
   val JUnitVersion = "4.12"
   val SprayJsonVersion = "1.3.3"
@@ -133,7 +133,10 @@ object Dependencies {
   val ManagementHttp = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaHttp ++
-      DependencyGroups.AkkaTesting
+      DependencyGroups.AkkaTesting ++
+      DependencyGroups.AkkaHttpTesting ++ Seq(
+        "com.typesafe.akka" %% "akka-cluster"              % AkkaVersion     % "test"
+      )
   )
 
   val ClusterHttp = Seq(
@@ -159,7 +162,8 @@ object Dependencies {
 
   val BootstrapDemos = Seq(
     libraryDependencies ++= DependencyGroups.Logging ++
-      DependencyGroups.AkkaDiscovery
+      DependencyGroups.AkkaDiscovery ++
+      DependencyGroups.AkkaTesting
   )
 
 }

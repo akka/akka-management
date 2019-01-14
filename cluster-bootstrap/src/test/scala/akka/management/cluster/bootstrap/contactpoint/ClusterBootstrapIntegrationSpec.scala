@@ -4,6 +4,8 @@
 
 package akka.management.cluster.bootstrap.contactpoint
 
+import java.net.InetAddress
+
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
@@ -16,7 +18,6 @@ import akka.stream.ActorMaterializer
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalatest.{ Matchers, WordSpecLike }
-
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -90,15 +91,18 @@ class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
             List(
               ResolvedTarget(
                 host = clusterA.selfAddress.host.get,
-                port = contactPointPorts.get("A")
+                port = contactPointPorts.get("A"),
+                address = Option(InetAddress.getByName(clusterA.selfAddress.host.get))
               ),
               ResolvedTarget(
                 host = clusterB.selfAddress.host.get,
-                port = contactPointPorts.get("B")
+                port = contactPointPorts.get("B"),
+                address = Option(InetAddress.getByName(clusterB.selfAddress.host.get))
               ),
               ResolvedTarget(
                 host = clusterC.selfAddress.host.get,
-                port = contactPointPorts.get("C")
+                port = contactPointPorts.get("C"),
+                address = Option(InetAddress.getByName(clusterC.selfAddress.host.get))
               )
             ))
       ))

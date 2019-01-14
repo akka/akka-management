@@ -138,7 +138,7 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
     "terminate all systems" in {
       try TestKit.shutdownActorSystem(systemA, 3.seconds)
       finally try TestKit.shutdownActorSystem(systemB, 3.seconds)
-      finally try TestKit.shutdownActorSystem(systemNein, 3.seconds)
+      finally TestKit.shutdownActorSystem(systemNein, 3.seconds)
     }
 
   }

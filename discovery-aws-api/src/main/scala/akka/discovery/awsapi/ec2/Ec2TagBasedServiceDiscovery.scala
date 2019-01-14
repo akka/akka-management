@@ -4,6 +4,7 @@
 
 package akka.discovery.awsapi.ec2
 
+import java.net.InetAddress
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ExtendedActorSystem
@@ -17,7 +18,6 @@ import com.amazonaws.ClientConfiguration
 import com.amazonaws.retry.PredefinedRetryPolicies
 import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter, Reservation }
 import com.amazonaws.services.ec2.{ AmazonEC2, AmazonEC2ClientBuilder }
-
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
@@ -158,9 +158,11 @@ class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDi
       getInstances(ec2Client, allFilters, None).flatMap(
         (ip: String) ⇒
           preDefinedPorts match {
-            case None ⇒ ResolvedTarget(host = ip, port = None) :: Nil
+            case None ⇒
+              ResolvedTarget(host = ip, port = None, address = Try(InetAddress.getByName(ip)).toOption) :: Nil
             case Some(ports) ⇒
-              ports.map(p ⇒ ResolvedTarget(host = ip, port = Some(p))) // this allows multiple akka nodes (i.e. JVMs) per EC2 instance
+              ports
+                .map(p ⇒ ResolvedTarget(host = ip, port = Some(p), address = Try(InetAddress.getByName(ip)).toOption)) // this allows multiple akka nodes (i.e. JVMs) per EC2 instance
         }
       )
     }.map(resoledTargets ⇒ Resolved(query.serviceName, resoledTargets))

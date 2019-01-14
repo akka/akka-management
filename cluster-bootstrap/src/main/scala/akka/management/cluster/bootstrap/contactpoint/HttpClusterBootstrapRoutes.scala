@@ -4,15 +4,20 @@
 
 package akka.management.cluster.bootstrap.contactpoint
 
+import scala.concurrent.duration._
+
 import akka.actor.ActorSystem
-import akka.cluster.{ Cluster, Member }
-import akka.event.{ Logging, LoggingAdapter }
-import akka.http.scaladsl.model.{ HttpRequest, Uri }
+import akka.cluster.Cluster
+import akka.cluster.Member
+import akka.event.Logging
+import akka.event.LoggingAdapter
+import akka.http.javadsl.server.directives.RouteAdapter
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
-import akka.management.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol.{ ClusterMember, SeedNodes }
-
-import scala.concurrent.duration._
+import akka.management.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol.ClusterMember
+import akka.management.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol.SeedNodes
 
 final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) extends HttpBootstrapJsonProtocol {
 
@@ -43,12 +48,16 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
     }
   }
 
+  /** Scala API */
   val routes: Route =
     (get & path("bootstrap" / "seed-nodes")) {
       toStrictEntity(1.second) { // always drain everything
         routeGetSeedNodes
       }
     }
+
+  /** Java API */
+  def getRoutes: akka.http.javadsl.server.Route = RouteAdapter(routes)
 
   private def log(implicit sys: ActorSystem): LoggingAdapter =
     Logging(sys, classOf[HttpClusterBootstrapRoutes])
