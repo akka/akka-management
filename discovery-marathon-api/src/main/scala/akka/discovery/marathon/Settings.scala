@@ -5,7 +5,9 @@
 package akka.discovery.marathon
 
 import akka.actor._
+import akka.annotation.ApiMayChange
 
+@ApiMayChange
 final class Settings(system: ExtendedActorSystem) extends Extension {
   private val marathonApi = system.settings.config.getConfig("akka.discovery.marathon-api")
 
@@ -19,6 +21,7 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
     marathonApi.getString("app-label-query")
 }
 
+@ApiMayChange
 object Settings extends ExtensionId[Settings] with ExtensionIdProvider {
   override def get(system: ActorSystem): Settings = super.get(system)
 
