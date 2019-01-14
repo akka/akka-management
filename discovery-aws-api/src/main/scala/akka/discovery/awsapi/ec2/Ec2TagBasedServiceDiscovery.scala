@@ -25,6 +25,8 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
+import akka.annotation.ApiMayChange
+
 /** INTERNAL API */
 @InternalApi private[ec2] object Ec2TagBasedServiceDiscovery {
 
@@ -41,6 +43,7 @@ import scala.util.{ Failure, Success, Try }
 
 }
 
+@ApiMayChange
 class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDiscovery {
 
   private val log = Logging(system, classOf[Ec2TagBasedServiceDiscovery])

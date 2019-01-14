@@ -1,5 +1,13 @@
 ## Consul
 
+@@@ warning
+
+This module is community maintained and the Lightbend subscription doesn't cover support for this module.
+  It is also marked as [may change](https://doc.akka.io/docs/akka/current/common/may-change.html).
+  That means that the API, configuration or semantics can change without warning or deprecation period.
+
+@@@
+
 Consul currently ignores all fields apart from service name. This is expected to change.
 
 If you are using Consul to do the service discovery this would allow you to base your Cluster on Consul services.
@@ -9,13 +17,6 @@ If you are using Consul to do the service discovery this would allow you to base
   artifact="akka-discovery-consul_2.12"
   version="$version$"
 }
-
-@@@ note
-
-This discovery implementation has been recently contributed and we do not fully "support" it yet.
-However it should work fine and has been used in production by the person contributing it.
-
-@@@
 
 In your application conf add:
 ```

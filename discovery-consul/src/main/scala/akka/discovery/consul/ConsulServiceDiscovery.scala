@@ -26,6 +26,9 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
+import akka.annotation.ApiMayChange
+
+@ApiMayChange
 class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private val settings = ConsulSettings.get(system)
@@ -85,6 +88,7 @@ class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
 }
 
+@ApiMayChange
 object ConsulServiceDiscovery {
 
   implicit class ConsulResponseFutureDecorator[T](f: ConsulResponseCallback[T] => Unit) {
