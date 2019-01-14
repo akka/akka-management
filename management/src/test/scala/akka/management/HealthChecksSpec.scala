@@ -4,16 +4,16 @@
 
 package akka.management
 
-import akka.actor.{ActorSystem, ExtendedActorSystem}
+import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.testkit.TestKit
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 import HealthChecksSpec._
 import akka.management.internal.CheckTimeoutException
 import akka.management.scaladsl.HealthChecks
 
-import scala.concurrent.{Await, Future}
-import scala.collection.{immutable => im}
+import scala.concurrent.{ Await, Future }
+import scala.collection.{ immutable => im }
 import scala.util.control.NoStackTrace
 import scala.concurrent.duration._
 
@@ -55,7 +55,11 @@ class InvalidCtr(cat: String) extends (() => Future[Boolean]) {
 
 class Slow(system: ActorSystem) extends (() => Future[Boolean]) {
   override def apply(): Future[Boolean] = {
-    Future.never
+    import scala.concurrent.ExecutionContext.Implicits.global
+    Future {
+      Thread.sleep(20000)
+      false
+    }
   }
 }
 
