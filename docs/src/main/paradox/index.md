@@ -27,6 +27,7 @@ You don't have to use all the modules but if you do here's how these modules wor
 @@@ index
 
   - [Akka Management](akka-management.md)
+  - [Migrating from older versions](migration.md)
   - [Health Checks](healthchecks.md)
   - [Akka Cluster Bootstrap](bootstrap/index.md)
   - [Akka Discovery Methods](discovery/index.md)
