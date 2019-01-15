@@ -127,7 +127,7 @@ considered. The following configuration will result in your application being sh
 join the discovered seed nodes. In this case, the orchestrator (i.e. Kubernetes or Marathon) will restart your node
 and the operation will (presumably) eventually succeed. You'll want to specify the following in your `application.conf` file:
 
-@@snip [CompileOnly.scala](/bootstrap-demo/local/src/main/resources/application.conf) { #coorindated-shutdown }
+@@snip [CompileOnly.scala](/integration-test/local/src/main/resources/application.conf) { #coorindated-shutdown }
 
 ### Rolling updates
 

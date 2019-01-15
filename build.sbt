@@ -15,13 +15,13 @@ lazy val `akka-management-root` = project
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
-    `bootstrap-demo-aws-api-ec2-tag-based`,
-    `bootstrap-demo-local`,
-    `bootstrap-demo-aws-api-ecs`,
-    `bootstrap-demo-kubernetes-api`,
-    `bootstrap-demo-kubernetes-api-java`,
-    `bootstrap-demo-kubernetes-dns`,
-    `bootstrap-demo-marathon-api-docker`,
+    `integration-test-aws-api-ec2-tag-based`,
+    `integration-test-local`,
+    `integration-test-aws-api-ecs`,
+    `integration-test-kubernetes-api`,
+    `integration-test-kubernetes-api-java`,
+    `integration-test-kubernetes-dns`,
+    `integration-test-marathon-api-docker`,
     `cluster-http`,
     `cluster-bootstrap`,
     docs
@@ -108,8 +108,8 @@ lazy val `cluster-bootstrap` = project
   )
   .dependsOn(`akka-management`)
 
-lazy val `bootstrap-demo-kubernetes-api` = project
-  .in(file("bootstrap-demo/kubernetes-api"))
+lazy val `integration-test-kubernetes-api` = project
+  .in(file("integration-test/kubernetes-api"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
@@ -125,8 +125,8 @@ lazy val `bootstrap-demo-kubernetes-api` = project
   `akka-discovery-kubernetes-api`
 )
 
-lazy val `bootstrap-demo-kubernetes-api-java` = project
-  .in(file("bootstrap-demo/kubernetes-api-java"))
+lazy val `integration-test-kubernetes-api-java` = project
+  .in(file("integration-test/kubernetes-api-java"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
@@ -142,8 +142,8 @@ lazy val `bootstrap-demo-kubernetes-api-java` = project
   `akka-discovery-kubernetes-api`
 )
 
-lazy val `bootstrap-demo-kubernetes-dns` = project
-  .in(file("bootstrap-demo/kubernetes-dns"))
+lazy val `integration-test-kubernetes-dns` = project
+  .in(file("integration-test/kubernetes-dns"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
@@ -158,8 +158,8 @@ lazy val `bootstrap-demo-kubernetes-dns` = project
     `cluster-bootstrap`
   )
 
-lazy val `bootstrap-demo-aws-api-ec2-tag-based` = project
-    .in(file("bootstrap-demo/aws-api-ec2"))
+lazy val `integration-test-aws-api-ec2-tag-based` = project
+    .in(file("integration-test/aws-api-ec2"))
     .configs(IntegrationTest)
     .enablePlugins(NoPublish)
     .disablePlugins(BintrayPlugin)
@@ -176,13 +176,13 @@ lazy val `bootstrap-demo-aws-api-ec2-tag-based` = project
       `cluster-bootstrap`
   )
 
-lazy val `bootstrap-demo-marathon-api-docker` = project
-  .in(file("bootstrap-demo/marathon-api-docker"))
+lazy val `integration-test-marathon-api-docker` = project
+  .in(file("integration-test/marathon-api-docker"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "akka-management-bootstrap-demo-marathon-api-docker",
+    name := "integration-test-marathon-api-docker",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
@@ -193,8 +193,8 @@ lazy val `bootstrap-demo-marathon-api-docker` = project
     `akka-discovery-marathon-api`
   )
 
-lazy val `bootstrap-demo-aws-api-ecs` = project
-  .in(file("bootstrap-demo/aws-api-ecs"))
+lazy val `integration-test-aws-api-ecs` = project
+  .in(file("integration-test/aws-api-ecs"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
@@ -211,17 +211,17 @@ lazy val `bootstrap-demo-aws-api-ecs` = project
   .enablePlugins(JavaAppPackaging, AshScriptPlugin, DockerPlugin)
   .settings(
     dockerBaseImage := "openjdk:10-jre-slim",
-    com.typesafe.sbt.SbtNativePackager.autoImport.packageName in Docker := "ecs-bootstrap-demo-app",
+    com.typesafe.sbt.SbtNativePackager.autoImport.packageName in Docker := "ecs-integration-test-app",
     version in Docker := "1.0"
   )
 
-lazy val `bootstrap-demo-local` = project
-  .in(file("bootstrap-demo/local"))
+lazy val `integration-test-local` = project
+  .in(file("integration-test/local"))
   .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "akka-bootstrap-local",
+    name := "integration-test-local",
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
