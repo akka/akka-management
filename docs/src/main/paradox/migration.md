@@ -9,14 +9,14 @@ Version requirements:
 
 ### Source changes
 
-* AkkaManagement moved to package `akka.management.scaladsl.AkkaManagement`, if using from Java use `akka.management.javadsl.AkkaManagement`
+* `AkkaManagement` moved to package `akka.management.scaladsl.AkkaManagement`, if using from Java use `akka.management.javadsl.AkkaManagement`
 * If implementing custom ManagementRouteProvider the package changed to `akka.management.scaladsl.ManagementRouteProvider`/`akka.management.javadsl.ManagementRouteProvider`
 * `AkkaManagement.start` and `AkkaManagement.routes` may throw IllegalArgumentException instead of returning Try
 * Auth and HTTPS has changed by using overloaded methods of `AkkaManagement.start` and `AkkaManagement.routes`, see the @ref[docs for more details](akka-management.md#enabling-basic-authentication)
 
 ### Configuration changes
 
-* `akka.mananagement.cluster.http.healthcheck.ready-states` moved to `akka.mananagement.cluster.healthcheck.ready-states`
+* `akka.mananagement.cluster.http.healthcheck.ready-states` moved to `akka.mananagement.cluster.health-check.ready-states`
 * `akka.management.cluster.bootstrap.form-new-cluster` renamed to `akka.management.cluster.bootstrap.new-cluster-enabled`
 
 ### Akka Discovery
