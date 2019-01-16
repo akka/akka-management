@@ -1,6 +1,6 @@
 # Kubernetes via DNS
 
-An example project that can be deployed to kubernetes via `minikube` is in `bootstrap-demo/kubernetes-dns`.
+An example project that can be deployed to kubernetes via `minikube` is in `integration-test/kubernetes-dns`.
 
 The project shows how to:
 
@@ -16,7 +16,7 @@ as there is no use case for load balancing across management/remoting ports.
 Set endpoints to be published before readiness checks pass as these endpoints are required to bootstrap the Cluster
 and make the application ready.
 
-@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #headless }
+@@snip [akka-cluster.yml](/integration-test/kubernetes-dns/kubernetes/akka-cluster.yml)  { #headless }
 
 Note there are currently two ways to specify that addresses should be published if not ready, the initial way via an annotation
 `service.alpha.kubernetes.io/tolerate-unready-endpoints` and via the new officially supported way as the property `publishNotReadyAddresses`.
@@ -27,7 +27,7 @@ bootstrap to find them and form the cluster thus making them ready.
 
 Then to configure your application:
 
-@@snip [application.conf](/bootstrap-demo/kubernetes-dns/src/main/resources/application.conf)
+@@snip [application.conf](/integration-test/kubernetes-dns/src/main/resources/application.conf) { #management }
 
 The same configuration will work for any environment that has an SRV record for your Akka Clustered application.
 

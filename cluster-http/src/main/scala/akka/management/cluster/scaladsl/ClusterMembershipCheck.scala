@@ -45,7 +45,7 @@ final class ClusterMembershipCheck @InternalApi private[akka] (system: ActorSyst
 
   def this(system: ActorSystem) =
     this(system, () => Cluster(system).selfMember.status,
-      ClusterMembershipCheckSettings(system.settings.config.getConfig("akka.management.cluster.healthcheck")))
+      ClusterMembershipCheckSettings(system.settings.config.getConfig("akka.management.cluster.health-check")))
 
   override def apply(): Future[Boolean] = {
     Future.successful(settings.readyStates.contains(selfStatus()))

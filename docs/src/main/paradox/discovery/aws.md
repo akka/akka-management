@@ -1,5 +1,13 @@
 ## AWS API
 
+@@@ warning
+
+This module is community maintained and the Lightbend subscription doesn't cover support for this module.
+  It is also marked as [may change](https://doc.akka.io/docs/akka/current/common/may-change.html).
+  That means that the API, configuration or semantics can change without warning or deprecation period.
+
+@@@
+
 If you're using EC2 directly _or_ you're using ECS with host mode networking
 _and_ you're deploying one container per cluster member, continue to
 @ref:[Discovery Method: AWS API - EC2 Tag-Based Discovery](index.md#discovery-method-aws-api-ec2-tag-based-discovery).
@@ -105,7 +113,7 @@ setting `akka.discovery.aws-api-ec2-tag-based.tag-key` to something else.
 
 Demo:
 
-* A working demo app is available in the [bootstrap-demo](https://github.com/akka/akka-management/tree/master/bootstrap-demo/aws-api-ec2)
+* A working demo app is available in the [integration-test](https://github.com/akka/akka-management/tree/master/integration-test/aws-api-ec2)
 folder.
 
 
@@ -222,7 +230,7 @@ Notes:
 Demo:
 
 * A working demo app is available in the
-  [bootstrap-demo](https://github.com/akka/akka-management/tree/master/bootstrap-demo/aws-api-ecs)
+  [integration-test](https://github.com/akka/akka-management/tree/master/integration-test/aws-api-ecs)
   folder. It includes CloudFormation templates with minimal permissions w.r.t to
   IAM policies and security group ingress, and so is a good starting point for
   any deployment that integrates the

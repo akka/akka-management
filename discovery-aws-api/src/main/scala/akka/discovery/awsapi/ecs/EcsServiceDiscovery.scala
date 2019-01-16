@@ -23,6 +23,9 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 import scala.util.Try
 
+import akka.annotation.ApiMayChange
+
+@ApiMayChange
 class EcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs")
@@ -61,6 +64,7 @@ class EcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
 }
 
+@ApiMayChange
 object EcsServiceDiscovery {
 
   // InetAddress.getLocalHost.getHostAddress throws an exception when running
