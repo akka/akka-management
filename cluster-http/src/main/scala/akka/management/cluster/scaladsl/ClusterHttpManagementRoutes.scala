@@ -1,13 +1,18 @@
+/*
+ * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ */
+
 package akka.management.cluster.scaladsl
 import akka.actor.AddressFromURIString
-import akka.cluster.sharding.{ClusterSharding, ShardRegion}
-import akka.cluster.{Cluster, Member, MemberStatus}
-import akka.http.scaladsl.model.StatusCodes
+import akka.cluster.sharding.{ ClusterSharding, ShardRegion }
+import akka.cluster.{ Cluster, Member, MemberStatus }
+import akka.http.scaladsl.model.{ HttpMethod, HttpMethods, StatusCodes }
 import akka.http.scaladsl.server.Route
 import akka.management.cluster._
 import akka.pattern.ask
 import akka.pattern.AskTimeoutException
 import akka.util.Timeout
+
 import scala.concurrent.duration._
 
 object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
@@ -85,15 +90,26 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         m ⇒ s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress)
   }
 
-  private def routeFindMember(cluster: Cluster) =
-    path(Remaining) { memberAddress ⇒
-      findMember(cluster, memberAddress) match {
-        case Some(member) ⇒
-          routeGetMember(cluster, member) ~ routeDeleteMember(cluster, member) ~ routePutMember(cluster, member)
-        case None ⇒
-          complete(StatusCodes.NotFound → ClusterHttpManagementMessage(s"Member [$memberAddress] not found"))
+  private def routeFindMember(cluster: Cluster, readOnly: Boolean): Route = {
+    extractMethod { method: HttpMethod =>
+      if (readOnly && method != HttpMethods.GET) {
+        complete(StatusCodes.MethodNotAllowed)
+      } else {
+        path(Remaining) { memberAddress ⇒
+          findMember(cluster, memberAddress) match {
+            case Some(member) ⇒
+              routeGetMember(cluster, member) ~ routeDeleteMember(cluster, member) ~ routePutMember(cluster, member)
+            case None ⇒
+              complete(
+                StatusCodes.NotFound → ClusterHttpManagementMessage(
+                  s"Member [$memberAddress] not found"
+                )
+              )
+          }
+        }
       }
     }
+  }
 
   private def routeGetShardInfo(cluster: Cluster, shardRegionName: String) =
     get {
@@ -130,7 +146,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
           pathEndOrSingleSlash {
             routeGetMembers(cluster) ~ routePostMembers(cluster)
           },
-          routeFindMember(cluster)
+          routeFindMember(cluster, readOnly = false)
         )
       },
       pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
@@ -141,18 +157,15 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
   /**
    * Creates an instance of [[ClusterHttpManagementRoutes]] with only the read only routes.
    */
-  def readOnly(cluster: Cluster): Route =
+  def readOnly(cluster: Cluster): Route = {
     concat(
-      pathPrefix("cluster" / "members") {
-        concat(
-          pathEndOrSingleSlash {
+        pathPrefix("cluster" / "members") {
+          concat(pathEndOrSingleSlash {
             routeGetMembers(cluster)
-          },
-          routeFindMember(cluster)
-        )
-      },
-      pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
-        routeGetShardInfo(cluster, shardRegionName)
-      }
-    )
+          }, routeFindMember(cluster, readOnly = true))
+        },
+        pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
+          routeGetShardInfo(cluster, shardRegionName)
+        })
+  }
 }

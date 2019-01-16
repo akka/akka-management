@@ -5,6 +5,7 @@
 package akka.management.cluster.scaladsl
 
 import akka.cluster.MemberStatus
+import org.scalatest.{ Matchers, WordSpec }
 
 class ClusterMembershipCheckSettingsSpec extends WordSpec with Matchers {
 

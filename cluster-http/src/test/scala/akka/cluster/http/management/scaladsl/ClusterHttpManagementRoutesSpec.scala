@@ -6,12 +6,13 @@ package akka.cluster.http.management.scaladsl
 
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
-import akka.actor.{Actor, ActorSystem, Address, ExtendedActorSystem, Props}
+import akka.actor.{ Actor, ActorSystem, Address, ExtendedActorSystem, Props }
 import akka.cluster.ClusterEvent.CurrentClusterState
 import akka.cluster.InternalClusterAction.LeaderActionsTick
-import akka.cluster.MemberStatus.{Joining, Up}
+import akka.cluster.MemberStatus.{ Joining, Up }
 import akka.cluster._
-import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
+import akka.cluster.http.management.scaladsl.ClusterHttpManagementRoutesSpec.TestShardedActor
+import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
@@ -23,7 +24,7 @@ import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.{ Matchers, WordSpecLike }
 
 import scala.collection.immutable._
 import scala.concurrent.Await

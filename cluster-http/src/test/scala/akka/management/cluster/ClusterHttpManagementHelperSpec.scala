@@ -2,12 +2,15 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.management.cluster
+package akka.cluster.management
+
+// Accesses private[cluster] so has to be in this package
 
 import akka.actor.Address
 import akka.cluster.MemberStatus._
-import akka.cluster.{Member, UniqueAddress}
-import org.scalatest.{Matchers, WordSpec}
+import akka.cluster.{ Member, UniqueAddress }
+import akka.management.cluster.ClusterHttpManagementHelper
+import org.scalatest.{ Matchers, WordSpec }
 
 class ClusterHttpManagementHelperSpec extends WordSpec with Matchers {
 

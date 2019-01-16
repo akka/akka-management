@@ -2,14 +2,13 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.cluster.http.management.scaladsl
+package akka.management.cluster.scaladsl
 
-import akka.actor.{ActorSystem, ExtendedActorSystem}
+import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.cluster.MemberStatus
-import akka.management.cluster.scaladsl.{ClusterMembershipCheck, ClusterMembershipCheckSettings}
 import akka.testkit.TestKit
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.{ Matchers, WordSpecLike }
 
 class ClusterMembershipCheckSpec
     extends TestKit(ActorSystem("ClusterHealthCheck"))

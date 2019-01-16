@@ -4,14 +4,16 @@
 
 package akka.management.cluster
 
-import akka.actor.{ActorSystem, ExtendedActorSystem, ExtensionId, ExtensionIdProvider}
+import akka.actor.{ ActorSystem, ExtendedActorSystem, ExtensionId, ExtensionIdProvider }
 import akka.cluster.Cluster
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.scaladsl.ClusterHttpManagementRoutes
 import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.management.scaladsl.ManagementRouteProvider
 
-object ClusterHttpManagementRouteProvider extends ExtensionId[ClusterHttpManagementRouteProvider] with ExtensionIdProvider {
+object ClusterHttpManagementRouteProvider
+    extends ExtensionId[ClusterHttpManagementRouteProvider]
+    with ExtensionIdProvider {
   override def lookup: ClusterHttpManagementRouteProvider.type = ClusterHttpManagementRouteProvider
 
   override def get(system: ActorSystem): ClusterHttpManagementRouteProvider = super.get(system)
@@ -32,6 +34,10 @@ final class ClusterHttpManagementRouteProvider(system: ExtendedActorSystem) exte
 
   /** Routes to be exposed by Akka cluster management */
   override def routes(routeProviderSettings: ManagementRouteProviderSettings): Route =
-    ClusterHttpManagementRoutes(cluster)
+    if (routeProviderSettings.readOnly) {
+      ClusterHttpManagementRoutes.readOnly(cluster)
+    } else {
+      ClusterHttpManagementRoutes(cluster)
+    }
 
 }

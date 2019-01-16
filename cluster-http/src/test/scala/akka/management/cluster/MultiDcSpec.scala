@@ -6,15 +6,15 @@ package akka.management.cluster
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, StatusCodes}
+import akka.http.scaladsl.model.{ HttpRequest, StatusCodes }
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.stream.ActorMaterializer
 import akka.testkit.SocketUtil
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{Matchers, WordSpec}
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.time.{ Millis, Seconds, Span }
 
 class MultiDcSpec
     extends WordSpec
@@ -60,12 +60,12 @@ class MultiDcSpec
       val dcBSystem = ActorSystem("MultiDcSystem", config.withFallback(dcB))
       implicit val materializer = ActorMaterializer()
 
-      val routeSettings = ManagementRouteProviderSettings(selfBaseUri = s"http://126.0.0.1:$httpPortA", readOnly = false)
+      val routeSettings =
+        ManagementRouteProviderSettings(selfBaseUri = s"http://126.0.0.1:$httpPortA", readOnly = false)
 
       try {
         Http()
-          .bindAndHandle(
-            ClusterHttpManagementRouteProvider(dcASystem).routes(routeSettings), "127.0.0.1", httpPortA)
+          .bindAndHandle(ClusterHttpManagementRouteProvider(dcASystem).routes(routeSettings), "127.0.0.1", httpPortA)
           .futureValue
 
         eventually {
