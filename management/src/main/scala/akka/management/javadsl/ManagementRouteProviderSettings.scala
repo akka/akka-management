@@ -18,7 +18,7 @@ import akka.management.scaladsl
 
 object ManagementRouteProviderSettings {
   def create(selfBaseUri: Uri): ManagementRouteProviderSettings = {
-    ManagementRouteProviderSettingsImpl(selfBaseUri, None, None, Optional.empty())
+    ManagementRouteProviderSettingsImpl(selfBaseUri, None, None, Optional.empty(), readOnly = true)
   }
 }
 
@@ -51,6 +51,10 @@ sealed abstract class ManagementRouteProviderSettings {
    * Refer to the Akka HTTP documentation for details about configuring HTTPS for it.
    */
   def withHttpsConnectionContext(newHttpsConnectionContext: HttpsConnectionContext): ManagementRouteProviderSettings
+
+  def readOnly: Boolean
+
+  def withReadOnly(readOnly: Boolean): ManagementRouteProviderSettings
 }
 
 /**
@@ -60,7 +64,8 @@ sealed abstract class ManagementRouteProviderSettings {
     override val selfBaseUri: Uri,
     javadslAuth: Option[JFunction[Optional[ProvidedCredentials], CompletionStage[Optional[String]]]],
     scaladslAuth: Option[AsyncAuthenticator[String]],
-    override val httpsConnectionContext: Optional[HttpsConnectionContext]
+    override val httpsConnectionContext: Optional[HttpsConnectionContext],
+    override val readOnly: Boolean
 ) extends ManagementRouteProviderSettings {
 
   // There is no public API for defining both so it should not be possible
@@ -89,7 +94,9 @@ sealed abstract class ManagementRouteProviderSettings {
     }
   }
 
+  override def withReadOnly(readOnly: Boolean): ManagementRouteProviderSettings = copy(readOnly = readOnly)
+
   def asScala: scaladsl.ManagementRouteProviderSettingsImpl =
     scaladsl.ManagementRouteProviderSettingsImpl(selfBaseUri = selfBaseUri.asScala, scaladslAuth, javadslAuth,
-      scaladslHttpsConnectionContext)
+      scaladslHttpsConnectionContext, readOnly)
 }

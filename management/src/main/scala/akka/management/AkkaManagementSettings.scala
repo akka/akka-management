@@ -51,6 +51,7 @@ final class AkkaManagementSettings(val config: Config) {
 
     val RouteProviders: immutable.Seq[String] = cc.getStringList("route-providers").asScala.toList
 
+    val RouteProvidersReadOnly: Boolean = cc.getBoolean("route-providers-read-only")
   }
 
   /** Java API */

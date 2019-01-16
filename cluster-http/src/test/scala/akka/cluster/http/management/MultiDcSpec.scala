@@ -9,7 +9,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.management.cluster.ClusterHttpManagement
+import akka.management.cluster.ClusterHttpManagementRouteProvider
 import akka.management.cluster.ClusterHttpManagementJsonProtocol
 import akka.management.cluster.ClusterMembers
 import akka.management.scaladsl.ManagementRouteProviderSettings
@@ -68,11 +68,12 @@ class MultiDcSpec
       val dcBSystem = ActorSystem("MultiDcSystem", config.withFallback(dcB))
       implicit val materializer = ActorMaterializer()
 
-      val routeSettings = ManagementRouteProviderSettings(selfBaseUri = s"http://126.0.0.1:$httpPortA")
+      val routeSettings = ManagementRouteProviderSettings(selfBaseUri = s"http://126.0.0.1:$httpPortA", readOnly = false)
 
       try {
         Http()
-          .bindAndHandle(ClusterHttpManagement(dcASystem).routes(routeSettings), "127.0.0.1", httpPortA)
+          .bindAndHandle(
+            ClusterHttpManagementRouteProvider(dcASystem).routes(routeSettings), "127.0.0.1", httpPortA)
           .futureValue
 
         eventually {

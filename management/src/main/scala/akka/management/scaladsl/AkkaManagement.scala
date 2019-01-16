@@ -80,7 +80,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
     val protocol = "http" // changed to "https" if ManagementRouteProviderSettings.withHttpsConnectionContext is used
     val selfBaseUri =
       Uri(s"$protocol://${settings.Http.Hostname}:${settings.Http.Port}${settings.Http.BasePath.fold("")("/" + _)}")
-    ManagementRouteProviderSettings(selfBaseUri)
+    ManagementRouteProviderSettings(selfBaseUri, settings.Http.RouteProvidersReadOnly)
   }
 
   /**

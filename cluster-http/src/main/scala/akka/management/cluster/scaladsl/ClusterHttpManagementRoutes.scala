@@ -1,22 +1,17 @@
-/*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
- */
-
-package akka.management.cluster
-
+package akka.management.cluster.scaladsl
 import akka.actor.AddressFromURIString
-import akka.cluster.sharding.{ ClusterSharding, ShardRegion }
-import akka.cluster.{ Cluster, Member, MemberStatus }
+import akka.cluster.sharding.{ClusterSharding, ShardRegion}
+import akka.cluster.{Cluster, Member, MemberStatus}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import akka.pattern.{ ask, AskTimeoutException }
+import akka.management.cluster._
+import akka.pattern.ask
+import akka.pattern.AskTimeoutException
 import akka.util.Timeout
-
 import scala.concurrent.duration._
 
 object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
   import ClusterHttpManagementHelper._
-
   import akka.http.scaladsl.server.Directives._
 
   private def routeGetMembers(cluster: Cluster): Route =
