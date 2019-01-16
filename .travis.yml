@@ -47,7 +47,7 @@ jobs:
     - JDK="adopt@1.11.0-1"
     - CMD="+test"
 
-  - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api/test.sh
+  - script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api/test.sh
     env: K8S_API
 
   - script:
@@ -55,7 +55,7 @@ jobs:
     - ./bootstrap-demo/kubernetes-dns/test.sh
     env: K8S_DNS
 
-  - script: ./scripts/setup-minikube-for-linux.sh && ./bootstrap-demo/kubernetes-api-java/test.sh
+  - script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api-java/test.sh
     env: K8S_API_MAVEN
 
   - stage: whitesource
