@@ -2,11 +2,9 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.cluster.http.management.scaladsl
+package akka.management.cluster.scaladsl
 
 import akka.cluster.MemberStatus
-import akka.management.cluster.scaladsl.ClusterMembershipCheckSettings
-import org.scalatest.{Matchers, WordSpec}
 
 class ClusterMembershipCheckSettingsSpec extends WordSpec with Matchers {
 
