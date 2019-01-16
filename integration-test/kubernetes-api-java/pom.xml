@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.lightbend</groupId>
-  <artifactId>cluster-bootstrap-demo-kubernetes-api-java</artifactId>
+  <artifactId>integration-test-kubernetes-api-java</artifactId>
   <version>1.0-SNAPSHOT</version>
   <name>${project.artifactId}</name>
-  <description>Akka Cluster Bootstrap demo: Kubernetes API</description>
+  <description>Akka Cluster Bootstrap Integration Test: Kubernetes API</description>
   <inceptionYear>2018</inceptionYear>
   <licenses>
     <license>
@@ -133,7 +133,7 @@
         <configuration>
           <images>
             <image>
-              <name>bootstrap-demo-kubernetes-api:1.3.3.7</name>
+              <name>integration-test-kubernetes-api:1.3.3.7</name>
               <build>
                 <from>openjdk:8-jre-alpine</from>
                 <ports>
@@ -145,7 +145,7 @@
                   <exec>
                     <args>/bin/sh</args>
                     <args>-c</args>
-                    <args>java -jar /maven/cluster-bootstrap-demo-kubernetes-api-java-allinone.jar</args>
+                    <args>java -jar /maven/integration-test-kubernetes-api-java-allinone.jar</args>
                   </exec>
                 </entryPoint>
                 <assembly>
@@ -154,9 +154,9 @@
                       <dependencySet>
                         <useProjectAttachments>true</useProjectAttachments>
                         <includes>
-                          <include>com.lightbend:cluster-bootstrap-demo-kubernetes-api-java:jar:allinone</include>
+                          <include>com.lightbend:integration-test-kubernetes-api-java:jar:allinone</include>
                         </includes>
-                        <outputFileNameMapping>cluster-bootstrap-demo-kubernetes-api-java-allinone.jar</outputFileNameMapping>
+                        <outputFileNameMapping>integration-test-kubernetes-api-java-allinone.jar</outputFileNameMapping>
                       </dependencySet>
                     </dependencySets>
                   </inline>
