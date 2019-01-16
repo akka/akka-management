@@ -34,7 +34,8 @@ Java
 
 ## API Definition
 
-The following table describes the usage of the API:
+The following table describes the usage of the API. All `GET` operations are exposed by default. `POST`, `PUT` and `DELETE` operations
+are only enabled if `akka.management.http.route-providers-read-only` is set to `false`.
 
 | Path                         | HTTP method | Required form fields | Description
 | ---------------------------- | ----------- | -------------------- | -----------

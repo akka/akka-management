@@ -5,11 +5,11 @@
 package akka.management
 
 import akka.actor.ExtendedActorSystem
-import akka.http.scaladsl.model.{StatusCodes, Uri}
+import akka.http.scaladsl.model.{ StatusCodes, Uri }
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import akka.management.scaladsl.{HealthChecks, ManagementRouteProviderSettings }
-import org.scalatest.{Matchers, WordSpec}
+import akka.management.scaladsl.{ HealthChecks, ManagementRouteProviderSettings }
+import org.scalatest.{ Matchers, WordSpec }
 
 import scala.concurrent.Future
 

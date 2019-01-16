@@ -50,6 +50,9 @@ object ManagementRouteProviderSettings {
 
   def readOnly: Boolean
 
+  /**
+   * Should only readOnly routes be provided. It is up to each provider to define what readOnly means.
+   */
   def withReadOnly(readOnly: Boolean): ManagementRouteProviderSettings
 }
 

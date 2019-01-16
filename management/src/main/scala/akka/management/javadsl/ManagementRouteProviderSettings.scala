@@ -51,9 +51,11 @@ sealed abstract class ManagementRouteProviderSettings {
    * Refer to the Akka HTTP documentation for details about configuring HTTPS for it.
    */
   def withHttpsConnectionContext(newHttpsConnectionContext: HttpsConnectionContext): ManagementRouteProviderSettings
-
   def readOnly: Boolean
 
+  /**
+   * Should only readOnly routes be provided. It is up to each provider to define what readOnly means.
+   */
   def withReadOnly(readOnly: Boolean): ManagementRouteProviderSettings
 }
 

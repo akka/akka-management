@@ -72,6 +72,14 @@ In this example, with this configuration, then the Akka Management routes will w
 base path. For example, when using Akka Cluster Management routes the members information would then be available under
 `/myClusterName/shards/{name}` etc.
 
+## Read only routes
+
+By default extensions to Akka Management should only provide read only routes. This can be changed
+via setting `akka.management.http.route-providers-read-only` to `false`. Each extension can access
+the value of this property via `ManagementRouteProviderSettings.readOnly` to decide which routes to expose.
+
+For example the `cluster-http` extension only provides read only access to Cluster membership but if `route-provider-read-only` is set
+to `false` additional endpoints for managing the cluster are exposed e.g. downing members.
 
 ## Configuring Security
 
