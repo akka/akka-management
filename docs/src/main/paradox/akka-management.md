@@ -28,10 +28,10 @@ to configure and use it.
 Remember that Akka Management does not start automatically and the routes will only be exposed once you trigger:
 
 Scala
-:   @@snip[DemoApp.scala](/bootstrap-demo/kubernetes-api/src/main/scala/akka/cluster/bootstrap/DemoApp.scala){ #start-akka-management }
+:   @@snip[DemoApp.scala](/integration-test/kubernetes-api/src/main/scala/akka/cluster/bootstrap/DemoApp.scala){ #start-akka-management }
 
 Java
-:   @@snip[DemoApp.java](/bootstrap-demo/kubernetes-api-java/src/main/java/akka/cluster/bootstrap/demo/DemoApp.java){ #start-akka-management }
+:   @@snip[DemoApp.java](/integration-test/kubernetes-api-java/src/main/java/akka/cluster/bootstrap/demo/DemoApp.java){ #start-akka-management }
     
 This allows users to prepare anything further before exposing routes for 
 the bootstrap joining process and other purposes.
@@ -86,10 +86,10 @@ publicly.
 The non-secured usage of the module is as follows:
 
 Scala
-:   @@snip[DemoApp.scala](/bootstrap-demo/kubernetes-api/src/main/scala/akka/cluster/bootstrap/DemoApp.scala){ #start-akka-management }
+:   @@snip[DemoApp.scala](/integration-test/kubernetes-api/src/main/scala/akka/cluster/bootstrap/DemoApp.scala){ #start-akka-management }
 
 Java
-:   @@snip[DemoApp.java](/bootstrap-demo/kubernetes-api-java/src/main/java/akka/cluster/bootstrap/demo/DemoApp.java){ #start-akka-management }
+:   @@snip[DemoApp.java](/integration-test/kubernetes-api-java/src/main/java/akka/cluster/bootstrap/demo/DemoApp.java){ #start-akka-management }
 
 ### Enabling TLS/SSL (HTTPS) for Cluster HTTP Management
 

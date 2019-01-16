@@ -1,13 +1,12 @@
-# Bootstrap recipes
+# Bootstrap environments
 
-A set of bootstrap demonstration projects can be found in [bootstrap-demo](https://github.com/akka/akka-management/tree/master/bootstrap-demo) folder of this project. Currently there are projects for:
+A set of integration tests projects can be found in [integration-test folder of the Akka Management project](https://github.com/akka/akka-management/tree/master/integration-test).
+These test various Akka management features together in various environments such as Kubernetes.
 
-* Kubernetes using the API server
-* Kubernetes using DNS
-* Local using config
-* AWS API
-* Mesos using DNS
-* Marathon
+The following samples exist as standalone projects:
+
+* [Akka Cluster bootstrap using the Kubernetes API with Java/Maven](https://github.com/akka/akka-sample-cluster-kubernetes-java)
+* [Akka Cluster bootstrap using DNS in Kubernetes](https://github.com/akka/akka-sample-cluster-kubernetes-dns-java)
 
 ## Local
 
@@ -46,7 +45,7 @@ with cluster singletons as they are typically removed last and then the cluster 
 For production traffic e.g. HTTP use a regular service or an alternative ingress mechanism. 
 With an appropriate readiness check this results in traffic not being routed until bootstrap has finished.
 
-@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #public }
+@@snip [akka-cluster.yml](/integration-test/kubernetes-dns/kubernetes/akka-cluster.yml)  { #public }
 
 This will result in a ClusterIP being created and only added to `Endpoints` when the pods are `ready`
 
@@ -67,7 +66,7 @@ The readiness check is exposed on the Akka Management port as a `GET` on `/ready
 
 Configure them to be used in your deployment:
 
-@@snip [akka-cluster.yml](/bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml)  { #health }
+@@snip [akka-cluster.yml](/integration-test/kubernetes-dns/kubernetes/akka-cluster.yml)  { #health }
 
 
 This will mean that a pod won't get traffic until it is part of a cluster, which is important
@@ -77,7 +76,7 @@ if either `ClusterSharding` or `ClusterSingleton` are used.
 ### Contact point discovery
 
 
-Contact point discovery can use either `kubernetes` or `akka-dns` service discovery can be used. Details
+Contact point discovery can use either `kubernetes` or `akka-dns` service discovery. Details
 on additional resources required and how they work:
 
 * @ref[Kubernetes using `kubernetes-api` discovery](kubernetes-api.md)
@@ -90,7 +89,7 @@ does not support `publishNotReadyAddresses` yet then use the `kubernetes-api` di
 
 ### Running the Kubernetes demos
 
-The following steps work for the `bootstrap-demo/kubernetes-api` or the `bootstrap-demo/kubernetes-dns` sub-project:
+The following steps work for the `integration-test/kubernetes-api` or the `integration-test/kubernetes-dns` sub-project:
 
 To run the demo in a real Kubernetes or OpenShift cluster the images must be pushed to a registry that cluster
 has access to and then `kubernetes/akka-cluster.yml` (in either sub-project) modified with the full image path.
@@ -115,7 +114,7 @@ that is accessible from your Kubernetes cluster and update the `kubernetes/akka-
 
 ```
 $ sbt shell
-> project bootstrap-demo-kubernetes-api (or bootstrap-demo-kubernetes-dns)
+> project integration-test-kubernetes-api (or integration-test-kubernetes-dns)
 > docker:publishLocal 
 ```
 
@@ -136,22 +135,22 @@ Next deploy the application:
 
 ```
 # minikube using Kubernetes API
-kubectl apply -f bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yml
+kubectl apply -f integration-test/kubernetes-api/kubernetes/akka-cluster.yml
 
 or
 
 # minikube using DNS
-kubectl apply -f bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yml
+kubectl apply -f integration-test/kubernetes-dns/kubernetes/akka-cluster.yml
 
 or
 
 # minishift using Kubernetes API
-oc apply -f bootstrap-demo/kubernetes-api/kubernetes/akka-cluster.yaml
+oc apply -f integration-test/kubernetes-api/kubernetes/akka-cluster.yaml
 
 or
 
 # minishift using DNS
-oc apply -f bootstrap-demo/kubernetes-dns/kubernetes/akka-cluster.yaml
+oc apply -f integration-test/kubernetes-dns/kubernetes/akka-cluster.yaml
 ```
 
 This will create and start running a number of Pods hosting the application. The application nodes will form a cluster. 
@@ -161,7 +160,7 @@ pick one of the pods and issue the kubectl logs command on it:
 
 ```
 $ POD=$(kubectl get pods --namespace akka-bootstrap | grep akka-bootstrap | grep Running | head -n1 | awk '{ print $1 }'); echo $POD
-akka-bootstrap-demo-bcc456d8c-6qx87
+akka-integration-test-bcc456d8c-6qx87
 
 $ kubectl logs $POD --namespace akka-bootstrap --follow | less
 ```
@@ -171,12 +170,12 @@ $ kubectl logs $POD --namespace akka-bootstrap --follow | less
 [DEBUG] [12/13/2018 07:13:42.906] [default-akka.actor.default-dispatcher-2] [TimerScheduler(akka://default)] Start timer [resolve-key] with generation [1]
 [DEBUG] [12/13/2018 07:13:42.919] [default-akka.actor.default-dispatcher-2] [TimerScheduler(akka://default)] Start timer [decide-key] with generation [2]
 [INFO] [12/13/2018 07:13:42.924] [default-akka.actor.default-dispatcher-2] [akka.tcp://default@172.17.0.7:2552/system/bootstrapCoordinator] Locating service members. Using discovery [akka.discovery.dns.DnsSimpleServiceDiscovery], join decider [akka.management.cluster.bootstrap.LowestAddressJoinDecider]
-[INFO] [12/13/2018 07:13:42.933] [default-akka.actor.default-dispatcher-2] [akka.tcp://default@172.17.0.7:2552/system/bootstrapCoordinator] Looking up [Lookup(bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local,Some(management),Some(tcp))]
-[DEBUG] [12/13/2018 07:13:42.936] [default-akka.actor.default-dispatcher-2] [DnsSimpleServiceDiscovery(akka://default)] Lookup [Lookup(bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local,Some(management),Some(tcp))] translated to SRV query [_management._tcp.bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local] as contains portName and protocol
-[DEBUG] [12/13/2018 07:13:42.995] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS] Resolution request for _management._tcp.bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local Srv from Actor[akka://default/temp/$a]
-[DEBUG] [12/13/2018 07:13:43.011] [default-akka.actor.default-dispatcher-6] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS/async-dns/$a] Attempting to resolve _management._tcp.bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local with Actor[akka://default/system/IO-DNS/async-dns/$a/$a#1272991285]
+[INFO] [12/13/2018 07:13:42.933] [default-akka.actor.default-dispatcher-2] [akka.tcp://default@172.17.0.7:2552/system/bootstrapCoordinator] Looking up [Lookup(integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local,Some(management),Some(tcp))]
+[DEBUG] [12/13/2018 07:13:42.936] [default-akka.actor.default-dispatcher-2] [DnsSimpleServiceDiscovery(akka://default)] Lookup [Lookup(integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local,Some(management),Some(tcp))] translated to SRV query [_management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local] as contains portName and protocol
+[DEBUG] [12/13/2018 07:13:42.995] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS] Resolution request for _management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local Srv from Actor[akka://default/temp/$a]
+[DEBUG] [12/13/2018 07:13:43.011] [default-akka.actor.default-dispatcher-6] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS/async-dns/$a] Attempting to resolve _management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local with Actor[akka://default/system/IO-DNS/async-dns/$a/$a#1272991285]
 [DEBUG] [12/13/2018 07:13:43.049] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-TCP/selectors/$a/0] Successfully bound to /0.0.0.0:8558
-[DEBUG] [12/13/2018 07:13:43.134] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS/async-dns/$a/$a] Resolving [_management._tcp.bootstrap-demo-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local] (SRV)
+[DEBUG] [12/13/2018 07:13:43.134] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS/async-dns/$a/$a] Resolving [_management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local] (SRV)
 [INFO] [12/13/2018 07:13:43.147] [default-akka.actor.default-dispatcher-6] [AkkaManagement(akka://default)] Bound Akka Management (HTTP) endpoint to: 0.0.0.0:8558
 [DEBUG] [12/13/2018 07:13:43.156] [default-akka.actor.default-dispatcher-5] [akka.tcp://default@172.17.0.7:2552/system/IO-TCP/selectors/$a/1] Successfully bound to /0.0.0.0:8080
 [INFO] [12/13/2018 07:13:43.180] [main] [akka.actor.ActorSystemImpl(default)] Server online at http://localhost:8080/
