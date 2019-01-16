@@ -11,7 +11,7 @@ mvn -Dakka-management.version=$VERSION clean package docker:build
 export NAMESPACE=akka-bootstrap
 
 kubectl create namespace akka-bootstrap || true
-kubectl apply -f kubernetes/akka-cluster.yml
+kubectl -n $NAMESPACE apply -f kubernetes/akka-cluster.yml
 
 for i in {1..10}
 do

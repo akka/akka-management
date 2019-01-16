@@ -44,7 +44,6 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: pod-reader
-  namespace: akka-bootstrap
 rules:
 - apiGroups: [""] # "" indicates the core API group
   resources: ["pods"]
@@ -54,7 +53,6 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: read-pods
-  namespace: akka-bootstrap
 subjects:
   # Create the default user for the akka-bootstrap namespace, change for your namespace
 - kind: User
