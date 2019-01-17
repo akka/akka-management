@@ -2,7 +2,9 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.cluster.http.management
+package akka.cluster.management
+
+// Accesses private[cluster] so has to be in this package
 
 import akka.actor.Address
 import akka.cluster.MemberStatus._

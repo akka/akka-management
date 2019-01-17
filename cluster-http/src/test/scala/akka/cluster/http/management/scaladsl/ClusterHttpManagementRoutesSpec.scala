@@ -2,38 +2,32 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
  */
 
-package akka.cluster.http.management
+package akka.cluster.http.management.scaladsl
+
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
-import scala.collection.immutable._
-import scala.concurrent.Await
-
-import akka.actor.Actor
-import akka.actor.ActorSystem
-import akka.actor.Address
-import akka.actor.ExtendedActorSystem
-import akka.actor.Props
+import akka.actor.{ Actor, ActorSystem, Address, ExtendedActorSystem, Props }
 import akka.cluster.ClusterEvent.CurrentClusterState
 import akka.cluster.InternalClusterAction.LeaderActionsTick
-import akka.cluster.MemberStatus.Joining
-import akka.cluster.MemberStatus.Up
+import akka.cluster.MemberStatus.{ Joining, Up }
 import akka.cluster._
-import akka.cluster.http.management.ClusterHttpManagementRoutesSpec.TestShardedActor
-import akka.cluster.sharding.ClusterSharding
-import akka.cluster.sharding.ClusterShardingSettings
-import akka.cluster.sharding.ShardRegion
+import akka.cluster.http.management.scaladsl.ClusterHttpManagementRoutesSpec.TestShardedActor
+import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.cluster._
+import akka.management.cluster.scaladsl.ClusterHttpManagementRoutes
 import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.Matchers
-import org.scalatest.WordSpecLike
+import org.scalatest.{ Matchers, WordSpecLike }
+
+import scala.collection.immutable._
+import scala.concurrent.Await
 
 class ClusterHttpManagementRoutesSpec
     extends WordSpecLike
@@ -310,9 +304,9 @@ class ClusterHttpManagementRoutesSpec
     "return shard region details" when {
 
       "calling GET /cluster/shard_regions/{name}" in {
-        import scala.concurrent.duration._
-
         import akka.pattern.ask
+
+        import scala.concurrent.duration._
 
         val config = ConfigFactory.parseString(
           """
@@ -352,8 +346,8 @@ class ClusterHttpManagementRoutesSpec
         val initializeEntityActorAsk = shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String]
         Await.result(initializeEntityActorAsk, 3.seconds)
 
-        val clusterHttpManagement = ClusterHttpManagement(system)
-        val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100")
+        val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
+        val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
         val binding =
           Await.result(Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100), 3.seconds)
 

@@ -8,7 +8,7 @@ import akka.actor.ExtendedActorSystem
 import akka.http.scaladsl.model.{ StatusCodes, Uri }
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import akka.management.scaladsl.{ HealthChecks, ManagementRouteProviderSettingsImpl }
+import akka.management.scaladsl.{ HealthChecks, ManagementRouteProviderSettings }
 import org.scalatest.{ Matchers, WordSpec }
 
 import scala.concurrent.Future
@@ -26,7 +26,7 @@ class HealthCheckRoutesSpec extends WordSpec with Matchers with ScalatestRouteTe
         override def ready(): Future[Boolean] = readyResult
         override def alive(): Future[Boolean] = aliveResult
       }
-    }.routes(ManagementRouteProviderSettingsImpl(Uri("http://whocares"), None, None, None))
+    }.routes(ManagementRouteProviderSettings(Uri("http://whocares"), readOnly = false))
   }
 
   tests("/ready", result => testRoute(readyResult = result))

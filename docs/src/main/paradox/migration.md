@@ -79,6 +79,10 @@ Unless used for something other than service discovery / bootstrap the following
 If `pod-namespace` is set remove from your configuration as it will be automatically picked up from the `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file
 that is mounted to each Kubernetes container. The namespace can be overridden with `pod-namespace` if this isn't the desired behavior.
 
+### Cluster HTTP
+
+The `cluster-http` module now only exposes read only routes by default. To enable destructive operations such as downing members
+set `akka.management.http.route-providers-read-only` to `false.
 
 
 

@@ -17,8 +17,8 @@ import akka.http.scaladsl.server.Directives.AsyncAuthenticator
 import akka.management.javadsl
 
 object ManagementRouteProviderSettings {
-  def apply(selfBaseUri: Uri): ManagementRouteProviderSettings = {
-    ManagementRouteProviderSettingsImpl(selfBaseUri, None, None, None)
+  def apply(selfBaseUri: Uri, readOnly: Boolean): ManagementRouteProviderSettings = {
+    ManagementRouteProviderSettingsImpl(selfBaseUri, None, None, None, readOnly = readOnly)
   }
 }
 
@@ -47,6 +47,13 @@ object ManagementRouteProviderSettings {
    * Refer to the Akka HTTP documentation for details about configuring HTTPS for it.
    */
   def withHttpsConnectionContext(newHttpsConnectionContext: HttpsConnectionContext): ManagementRouteProviderSettings
+
+  def readOnly: Boolean
+
+  /**
+   * Should only readOnly routes be provided. It is up to each provider to define what readOnly means.
+   */
+  def withReadOnly(readOnly: Boolean): ManagementRouteProviderSettings
 }
 
 /**
@@ -56,7 +63,8 @@ object ManagementRouteProviderSettings {
     override val selfBaseUri: Uri,
     scaladslAuth: Option[AsyncAuthenticator[String]],
     javadslAuth: Option[JFunction[Optional[ProvidedCredentials], CompletionStage[Optional[String]]]],
-    override val httpsConnectionContext: Option[HttpsConnectionContext]
+    override val httpsConnectionContext: Option[HttpsConnectionContext],
+    override val readOnly: Boolean
 ) extends ManagementRouteProviderSettings {
 
   // There is no public API for defining both so it should not be possible
@@ -75,7 +83,10 @@ object ManagementRouteProviderSettings {
       case Some(ctx) => Optional.of(ctx) // a scaladsl.HttpsConnectionContext is a javadsl.HttpsConnectionContext
     }
 
+  override def withReadOnly(readOnly: Boolean): ManagementRouteProviderSettings = copy(readOnly = readOnly)
+
   def asJava: javadsl.ManagementRouteProviderSettingsImpl =
     javadsl.ManagementRouteProviderSettingsImpl(selfBaseUri = akka.http.javadsl.model.Uri.create(selfBaseUri),
-      javadslAuth, scaladslAuth, javadslHttpsConnectionContext)
+      javadslAuth, scaladslAuth, javadslHttpsConnectionContext, readOnly)
+
 }

@@ -5,6 +5,7 @@
 package akka.management.cluster.javadsl
 import akka.cluster.Cluster
 import akka.http.javadsl.server.directives.RouteAdapter
+import akka.management.cluster.scaladsl
 
 object ClusterHttpManagementRoutes {
 
@@ -14,7 +15,7 @@ object ClusterHttpManagementRoutes {
    * the specified path `pathPrefixName`.
    */
   def all(cluster: Cluster): akka.http.javadsl.server.Route =
-    RouteAdapter(akka.management.cluster.ClusterHttpManagementRoutes(cluster))
+    RouteAdapter(scaladsl.ClusterHttpManagementRoutes(cluster))
 
   /**
    * Creates an instance of [[ClusterHttpManagementRoutes]] to manage the specified
@@ -22,6 +23,6 @@ object ClusterHttpManagementRoutes {
    * the specified path `pathPrefixName`.
    */
   def readOnly(cluster: Cluster): akka.http.javadsl.server.Route =
-    RouteAdapter(akka.management.cluster.ClusterHttpManagementRoutes.readOnly(cluster))
+    RouteAdapter(scaladsl.ClusterHttpManagementRoutes.readOnly(cluster))
 
 }
