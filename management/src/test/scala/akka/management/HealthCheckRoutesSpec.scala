@@ -15,13 +15,13 @@ import scala.concurrent.Future
 
 class HealthCheckRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest {
 
-  private val aes = system.asInstanceOf[ExtendedActorSystem]
+  private val eas = system.asInstanceOf[ExtendedActorSystem]
 
   private def testRoute(
       readyResult: Future[Boolean] = Future.successful(true),
       aliveResult: Future[Boolean] = Future.successful(true)
   ): Route = {
-    new HealthCheckRoutes(aes) {
+    new HealthCheckRoutes(eas) {
       override protected val healthChecks: HealthChecks = new HealthChecks {
         override def ready(): Future[Boolean] = readyResult
         override def alive(): Future[Boolean] = aliveResult

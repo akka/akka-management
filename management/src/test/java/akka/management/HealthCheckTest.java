@@ -35,7 +35,7 @@ public class HealthCheckTest extends JUnitSuite {
 
     @SuppressWarnings("unused")
     public static class NotOk implements Supplier<CompletionStage<Boolean>> {
-        public NotOk(ActorSystem eas) {
+        public NotOk(ActorSystem system) {
         }
 
         @Override
@@ -46,7 +46,7 @@ public class HealthCheckTest extends JUnitSuite {
 
     @SuppressWarnings("unused")
     public static class Throws implements Supplier<CompletionStage<Boolean>> {
-        public Throws(ActorSystem eas) {
+        public Throws(ActorSystem system) {
         }
 
         @Override
@@ -55,12 +55,12 @@ public class HealthCheckTest extends JUnitSuite {
         }
     }
 
-    private static ExtendedActorSystem eas = (ExtendedActorSystem) ActorSystem.create();
+    private static ExtendedActorSystem system = (ExtendedActorSystem) ActorSystem.create();
 
     @Test
     public void okReturnsTrue() throws Exception {
         List<NamedHealthCheck> healthChecks = Collections.singletonList(new NamedHealthCheck("Ok", "akka.management.HealthCheckTest$Ok"));
-        HealthChecks checks = new HealthChecks(eas, HealthCheckSettings.create(
+        HealthChecks checks = new HealthChecks(system, HealthCheckSettings.create(
                 healthChecks,
                 healthChecks,
                 "ready",
@@ -74,7 +74,7 @@ public class HealthCheckTest extends JUnitSuite {
     @Test
     public void notOkayReturnsFalse() throws Exception {
         List<NamedHealthCheck> healthChecks = Collections.singletonList(new NamedHealthCheck("Ok", "akka.management.HealthCheckTest$Ok"));
-        HealthChecks checks = new HealthChecks(eas, HealthCheckSettings.create(
+        HealthChecks checks = new HealthChecks(system, HealthCheckSettings.create(
                 healthChecks,
                 healthChecks,
                 "ready",
@@ -89,7 +89,7 @@ public class HealthCheckTest extends JUnitSuite {
     public void throwsReturnsFailed() throws Exception {
         List<NamedHealthCheck> healthChecks = Collections.singletonList(
                 new NamedHealthCheck("Throws", "akka.management.HealthCheckTest$Throws"));
-        HealthChecks checks = new HealthChecks(eas, HealthCheckSettings.create(
+        HealthChecks checks = new HealthChecks(system, HealthCheckSettings.create(
                 healthChecks,
                 healthChecks,
                 "ready",
@@ -106,7 +106,7 @@ public class HealthCheckTest extends JUnitSuite {
 
     @AfterClass
     public static void cleanup() {
-        eas.terminate();
+        system.terminate();
     }
 
     private static <R> CompletableFuture<R> failed(Throwable error) {
