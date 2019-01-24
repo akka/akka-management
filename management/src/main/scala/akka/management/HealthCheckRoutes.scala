@@ -20,14 +20,14 @@ import scala.util.{ Failure, Success, Try }
  * for ManagementRouteProviders
  */
 @InternalApi
-private[akka] class HealthCheckRoutes(aes: ExtendedActorSystem) extends ManagementRouteProvider {
+private[akka] class HealthCheckRoutes(system: ExtendedActorSystem) extends ManagementRouteProvider {
 
   private val settings: HealthCheckSettings = HealthCheckSettings(
-    aes.settings.config.getConfig("akka.management.health-checks")
+    system.settings.config.getConfig("akka.management.health-checks")
   )
 
   // exposed for testing
-  protected val healthChecks = HealthChecks(aes, settings)
+  protected val healthChecks = HealthChecks(system, settings)
 
   private val healthCheckResponse: Try[Boolean] => Route = {
     case Success(true) => complete(StatusCodes.OK)
