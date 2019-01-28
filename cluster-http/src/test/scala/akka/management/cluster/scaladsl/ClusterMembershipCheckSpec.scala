@@ -4,7 +4,7 @@
 
 package akka.management.cluster.scaladsl
 
-import akka.actor.{ ActorSystem, ExtendedActorSystem }
+import akka.actor.ActorSystem
 import akka.cluster.MemberStatus
 import akka.testkit.TestKit
 import org.scalatest.concurrent.ScalaFutures

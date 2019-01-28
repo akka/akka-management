@@ -22,7 +22,7 @@ object Common extends AutoPlugin {
     licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>")),
 
-    crossScalaVersions := Seq("2.11.12", "2.12.8"),
+    crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0-M5"),
 
     crossVersion := CrossVersion.binary,
 
@@ -32,7 +32,6 @@ object Common extends AutoPlugin {
       "-unchecked",
       "-deprecation",
       "-Xlint",
-      "-Yno-adapted-args",
       "-Ywarn-dead-code",
       "-Xfuture",
       "-target:jvm-1.8"
