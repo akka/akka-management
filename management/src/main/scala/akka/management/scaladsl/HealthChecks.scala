@@ -3,15 +3,18 @@
  */
 
 package akka.management.scaladsl
+import scala.collection.immutable
+import scala.concurrent.Future
+
+import akka.actor.ActorSystem
 import akka.actor.ExtendedActorSystem
+import akka.actor.setup.Setup
 import akka.annotation.DoNotInherit
 import akka.management.HealthCheckSettings
 import akka.management.internal.HealthChecksImpl
 
-import scala.concurrent.Future
-
 /**
- * Loads health checks from configuration
+ * Loads health checks from configuration and ActorSystem Setup
  */
 object HealthChecks {
   def apply(system: ExtendedActorSystem, settings: HealthCheckSettings): HealthChecks =
@@ -39,3 +42,39 @@ abstract class HealthChecks {
    */
   def alive(): Future[Boolean]
 }
+
+object ReadinessCheckSetup {
+
+  /**
+   * Programmatic definition of readiness checks
+   */
+  def apply(createHealthChecks: ActorSystem ⇒ immutable.Seq[HealthChecks.HealthCheck]): ReadinessCheckSetup = {
+    new ReadinessCheckSetup(createHealthChecks)
+  }
+
+}
+
+/**
+ * Setup for readiness checks, constructor is *Internal API*, use factories in [[ReadinessCheckSetup()]]
+ */
+final class ReadinessCheckSetup private (
+    val createHealthChecks: ActorSystem ⇒ immutable.Seq[HealthChecks.HealthCheck]
+) extends Setup
+
+object LivenessCheckSetup {
+
+  /**
+   * Programmatic definition of liveness checks
+   */
+  def apply(createHealthChecks: ActorSystem ⇒ immutable.Seq[HealthChecks.HealthCheck]): LivenessCheckSetup = {
+    new LivenessCheckSetup(createHealthChecks)
+  }
+
+}
+
+/**
+ * Setup for liveness checks, constructor is *Internal API*, use factories in [[LivenessCheckSetup()]]
+ */
+final class LivenessCheckSetup private (
+    val createHealthChecks: ActorSystem ⇒ immutable.Seq[HealthChecks.HealthCheck]
+) extends Setup

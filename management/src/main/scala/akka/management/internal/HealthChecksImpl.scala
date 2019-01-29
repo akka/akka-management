@@ -11,11 +11,13 @@ import akka.annotation.InternalApi
 import akka.event.Logging
 import akka.management.{ HealthCheckSettings, InvalidHealthCheckException, NamedHealthCheck }
 import akka.management.scaladsl.HealthChecks
-
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
+
+import akka.management.scaladsl.LivenessCheckSetup
+import akka.management.scaladsl.ReadinessCheckSetup
 
 final case class CheckTimeoutException(msg: String) extends RuntimeException(msg)
 
@@ -33,13 +35,23 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
   log.info("Loading readiness checks {}", settings.readinessChecks)
   log.info("Loading liveness checks {}", settings.livenessChecks)
 
-  private val readiness: immutable.Seq[HealthCheck] = load(
-    settings.readinessChecks
-  )
+  private val readiness: immutable.Seq[HealthCheck] = {
+    val fromSetup = system.settings.setup.get[ReadinessCheckSetup] match {
+      case None => Nil
+      case Some(setup) => setup.createHealthChecks(system)
+    }
+    val fromConfig = load(settings.readinessChecks)
+    fromConfig ++ fromSetup
+  }
 
-  private val liveness: immutable.Seq[HealthCheck] = load(
-    settings.livenessChecks
-  )
+  private val liveness: immutable.Seq[HealthCheck] = {
+    val fromSetup = system.settings.setup.get[LivenessCheckSetup] match {
+      case None => Nil
+      case Some(setup) => setup.createHealthChecks(system)
+    }
+    val fromConfig = load(settings.livenessChecks)
+    fromConfig ++ fromSetup
+  }
 
   private def tryLoadScalaHealthCheck(fqcn: String): Try[HealthCheck] = {
     system.dynamicAccess
