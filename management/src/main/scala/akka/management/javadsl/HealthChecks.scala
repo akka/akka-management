@@ -3,14 +3,20 @@
  */
 
 package akka.management.javadsl
-import java.util.concurrent.CompletionStage
 
+import java.util.concurrent.CompletionStage
+import java.util.function.Supplier
+import java.util.function.{ Function => JFunction }
+import java.util.{ List => JList }
+
+import scala.compat.java8.FutureConverters._
+
+import akka.actor.ActorSystem
 import akka.actor.ExtendedActorSystem
+import akka.actor.setup.Setup
 import akka.dispatch.ExecutionContexts
 import akka.management.HealthCheckSettings
 import akka.management.internal.HealthChecksImpl
-
-import scala.compat.java8.FutureConverters._
 
 /**
  * Can be used to instantiate health checks directly rather than rely on the
@@ -35,3 +41,41 @@ final class HealthChecks(system: ExtendedActorSystem, settings: HealthCheckSetti
   def alive(): CompletionStage[java.lang.Boolean] =
     delegate.alive().map(Boolean.box)(ExecutionContexts.sameThreadExecutionContext).toJava
 }
+
+object ReadinessCheckSetup {
+
+  /**
+   * Programmatic definition of readiness checks
+   */
+  def create(createHealthChecks: JFunction[ActorSystem, JList[Supplier[CompletionStage[java.lang.Boolean]]]])
+    : ReadinessCheckSetup = {
+    new ReadinessCheckSetup(createHealthChecks)
+  }
+
+}
+
+/**
+ * Setup for readiness checks, constructor is *Internal API*, use factories in [[ReadinessCheckSetup()]]
+ */
+final class ReadinessCheckSetup private (
+    val createHealthChecks: JFunction[ActorSystem, JList[Supplier[CompletionStage[java.lang.Boolean]]]]
+) extends Setup
+
+object LivenessCheckSetup {
+
+  /**
+   * Programmatic definition of liveness checks
+   */
+  def create(createHealthChecks: JFunction[ActorSystem, JList[Supplier[CompletionStage[java.lang.Boolean]]]])
+    : LivenessCheckSetup = {
+    new LivenessCheckSetup(createHealthChecks)
+  }
+
+}
+
+/**
+ * Setup for liveness checks, constructor is *Internal API*, use factories in [[LivenessCheckSetup()]]
+ */
+final class LivenessCheckSetup private (
+    val createHealthChecks: JFunction[ActorSystem, JList[Supplier[CompletionStage[java.lang.Boolean]]]]
+) extends Setup

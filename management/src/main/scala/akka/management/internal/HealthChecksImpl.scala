@@ -5,6 +5,9 @@
 package akka.management.internal
 
 import java.util.concurrent.CompletionStage
+import java.util.function.Supplier
+import java.util.{ List => JList }
+import java.lang.{ Boolean => JBoolean }
 
 import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.annotation.InternalApi
@@ -12,12 +15,15 @@ import akka.event.Logging
 import akka.management.{ HealthCheckSettings, InvalidHealthCheckException, NamedHealthCheck }
 import akka.management.scaladsl.HealthChecks
 import scala.collection.immutable
+import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
 import akka.management.scaladsl.LivenessCheckSetup
 import akka.management.scaladsl.ReadinessCheckSetup
+import akka.management.javadsl.{ LivenessCheckSetup => JLivenessCheckSetup }
+import akka.management.javadsl.{ ReadinessCheckSetup => JReadinessCheckSetup }
 
 final case class CheckTimeoutException(msg: String) extends RuntimeException(msg)
 
@@ -36,21 +42,38 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
   log.info("Loading liveness checks {}", settings.livenessChecks)
 
   private val readiness: immutable.Seq[HealthCheck] = {
-    val fromSetup = system.settings.setup.get[ReadinessCheckSetup] match {
+    val fromScaladslSetup = system.settings.setup.get[ReadinessCheckSetup] match {
       case None => Nil
       case Some(setup) => setup.createHealthChecks(system)
     }
+    val fromJavadslSetup = system.settings.setup.get[JReadinessCheckSetup] match {
+      case None => Nil
+      case Some(setup) => convertSuppliersToScala(setup.createHealthChecks(system))
+    }
     val fromConfig = load(settings.readinessChecks)
-    fromConfig ++ fromSetup
+    fromConfig ++ fromScaladslSetup ++ fromJavadslSetup
   }
 
   private val liveness: immutable.Seq[HealthCheck] = {
-    val fromSetup = system.settings.setup.get[LivenessCheckSetup] match {
+    val fromScaladslSetup = system.settings.setup.get[LivenessCheckSetup] match {
       case None => Nil
       case Some(setup) => setup.createHealthChecks(system)
     }
+    val fromJavadslSetup = system.settings.setup.get[JLivenessCheckSetup] match {
+      case None => Nil
+      case Some(setup) => convertSuppliersToScala(setup.createHealthChecks(system))
+    }
     val fromConfig = load(settings.livenessChecks)
-    fromConfig ++ fromSetup
+    fromConfig ++ fromScaladslSetup ++ fromJavadslSetup
+  }
+
+  private def convertSuppliersToScala(
+      suppliers: JList[Supplier[CompletionStage[JBoolean]]]): immutable.Seq[HealthCheck] = {
+    suppliers.asScala.toList.map(convertSupplierToScala)
+  }
+
+  private def convertSupplierToScala(supplier: Supplier[CompletionStage[JBoolean]]): HealthCheck = { () =>
+    supplier.get().toScala.map(_.booleanValue)
   }
 
   private def tryLoadScalaHealthCheck(fqcn: String): Try[HealthCheck] = {
@@ -68,17 +91,15 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
 
   private def tryLoadJavaHealthCheck(fqcn: String): Try[HealthCheck] = {
     system.dynamicAccess
-      .createInstanceFor[java.util.function.Supplier[CompletionStage[Boolean]]](
+      .createInstanceFor[Supplier[CompletionStage[JBoolean]]](
         fqcn,
         immutable.Seq((classOf[ActorSystem], system))
       )
       .recoverWith {
         case _: NoSuchMethodException =>
-          system.dynamicAccess.createInstanceFor[java.util.function.Supplier[CompletionStage[
-            Boolean
-          ]]](fqcn, Nil)
+          system.dynamicAccess.createInstanceFor[Supplier[CompletionStage[JBoolean]]](fqcn, Nil)
       }
-      .map(sup => () => sup.get().toScala)
+      .map(convertSupplierToScala)
   }
 
   private def load(

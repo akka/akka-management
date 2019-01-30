@@ -5,13 +5,20 @@
 package akka.management;
 
 import akka.actor.ActorSystem;
+import akka.actor.BootstrapSetup;
 import akka.actor.ExtendedActorSystem;
+import akka.actor.setup.ActorSystemSetup;
 import akka.management.javadsl.HealthChecks;
+import akka.management.javadsl.LivenessCheckSetup;
+import akka.management.javadsl.ReadinessCheckSetup;
+import akka.testkit.javadsl.TestKit;
+import com.typesafe.config.ConfigFactory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 import org.scalatest.junit.JUnitSuite;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -67,8 +74,8 @@ public class HealthCheckTest extends JUnitSuite {
                 "alive",
                 java.time.Duration.ofSeconds(1)
         ));
-        assertEquals(checks.alive().toCompletableFuture().get(), true);
-        assertEquals(checks.ready().toCompletableFuture().get(), true);
+        assertEquals(true, checks.alive().toCompletableFuture().get());
+        assertEquals(true, checks.ready().toCompletableFuture().get());
     }
 
     @Test
@@ -81,8 +88,8 @@ public class HealthCheckTest extends JUnitSuite {
                 "alive",
                 java.time.Duration.ofSeconds(1)
         ));
-        assertEquals(checks.alive().toCompletableFuture().get(), true);
-        assertEquals(checks.ready().toCompletableFuture().get(), true);
+        assertEquals(true, checks.alive().toCompletableFuture().get());
+        assertEquals(true, checks.ready().toCompletableFuture().get());
     }
 
     @Test
@@ -100,13 +107,38 @@ public class HealthCheckTest extends JUnitSuite {
             checks.alive().toCompletableFuture().get();
             Assert.fail("Expected exception");
         } catch (ExecutionException re) {
-            assertEquals(re.getCause(), cause);
+            assertEquals(cause, re.getCause());
         }
+    }
+
+    @Test
+    public void defineViaActorSystemSetup() throws Exception {
+        ReadinessCheckSetup readinessSetup =
+          ReadinessCheckSetup.create(system -> Arrays.asList(new Ok(), new NotOk(system)));
+        LivenessCheckSetup livenessSetup =
+          LivenessCheckSetup.create(system -> Collections.singletonList(new NotOk(system)));
+        // bootstrapSetup is needed for config (otherwise default config)
+        BootstrapSetup bootstrapSetup = BootstrapSetup.create(ConfigFactory.parseString("some=thing"));
+        ActorSystemSetup actorSystemSetup = ActorSystemSetup.create(bootstrapSetup, readinessSetup, livenessSetup);
+        ExtendedActorSystem sys2 = (ExtendedActorSystem) ActorSystem.create("HealthCheckTest2", actorSystemSetup);
+        try {
+            HealthChecks checks = new HealthChecks(sys2, HealthCheckSettings.create(
+              Collections.emptyList(),
+              Collections.emptyList(),
+              "ready",
+              "alive",
+              java.time.Duration.ofSeconds(1)
+            ));
+            assertEquals(false, checks.alive().toCompletableFuture().get());
+            assertEquals(false, checks.ready().toCompletableFuture().get());
+      } finally {
+        TestKit.shutdownActorSystem(sys2);
+      }
     }
 
     @AfterClass
     public static void cleanup() {
-        system.terminate();
+        TestKit.shutdownActorSystem(system);
     }
 
     private static <R> CompletableFuture<R> failed(Throwable error) {
