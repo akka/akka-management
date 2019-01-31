@@ -11,11 +11,16 @@ import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 import HealthChecksSpec._
 import akka.management.internal.CheckTimeoutException
 import akka.management.scaladsl.HealthChecks
-
 import scala.concurrent.{ Await, Future }
 import scala.collection.{ immutable => im }
 import scala.util.control.NoStackTrace
 import scala.concurrent.duration._
+
+import akka.actor.BootstrapSetup
+import akka.actor.setup.ActorSystemSetup
+import akka.management.scaladsl.LivenessCheckSetup
+import akka.management.scaladsl.ReadinessCheckSetup
+import com.typesafe.config.ConfigFactory
 
 object HealthChecksSpec {
   val failedCause = new TE()
@@ -205,6 +210,24 @@ class HealthChecksSpec
           im.Seq(OkCheck, CtrExceptionCheck)
         HealthChecks(eas, settings(checks, checks))
       }.getCause shouldEqual ctxException
+    }
+    "be possible to define via ActorSystem Setup" in {
+      val readinessSetup = ReadinessCheckSetup(system => List(new Ok(system), new False(system)))
+      val livenessSetup = LivenessCheckSetup(system => List(new False(system)))
+      // bootstrapSetup is needed for config (otherwise default config)
+      val bootstrapSetup = BootstrapSetup(ConfigFactory.parseString("some=thing"))
+      val actorSystemSetup = ActorSystemSetup(bootstrapSetup, readinessSetup, livenessSetup)
+      val sys2 = ActorSystem("HealthCheckSpec2", actorSystemSetup).asInstanceOf[ExtendedActorSystem]
+      try {
+        val checks = HealthChecks(
+          sys2,
+          settings(Nil, Nil) // no checks from config
+        )
+        checks.alive().futureValue shouldEqual false
+        checks.ready().futureValue shouldEqual false
+      } finally {
+        TestKit.shutdownActorSystem(sys2)
+      }
     }
   }
 }
