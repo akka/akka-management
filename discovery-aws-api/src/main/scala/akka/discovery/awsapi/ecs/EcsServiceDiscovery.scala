@@ -80,8 +80,8 @@ object EcsServiceDiscovery {
       .flatMap(_.getInetAddresses.asScala)
       .filterNot(_.isLoopbackAddress)
       .filter(_.isSiteLocalAddress)
-      .to[Seq] match {
-      case Seq(value) =>
+      .toList match {
+      case List(value) =>
         Right(value)
 
       case other =>
@@ -125,7 +125,7 @@ object EcsServiceDiscovery {
   private[this] def describeTasks(ecsClient: AmazonECS, cluster: String, taskArns: Seq[String]): Seq[Task] =
     for {
       // Each DescribeTasksRequest can contain at most 100 task ARNs.
-      group <- taskArns.grouped(100).to[Seq]
+      group <- taskArns.grouped(100).toList
       tasks = ecsClient.describeTasks(
         new DescribeTasksRequest().withCluster(cluster).withTasks(group.asJava)
       )

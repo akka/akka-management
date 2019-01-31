@@ -13,6 +13,9 @@ import spray.json.RootJsonFormat
 
 final case class ClusterUnreachableMember(node: String, observedBy: immutable.Seq[String])
 final case class ClusterMember(node: String, nodeUid: String, status: String, roles: Set[String])
+object ClusterMember {
+  implicit val clusterMemberOrdering: Ordering[ClusterMember] = Ordering.by(_.node)
+}
 final case class ClusterMembers(selfNode: String,
                                 members: Set[ClusterMember],
                                 unreachable: immutable.Seq[ClusterUnreachableMember],
@@ -44,7 +47,7 @@ final case class ShardDetails(regions: immutable.Seq[ShardRegionInfo])
 trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val clusterUnreachableMemberFormat: RootJsonFormat[ClusterUnreachableMember] =
     jsonFormat2(ClusterUnreachableMember)
-  implicit val clusterMemberFormat: RootJsonFormat[ClusterMember] = jsonFormat4(ClusterMember)
+  implicit val clusterMemberFormat: RootJsonFormat[ClusterMember] = jsonFormat4(ClusterMember.apply)
   implicit val clusterMembersFormat: RootJsonFormat[ClusterMembers] = jsonFormat6(ClusterMembers)
   implicit val clusterMemberMessageFormat: RootJsonFormat[ClusterHttpManagementMessage] =
     jsonFormat1(ClusterHttpManagementMessage)

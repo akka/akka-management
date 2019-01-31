@@ -85,7 +85,9 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
       .recoverWith {
         case _: NoSuchMethodException =>
           system.dynamicAccess.createInstanceFor[HealthCheck](fqcn, Nil)
-
+        // Can be removed when 2.13.0-RC1 is out (https://github.com/scala/bug/issues/7390)
+        case o =>
+          Failure(o)
       }
   }
 
@@ -111,6 +113,9 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
           tryLoadScalaHealthCheck(namedHealthCheck.fullyQualifiedClassName).recoverWith {
             case _: ClassCastException =>
               tryLoadJavaHealthCheck(namedHealthCheck.fullyQualifiedClassName)
+            // Can be removed when 2.13.0-RC1 is out (https://github.com/scala/bug/issues/7390)
+            case o =>
+              Failure(o)
         }
       )
       .map {

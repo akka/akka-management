@@ -79,8 +79,8 @@ object AsyncEcsServiceDiscovery {
       .flatMap(_.getInetAddresses.asScala)
       .filterNot(_.isLoopbackAddress)
       .filter(_.isSiteLocalAddress)
-      .to[Seq] match {
-      case Seq(value) =>
+      .toList match {
+      case List(value) =>
         Right(value)
 
       case other =>
@@ -140,7 +140,7 @@ object AsyncEcsServiceDiscovery {
             )
         )
       )
-      tasks = describeTasksResponses.flatMap(_.tasks().asScala).to[Seq]
+      tasks = describeTasksResponses.flatMap(_.tasks().asScala).toList
     } yield tasks
 
 }
