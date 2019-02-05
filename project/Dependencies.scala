@@ -17,6 +17,10 @@ object Dependencies {
 
 
   private object DependencyGroups {
+    val AkkaActorTyped = Seq(
+      "com.typesafe.akka" %% "akka-actor-typed"                   % AkkaVersion
+    )
+
     val AkkaActor = Seq(
       "com.typesafe.akka" %% "akka-actor"                         % AkkaVersion
     )
@@ -132,6 +136,11 @@ object Dependencies {
       DependencyGroups.AkkaHttpTesting ++ Seq(
         "com.typesafe.akka" %% "akka-cluster"              % AkkaVersion     % "test"
       )
+  )
+
+  val ManagementHttpTyped = Seq(
+    libraryDependencies ++=
+      DependencyGroups.AkkaActorTyped
   )
 
   val ClusterHttp = Seq(

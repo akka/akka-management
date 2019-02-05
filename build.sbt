@@ -15,6 +15,7 @@ lazy val `akka-management-root` = project
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
+//TODO: `akka-management-typed`,
     `integration-test-aws-api-ec2-tag-based`,
     `integration-test-local`,
     `integration-test-aws-api-ecs`,
@@ -88,6 +89,16 @@ lazy val `akka-management` = project
   .settings(
     name := "akka-management",
     Dependencies.ManagementHttp
+  )
+
+lazy val `akka-management-typed` = project
+  .in(file("management-typed"))
+  .dependsOn(`akka-management`)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(unidocSettings)
+  .settings(
+    name := "akka-management-typed",
+    Dependencies.ManagementHttpTyped
   )
 
 lazy val `cluster-http` = project
