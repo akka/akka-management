@@ -27,15 +27,20 @@ do
   sleep 3
 done
 
+echo "Logs"
+echo "=============================="
+for POD in $(kubectl get pods -n $NAMESPACE | grep $APP_NAME | grep Running | awk '{ print $1 }')
+do
+  echo "Logging for $POD"
+  kubectl logs $POD -n $NAMESPACE
+done
+
+
 if [ $i -eq 10 ]
 then
   echo "No 3 MemberUp log events found"
   echo "=============================="
-  for POD in $(kubectl get pods -n $NAMESPACE | grep $APP_NAME | grep Running | awk '{ print $1 }')
-  do
-   echo "Logging for $POD"
-    kubectl logs $POD -n $NAMESPACE
-  done
+
   exit -1
 fi
 
