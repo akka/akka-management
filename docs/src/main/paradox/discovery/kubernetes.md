@@ -31,10 +31,18 @@ values in your `application.conf`.
 ```
 akka.discovery {
   kubernetes-api {
-    pod-namespace = "default"
+    # Namespace discovery path
+    #
+    # If this path doesn't exist, the namespace will default to "default".
+    pod-namespace-path = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+  
+    # Namespace to query for pods.
+    #
+    # Set this value to a specific string to override discovering the namespace using pod-namespace-path.
+    pod-namespace = "<pod-namespace>"
 
-    # %s will be replaced with the configured effective name, which defaults to
-    # the actor system name
+    # Selector value to query pod API with.
+    # `%s` will be replaced with the configured effective name, which defaults to the actor system name
     pod-label-selector = "app=%s"
   }
 }
@@ -117,4 +125,3 @@ roleRef:
   name: pod-reader
   apiGroup: rbac.authorization.k8s.io
 ```
-
