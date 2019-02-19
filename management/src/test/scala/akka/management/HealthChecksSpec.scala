@@ -106,7 +106,7 @@ class HealthChecksSpec
   val CtrExceptionCheck = NamedHealthCheck("CtrExceptionCheck", "akka.management.CtrException")
 
   def settings(readiness: im.Seq[NamedHealthCheck], liveness: im.Seq[NamedHealthCheck]) =
-    new HealthCheckSettings(readiness, liveness, "ready", "alive", 500.millis)
+    new HealthCheckSettings(readiness, liveness, "ready", "alive", 500.millis, enabled = true)
 
   "HealthCheck" should {
     "succeed by default" in {

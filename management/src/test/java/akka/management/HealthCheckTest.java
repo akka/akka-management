@@ -72,7 +72,8 @@ public class HealthCheckTest extends JUnitSuite {
                 healthChecks,
                 "ready",
                 "alive",
-                java.time.Duration.ofSeconds(1)
+                java.time.Duration.ofSeconds(1),
+                true // enabled
         ));
         assertEquals(true, checks.alive().toCompletableFuture().get());
         assertEquals(true, checks.ready().toCompletableFuture().get());
@@ -86,7 +87,8 @@ public class HealthCheckTest extends JUnitSuite {
                 healthChecks,
                 "ready",
                 "alive",
-                java.time.Duration.ofSeconds(1)
+                java.time.Duration.ofSeconds(1),
+                true // enabled
         ));
         assertEquals(true, checks.alive().toCompletableFuture().get());
         assertEquals(true, checks.ready().toCompletableFuture().get());
@@ -101,7 +103,8 @@ public class HealthCheckTest extends JUnitSuite {
                 healthChecks,
                 "ready",
                 "alive",
-                java.time.Duration.ofSeconds(1)
+                java.time.Duration.ofSeconds(1),
+                true // enabled
         ));
         try {
             checks.alive().toCompletableFuture().get();
@@ -127,7 +130,8 @@ public class HealthCheckTest extends JUnitSuite {
               Collections.emptyList(),
               "ready",
               "alive",
-              java.time.Duration.ofSeconds(1)
+              java.time.Duration.ofSeconds(1),
+              true // enabled
             ));
             assertEquals(false, checks.alive().toCompletableFuture().get());
             assertEquals(false, checks.ready().toCompletableFuture().get());

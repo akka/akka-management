@@ -38,7 +38,8 @@ object HealthCheckSettings {
         .filter(_.fullyQualifiedClassName != ""),
       config.getString("readiness-path"),
       config.getString("liveness-path"),
-      config.getDuration("check-timeout").asScala
+      config.getDuration("check-timeout").asScala,
+      config.getBoolean("enabled")
     )
 
   /**
@@ -53,13 +54,15 @@ object HealthCheckSettings {
              livenessChecks: java.util.List[NamedHealthCheck],
              readinessPath: String,
              livenessPath: String,
-             checkDuration: java.time.Duration) =
+             checkDuration: java.time.Duration,
+             enabled: Boolean) =
     new HealthCheckSettings(
       readinessChecks.asScala.toList,
       livenessChecks.asScala.toList,
       readinessPath,
       livenessPath,
-      checkDuration.asScala
+      checkDuration.asScala,
+      enabled
     )
 }
 
@@ -74,7 +77,8 @@ final class HealthCheckSettings(val readinessChecks: immutable.Seq[NamedHealthCh
                                 val livenessChecks: immutable.Seq[NamedHealthCheck],
                                 val readinessPath: String,
                                 val livenessPath: String,
-                                val checkTimeout: FiniteDuration) {
+                                val checkTimeout: FiniteDuration,
+                                val enabled: Boolean) {
 
   /**
    * Java API

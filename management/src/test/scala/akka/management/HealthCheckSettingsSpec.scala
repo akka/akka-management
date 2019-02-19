@@ -18,6 +18,7 @@ class HealthCheckSettingsSpec extends WordSpec with Matchers {
          readiness-path = ""
          liveness-path = ""
          check-timeout = 1s
+         enabled = true
         """)).readinessChecks shouldEqual Nil
       HealthCheckSettings(ConfigFactory.parseString("""
          liveness-checks {
@@ -27,6 +28,7 @@ class HealthCheckSettingsSpec extends WordSpec with Matchers {
          readiness-path = ""
          liveness-path = ""
          check-timeout = 1s
+         enabled = true
         """)).readinessChecks shouldEqual Nil
     }
   }
