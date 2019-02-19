@@ -49,11 +49,7 @@ final class AkkaManagementSettings(val config: Config) {
     val BasePath: Option[String] =
       Option(cc.getString("base-path")).flatMap(it ⇒ if (it.trim == "") None else Some(it))
 
-    val RouteProviders: immutable.Seq[String] =
-      cc.getStringList("route-providers").asScala
-      .filterNot { v =>
-        v == null || v.trim.isEmpty
-      }.toList
+    val RouteProviders: immutable.Seq[String] = cc.getStringList("route-providers").asScala.toList
 
     val RouteProvidersReadOnly: Boolean = cc.getBoolean("route-providers-read-only")
   }
