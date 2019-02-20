@@ -1,4 +1,4 @@
-# Heath checks
+# Health checks
 
 Akka Management supports two kinds of health checks:
 

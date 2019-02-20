@@ -172,6 +172,6 @@ Java
 
 A cluster membership @ref:[health check](healthchecks.md) is included that is designed to be used as a readiness check.
 
-By default the health check returns `true` when a node is either `Up` or `WeaklyUp`. Can be configured with `akka.management.cluster.heath-checks.ready-states`.
+By default the health check returns `true` when a node is either `Up` or `WeaklyUp`. Can be configured with `akka.management.cluster.health-checks.ready-states`.
 
 
