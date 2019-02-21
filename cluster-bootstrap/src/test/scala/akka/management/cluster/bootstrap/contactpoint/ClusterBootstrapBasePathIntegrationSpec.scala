@@ -27,8 +27,8 @@ import akka.management.scaladsl.AkkaManagement
 class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers {
 
   "Cluster Bootstrap" should {
-    val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
-    val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+    val Vector(managementPort, remotingPort) =
+      SocketUtil.temporaryServerAddresses(2, "127.0.0.1").map(_.getPort)
 
     val config =
       ConfigFactory.parseString(s"""

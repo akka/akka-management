@@ -36,9 +36,8 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
     var unreachablePorts = Map.empty[String, Int]
 
     def config(id: String): Config = {
-      val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
-      val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
-      val unreachablePort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+      val Vector(managementPort, remotingPort, unreachablePort) =
+        SocketUtil.temporaryServerAddresses(3, "127.0.0.1").map(_.getPort)
 
       info(s"System [$id]:  management port: $managementPort")
       info(s"System [$id]:    remoting port: $remotingPort")

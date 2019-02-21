@@ -36,9 +36,7 @@ class MultiDcSpec
 
   "Http cluster management" must {
     "allow multiple DCs" in {
-      val httpPortA = SocketUtil.temporaryServerAddress().getPort
-      val portA = SocketUtil.temporaryServerAddress().getPort
-      val portB = SocketUtil.temporaryServerAddress().getPort
+      val Vector(httpPortA, portA, portB) = SocketUtil.temporaryServerAddresses(3).map(_.getPort)
       val dcA = ConfigFactory.parseString(
         s"""
            |akka.management.http.hostname = "127.0.0.1"
