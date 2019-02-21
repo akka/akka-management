@@ -22,5 +22,3 @@ Bridge mode
 
 Use `marathon/app.bridge-mode.json` service description.
 
-Please note, `discovery-dns` extension doesn't support DNS SRV lookup at the moment, thus a fixed HTTP management host port provided. This feature is tracked as [Issue #72](https://github.com/akka/akka-management/issues/72) on github, subscribe there for more information (or better yet, contribute the support for it!)
-

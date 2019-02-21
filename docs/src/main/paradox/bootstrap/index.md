@@ -28,15 +28,16 @@ A discovery mechanism needs to be chosen. A good default choice is DNS.
 
 Add `akka-management-cluster-bootstrap` and one or more discovery mechanisms to use for the discovery process.
 
-For example, you might choose to use the DNS discovery and bootstrap extensions:
+For example, you might choose to use the [DNS discovery](https://doc.akka.io/docs/akka/current/discovery/index.html#discovery-method-dns)
+and bootstrap extensions:
 
 @@dependency[sbt,Gradle,Maven] {
   group=com.lightbend.akka.management
   artifact=akka-management-cluster-bootstrap_$scala.binary_version$
   version=$version$
-  group2=com.lightbend.akka.discovery
-  artifact2=akka-discovery-dns_$scala.binary_version$
-  version2=$version$
+  group2=com.typesafe.akka
+  artifact2=akka-discovery_$scala.binary_version$
+  version2=$akka.version$
 }
 
 
