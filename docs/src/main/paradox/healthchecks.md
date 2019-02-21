@@ -52,14 +52,23 @@ Application specific health checks can be added a `name = <fully qualified class
 
 ## Hosting health checks as an Akka Management Route
 
-Health checks can be hosted via the Akka management HTTP server. To enable this add the `HealthCheckRoutes` as an Akka management route provider:
-
-@@snip [application.conf](/integration-test/local/src/main/resources/application.conf)  { #health-route }
+Health checks can be hosted via the Akka management HTTP server. The `akka.management.HealthCheckRoutes` is enabled
+by default as an Akka management route provider.
 
 By default all readiness checks are hosted on `/ready` and liveness checks are hosted on `/alive`. If all of the checks
-for an endpoint succeed a `200` is returned, if any fail or return `false` a `500` is returned. The paths are configurable via `akka.management.health-checks.readiness-path` and `akka.management.health-checks.liveness-path` e.g.
+for an endpoint succeed a `200` is returned, if any fail or return `false` a `500` is returned. The paths are
+configurable via `akka.management.health-checks.readiness-path` and `akka.management.health-checks.liveness-path` e.g.
 
 @@snip [application.conf](/integration-test/local/src/main/resources/application.conf)  { #health }
+
+The `akka.management.HealthCheckRoutes` can be disabled with the following configuration but that also
+means that the configured `readiness-checks` and `liveness-checks` will not be used.
+
+```
+akka.management.http.routes {
+  health-checks = ""
+}
+```
 
 
 

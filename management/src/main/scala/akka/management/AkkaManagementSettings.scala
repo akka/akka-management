@@ -49,7 +49,22 @@ final class AkkaManagementSettings(val config: Config) {
     val BasePath: Option[String] =
       Option(cc.getString("base-path")).flatMap(it ⇒ if (it.trim == "") None else Some(it))
 
-    val RouteProviders: immutable.Seq[String] = cc.getStringList("route-providers").asScala.toList
+    val RouteProviders: immutable.Seq[NamedRouteProvider] = {
+      def validFQCN(value: Any) = {
+        value != null &&
+        value != "null" &&
+        value.toString.trim.nonEmpty
+      }
+
+      cc.getConfig("routes")
+        .root
+        .unwrapped
+        .asScala
+        .collect {
+          case (name, value) if validFQCN(value) => NamedRouteProvider(name, value.toString)
+        }
+        .toList
+    }
 
     val RouteProvidersReadOnly: Boolean = cc.getBoolean("route-providers-read-only")
   }
@@ -70,7 +85,7 @@ final class AkkaManagementSettings(val config: Config) {
   def getBasePath: Optional[String] = Http.BasePath.asJava
 
   /** Java API */
-  def getHttpRouteProviders: java.util.List[String] = Http.RouteProviders.asJava
+  def getHttpRouteProviders: java.util.List[NamedRouteProvider] = Http.RouteProviders.asJava
 
 }
 
@@ -95,3 +110,5 @@ final class AkkaManagementSettings(val config: Config) {
       }
   }
 }
+
+final case class NamedRouteProvider(name: String, fullyQualifiedClassName: String)
