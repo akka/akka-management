@@ -14,32 +14,37 @@ import scala.concurrent.duration.FiniteDuration
 final case class NamedHealthCheck(name: String, fullyQualifiedClassName: String)
 
 object HealthCheckSettings {
-  def apply(config: Config): HealthCheckSettings =
+  def apply(config: Config): HealthCheckSettings = {
+    def validFQCN(value: Any) = {
+      value != null &&
+      value != "null" &&
+      value.toString.trim.nonEmpty
+    }
+
     new HealthCheckSettings(
       config
         .getConfig("readiness-checks")
         .root
         .unwrapped
         .asScala
-        .map {
-          case (name, value) => NamedHealthCheck(name, value.toString)
+        .collect {
+          case (name, value) if validFQCN(value) => NamedHealthCheck(name, value.toString)
         }
-        .toList
-        .filter(_.fullyQualifiedClassName != ""),
+        .toList,
       config
         .getConfig("liveness-checks")
         .root
         .unwrapped
         .asScala
-        .map {
-          case (name, value) => NamedHealthCheck(name, value.toString)
+        .collect {
+          case (name, value) if validFQCN(value) => NamedHealthCheck(name, value.toString)
         }
-        .toList
-        .filter(_.fullyQualifiedClassName != ""),
+        .toList,
       config.getString("readiness-path"),
       config.getString("liveness-path"),
       config.getDuration("check-timeout").asScala
     )
+  }
 
   /**
    * Java API

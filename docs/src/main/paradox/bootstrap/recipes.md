@@ -53,12 +53,13 @@ Note that the `app` is the same for both services as they both refer to the same
 
 ### Health checks
 
-`akka-cluster-http-management` includes an Akka Management route provider for a readiness and a liveness check. To use it
+`akka-management` includes a HTTP route for readiness and liveness checks.
+`akka-management-cluster-http` includes readiness check for the Akka Cluster membership. To use it
 add the following dependency:
 
 @@dependency[sbt,Gradle,Maven] {
   group=com.lightbend.akka.management
-  artifact=akka-management_$scala.binary_version$
+  artifact=akka-management-cluster-http_$scala.binary_version$
   version=$version$
 }
 

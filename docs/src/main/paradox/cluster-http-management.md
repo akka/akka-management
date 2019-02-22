@@ -31,7 +31,6 @@ Scala
 Java
 :  @@snip [CompileOnlyTest.java](/cluster-http/src/test/java/jdoc/akka/cluster/http/management/CompileOnlyTest.java) { #loading }
 
-
 ## API Definition
 
 The following table describes the usage of the API. All `GET` operations are exposed by default. `POST`, `PUT` and `DELETE` operations
@@ -168,10 +167,27 @@ Scala
 Java
 :  @@snip [CompileOnlyTest.java](/cluster-http/src/test/java/jdoc/akka/cluster/http/management/CompileOnlyTest.java) { #read-only }
 
+## Disable routes
+
+The Cluster HTTP Routes are included by default when this module is used. It can be disabled with the following
+configuration, for example if the cluster membership health checks are to be included but not the other Cluster HTTP Routes.
+
+```
+akka.management.http.routes {
+  cluster-management = ""
+}
+```
+
 ## Health checks
 
 A cluster membership @ref:[health check](healthchecks.md) is included that is designed to be used as a readiness check.
 
 By default the health check returns `true` when a node is either `Up` or `WeaklyUp`. Can be configured with `akka.management.cluster.heath-checks.ready-states`.
 
+The cluster membership readiness check can be disabled with configuration:
 
+```
+akka.management.health-checks.readiness-checks {
+  cluster-membership = ""
+}
+```

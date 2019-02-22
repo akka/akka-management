@@ -77,8 +77,10 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
             akka.management.http.port = 8558
             //#management-host-port
             akka.management.http.port = $httpPort
-            akka.management.http.route-providers += "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
-            akka.management.http.route-providers += "akka.management.HttpManagementEndpointSpecRoutesJavadsl"
+            akka.management.http.routes {
+              test1 = "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
+              test2 = "akka.management.HttpManagementEndpointSpecRoutesJavadsl"
+            }
           """
         )
 
@@ -86,11 +88,11 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         implicit val mat = ActorMaterializer() // needed for toStrict
 
         val management = AkkaManagement(system)
-        management.settings.Http.RouteProviders should contain(
-            "akka.management.HttpManagementEndpointSpecRoutesScaladsl")
-        management.settings.Http.RouteProviders should contain(
-            "akka.management.HttpManagementEndpointSpecRoutesJavadsl")
-        management.start()
+        management.settings.Http.RouteProviders should contain(NamedRouteProvider("test1",
+            "akka.management.HttpManagementEndpointSpecRoutesScaladsl"))
+        management.settings.Http.RouteProviders should contain(NamedRouteProvider("test2",
+            "akka.management.HttpManagementEndpointSpecRoutesJavadsl"))
+        Await.result(management.start(), 10.seconds)
 
         val responseFuture1 = Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:$httpPort/scaladsl"))
         val response1 = Await.result(responseFuture1, 5.seconds)
@@ -110,10 +112,12 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         val httpPort = SocketUtil.temporaryLocalPort()
         val configClusterHttpManager = ConfigFactory.parseString(
           s"""
-            |akka.management.http.hostname = "127.0.0.1"
-            |akka.management.http.port = $httpPort
-            |akka.management.http.route-providers += "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
-          """.stripMargin
+            akka.management.http.hostname = "127.0.0.1"
+            akka.management.http.port = $httpPort
+            akka.management.http.routes {
+              test3 = "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
+            }
+          """
         )
 
         implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
@@ -131,7 +135,7 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
           }
 
         val management = AkkaManagement(system)
-        management.start(_.withAuth(myUserPassAuthenticator))
+        Await.result(management.start(_.withAuth(myUserPassAuthenticator)), 10.seconds)
 
         val httpRequest = HttpRequest(uri = s"http://127.0.0.1:$httpPort/scaladsl").addHeader(
             Authorization(BasicHttpCredentials("user", "p4ssw0rd")))
@@ -148,17 +152,19 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         val httpPort = SocketUtil.temporaryLocalPort()
         val configClusterHttpManager = ConfigFactory.parseString(
           s"""
-            |akka.management.http.hostname = "127.0.0.1"
-            |akka.management.http.port = $httpPort
-            |akka.management.http.route-providers += "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
-            |
-            |akka.ssl-config {
-            |  loose {
-            |    disableSNI = true
-            |    disableHostnameVerification = true
-            |  }
-            |}
-          """.stripMargin
+            akka.management.http.hostname = "127.0.0.1"
+            akka.management.http.port = $httpPort
+            akka.management.http.routes {
+              test4 = "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
+            }
+
+            akka.ssl-config {
+              loose {
+                disableSNI = true
+                disableHostnameVerification = true
+              }
+            }
+          """
         )
 
         implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
@@ -183,8 +189,10 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         val management = AkkaManagement(system)
 
         val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
-        management.start(_.withHttpsConnectionContext(https))
+        val started = management.start(_.withHttpsConnectionContext(https))
         //#start-akka-management-with-https-context
+
+        Await.result(started, 10.seconds)
 
         val httpRequest = HttpRequest(uri = s"https://127.0.0.1:$httpPort/scaladsl")
         val responseGetMembersFuture = Http().singleRequest(httpRequest, connectionContext = https)
@@ -193,6 +201,90 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
 
         try Await.ready(management.stop(), 5.seconds)
         finally system.terminate()
+      }
+
+      "enable HealthCheckRoutes by default" in {
+        val httpPort = SocketUtil.temporaryLocalPort()
+        val configClusterHttpManager = ConfigFactory.parseString(
+          s"""
+            akka.management.http.hostname = "127.0.0.1"
+            akka.management.http.port = $httpPort
+          """
+        )
+
+        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+
+        val management = AkkaManagement(system)
+        Await.result(management.start(), 10.seconds)
+
+        val request1 = HttpRequest(uri = s"http://127.0.0.1:$httpPort/alive")
+        val response1 = Await.result(Http().singleRequest(request1), 5.seconds)
+        response1.status shouldEqual StatusCodes.OK
+
+        val request2 = HttpRequest(uri = s"http://127.0.0.1:$httpPort/ready")
+        val response2 = Await.result(Http().singleRequest(request2), 5.seconds)
+        response2.status shouldEqual StatusCodes.OK
+
+        try Await.ready(management.stop(), 5.seconds)
+        finally system.terminate()
+      }
+
+      "HealthCheckRoutes are disabled" in {
+        val httpPort = SocketUtil.temporaryLocalPort()
+        val configClusterHttpManager = ConfigFactory.parseString(
+          s"""
+            akka.management.http.hostname = "127.0.0.1"
+            akka.management.http.port = $httpPort
+            akka.management.http.routes {
+              health-checks = ""
+            }
+            # must have at least one route
+            akka.management.http.routes {
+              test5 = "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
+            }
+          """
+        )
+
+        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+
+        val management = AkkaManagement(system)
+        Await.result(management.start(), 10.seconds)
+
+        val request1 = HttpRequest(uri = s"http://127.0.0.1:$httpPort/alive")
+        val response1 = Await.result(Http().singleRequest(request1), 5.seconds)
+        response1.status shouldEqual StatusCodes.NotFound
+
+        val request2 = HttpRequest(uri = s"http://127.0.0.1:$httpPort/ready")
+        val response2 = Await.result(Http().singleRequest(request2), 5.seconds)
+        response2.status shouldEqual StatusCodes.NotFound
+
+        try Await.ready(management.stop(), 5.seconds)
+        finally system.terminate()
+      }
+    }
+
+    "not start" when {
+
+      "no routes defined" in {
+        val httpPort = SocketUtil.temporaryLocalPort()
+        val configClusterHttpManager = ConfigFactory.parseString(
+          s"""
+            akka.management.http.hostname = "127.0.0.1"
+            akka.management.http.port = $httpPort
+            akka.management.http.routes {
+              health-checks = ""
+            }
+          """
+        )
+
+        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+
+        val management = AkkaManagement(system)
+        intercept[IllegalArgumentException] {
+          Await.result(management.start(), 10.seconds)
+        }.getCause.getMessage should include("No routes configured")
+
+        system.terminate()
       }
     }
   }

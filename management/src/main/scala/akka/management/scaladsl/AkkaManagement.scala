@@ -36,6 +36,7 @@ import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.settings.ServerSettings
 import akka.management.AkkaManagementSettings
+import akka.management.NamedRouteProvider
 import akka.management.javadsl
 import akka.stream.ActorMaterializer
 import akka.util.ManifestInfo
@@ -202,7 +203,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
     } else
       throw new IllegalArgumentException(
           "No routes configured for akka management! " +
-          "Double check your `akka.management.http.route-providers` config.")
+          "Double check your `akka.management.http.routes` config.")
   }
 
   def stop(): Future[Done] = {
@@ -226,49 +227,51 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
     val dynamicAccess = system.dynamicAccess
 
     // since often the providers are akka extensions, we initialize them here as the ActorSystem would otherwise
-    settings.Http.RouteProviders map { fqcn ⇒
-      dynamicAccess.getObjectFor[ExtensionIdProvider](fqcn) recoverWith {
-        case _ ⇒ dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, Nil)
-      } recoverWith {
-        case _: ClassCastException | _: NoSuchMethodException ⇒
-          dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
-      } recoverWith {
-        case _: ClassCastException | _: NoSuchMethodException ⇒
-          dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, Nil)
-      } recoverWith {
-        case _: ClassCastException | _: NoSuchMethodException ⇒
-          dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
-      } recoverWith {
-        case _: ClassCastException | _: NoSuchMethodException ⇒
-          dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn, Nil)
-      } recoverWith {
-        case _: ClassCastException | _: NoSuchMethodException ⇒
-          dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn,
-            (classOf[ExtendedActorSystem], system) :: Nil)
-      } match {
-        case Success(p: ExtensionIdProvider) ⇒
-          system.registerExtension(p.lookup()) match {
-            case provider: ManagementRouteProvider => provider
-            case provider: javadsl.ManagementRouteProvider => new ManagementRouteProviderAdapter(provider)
-            case other =>
-              throw new RuntimeException(
-                  s"Extension [$fqcn] should create a 'ManagementRouteProvider' but was " +
-                  s"[${other.getClass.getName}]")
-          }
+    settings.Http.RouteProviders map {
+      case NamedRouteProvider(name, fqcn) ⇒
+        dynamicAccess.getObjectFor[ExtensionIdProvider](fqcn) recoverWith {
+          case _ ⇒ dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, Nil)
+        } recoverWith {
+          case _: ClassCastException | _: NoSuchMethodException ⇒
+            dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
+        } recoverWith {
+          case _: ClassCastException | _: NoSuchMethodException ⇒
+            dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, Nil)
+        } recoverWith {
+          case _: ClassCastException | _: NoSuchMethodException ⇒
+            dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn,
+              (classOf[ExtendedActorSystem], system) :: Nil)
+        } recoverWith {
+          case _: ClassCastException | _: NoSuchMethodException ⇒
+            dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn, Nil)
+        } recoverWith {
+          case _: ClassCastException | _: NoSuchMethodException ⇒
+            dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn,
+              (classOf[ExtendedActorSystem], system) :: Nil)
+        } match {
+          case Success(p: ExtensionIdProvider) ⇒
+            system.registerExtension(p.lookup()) match {
+              case provider: ManagementRouteProvider => provider
+              case provider: javadsl.ManagementRouteProvider => new ManagementRouteProviderAdapter(provider)
+              case other =>
+                throw new RuntimeException(
+                    s"Extension [$fqcn] should create a 'ManagementRouteProvider' but was " +
+                    s"[${other.getClass.getName}]")
+            }
 
-        case Success(provider: ManagementRouteProvider) ⇒
-          provider
+          case Success(provider: ManagementRouteProvider) ⇒
+            provider
 
-        case Success(provider: javadsl.ManagementRouteProvider) ⇒
-          new ManagementRouteProviderAdapter(provider)
+          case Success(provider: javadsl.ManagementRouteProvider) ⇒
+            new ManagementRouteProviderAdapter(provider)
 
-        case Success(_) ⇒
-          throw new RuntimeException(
-              s"[$fqcn] is not an 'ExtensionIdProvider', 'ExtensionId' or 'ManagementRouteProvider'")
+          case Success(_) ⇒
+            throw new RuntimeException(
+                s"[$fqcn] is not an 'ExtensionIdProvider', 'ExtensionId' or 'ManagementRouteProvider'")
 
-        case Failure(problem) ⇒
-          throw new RuntimeException(s"While trying to load extension [$fqcn]", problem)
-      }
+          case Failure(problem) ⇒
+            throw new RuntimeException(s"While trying to load route provider extension [$name = $fqcn]", problem)
+        }
     }
   }
 

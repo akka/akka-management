@@ -19,6 +19,21 @@ Version requirements:
 * `akka.mananagement.cluster.http.healthcheck.ready-states` moved to `akka.mananagement.cluster.health-check.ready-states`
 * `akka.management.cluster.bootstrap.form-new-cluster` renamed to `akka.management.cluster.bootstrap.new-cluster-enabled`
 
+#### route-providers
+
+`akka.mananagement.cluster.route-providers` changed from being a list of fully qualified class names to
+a configuration object `akka.mananagement.cluster.routes` with named route providers. The reason for the
+change was to be able to exclude a route provider that was included by a library (from reference.conf) by
+using ``""` or `null` as the FQCN of the named entry, for example:
+
+```
+akka.management.http.routes {
+  health-checks = ""
+}
+```
+
+By default the `akka.management.HealthCheckRoutes` is enabled.
+
 ### Akka Discovery
 
 For Akka Management version 1.0 Service Discovery as well as the config, DNS and aggregate discovery methods 

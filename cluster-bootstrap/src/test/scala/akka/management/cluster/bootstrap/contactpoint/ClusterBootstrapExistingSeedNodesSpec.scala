@@ -37,8 +37,8 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
   val JoinYourself: List[Address] = List(null, null, null)
 
   def newSystem(id: String, seedNodes: List[Address]) = {
-    val managementPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
-    val remotingPort = SocketUtil.temporaryServerAddress("127.0.0.1").getPort
+    val Vector(managementPort, remotingPort) =
+      SocketUtil.temporaryServerAddresses(2, "127.0.0.1").map(_.getPort)
 
     info(s"System [$id]:   remoting port: $remotingPort")
 
