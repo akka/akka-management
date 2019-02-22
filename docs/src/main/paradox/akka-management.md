@@ -160,7 +160,7 @@ For example, the "Cluster HTTP Management" module exposes HTTP routes that can b
 and even trigger joining/leaving/downing decisions via HTTP calls to these routes. The routes and
 logic for these are implemented inside the `akka-management-cluster-http`.
 
-Management route providers should be regular extensions that aditionally extend the
+Management route providers should be regular extensions that additionally extend the
 `akka.management.scaladsl.ManagementRoutesProvider` or `akka.management.javadsl.ManagementRoutesProvider`
 interface.
 
