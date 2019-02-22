@@ -40,6 +40,19 @@ and bootstrap extensions:
   version2=$akka.version$
 }
 
+@@@ note
+
+`akka-discovery` is already a transitive dependency of `akka-management-cluster-bootstrap` but it can
+be good to define it explicitly in the build of the application to align the Akka versions with other
+dependencies from the application. The version must be the same across all Akka modules, e.g.
+`akka-actor`, `akka-discovery` and `akka-cluster` must be of the same version.
+
+The minimum supported Akka version is $akka.version$. Use the same Akka version for `akka-discovery`
+as for other Akka dependencies in the application. Latest patch version of Akka is recommended and
+a later version than $akka.version$ can be used.
+
+@@@
+
 
 ## Using
 
