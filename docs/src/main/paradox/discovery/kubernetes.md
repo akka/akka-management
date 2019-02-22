@@ -38,7 +38,8 @@ akka.discovery {
     # the actor system name
     pod-label-selector = "app=%s"
 
-    pod-port-name = "akka-mgmt-http"
+    # This name must match the ports name in the deployment resource YAML.
+    pod-port-name = "management"
   }
 }
 ```
@@ -72,7 +73,9 @@ spec:
           containerPort: 2552
           protocol: TCP
         # akka-management bootstrap
-        - name: akka-mgmt-http
+        # This name must match the name defined in
+        # akka.discovery.kubernetes-api.pod-port-name configuration
+        - name: management
           containerPort: 8558
           protocol: TCP
 ```
