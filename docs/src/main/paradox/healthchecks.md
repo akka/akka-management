@@ -38,13 +38,13 @@ Scala
 Java
 : @@snip [ExampleHealthCheck.java](/management/src/test/java/jdoc/akka/management/ClusterCheck.java)  { #cluster }
 
-Note that [Cluster Http Management](cluster-http-management.md) includes a health check for cluster membership that is configurable for which states are considered healthy.
+Note that @ref:[Cluster Http Management](cluster-http-management.md) includes a health check for cluster membership that is configurable for which states are considered healthy.
 
 Any of the above health checks can be configured as either readiness checks or liveness checks. 
 
 ## Configuring health checks
 
-Health checks are picked up from configuration. Modules are expected to provide health checks e.g. [Cluster Http Management](cluster-http-management.md) provides a cluster readiness check.
+Health checks are picked up from configuration. Modules are expected to provide health checks e.g. @ref:[Cluster Http Management](cluster-http-management.md) provides a cluster readiness check.
 
 Application specific health checks can be added a `name = <fully qualified class name>` to `akka.management.health-checks.readiness-checks` or `akka.management.health-checks.liveness-checks` e.g.
 

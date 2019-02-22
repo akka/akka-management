@@ -1,8 +1,8 @@
 <a id="http-cluster-management"></a>
 # Cluster Http Management
 
-Akka Management Cluster HTTP is a Management extension that allows you interaction with an `akka-cluster` through an HTTP interface.
-This management extension exposes different operations to manage nodes in a cluster as well as a health checks based
+Akka Management Cluster HTTP is a Management extension that allows interaction with an `akka-cluster` through an HTTP interface.
+This management extension exposes different operations to manage nodes in a cluster as well as health checks based
 on the cluster state.
 
 The operations exposed are comparable to the Command Line Management tool or the JMX interface `akka-cluster` provides.
