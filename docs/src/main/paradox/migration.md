@@ -24,7 +24,7 @@ Version requirements:
 `akka.mananagement.cluster.route-providers` changed from being a list of fully qualified class names to
 a configuration object `akka.mananagement.cluster.routes` with named route providers. The reason for the
 change was to be able to exclude a route provider that was included by a library (from reference.conf) by
-using ``""` or `null` as the FQCN of the named entry, for example:
+using `""` or `null` as the FQCN of the named entry, for example:
 
 ```
 akka.management.http.routes {
