@@ -21,29 +21,70 @@ If you are using Consul to do the service discovery this would allow you to base
 In your application conf add:
 ```
 akka.discovery {
-  method = akka-consul
-  akka-consul {
 
-    #How to connect to Consul to fetch services data
+  # Set the following in your application.conf if you want to use this discovery mechanism:
+  # impl = akka-consul
+  # ApiMayChange
+  akka-consul {
+    class = akka.discovery.consul.ConsulServiceDiscovery
+
     consul-host = "127.0.0.1"
     consul-port = 8500
 
-    # Prefix for consul tag with the name of the actor system / application name,
-    # services with this tag present will be found by the discovery mechanism
-    # i.e. `system:test` will be found in cluster if the cluster system is named `test`
-    application-name-tag-prefix = "system:"
-
-    # Prefix for tag containing port number where akka management is set up so that
-    # the seed nodes can be found, an example value for the tag would be `akka-management-port:19999`
-    application-akka-management-port-tag-prefix = "akka-management-port:"
+    # the suffix to discover management service
+    # your code should have logic to register SERVICE_NAME-akka-mangement to consul
+    management-service-suffix = "-akka-management"
   }
 }
 ```
 
-Notes:
+In your code start bootstrap something like this:
 
-* Since tags in Consul services are simple strings, prefixes are necessary to ensure that proper values are read.
+```scala
+// Akka Management hosts the HTTP routes used by bootstrap
+val akkaManagement: AkkaManagement = AkkaManagement(system)
 
-* If Akka management port tag is not found on service in Consul the implementation defaults to catalog service port.
+akkaManagement
+  .start()
+  .map { _ =>
+    val consulAgent =
+      Consul.builder().withHostAndPort(HostAndPort.fromParts("127.0.0.1", 8500)).build()
+      val client = consulAgent.agentClient()
+      client.register(
+        /* port = */ akkaManagement.settings.getHttpPort,
+        /* tcp = */ HostAndPort.fromParts(client.getAgent.getMember.getAddress, akkaManagement.settings.getHttpPort),
+        /* interval = */ 10,
+        /* name = */ "YOUR_SERVICE-akka-management",
+        /* id = */ "YOUR_SERVICE-akka-management-8558",
+        /* tags = */ Seq.empty[String].asJava,
+        /* meta = */ Map.empty[String, String].asJava
+      )
+  }
+  .recover {
+    case err =>
+      system.log.error(err, "Failed to start akka management")
+  }
 
+// Starting the bootstrap process needs to be done explicitly
+ClusterBootstrap(system).start()
+```
 
+Note:
+
+The binding of management service is set in `akka.management.http.hostname`, it should be exactly the same as
+
+- the [`ServiceAddress`](https://www.consul.io/api/catalog.html#serviceaddress) (usually a hostname), if it's not empty,
+- or [`Address`](https://www.consul.io/api/catalog.html#address-1) (usually an IP address), if the `ServiceAddress` is empty.
+
+You may consider setting this config dynamically when the app starts, by:
+
+```conf
+akka.management.cluster.bootstrap.contact-point-discovery.service-name = YOUR_SERVICE
+akka.management.http.hostname = ${app.privateIp}
+```
+
+And set `props` before actor system starts:
+
+```scala
+scala.sys.props += "app.privateIp" -> consulAgentClient.getAgent.getMember.getAddress
+```
