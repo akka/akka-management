@@ -10,8 +10,8 @@ import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
 import akka.annotation.ApiMayChange
-import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
-import akka.discovery.{Lookup, ServiceDiscovery}
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.pattern.after
 import com.google.common.net.HostAndPort
 import com.orbitz.consul.Consul
@@ -21,9 +21,10 @@ import com.orbitz.consul.model.catalog.CatalogService
 import com.orbitz.consul.option.QueryOptions
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable
 import scala.collection.immutable.Seq
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.Try
 
 @ApiMayChange
@@ -46,20 +47,19 @@ class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
   }
 
   private def lookupInConsul(name: String)(implicit executionContext: ExecutionContext): Future[Resolved] = {
-    getService(name + settings.managementServiceSuffix)
-      .map {
-        _.getResponse.asScala.map { catalogService =>
-          ResolvedTarget(
-            host = catalogService.getServiceAddress match {
-              case "" | null      => catalogService.getAddress
-              case serviceAddress => serviceAddress
-            },
-            port = Some(catalogService.getServicePort),
-            address = Try(InetAddress.getByName(catalogService.getAddress)).toOption
-          )
-        }
-      } map { targets =>
-      Resolved(name, Seq(targets: _*))
+    getService(name + settings.managementServiceSuffix).map {
+      _.getResponse.asScala.map { catalogService =>
+        ResolvedTarget(
+          host = catalogService.getServiceAddress match {
+            case "" | null => catalogService.getAddress
+            case serviceAddress => serviceAddress
+          },
+          port = Some(catalogService.getServicePort),
+          address = Try(InetAddress.getByName(catalogService.getAddress)).toOption
+        )
+      }
+    } map { targets =>
+      Resolved(name, immutable.Seq(targets: _*))
     }
   }
 
@@ -74,10 +74,10 @@ class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
         new ConsulResponseCallback[util.List[CatalogService]] {
           override def onComplete(consulResponse: ConsulResponse[util.List[CatalogService]]): Unit =
             promise.success(consulResponse)
-          override def onFailure(throwable: Throwable): Unit = promise.failure(throwable)
+          override def onFailure(throwable: Throwable): Unit =
+            promise.failure(throwable)
         }
       )
     promise.future
   }
 }
-

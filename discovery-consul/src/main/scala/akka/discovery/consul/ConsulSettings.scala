@@ -4,18 +4,20 @@
 
 package akka.discovery.consul
 
-import akka.actor.{ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider}
+import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
 import akka.annotation.ApiMayChange
 
 @ApiMayChange
 final class ConsulSettings(system: ExtendedActorSystem) extends Extension {
-  private val consulConfig = system.settings.config.getConfig("akka.discovery.akka-consul")
+  private val consulConfig =
+    system.settings.config.getConfig("akka.discovery.akka-consul")
 
   val consulHost: String = consulConfig.getString("consul-host")
 
   val consulPort: Int = consulConfig.getInt("consul-port")
 
-  val managementServiceSuffix: String = consulConfig.getString("management-service-suffix")
+  val managementServiceSuffix: String =
+    consulConfig.getString("management-service-suffix")
 }
 
 @ApiMayChange
@@ -24,5 +26,6 @@ object ConsulSettings extends ExtensionId[ConsulSettings] with ExtensionIdProvid
 
   override def lookup: ConsulSettings.type = ConsulSettings
 
-  override def createExtension(system: ExtendedActorSystem): ConsulSettings = new ConsulSettings(system)
+  override def createExtension(system: ExtendedActorSystem): ConsulSettings =
+    new ConsulSettings(system)
 }
