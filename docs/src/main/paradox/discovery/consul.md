@@ -19,15 +19,13 @@ If you are using Consul to do the service discovery this would allow you to base
 }
 
 In your application conf add:
+
 ```
 akka.discovery {
-
-  # Set the following in your application.conf if you want to use this discovery mechanism:
-  # impl = akka-consul
-  # ApiMayChange
+  method = akka-consul
   akka-consul {
-    class = akka.discovery.consul.ConsulServiceDiscovery
 
+    #How to connect to Consul to fetch services data
     consul-host = "127.0.0.1"
     consul-port = 8500
 
