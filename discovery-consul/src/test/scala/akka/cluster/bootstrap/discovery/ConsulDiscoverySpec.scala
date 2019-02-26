@@ -12,13 +12,12 @@ import akka.discovery.consul.ConsulServiceDiscovery
 import akka.testkit.TestKitBase
 import com.google.common.net.HostAndPort
 import com.orbitz.consul.Consul
-import com.orbitz.consul.model.catalog.ImmutableCatalogRegistration
-import com.orbitz.consul.model.health.ImmutableService
-import com.pszymczyk.consul.{ ConsulProcess, ConsulStarterBuilder }
+import com.pszymczyk.consul.{ConsulProcess, ConsulStarterBuilder}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Seconds, Span }
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
 class ConsulDiscoverySpec
@@ -35,33 +34,21 @@ class ConsulDiscoverySpec
       val consulAgent =
         Consul.builder().withHostAndPort(HostAndPort.fromParts(consul.getAddress, consul.getHttpPort)).build()
       consulAgent
-        .catalogClient()
+        .agentClient()
         .register(
-          ImmutableCatalogRegistration
-            .builder()
-            .service(
-              ImmutableService
-                .builder()
-                .addTags(s"system:${system.name}", "akka-management-port:1234")
-                .address("127.0.0.1")
-                .id("test")
-                .service("test")
-                .port(1235)
-                .build()
-            )
-            .node("testNode")
-            .address("localhost")
-            .build()
+          8558,
+          HostAndPort.fromParts("127.0.0.1", 8558),
+          10,
+          "test-akka-management",
+          "test-akka-management-8558",
+          Seq.empty[String].asJava,
+          Map.empty[String, String].asJava
         )
 
       val lookupService = new ConsulServiceDiscovery(system)
       val resolved = lookupService.lookup("test", 10.seconds).futureValue
       resolved.addresses should contain(
-        ResolvedTarget(
-          host = "127.0.0.1",
-          port = Some(1234),
-          address = Some(InetAddress.getByName("127.0.0.1"))
-        )
+        ResolvedTarget(host = "127.0.0.1", port = Some(8558), address = Some(InetAddress.getByName("127.0.0.1")))
       )
     }
   }
