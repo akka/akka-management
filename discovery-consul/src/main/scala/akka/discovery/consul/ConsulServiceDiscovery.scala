@@ -21,8 +21,6 @@ import com.orbitz.consul.model.catalog.CatalogService
 import com.orbitz.consul.option.QueryOptions
 
 import scala.collection.JavaConverters._
-import scala.collection.immutable
-import scala.collection.immutable.Seq
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.Try
@@ -59,7 +57,7 @@ class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
         )
       }
     } map { targets =>
-      Resolved(name, immutable.Seq(targets: _*))
+      Resolved(name, scala.collection.immutable.Seq(targets: _*))
     }
   }
 
