@@ -10,7 +10,7 @@ fi
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-(cd $DIR/../../.. && sbt bootstrap-demo-aws-api-ecs/docker:publishLocal)
+(cd $DIR/../../.. && sbt integration-test-aws-api-ecs/docker:publishLocal)
 
 eval $(
   aws ecr get-login \
@@ -26,14 +26,14 @@ AWS_ACCOUNT_ID=$(
 )
 
 docker tag \
-  ecs-bootstrap-demo-app:1.0 \
-  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-bootstrap-demo-app:1.0
+  ecs-integration-test-app:1.0 \
+  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-integration-test-app:1.0
 
 docker push \
-  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-bootstrap-demo-app:1.0
+  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-integration-test-app:1.0
 
 docker rmi \
-  ecs-bootstrap-demo-app:1.0
+  ecs-integration-test-app:1.0
 
 docker rmi \
-  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-bootstrap-demo-app:1.0
+  $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-integration-test-app:1.0

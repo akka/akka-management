@@ -42,12 +42,12 @@ SUBNETS=$(
 
 aws cloudformation $ACTION-stack \
   --region us-east-1 \
-  --stack-name ecs-bootstrap-demo-app \
-  --template-body file://$DIR/../cfn-templates/ecs-bootstrap-demo-app.yaml \
+  --stack-name ecs-integration-test-app \
+  --template-body file://$DIR/../cfn-templates/ecs-integration-test-app.yaml \
   --capabilities CAPABILITY_IAM \
   --parameters \
     ParameterKey=Subnets,ParameterValue=\"$SUBNETS\"
 
 aws cloudformation wait stack-$ACTION-complete \
   --region us-east-1 \
-  --stack-name ecs-bootstrap-demo-app
+  --stack-name ecs-integration-test-app
