@@ -6,7 +6,7 @@ Resources:
   Cluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: "ecs-bootstrap-demo-app"
+      ClusterName: "ecs-integration-test-app"
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -59,9 +59,9 @@ Resources:
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
       TaskRoleArn: !GetAtt TaskRole.Arn
       ContainerDefinitions:
-        - Name: ecs-bootstrap-demo-app
+        - Name: ecs-integration-test-app
           Image:
-            !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ecs-bootstrap-demo-app:1.0"
+            !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ecs-integration-test-app:1.0"
           ReadonlyRootFilesystem: true
           LogConfiguration:
             LogDriver: awslogs
@@ -73,7 +73,7 @@ Resources:
             - Name: JAVA_OPTS
               Value: !Sub "-Dakka.management.cluster.bootstrap.\
                 contact-point-discovery.service-name=${AWS::StackName}
-                -Dakka.discovery.aws-api-ecs-async.cluster=ecs-bootstrap-demo-app"
+                -Dakka.discovery.aws-api-ecs-async.cluster=ecs-integration-test-app"
   ServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
