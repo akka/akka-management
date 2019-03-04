@@ -9,7 +9,7 @@ All configuration properties references below are in the `akka.management.cluste
   Akka Management by the Bootstrap Management Extension) for known seeds to join.
 - Since no cluster exists yet, none of the contacted nodes return any seed nodes during the probing process. The following
   takes place to create a new cluster:
-    - A service discovey lookup is done every `contact-point-discovery.interval`
+    - A service discovery lookup is done every `contact-point-discovery.interval`
     - If discovery returns the same contact points for the `contact-point-discovery.stable-margin`. This is to prevent
       join decisions being made based on fluctuating contact points.
     - At least `contact-point-discovery.required-contact-point-nr` nodes have been discovered.
