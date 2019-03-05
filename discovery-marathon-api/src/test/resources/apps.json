@@ -18,7 +18,7 @@
                         "containerPort": 0,
                         "hostPort": 0,
                         "labels": {},
-                        "name": "akka-mgmt-http",
+                        "name": "management",
                         "protocol": "tcp",
                         "servicePort": 10005
                     }
@@ -112,7 +112,7 @@
                 {
                     "port": 10000,
                     "protocol": "tcp",
-                    "name": "akka-mgmt-http"
+                    "name": "management"
                 },
                 {
                     "port": 10001,
