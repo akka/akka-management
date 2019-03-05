@@ -7,7 +7,7 @@ object Dependencies {
   val AkkaHttpVersion = "10.1.7"
 
   val JUnitVersion = "4.12"
-  val SprayJsonVersion = "1.3.3"
+  val SprayJsonVersion = "1.3.5"
 
   val Common = Seq(
     libraryDependencies ++= Seq(
