@@ -64,9 +64,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: read-pods
 subjects:
-  # Create the default user for the akka-bootstrap namespace, update for the namespace you are running in
+  # Create the default user for the 'akka-bootstrap-demo-ns' namespace, update for the namespace you are running in
 - kind: User
-  name: system:serviceaccount:akka-bootstrap:default
+  name: system:serviceaccount:akka-bootstrap-demo-ns:default
 roleRef:
   kind: Role
   name: pod-reader
