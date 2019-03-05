@@ -23,7 +23,7 @@ done
 
 if [ $i -eq 10 ]
 then
-  echo "Pods did not get ready"
+  echo "*** Pods did not get ready ***"
   exit -1
 fi
 
@@ -39,7 +39,7 @@ done
 
 if [ $i -eq 10 ]
 then
-  echo "No 3 MemberUp log events found"
+  echo "*** No 3 MemberUp log events found ***"
   kubectl get pods -n $NAMESPACE
   echo "=============================="
   for POD in $(kubectl get pods -n $NAMESPACE | grep akka-bootstrap-demo | grep Running | awk '{ print $1 }')
