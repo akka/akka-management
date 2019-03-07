@@ -30,7 +30,10 @@ object LocalBootstrapTest {
           port = 0
         }
       }
-      akka.management.http.hostname = "localhost"
+      akka.management {
+        http.hostname = "localhost"
+        cluster.bootstrap.contact-point-discovery.port-name = "management"
+      }
       akka.discovery {
         config.services = {
           local-cluster = {

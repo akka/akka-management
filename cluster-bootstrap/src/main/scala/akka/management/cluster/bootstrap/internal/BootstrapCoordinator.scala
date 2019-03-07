@@ -19,8 +19,9 @@ import akka.actor.Timers
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.discovery.{ Lookup, ServiceDiscovery }
-import akka.discovery.ServiceDiscovery.ResolvedTarget
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.http.scaladsl.model.Uri
+import akka.management.AkkaManagementSettings
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.JoinDecider
 import akka.management.cluster.bootstrap.JoinDecision
@@ -120,6 +121,7 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   private val lookup = Lookup(settings.contactPointDiscovery.effectiveName(context.system),
     settings.contactPointDiscovery.portName, settings.contactPointDiscovery.protocol)
+  private val defaultManagementPort = new AkkaManagementSettings(context.system.settings.config).Http.Port
 
   private var lastContactsObservation: Option[ServiceContactsObservation] = None
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
@@ -250,7 +252,23 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   private def discoverContactPoints(): Unit = {
     log.info("Looking up [{}]", lookup)
-    discovery.lookup(lookup, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
+    discovery
+      .lookup(lookup, settings.contactPointDiscovery.resolveTimeout)
+      .map { resolved =>
+        if (lookup.portName.isDefined)
+          resolved
+        else if (resolved.addresses.flatMap(_.port).isEmpty)
+          Resolved(
+            resolved.serviceName,
+            resolved.addresses.map(target => ResolvedTarget(target.host, Some(defaultManagementPort), target.address))
+          )
+        else
+          Resolved(
+            resolved.serviceName,
+            resolved.addresses.filter(_.port.contains(defaultManagementPort))
+          )
+      }
+      .pipeTo(self)
   }
 
   private def onContactPointsResolved(contactPoints: immutable.Seq[ResolvedTarget]): Unit = {

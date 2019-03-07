@@ -70,6 +70,8 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
                 stable-margin = 4 seconds
 
                 interval = 500 ms
+
+                port-name = "management"
               }
             }
           }
