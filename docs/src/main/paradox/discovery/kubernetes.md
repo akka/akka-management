@@ -37,9 +37,6 @@ akka.discovery {
     # %s will be replaced with the configured effective name, which defaults to
     # the actor system name
     pod-label-selector = "app=%s"
-
-    # This name must match the ports name in the deployment resource YAML.
-    pod-port-name = "management"
   }
 }
 ```
@@ -72,9 +69,9 @@ spec:
         - name: remoting
           containerPort: 2552
           protocol: TCP
-        # akka-management bootstrap
-        # This name must match the name defined in
-        # akka.discovery.kubernetes-api.pod-port-name configuration
+        # When
+        # akka.management.cluster.bootstrap.contact-point-discovery.port-name
+        # is defined, it must correspond to this name:
         - name: management
           containerPort: 8558
           protocol: TCP
