@@ -8,6 +8,8 @@ import java.net.InetAddress
 
 import org.scalatest.{ Matchers, WordSpec }
 import PodList._
+import akka.actor.ActorSystem
+import akka.discovery.Discovery
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 
 class KubernetesApiServiceDiscoverySpec extends WordSpec with Matchers {
@@ -39,6 +41,17 @@ class KubernetesApiServiceDiscoverySpec extends WordSpec with Matchers {
               Some(PodStatus(Some("172.17.0.4"))), Some(Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z"))))))
 
       KubernetesApiServiceDiscovery.targets(podList, "akka-mgmt-http", "default", "cluster.local") shouldBe List.empty
+    }
+  }
+
+  "The discovery loading mechanism" should {
+    "allow loading kubernetes-api discovery even if it is not the default" in {
+      val system = ActorSystem()
+      //#kubernetes-api-discovery
+      val discovery = Discovery(system).loadServiceDiscovery("kubernetes-api")
+      //#kubernetes-api-discovery
+      discovery shouldBe a[KubernetesApiServiceDiscovery]
+      system.terminate()
     }
   }
 }
