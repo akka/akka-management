@@ -176,8 +176,20 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
       discoverContactPoints()
 
     case ServiceDiscovery.Resolved(_, contactPoints) ⇒
-      log.info("Located service members based on: [{}]: [{}]", lookup, contactPoints.mkString(", "))
-      onContactPointsResolved(contactPoints)
+      val filteredContactPoints: Iterable[ResolvedTarget] =
+        if (lookup.portName.isDefined)
+          contactPoints
+        else
+          contactPoints.groupBy(_.host).flatMap {
+            case (host, immutable.Seq(singleResult)) =>
+              immutable.Seq(singleResult)
+            case (host, multipleResults) =>
+              multipleResults.filter(_.port.contains(defaultManagementPort))
+          }
+
+      log.info("Located service members based on: [{}]: [{}], filtered to [{}]", lookup, contactPoints.mkString(", "),
+        filteredContactPoints.mkString(", "))
+      onContactPointsResolved(filteredContactPoints)
       resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals
       startSingleDiscoveryTimer() // keep looking in case other nodes join the discovery
 
@@ -252,26 +264,10 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   private def discoverContactPoints(): Unit = {
     log.info("Looking up [{}]", lookup)
-    discovery
-      .lookup(lookup, settings.contactPointDiscovery.resolveTimeout)
-      .map { resolved =>
-        if (lookup.portName.isDefined)
-          resolved
-        else
-          Resolved(
-            resolved.serviceName,
-            resolved.addresses match {
-              case immutable.Seq(singleResult) =>
-                immutable.Seq(singleResult)
-              case addresses =>
-                addresses.filter(_.port.contains(defaultManagementPort))
-            }
-          )
-      }
-      .pipeTo(self)
+    discovery.lookup(lookup, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
   }
 
-  private def onContactPointsResolved(contactPoints: immutable.Seq[ResolvedTarget]): Unit = {
+  private def onContactPointsResolved(contactPoints: Iterable[ResolvedTarget]): Unit = {
     val newObservation = ServiceContactsObservation(timeNow(), contactPoints.toSet)
     lastContactsObservation match {
       case Some(contacts) => lastContactsObservation = Some(contacts.sameOrChanged(newObservation))
