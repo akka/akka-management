@@ -15,7 +15,7 @@ First, add the dependency on the component:
 As described above, it is uncommon to use the Kubernetes API discovery
 mechanism as your default discovery mechanism. When using it with Akka Cluster
 Bootstrap, it is sufficient to configure it as described @ref[here](../bootstrap/kubernetes-api.md).
-To load it manually, use `loadServiceDiscovery` on the `Discovery` extension:
+Otherwise, to load it manually, use `loadServiceDiscovery` on the `Discovery` extension:
 
 Scala
 :  @@snip [KubernetesApiServiceDiscoverySpec.scala](/discovery-kubernetes-api/src/test/scala/akka/discovery/kubernetes/KubernetesApiServiceDiscoverySpec.scala) { #kubernetes-api-discovery }
