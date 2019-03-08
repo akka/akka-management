@@ -122,7 +122,6 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
   object contactPoint {
     private val contactPointConfig = bootConfig.getConfig("contact-point")
 
-    // FIXME this has to be the same as the management one, we currently override this value when starting management, any better way?
     val fallbackPort: Int =
       contactPointConfig
         .optDefinedValue("fallback-port")

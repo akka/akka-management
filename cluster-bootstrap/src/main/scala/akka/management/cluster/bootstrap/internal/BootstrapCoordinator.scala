@@ -19,9 +19,8 @@ import akka.actor.Timers
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.discovery.{ Lookup, ServiceDiscovery }
-import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.http.scaladsl.model.Uri
-import akka.management.AkkaManagementSettings
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.JoinDecider
 import akka.management.cluster.bootstrap.JoinDecision
@@ -103,9 +102,9 @@ private[akka] object BootstrapCoordinator {
 // also known as the "Baron von Bootstrappen"
 /** INTERNAL API */
 @InternalApi
-private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
-                                               joinDecider: JoinDecider,
-                                               settings: ClusterBootstrapSettings)
+private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
+                                         joinDecider: JoinDecider,
+                                         settings: ClusterBootstrapSettings)
     extends Actor
     with ActorLogging
     with Timers {
@@ -183,6 +182,7 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
             case (host, immutable.Seq(singleResult)) =>
               immutable.Seq(singleResult)
             case (host, multipleResults) =>
+              println(s"Looking for ${settings.contactPoint.fallbackPort}")
               multipleResults.filter(_.port.contains(settings.contactPoint.fallbackPort))
           }
 
@@ -283,7 +283,7 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
     newObservation.observedContactPoints.foreach(ensureProbing)
   }
 
-  private def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
+  private[internal] def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
     val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
     val rawBaseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint.host), targetPort))
     val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
