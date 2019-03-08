@@ -8,9 +8,9 @@ cd integration-test/kubernetes-api-java
 
 mvn -Dakka-management.version=$VERSION clean package docker:build
 
-export NAMESPACE=akka-bootstrap
+export NAMESPACE=akka-bootstrap-demo-ns
 
-kubectl create namespace akka-bootstrap || true
+kubectl create namespace akka-bootstrap-demo-ns || true
 kubectl -n $NAMESPACE apply -f kubernetes/akka-cluster.yml
 
 for i in {1..10}

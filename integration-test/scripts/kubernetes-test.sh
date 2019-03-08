@@ -1,6 +1,6 @@
 sbt $PROJECT_NAME/docker:publishLocal
 
-kubectl create namespace akka-bootstrap || true
+kubectl create namespace akka-bootstrap-demo-ns || true
 kubectl -n $NAMESPACE apply -f $DEPLOYMENT
 
 for i in {1..10}
