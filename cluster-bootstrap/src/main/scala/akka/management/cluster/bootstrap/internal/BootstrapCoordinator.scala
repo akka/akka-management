@@ -182,7 +182,6 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
             case (host, immutable.Seq(singleResult)) =>
               immutable.Seq(singleResult)
             case (host, multipleResults) =>
-              println(s"Looking for ${settings.contactPoint.fallbackPort}")
               multipleResults.filter(_.port.contains(settings.contactPoint.fallbackPort))
           }
 
