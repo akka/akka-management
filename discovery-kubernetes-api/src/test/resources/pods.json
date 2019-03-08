@@ -55,7 +55,7 @@
                 "protocol": "TCP"
               },
               {
-                "name": "akka-mgmt-http",
+                "name": "management",
                 "containerPort": 10001,
                 "protocol": "TCP"
               },
@@ -404,7 +404,7 @@
                 "protocol": "TCP"
               },
               {
-                "name": "akka-mgmt-http",
+                "name": "management",
                 "containerPort": 10001,
                 "protocol": "TCP"
               },
@@ -754,7 +754,7 @@
                 "protocol": "TCP"
               },
               {
-                "name": "akka-mgmt-http",
+                "name": "management",
                 "containerPort": 10001,
                 "protocol": "TCP"
               },
