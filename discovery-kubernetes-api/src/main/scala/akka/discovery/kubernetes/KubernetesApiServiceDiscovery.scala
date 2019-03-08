@@ -8,6 +8,7 @@ import java.net.InetAddress
 import java.nio.file.{ Files, Paths }
 
 import akka.actor.ActorSystem
+import akka.annotation.InternalApi
 import akka.discovery._
 import akka.http.scaladsl._
 import akka.http.scaladsl.model._
@@ -30,9 +31,12 @@ import akka.event.Logging
 object KubernetesApiServiceDiscovery {
 
   /**
+   * INTERNAL API
+   *
    * Finds relevant targets given a pod list. Note that this doesn't filter by name as it is the job of the selector
    * to do that.
    */
+  @InternalApi
   private[kubernetes] def targets(podList: PodList,
                                   portName: Option[String],
                                   podNamespace: String,
