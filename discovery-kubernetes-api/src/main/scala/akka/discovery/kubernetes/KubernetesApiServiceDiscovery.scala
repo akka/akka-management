@@ -93,7 +93,7 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
     val labelSelector = settings.podLabelSelector(query.serviceName)
 
     log.info("Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}]", labelSelector, podNamespace,
-      query.portName, query.portName.isDefined)
+      query.portName)
 
     for {
       request <- optionToFuture(podRequest(apiToken, podNamespace, labelSelector),
