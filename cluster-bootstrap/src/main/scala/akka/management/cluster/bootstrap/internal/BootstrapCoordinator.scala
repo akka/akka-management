@@ -257,15 +257,15 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
       .map { resolved =>
         if (lookup.portName.isDefined)
           resolved
-        else if (resolved.addresses.flatMap(_.port).isEmpty)
-          Resolved(
-            resolved.serviceName,
-            resolved.addresses.map(target => ResolvedTarget(target.host, Some(defaultManagementPort), target.address))
-          )
         else
           Resolved(
             resolved.serviceName,
-            resolved.addresses.filter(_.port.contains(defaultManagementPort))
+            resolved.addresses match {
+              case immutable.Seq(singleResult) =>
+                immutable.Seq(singleResult)
+              case addresses =>
+                addresses.filter(_.port.contains(defaultManagementPort))
+            }
           )
       }
       .pipeTo(self)
