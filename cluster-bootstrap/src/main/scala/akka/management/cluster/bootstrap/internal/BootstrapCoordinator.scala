@@ -121,7 +121,6 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   private val lookup = Lookup(settings.contactPointDiscovery.effectiveName(context.system),
     settings.contactPointDiscovery.portName, settings.contactPointDiscovery.protocol)
-  private val defaultManagementPort = new AkkaManagementSettings(context.system.settings.config).Http.Port
 
   private var lastContactsObservation: Option[ServiceContactsObservation] = None
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
@@ -184,7 +183,7 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
             case (host, immutable.Seq(singleResult)) =>
               immutable.Seq(singleResult)
             case (host, multipleResults) =>
-              multipleResults.filter(_.port.contains(defaultManagementPort))
+              multipleResults.filter(_.port.contains(settings.contactPoint.fallbackPort))
           }
 
       log.info("Located service members based on: [{}]: [{}], filtered to [{}]", lookup, contactPoints.mkString(", "),
