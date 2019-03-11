@@ -38,6 +38,15 @@ spec:
         - name: management
           containerPort: 8558
           protocol: TCP
+        env:
+        # The Kubernetes API discovery will use this service name to look for
+        # nodes with this value in the 'app' label
+        # This can be customized with the 'pod-label-selector' setting.
+        - name: AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: "metadata.labels['app']"
 
 ---
 kind: Role
