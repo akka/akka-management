@@ -1,15 +1,10 @@
 ## Kubernetes API
 
-Another discovery implementation provided is one that uses the Kubernetes API. Instead of doing a DNS lookup,
-it sends a request to the Kubernetes service API to find the other pods. This method allows you to define health
-and readiness checks that don't affect the discovery method. Configuration options are provided to adjust
-the namespace, label selector, and port name that are used in the pod selection process.
+The typical way to consume a service in Kubernetes is to discover it through DNS: this will take into account liveness/readiness checks, and depending on the configuration take care of load balancing (removing the need for client-side load balancing). For this reason, for general usage the [`akka-dns`](https://doc.akka.io/docs/akka/current/discovery/index.html#discovery-method-dns) implementation is usually a better fit for discovering services in Kubernetes. However, in some cases, such as for @ref[Cluster Bootstrap](../bootstrap/index.md), it is desirable to connect to the pods directly, bypassing any liveness/readiness checks or load balancing. For such situations we provide a discovery implementation that uses the Kubernetes API.
 
 ### Dependencies and usage
 
-Kubernetes currently ignores all fields apart from service name. This is expected to change.
-
-Using `akka-discovery-kubernetes-api` is very simple, as you simply need to depend on the library::
+First, add the dependency on the component:
 
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
@@ -17,15 +12,19 @@ Using `akka-discovery-kubernetes-api` is very simple, as you simply need to depe
   version="$version$"
 }
 
-And configure it to be used as default discovery implementation in your `application.conf`:
+As described above, it is uncommon to use the Kubernetes API discovery
+mechanism as your default discovery mechanism. When using it with Akka Cluster
+Bootstrap, it is sufficient to configure it as described @ref[here](../bootstrap/kubernetes-api.md).
+Otherwise, to load it manually, use `loadServiceDiscovery` on the `Discovery` extension:
 
-```
-akka.discovery {
-  method = kubernetes-api
-}
-```
+Scala
+:  @@snip [KubernetesApiServiceDiscoverySpec.scala](/discovery-kubernetes-api/src/test/scala/akka/discovery/kubernetes/KubernetesApiServiceDiscoverySpec.scala) { #kubernetes-api-discovery }
 
-To find other pods, this method needs to know how they are labeled, what the name of the Akka Management port is, and
+Java
+:  @@snip [KubernetesApiDiscoveryDocsTest.java](/discovery-kubernetes-api/src/test/java/docs/KubernetesApiDiscoveryDocsTest.java) { #kubernetes-api-discovery }
+
+
+To find other pods, this method needs to know how they are labeled, what the name of the target port is, and
 what namespace they reside in. Below, you'll find the default configuration. It can be customized by changing these
 values in your `application.conf`.
 
