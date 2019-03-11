@@ -38,7 +38,7 @@ jobs:
     - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
     - sbt -jvm-opts .jvmopts-travis ";+test:compile;docs/paradox"
     - git diff --exit-code --color || { echo "[error] Unformatted code found. Please run 'test:compile' and commit the reformatted code."; false; }
-    env: TEST
+    env: DOCS_AND_FORMATTING
   
   - stage: test
     env: CMD="+test"
