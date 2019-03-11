@@ -8,6 +8,7 @@ import java.net.InetAddress
 import java.nio.file.{ Files, Paths }
 
 import akka.actor.ActorSystem
+import akka.annotation.InternalApi
 import akka.discovery._
 import akka.http.scaladsl._
 import akka.http.scaladsl.model._
@@ -30,18 +31,26 @@ import akka.event.Logging
 object KubernetesApiServiceDiscovery {
 
   /**
+   * INTERNAL API
+   *
    * Finds relevant targets given a pod list. Note that this doesn't filter by name as it is the job of the selector
    * to do that.
    */
+  @InternalApi
   private[kubernetes] def targets(podList: PodList,
-                                  portName: String,
+                                  portName: Option[String],
                                   podNamespace: String,
                                   podDomain: String): Seq[ResolvedTarget] =
     for {
       item <- podList.items
       if item.metadata.flatMap(_.deletionTimestamp).isEmpty
       container <- item.spec.toVector.flatMap(_.containers)
-      port <- container.ports.getOrElse(Seq.empty).find(_.name.contains(portName))
+      port <- portName match {
+        case None =>
+          container.ports.getOrElse(Seq.empty)
+        case Some(name) =>
+          container.ports.getOrElse(Seq.empty).filter(_.name.contains(name))
+      }
       itemStatus <- item.status
       ip <- itemStatus.podIP
       host = s"${ip.replace('.', '-')}.${podNamespace}.pod.${podDomain}"
@@ -87,12 +96,8 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     val labelSelector = settings.podLabelSelector(query.serviceName)
 
-    val portName = query.portName match {
-      case Some(name) => name
-      case None => settings.podPortName
-    }
-    log.info("Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}] (from lookup? {})",
-      labelSelector, podNamespace, portName, query.portName.isDefined)
+    log.info("Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}]", labelSelector, podNamespace,
+      query.portName)
 
     for {
       request <- optionToFuture(podRequest(apiToken, podNamespace, labelSelector),
@@ -137,13 +142,13 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
       }
 
     } yield {
-      val addresses = targets(podList, portName, podNamespace, settings.podDomain)
+      val addresses = targets(podList, query.portName, podNamespace, settings.podDomain)
       if (addresses.isEmpty && podList.items.nonEmpty) {
         if (log.isInfoEnabled) {
           val containerPortNames = podList.items.flatMap(_.spec).flatMap(_.containers).flatMap(_.ports).flatten.toSet
           log.info(
             "No targets found from pod list. Is the correct port name configured? Current configuration: [{}]. Ports on pods: [{}]",
-            portName,
+            query.portName,
             containerPortNames
           )
         }

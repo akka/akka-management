@@ -25,7 +25,7 @@ class KubernetesApiServiceDiscoverySpec extends WordSpec with Matchers {
                           ContainerPort(Some("http"), 10002))))))), Some(PodStatus(None)),
               Some(Metadata(deletionTimestamp = None)))))
 
-      KubernetesApiServiceDiscovery.targets(podList, "management", "default", "cluster.local") shouldBe List(
+      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local") shouldBe List(
           ResolvedTarget(
             host = "172-17-0-4.default.pod.cluster.local",
             port = Some(10001),
@@ -40,7 +40,8 @@ class KubernetesApiServiceDiscoverySpec extends WordSpec with Matchers {
                           ContainerPort(Some("http"), 10002))))))), Some(PodStatus(Some("172.17.0.4"))),
               Some(Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z"))))))
 
-      KubernetesApiServiceDiscovery.targets(podList, "management", "default", "cluster.local") shouldBe List.empty
+      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default",
+        "cluster.local") shouldBe List.empty
     }
   }
 
