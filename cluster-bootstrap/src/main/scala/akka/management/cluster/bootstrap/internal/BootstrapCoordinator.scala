@@ -59,13 +59,13 @@ private[akka] object BootstrapCoordinator {
   private case object DiscoverTick extends DeadLetterSuppression
   private case object DecideTick extends DeadLetterSuppression
 
-  protected[bootstrap] final case class DnsServiceContactsObservation(observedAt: LocalDateTime,
-                                                                      observedContactPoints: Set[ResolvedTarget]) {
+  protected[bootstrap] final case class ServiceContactsObservation(observedAt: LocalDateTime,
+                                                                   observedContactPoints: Set[ResolvedTarget]) {
 
-    def membersChanged(other: DnsServiceContactsObservation): Boolean =
+    def membersChanged(other: ServiceContactsObservation): Boolean =
       this.observedContactPoints != other.observedContactPoints
 
-    def sameOrChanged(other: DnsServiceContactsObservation): DnsServiceContactsObservation =
+    def sameOrChanged(other: ServiceContactsObservation): ServiceContactsObservation =
       if (membersChanged(other)) other
       else this
   }
@@ -73,7 +73,7 @@ private[akka] object BootstrapCoordinator {
 }
 
 /**
- * Looks up members of the same "service" in DNS and initiates [[HttpContactPointBootstrap]]'s for each such node.
+ * Looks up members of the same "service" via service discovery and initiates [[HttpContactPointBootstrap]]'s for each such node.
  *
  * If contact points do not return any seed-nodes for a `contactPointNoSeedsStableMargin` amount of time,
  * we decide that apparently there is no cluster formed yet in this deployment and someone has to become the first node
@@ -121,7 +121,7 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
   private val lookup = Lookup(settings.contactPointDiscovery.effectiveName(context.system),
     settings.contactPointDiscovery.portName, settings.contactPointDiscovery.protocol)
 
-  private var lastContactsObservation: Option[DnsServiceContactsObservation] = None
+  private var lastContactsObservation: Option[ServiceContactsObservation] = None
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
 
   private var decisionInProgress = false
@@ -254,7 +254,7 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
   }
 
   private def onContactPointsResolved(contactPoints: immutable.Seq[ResolvedTarget]): Unit = {
-    val newObservation = DnsServiceContactsObservation(timeNow(), contactPoints.toSet)
+    val newObservation = ServiceContactsObservation(timeNow(), contactPoints.toSet)
     lastContactsObservation match {
       case Some(contacts) => lastContactsObservation = Some(contacts.sameOrChanged(newObservation))
       case None => lastContactsObservation = Some(newObservation)
