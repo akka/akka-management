@@ -31,6 +31,7 @@ import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.server.Directives.authenticateBasicAsync
 import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.server.Directives.rawPathPrefix
+import akka.http.scaladsl.server.PathMatchers
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.server.directives.Credentials
@@ -166,7 +167,11 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
   private def prepareCombinedRoutes(providerSettings: ManagementRouteProviderSettings): Route = {
     val basePath: Directive[Unit] = {
       val pathPrefixName = settings.Http.BasePath.getOrElse("")
-      if (pathPrefixName.isEmpty) rawPathPrefix(pathPrefixName) else pathPrefix(pathPrefixName)
+      if (pathPrefixName.isEmpty) {
+        rawPathPrefix(pathPrefixName)
+      } else {
+        pathPrefix(PathMatchers.separateOnSlashes(pathPrefixName))
+      }
     }
 
     def wrapWithAuthenticatorIfPresent(inner: Route): Route = {
