@@ -70,7 +70,7 @@ class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers
 
     // prepare the "mock DNS"
     val name = "basepathsystem.svc.cluster.local"
-    MockDiscovery.set(Lookup(name).withProtocol("tcp").withPortName("management"),
+    MockDiscovery.set(Lookup(name).withProtocol("tcp"),
       () =>
         Future.successful(
           Resolved(name,
