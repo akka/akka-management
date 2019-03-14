@@ -143,7 +143,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-distributed-data"              % AkkaVersion     % "test"
     )
   )
-
+  
   val ClusterBootstrap = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaCluster ++
