@@ -248,13 +248,13 @@ lazy val docs = project
       "version" -> version.value,
       "scala.binary_version" -> scalaBinaryVersion.value,
       "akka.version" -> Dependencies.AkkaVersion,
-      "extref.akka-docs.base_url" -> s"http://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s",
-      "extref.akka-http-docs.base_url" -> s"http://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s.html",
+      "extref.akka-docs.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s",
+      "extref.akka-http-docs.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s.html",
       "extref.java-api.base_url" -> "https://docs.oracle.com/javase/8/docs/api/index.html?%s.html",
-      "scaladoc.akka.base_url" -> s"http://doc.akka.io/api/akka/${Dependencies.AkkaVersion}",
+      "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.AkkaVersion}",
       "scaladoc.akka.management.http.base_url" -> {
         if (isSnapshot.value) Paths.get((target in paradox in Compile).value.getPath).relativize(Paths.get(unidocTask.value.head.getPath)).toString
-        else s"http://developer.lightbend.com/docs/api/akka-management/${version.value}"
+        else s"https://developer.lightbend.com/docs/api/akka-management/${version.value}"
       },
       "scaladoc.version" -> "2.12.0"
     )
