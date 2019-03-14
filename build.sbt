@@ -241,7 +241,7 @@ lazy val docs = project
       "extref.akka-http-docs.base_url" -> s"http://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s.html",
       "extref.java-api.base_url" -> "https://docs.oracle.com/javase/8/docs/api/index.html?%s.html",
       "scaladoc.akka.base_url" -> s"http://doc.akka.io/api/akka/${Dependencies.AkkaVersion}",
-      "scaladoc.akka.management.http.base_url" -> s"http://developer.lightbend.com/docs/api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
+      "scaladoc.akka.management.http.base_url" -> s"https://developer.lightbend.com/docs/api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
       "scaladoc.version" -> "2.12.0"
     )
   )
