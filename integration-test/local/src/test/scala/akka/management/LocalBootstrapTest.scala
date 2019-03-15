@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management
@@ -30,7 +30,10 @@ object LocalBootstrapTest {
           port = 0
         }
       }
-      akka.management.http.hostname = "localhost"
+      akka.management {
+        http.hostname = "localhost"
+        cluster.bootstrap.contact-point-discovery.port-name = "management"
+      }
       akka.discovery {
         config.services = {
           local-cluster = {
