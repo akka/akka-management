@@ -33,11 +33,12 @@ spec:
         - name: remoting
           containerPort: 2552
           protocol: TCP
-        # akka-management bootstrap
-        # must match up with contact-point-discovery.port-name for bootstrap
-        - name: management
-          containerPort: 8558
+        # akka-management
+        - containerPort: 8558
           protocol: TCP
+          # when contact-point-discovery.port-name is set for cluster bootstrap,
+          # the management port must be named accordingly:
+          # name: management
         env:
         # The Kubernetes API discovery will use this service name to look for
         # nodes with this value in the 'app' label
@@ -47,7 +48,6 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: "metadata.labels['app']"
-
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1

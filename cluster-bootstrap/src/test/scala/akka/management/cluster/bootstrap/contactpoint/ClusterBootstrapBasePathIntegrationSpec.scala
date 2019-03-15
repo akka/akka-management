@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap.contactpoint
@@ -70,7 +70,7 @@ class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers
 
     // prepare the "mock DNS"
     val name = "basepathsystem.svc.cluster.local"
-    MockDiscovery.set(Lookup(name).withProtocol("tcp").withPortName("management"),
+    MockDiscovery.set(Lookup(name).withProtocol("tcp"),
       () =>
         Future.successful(
           Resolved(name,

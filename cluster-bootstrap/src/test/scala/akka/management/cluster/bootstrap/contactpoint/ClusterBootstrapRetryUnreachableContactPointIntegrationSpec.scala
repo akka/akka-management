@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap.contactpoint
@@ -62,6 +62,8 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSp
                 service-namespace = "svc.cluster.local"
 
                 stable-margin = 4 seconds
+
+                port-name = "management"
               }
             }
           }
@@ -86,7 +88,7 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSp
 
     val name = "systemunreachablenodes.svc.cluster.local"
 
-    MockDiscovery.set(Lookup(name).withPortName("management").withProtocol("tcp"), { () =>
+    MockDiscovery.set(Lookup(name).withProtocol("tcp").withPortName("management"), { () =>
       called += 1
 
       Future.successful(

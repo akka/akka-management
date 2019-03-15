@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap
@@ -122,8 +122,11 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
   object contactPoint {
     private val contactPointConfig = bootConfig.getConfig("contact-point")
 
-    // FIXME this has to be the same as the management one, we currently override this value when starting management, any better way?
-    val fallbackPort: Int = contactPointConfig.getInt("fallback-port")
+    val fallbackPort: Int =
+      contactPointConfig
+        .optDefinedValue("fallback-port")
+        .map(_.toInt)
+        .getOrElse(config.getInt("akka.management.http.port"))
 
     val probingFailureTimeout: FiniteDuration =
       contactPointConfig.getDuration("probing-failure-timeout", TimeUnit.MILLISECONDS).millis
