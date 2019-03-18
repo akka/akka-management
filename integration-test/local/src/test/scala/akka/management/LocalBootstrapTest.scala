@@ -17,7 +17,7 @@ import org.scalatest.time.{ Seconds, Span }
 import org.scalatest.{ Matchers, WordSpec }
 
 object LocalBootstrapTest {
-  val managementPorts = SocketUtil.temporaryServerAddresses(3, "127.0.0.1" ).map(_.getPort)
+  val managementPorts = SocketUtil.temporaryServerAddresses(3, "127.0.0.1").map(_.getPort)
   // See src/main/resources/application.conf for bootstrap settings which are used in docs so needs tested
   val config = ConfigFactory.parseString(s"""
       akka.remote.artery {
