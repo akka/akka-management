@@ -6,6 +6,9 @@
 1. Travis CI will start a [CI build](https://travis-ci.org/akka/akka-management/builds) for the new tag and publish artifacts to Bintray.
 1. Login to [Bintray](https://bintray.com/akka/maven/akka-management) and sync artifacts to Maven Central.
 1. https://developer.lightbend.com/docs/akka-management/current/ should automatically sync after a while
+1. Post an announcement to https://github.com/akka/akka.github.com/
+1. Post an announcement to https://discuss.akka.io
+1. Post an announcement to the Lightbend Engineering Updates mailinglist
 
 ### Releasing only updated docs
 
