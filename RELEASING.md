@@ -9,6 +9,7 @@
 1. Post an announcement to https://github.com/akka/akka.github.com/
 1. Post an announcement to https://discuss.akka.io
 1. Post an announcement to the Lightbend Engineering Updates mailinglist
+1. Update version in https://github.com/lightbend/reactive-platform-docs/blob/master/build.sbt
 
 ### Releasing only updated docs
 
