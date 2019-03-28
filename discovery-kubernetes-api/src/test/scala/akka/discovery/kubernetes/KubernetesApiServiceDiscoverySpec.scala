@@ -18,11 +18,11 @@ class KubernetesApiServiceDiscoverySpec extends WordSpec with Matchers {
       val podList =
         PodList(List(Pod(Some(PodSpec(List(Container("akka-cluster-tooling-example",
                       Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("management"), 10001),
-                          ContainerPort(Some("http"), 10002))))))), Some(PodStatus(Some("172.17.0.4"))),
-              Some(Metadata(deletionTimestamp = None))),
+                          ContainerPort(Some("http"), 10002))))))),
+              Some(PodStatus(Some("172.17.0.4"), Some("Running"))), Some(Metadata(deletionTimestamp = None))),
             Pod(Some(PodSpec(List(Container("akka-cluster-tooling-example",
                       Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("management"), 10001),
-                          ContainerPort(Some("http"), 10002))))))), Some(PodStatus(None)),
+                          ContainerPort(Some("http"), 10002))))))), Some(PodStatus(None, Some("Running"))),
               Some(Metadata(deletionTimestamp = None)))))
 
       KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local") shouldBe List(
@@ -37,8 +37,20 @@ class KubernetesApiServiceDiscoverySpec extends WordSpec with Matchers {
       val podList =
         PodList(List(Pod(Some(PodSpec(List(Container("akka-cluster-tooling-example",
                       Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("management"), 10001),
-                          ContainerPort(Some("http"), 10002))))))), Some(PodStatus(Some("172.17.0.4"))),
+                          ContainerPort(Some("http"), 10002))))))),
+              Some(PodStatus(Some("172.17.0.4"), Some("Running"))),
               Some(Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z"))))))
+
+      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default",
+        "cluster.local") shouldBe List.empty
+    }
+
+    "ignore non-running pods" in {
+      val podList =
+        PodList(List(Pod(Some(PodSpec(List(Container("akka-cluster-tooling-example",
+                      Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("management"), 10001),
+                          ContainerPort(Some("http"), 10002))))))),
+              Some(PodStatus(Some("172.17.0.4"), Some("Succeeded"))), Some(Metadata(deletionTimestamp = None)))))
 
       KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default",
         "cluster.local") shouldBe List.empty

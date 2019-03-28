@@ -52,6 +52,7 @@ object KubernetesApiServiceDiscovery {
           container.ports.getOrElse(Seq.empty).filter(_.name.contains(name))
       }
       itemStatus <- item.status
+      if itemStatus.phase.contains("Running")
       ip <- itemStatus.podIP
       host = s"${ip.replace('.', '-')}.${podNamespace}.pod.${podDomain}"
     } yield

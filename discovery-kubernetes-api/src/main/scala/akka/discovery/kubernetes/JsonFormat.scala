@@ -16,7 +16,7 @@ import spray.json._
   implicit val containerPortFormat: JsonFormat[ContainerPort] = jsonFormat2(ContainerPort)
   implicit val containerFormat: JsonFormat[Container] = jsonFormat2(Container)
   implicit val podSpecFormat: JsonFormat[PodSpec] = jsonFormat1(PodSpec)
-  implicit val podStatusFormat: JsonFormat[PodStatus] = jsonFormat1(PodStatus)
+  implicit val podStatusFormat: JsonFormat[PodStatus] = jsonFormat2(PodStatus)
   implicit val metadataFormat: JsonFormat[Metadata] = jsonFormat1(Metadata)
   implicit val podFormat: JsonFormat[Pod] = jsonFormat3(Pod)
   implicit val podListFormat: RootJsonFormat[PodList] = jsonFormat1(PodList.apply)
