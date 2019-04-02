@@ -23,6 +23,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.contactpoint.ClusterBootstrapRequests
@@ -74,6 +75,7 @@ private[bootstrap] class HttpContactPointBootstrap(
 
   private implicit val mat = ActorMaterializer()(context.system)
   private val http = Http()(context.system)
+  private val connectionPoolWithoutRetries = ConnectionPoolSettings(context.system).withMaxRetries(0)
   import context.dispatcher
 
   private val probeInterval = settings.contactPoint.probeInterval
@@ -97,7 +99,7 @@ private[bootstrap] class HttpContactPointBootstrap(
       val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
       log.debug("Probing [{}] for seed nodes...", req.uri)
 
-      val reply = http.singleRequest(probeRequest).flatMap(handleResponse)
+      val reply = http.singleRequest(probeRequest, settings = connectionPoolWithoutRetries).flatMap(handleResponse)
 
       val afterTimeout = after(settings.contactPoint.probingFailureTimeout, context.system.scheduler)(replyTimeout)
       Future.firstCompletedOf(List(reply, afterTimeout)).pipeTo(self)
