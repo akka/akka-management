@@ -1,10 +1,7 @@
-import java.nio.file.Paths
-
 // root
 lazy val `akka-management-root` = project
   .in(file("."))
-  .settings(unidocSettings)
-  .enablePlugins(NoPublish)
+  .enablePlugins(NoPublish, ScalaUnidocPlugin)
   .disablePlugins(BintrayPlugin)
   .aggregate(
     // When this aggregate is updated the list of modules in ManifestInfo.checkSameVersion
@@ -33,7 +30,6 @@ lazy val `akka-management-root` = project
 lazy val `akka-discovery-kubernetes-api` = project
   .in(file("discovery-kubernetes-api"))
   .enablePlugins(AutomateHeaderPlugin)
-  .settings(unidocSettings)
   .settings(
     name := "akka-discovery-kubernetes-api",
     organization := "com.lightbend.akka.discovery",
@@ -43,7 +39,6 @@ lazy val `akka-discovery-kubernetes-api` = project
 lazy val `akka-discovery-marathon-api` = project
   .in(file("discovery-marathon-api"))
   .enablePlugins(AutomateHeaderPlugin)
-  .settings(unidocSettings)
   .settings(
     name := "akka-discovery-marathon-api",
     organization := "com.lightbend.akka.discovery",
@@ -53,7 +48,6 @@ lazy val `akka-discovery-marathon-api` = project
 lazy val `akka-discovery-aws-api` = project
   .in(file("discovery-aws-api"))
   .enablePlugins(AutomateHeaderPlugin)
-  .settings(unidocSettings)
   .settings(
     name := "akka-discovery-aws-api",
     organization := "com.lightbend.akka.discovery",
@@ -63,7 +57,6 @@ lazy val `akka-discovery-aws-api` = project
 lazy val `akka-discovery-aws-api-async` = project
   .in(file("discovery-aws-api-async"))
   .enablePlugins(AutomateHeaderPlugin)
-  .settings(unidocSettings)
   .settings(
     name := "akka-discovery-aws-api-async",
     organization := "com.lightbend.akka.discovery",
@@ -73,7 +66,6 @@ lazy val `akka-discovery-aws-api-async` = project
 lazy val `akka-discovery-consul` = project
   .in(file("discovery-consul"))
   .enablePlugins(AutomateHeaderPlugin)
-  .settings(unidocSettings)
   .settings(
     name := "akka-discovery-consul",
     organization := "com.lightbend.akka.discovery",
@@ -84,7 +76,6 @@ lazy val `akka-discovery-consul` = project
 lazy val `akka-management` = project
   .in(file("management"))
   .enablePlugins(AutomateHeaderPlugin)
-  .settings(unidocSettings)
   .settings(
     name := "akka-management",
     Dependencies.ManagementHttp
@@ -233,8 +224,6 @@ lazy val `integration-test-local` = project
   )
   .enablePlugins(JavaAppPackaging, AshScriptPlugin)
 
-
-val unidocTask = sbtunidoc.Plugin.UnidocKeys.unidoc in(ProjectRef(file("."), "akka-management"), Compile)
 lazy val docs = project
   .in(file("docs"))
   .enablePlugins(ParadoxPlugin, NoPublish)
@@ -243,7 +232,7 @@ lazy val docs = project
     name := "Akka Management",
     paradoxGroups := Map("Language" -> Seq("Scala", "Java")),
     paradoxTheme := Some(builtinParadoxTheme("generic")),
-    paradox in Compile := (paradox in Compile).dependsOn(unidocTask).value,
+    paradox in Compile := (paradox in Compile).dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
     paradoxProperties ++= Map(
       "version" -> version.value,
       "scala.binary_version" -> scalaBinaryVersion.value,
@@ -252,10 +241,7 @@ lazy val docs = project
       "extref.akka-http-docs.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s.html",
       "extref.java-api.base_url" -> "https://docs.oracle.com/javase/8/docs/api/index.html?%s.html",
       "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.AkkaVersion}",
-      "scaladoc.akka.management.http.base_url" -> {
-        if (isSnapshot.value) Paths.get((target in paradox in Compile).value.getPath).relativize(Paths.get(unidocTask.value.head.getPath)).toString
-        else s"https://developer.lightbend.com/docs/api/akka-management/${version.value}"
-      },
+      "scaladoc.akka.management.http.base_url" -> s"https://developer.lightbend.com/docs/api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
       "scaladoc.version" -> "2.12.0"
     )
   )
