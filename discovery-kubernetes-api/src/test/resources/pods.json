@@ -1053,6 +1053,149 @@
         ],
         "qosClass": "BestEffort"
       }
+    },
+    {
+      "metadata": {
+        "name": "akka-cluster-tooling-example-job-mt4qt",
+        "generateName": "akka-cluster-tooling-example-job-",
+        "namespace": "default",
+        "selfLink": "/api/v1/namespaces/default/pods/akka-cluster-tooling-example-job-mt4qt",
+        "uid": "01b49788-4f17-11e9-b630-0262c2d3ba30",
+        "resourceVersion": "7406832",
+        "creationTimestamp": "2019-03-25T15:59:44Z",
+        "labels": {
+          "appName": "akka-cluster-tooling-example",
+          "appNameVersion": "akka-cluster-tooling-example-v0-1-0"
+        },
+        "annotations": {
+        },
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1",
+            "kind": "Job",
+            "name": "akka-cluster-tooling-example-job",
+            "uid": "01b337d0-4f17-11e9-b5d6-06521d8a9508",
+            "controller": true,
+            "blockOwnerDeletion": true
+          }
+        ]
+      },
+      "spec": {
+        "volumes": [
+
+        ],
+        "containers": [
+          {
+            "name": "akka-cluster-tooling-example",
+            "image": "akka-cluster-tooling-example/akka-cluster-tooling-example:0.1.0",
+            "command": [
+              "/opt/docker/bin/akka-cluster-tooling-example"
+            ],
+            "ports": [
+              {
+                "name": "management",
+                "containerPort": 10001,
+                "protocol": "TCP"
+              }
+            ],
+            "env": [
+
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Never",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "serviceAccountName": "default",
+        "serviceAccount": "default",
+        "nodeName": "minikube",
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler",
+        "tolerations": [
+          {
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "effect": "NoExecute",
+            "tolerationSeconds": 300
+          },
+          {
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "effect": "NoExecute",
+            "tolerationSeconds": 300
+          }
+        ],
+        "priority": 0
+      },
+      "status": {
+        "phase": "Succeeded",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2019-03-25T15:59:44Z",
+            "reason": "PodCompleted"
+          },
+          {
+            "type": "Ready",
+            "status": "False",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2019-03-25T16:00:39Z",
+            "reason": "PodCompleted"
+          },
+          {
+            "type": "ContainersReady",
+            "status": "False",
+            "lastProbeTime": null,
+            "lastTransitionTime": null,
+            "reason": "PodCompleted"
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2019-03-25T15:59:44Z"
+          }
+        ],
+        "hostIP": "192.168.99.109",
+        "podIP": "172.17.0.47",
+        "startTime": "2019-03-25T15:59:44Z",
+        "containerStatuses": [
+          {
+            "name": "akka-cluster-tooling-example",
+            "state": {
+              "terminated": {
+                "exitCode": 0,
+                "reason": "Completed",
+                "startedAt": "2019-03-25T15:59:51Z",
+                "finishedAt": "2019-03-25T16:00:38Z",
+                "containerID": "docker://12d48773f0dd89624cd4e6b2ce66b0b2918e569d52440f4861f646539d54cd57"
+              }
+            },
+            "lastState": {
+
+            },
+            "ready": false,
+            "restartCount": 0,
+            "image": "akka-cluster-tooling-example/akka-cluster-tooling-example:0.1.0",
+            "imageID": "docker-pullable://akka-cluster-tooling-example/akka-cluster-tooling-example@sha256:94d0f1283a3e4f3bb2c69d3209c60e7700e7a02fe34daad3052b11908916aee2",
+            "containerID": "docker://12d48773f0dd89624cd4e6b2ce66b0b2918e569d52440f4861f646539d54cd57"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
     }
   ]
 }
