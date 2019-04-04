@@ -1,15 +1,11 @@
 # Troubleshooting
 
-## Why hasn't my cluster formed
+## Kubernetes API `HTTP chunk size exceeds the configured limit` during contact point discovery 
 
-TODO, add the most common causes and their solution
+Increase the max chunk size with:
 
-#### Not enough contact points
+```
+akka.http.client.parsing.max-chunk-size = 20m
+```
 
-#### Incorrect service name
-
-## Why is my cluster formation slow
-
-TODO
-
-
+This should only be necessary if the cluster size is 100s of nodes.
