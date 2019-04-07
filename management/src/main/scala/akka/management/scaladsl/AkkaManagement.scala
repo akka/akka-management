@@ -151,9 +151,10 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
             settings = ServerSettings(system).withRemoteAddressHeader(true)
           )
 
-        serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { _ =>
-          log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, effectiveBindPort)
-          selfUriPromise.success(effectiveProviderSettings.selfBaseUri).future
+        serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { binding =>
+          val boundPort = binding.localAddress.getPort
+          log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, boundPort)
+          selfUriPromise.success(effectiveProviderSettings.selfBaseUri.withPort(boundPort)).future
         }
 
       } catch {
