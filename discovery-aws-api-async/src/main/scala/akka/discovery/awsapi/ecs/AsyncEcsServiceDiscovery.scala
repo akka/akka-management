@@ -51,10 +51,11 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
               addresses = for {
                 task <- tasks
                 container <- task.containers().asScala
-                networkInterface <- container.networkInterfaces().asScala
+                bindings <- container.networkBindings().asScala
               } yield {
-                val address = networkInterface.privateIpv4Address()
-                ResolvedTarget(host = address, port = None, address = Try(InetAddress.getByName(address)).toOption)
+                val port = bindings.hostPort()
+                val address = bindings.bindIP()
+                ResolvedTarget(host = address, port = Some(port), address = Try(InetAddress.getByName(address)).toOption)
               }
           )
         )
