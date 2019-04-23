@@ -57,7 +57,7 @@ class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
         )
       }
     } map { targets =>
-      Resolved(name, scala.collection.immutable.Seq(targets: _*))
+      Resolved(name, targets.toList)
     }
   }
 
