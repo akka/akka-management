@@ -14,6 +14,7 @@ import akka.management.cluster.bootstrap.{ ClusterBootstrapSettings, LowestAddre
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
+import org.scalatest.time.{ Span, Seconds, Millis }
 
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
@@ -29,6 +30,8 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
   val joinDecider = new LowestAddressJoinDecider(system, settings)
 
   val discovery = new MockDiscovery(system)
+
+  override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(100, Millis))
 
   MockDiscovery.set(
     Lookup(serviceName, portName = None, protocol = Some("tcp")),
