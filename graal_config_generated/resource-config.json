@@ -1,0 +1,12 @@
+{
+  "resources":[
+    {"pattern":"META-INF/MANIFEST.MF"}, 
+    {"pattern":"akka-http-version.conf"}, 
+    {"pattern":"application.conf"}, 
+    {"pattern":"library.properties"}, 
+    {"pattern":"logback.xml"}, 
+    {"pattern":"org/slf4j/impl/StaticLoggerBinder.class"}, 
+    {"pattern":"reference.conf"}, 
+    {"pattern":"version.conf"}
+  ]
+}

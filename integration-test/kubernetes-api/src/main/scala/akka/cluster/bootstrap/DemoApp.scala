@@ -11,48 +11,52 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.management.cluster.bootstrap.ClusterBootstrap
+//#start-akka-management
 import akka.management.scaladsl.AkkaManagement
+
+//#start-akka-management
 import akka.stream.ActorMaterializer
 
-object DemoApp extends App {
+object DemoApp {
 
-  implicit val system = ActorSystem("Appka")
+  def main(args: Array[String]): Unit = {
+    implicit val system = ActorSystem("Appka")
 
-  import system.log
-  implicit val mat = ActorMaterializer()
-  val cluster = Cluster(system)
+    import system.log
+    implicit val mat = ActorMaterializer()
+    val cluster = Cluster(system)
 
-  log.info(s"Started [$system], cluster.selfAddress = ${cluster.selfAddress}")
+    log.info(s"Started [$system], cluster.selfAddress = ${cluster.selfAddress}")
 
-  //#start-akka-management
-  AkkaManagement(system).start()
-  //#start-akka-management
-  ClusterBootstrap(system).start()
+    //#start-akka-management
+    AkkaManagement(system).start()
+    //#start-akka-management
+    ClusterBootstrap(system).start()
 
-  cluster.subscribe(
-    system.actorOf(Props[ClusterWatcher]),
-    ClusterEvent.InitialStateAsEvents,
-    classOf[ClusterDomainEvent]
-  )
+    cluster.subscribe(
+      system.actorOf(Props[ClusterWatcher]),
+      ClusterEvent.InitialStateAsEvents,
+      classOf[ClusterDomainEvent]
+    )
 
-  // add real app routes here
-  val routes =
-    path("hello") {
-      get {
-        complete(
-          HttpEntity(
-            ContentTypes.`text/html(UTF-8)`,
-            "<h1>Hello</h1>"
+    // add real app routes here
+    val routes =
+      path("hello") {
+        get {
+          complete(
+            HttpEntity(
+              ContentTypes.`text/html(UTF-8)`,
+              "<h1>Hello</h1>"
+            )
           )
-        )
+        }
       }
-    }
-  Http().bindAndHandle(routes, "0.0.0.0", 8080)
+    Http().bindAndHandle(routes, "0.0.0.0", 8080)
 
-  Cluster(system).registerOnMemberUp({
-    log.info("Cluster member is up!")
-  })
-
+    Cluster(system).registerOnMemberUp({
+      log.info("Cluster member is up!")
+    })
+  }
 }
 
 class ClusterWatcher extends Actor with ActorLogging {

@@ -1,0 +1,8 @@
+{
+ "resources":[
+   {"pattern":"akka-http-version.conf"},
+   {"pattern":"application.conf"},
+   {"pattern":"reference.conf"},
+   {"pattern":"version.conf"}
+ ]
+}
