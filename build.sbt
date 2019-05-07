@@ -1,7 +1,7 @@
 // root
 lazy val `akka-management-root` = project
   .in(file("."))
-  .enablePlugins(NoPublish, ScalaUnidocPlugin)
+  .enablePlugins(ScalaUnidocPlugin)
   .disablePlugins(BintrayPlugin)
   .aggregate(
     // When this aggregate is updated the list of modules in ManifestInfo.checkSameVersion
@@ -24,7 +24,8 @@ lazy val `akka-management-root` = project
     docs
   )
   .settings(
-    parallelExecution in GlobalScope := false
+    parallelExecution in GlobalScope := false,
+    publish / skip := true,
   )
 
 lazy val `akka-discovery-kubernetes-api` = project
@@ -101,7 +102,6 @@ lazy val `cluster-bootstrap` = project
 
 lazy val `integration-test-kubernetes-api` = project
   .in(file("integration-test/kubernetes-api"))
-  .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
@@ -118,7 +118,6 @@ lazy val `integration-test-kubernetes-api` = project
 
 lazy val `integration-test-kubernetes-api-java` = project
   .in(file("integration-test/kubernetes-api-java"))
-  .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
@@ -135,7 +134,6 @@ lazy val `integration-test-kubernetes-api-java` = project
 
 lazy val `integration-test-kubernetes-dns` = project
   .in(file("integration-test/kubernetes-dns"))
-  .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
@@ -152,7 +150,6 @@ lazy val `integration-test-kubernetes-dns` = project
 lazy val `integration-test-aws-api-ec2-tag-based` = project
     .in(file("integration-test/aws-api-ec2"))
     .configs(IntegrationTest)
-    .enablePlugins(NoPublish)
     .disablePlugins(BintrayPlugin)
     .enablePlugins(AutomateHeaderPlugin)
     .settings(
@@ -169,7 +166,6 @@ lazy val `integration-test-aws-api-ec2-tag-based` = project
 
 lazy val `integration-test-marathon-api-docker` = project
   .in(file("integration-test/marathon-api-docker"))
-  .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
@@ -186,7 +182,6 @@ lazy val `integration-test-marathon-api-docker` = project
 
 lazy val `integration-test-aws-api-ecs` = project
   .in(file("integration-test/aws-api-ecs"))
-  .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
@@ -208,7 +203,6 @@ lazy val `integration-test-aws-api-ecs` = project
 
 lazy val `integration-test-local` = project
   .in(file("integration-test/local"))
-  .enablePlugins(NoPublish)
   .disablePlugins(BintrayPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
@@ -226,7 +220,7 @@ lazy val `integration-test-local` = project
 
 lazy val docs = project
   .in(file("docs"))
-  .enablePlugins(AkkaParadoxPlugin, NoPublish)
+  .enablePlugins(AkkaParadoxPlugin)
   .disablePlugins(BintrayPlugin)
   .settings(
     name := "Akka Management",

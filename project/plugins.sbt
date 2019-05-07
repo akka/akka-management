@@ -10,3 +10,4 @@ addSbtPlugin("org.foundweekends"                 % "sbt-bintray"      % "0.5.4")
 addSbtPlugin("com.lightbend"                     % "sbt-whitesource"  % "0.1.14")
 addSbtPlugin("com.typesafe.sbt"                  % "sbt-git"          % "1.0.0")
 
+resolvers += Resolver.jcenterRepo
