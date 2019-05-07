@@ -1,3 +1,5 @@
+ThisBuild / resolvers += Resolver.jcenterRepo
+
 // root
 lazy val `akka-management-root` = project
   .in(file("."))
