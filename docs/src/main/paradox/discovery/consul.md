@@ -12,6 +12,10 @@ Consul currently ignores all fields apart from service name. This is expected to
 
 If you are using Consul to do the service discovery this would allow you to base your Cluster on Consul services.
 
+## Project Info
+
+@@project-info{ projectId="akka-discovery-consul" }
+
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-consul_2.12"

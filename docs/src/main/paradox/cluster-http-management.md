@@ -7,6 +7,10 @@ on the cluster state.
 
 The operations exposed are comparable to the Command Line Management tool or the JMX interface `akka-cluster` provides.
 
+## Project Info
+
+@@project-info{ projectId="cluster-http" }
+
 ## Dependencies
 
 The Akka Cluster HTTP Management is a separate jar file.

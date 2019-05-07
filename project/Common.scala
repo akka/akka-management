@@ -2,6 +2,7 @@ import sbt._, Keys._
 
 import de.heikoseeberger.sbtheader._
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
+import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys._
 
 object Common extends AutoPlugin {
 
@@ -22,6 +23,8 @@ object Common extends AutoPlugin {
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>")),
 
     crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0-M5"),
+
+    projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
 
     crossVersion := CrossVersion.binary,
 

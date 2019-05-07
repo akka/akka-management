@@ -17,6 +17,10 @@ effective name, which defaults to your applications actor system name.
 You'll also have to add a named port, by default `akkamgmthttp`, and ensure that Akka Management's HTTP interface
 is bound to this port.
 
+## Project Info
+
+@@project-info{ projectId="akka-discovery-marathon-api" }
+
 ### Dependencies and usage
 
 This is a separate JAR file:
