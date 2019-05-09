@@ -27,6 +27,7 @@ lazy val `akka-management-root` = project
   )
   .settings(
     parallelExecution in GlobalScope := false,
+    resolvers in ThisBuild += Resolver.bintrayRepo("akka", "snapshots"),
     publish / skip := true,
   )
 

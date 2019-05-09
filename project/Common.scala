@@ -23,7 +23,7 @@ object Common extends AutoPlugin {
     description := "Akka Management is a suite of tools for operating Akka Clusters.",
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>")),
 
-    crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0-M5"),
+    crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0-RC2"),
 
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
 
