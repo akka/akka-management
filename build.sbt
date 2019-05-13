@@ -1,3 +1,5 @@
+ThisBuild / resolvers += Resolver.jcenterRepo
+
 // root
 lazy val `akka-management-root` = project
   .in(file("."))
@@ -226,15 +228,16 @@ lazy val `integration-test-local` = project
 
 lazy val docs = project
   .in(file("docs"))
-  .enablePlugins(ParadoxPlugin, NoPublish)
+  .enablePlugins(AkkaParadoxPlugin, NoPublish)
   .disablePlugins(BintrayPlugin)
   .settings(
     name := "Akka Management",
-    paradoxGroups := Map("Language" -> Seq("Scala", "Java")),
-    paradoxTheme := Some(builtinParadoxTheme("generic")),
-    paradox in Compile := (paradox in Compile).dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
-    paradoxProperties ++= Map(
+    paradoxGroups := Map("Language" -> Seq("Java", "Scala")),
+    Compile / paradox := (paradox in Compile).dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
+    Compile / paradoxProperties ++= Map(
       "version" -> version.value,
+      "project.url" -> "https://developer.lightbend.com/docs/akka-management/current/",
+      "canonical.base_url" -> "https://developer.lightbend.com/docs/akka-management/current/",
       "scala.binary_version" -> scalaBinaryVersion.value,
       "akka.version" -> Dependencies.AkkaVersion,
       "extref.akka-docs.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s",
