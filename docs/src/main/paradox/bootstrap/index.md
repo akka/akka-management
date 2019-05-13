@@ -24,6 +24,10 @@ Bootstrap depends on:
 
 A discovery mechanism needs to be chosen. A good default choice is DNS.
 
+## Project Info
+
+@@project-info{ projectId="cluster-bootstrap" }
+
 ## Dependency
 
 Add `akka-management-cluster-bootstrap` and one or more discovery mechanisms to use for the discovery process.

@@ -4,6 +4,10 @@
 Akka Management is the core module of the management utilities which provides a central HTTP endpoint for Akka
 management extensions.
 
+## Project Info
+
+@@project-info{ projectId="akka-management" }
+
 ## Dependencies
 
 Akka management requires Akka 2.5 or later.

@@ -25,6 +25,10 @@ If you're using EKS, then you may want to use the
 instead.
 
 
+## Project Info
+
+@@project-info{ projectId="akka-discovery-aws-api" }
+
 ### Discovery Method: AWS API - EC2 Tag-Based Discovery
 
 You can use tags to simply mark the instances that belong to the same cluster. Use a tag that
