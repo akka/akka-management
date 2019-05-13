@@ -10,15 +10,16 @@ object Common extends AutoPlugin {
 
   override lazy val projectSettings =
     Dependencies.Common ++ Seq(
-    organization := "com.lightbend.akka.management", // FIXME proposing this change, then we can have "com.lightbend.akka.management|discovery" etc; we'd do management.commercial for example later
+    organization := "com.lightbend.akka.management",
     organizationName := "Lightbend Inc.",
+    organizationHomepage := Some(url("https://www.lightbend.com/")),
     startYear := Some(2017),
-    homepage := Some(url("https://github.com/akka/akka-management")),
+    homepage := Some(url("https://akka.io/")),
     scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-management"), "git@github.com:akka/akka-management.git")),
     developers += Developer("contributors", "Contributors", "https://gitter.im/akka/dev", url("https://github.com/akka/akka-management/graphs/contributors")),
 
     licenses := Seq(("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0"))),
-    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2017-2018 Lightbend Inc. <https://www.lightbend.com>")),
+    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>")),
 
     crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0-M5"),
 
