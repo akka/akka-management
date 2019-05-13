@@ -20,7 +20,6 @@ import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.ResolvedTarget
-import akka.http.scaladsl.model.Uri
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.JoinDecider
 import akka.management.cluster.bootstrap.JoinDecision
@@ -70,6 +69,9 @@ private[akka] object BootstrapCoordinator {
       else this
   }
 
+  val ProbeMethodAkkaManagement = "akka-management"
+  val ProbeMethodRemoting = "remoting"
+  val ValidProbeMethods = Set(ProbeMethodAkkaManagement, ProbeMethodRemoting)
 }
 
 /**
@@ -283,33 +285,46 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
   }
 
   private[internal] def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
-    val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
-    val rawBaseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint.host), targetPort))
-    val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
+    val childActorName = contactPoint.port match {
+      case Some(port) => s"contactPointProbe-${contactPoint.host}-$port"
+      case None => s"contactPointProbe-${contactPoint.host}"
+    }
 
-    val childActorName = s"contactPointProbe-${baseUri.authority.host}-${baseUri.authority.port}"
-    log.debug("Ensuring probing actor: " + childActorName)
+    log.debug("Ensuring probing actor: {}", childActorName)
 
-    // This should never really happen in well configured env, but it may happen that someone is confused with ports
-    // and we end up trying to probe (using http for example) a port that actually is our own remoting port.
-    // We actively bail out of this case and log a warning instead.
-    val wasAboutToProbeSelfAddress =
-      baseUri.authority.host.address() == cluster.selfAddress.host.getOrElse("---") &&
-      baseUri.authority.port == cluster.selfAddress.port.getOrElse(-1)
+    context.child(childActorName) match {
+      case some: Some[_] ⇒
+        some
+      case None ⇒
+        settings.contactPoint.probeMethod match {
+          case BootstrapCoordinator.ProbeMethodAkkaManagement =>
+            val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
 
-    if (wasAboutToProbeSelfAddress) {
-      log.warning("Misconfiguration detected! Attempted to start probing a contact-point which address [{}] " +
-        "matches our local remoting address [{}]. Avoiding probing this address. Consider double checking your service " +
-        "discovery and port configurations.", baseUri, cluster.selfAddress)
-      None
-    } else
-      context.child(childActorName) match {
-        case Some(contactPointProbingChild) ⇒
-          Some(contactPointProbingChild)
-        case None ⇒
-          val props = HttpContactPointBootstrap.props(settings, contactPoint, baseUri)
-          Some(context.actorOf(props, childActorName))
-      }
+            // This should never really happen in well configured env, but it may happen that someone is confused with ports
+            // and we end up trying to probe (using http for example) a port that actually is our own remoting port.
+            // We actively bail out of this case and log a warning instead.
+            val wasAboutToProbeSelfAddress =
+            contactPoint.host == cluster.selfAddress.host.getOrElse("---") &&
+              targetPort == cluster.selfAddress.port.getOrElse(-1)
+
+            if (wasAboutToProbeSelfAddress) {
+              log.warning("Misconfiguration detected! Attempted to start probing a contact-point which address [{}] " +
+                "matches our local remoting address [{}]. Avoiding probing this address. Consider double checking your service " +
+                "discovery and port configurations.", contactPoint, cluster.selfAddress)
+              None
+            } else {
+              val props = HttpContactPointBootstrap.props(settings, contactPoint)
+              Some(context.actorOf(props, childActorName))
+            }
+          case BootstrapCoordinator.ProbeMethodRemoting =>
+            val props = RemotingContactPointBootstrap.props(settings, contactPoint)
+            Some(context.actorOf(props, childActorName))
+
+          case unknown =>
+            throw new IllegalArgumentException("Unknown probe method: " + unknown)
+        }
+    }
+
   }
 
   private def decide(): Unit = {
