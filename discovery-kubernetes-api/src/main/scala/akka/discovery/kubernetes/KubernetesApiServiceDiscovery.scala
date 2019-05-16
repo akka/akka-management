@@ -5,14 +5,14 @@
 package akka.discovery.kubernetes
 
 import java.net.InetAddress
-import java.nio.file.{ Files, Paths }
+import java.nio.file.{Files, Paths}
 
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.discovery._
 import akka.http.scaladsl._
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
+import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
@@ -23,9 +23,10 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 import JsonFormat._
-import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.kubernetes.PodList.Container
 
-import scala.util.control.{ NoStackTrace, NonFatal }
+import scala.util.control.{NoStackTrace, NonFatal}
 import akka.event.Logging
 
 object KubernetesApiServiceDiscovery {
@@ -44,23 +45,30 @@ object KubernetesApiServiceDiscovery {
     for {
       item <- podList.items
       if item.metadata.flatMap(_.deletionTimestamp).isEmpty
-      container <- item.spec.toVector.flatMap(_.containers)
-      port <- portName match {
-        case None =>
-          container.ports.getOrElse(Seq.empty)
-        case Some(name) =>
-          container.ports.getOrElse(Seq.empty).filter(_.name.contains(name))
-      }
-      itemStatus <- item.status
+      itemSpec <- item.spec.toSeq
+      itemStatus <- item.status.toSeq
       if itemStatus.phase.contains("Running")
-      ip <- itemStatus.podIP
-      host = s"${ip.replace('.', '-')}.${podNamespace}.pod.${podDomain}"
-    } yield
+      ip <- itemStatus.podIP.toSeq
+      // Maybe port is an Option of a port, and will be None if no portName was requested
+      maybePort <- portName match {
+        case None =>
+          Seq(None)
+        case Some(name) =>
+          for {
+            container <- itemSpec.containers
+            ports <- container.ports.toSeq
+            port <- ports
+            if port.name.contains(name)
+          } yield Some(port.containerPort)
+      }
+    } yield {
+      val host = s"${ip.replace('.', '-')}.$podNamespace.pod.$podDomain"
       ResolvedTarget(
         host = host,
-        port = Some(port.containerPort),
+        port = maybePort,
         address = Some(InetAddress.getByName(ip))
       )
+    }
 
   class KubernetesApiException(msg: String) extends RuntimeException(msg) with NoStackTrace
 
