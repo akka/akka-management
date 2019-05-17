@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: "ecs-integration-test-app"
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Ref AWS::StackName
+      RetentionInDays: 30
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ecs-tasks.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ecs-tasks.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: "EcsServiceDiscovery"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ecs:ListTasks"
+                  - "ecs:DescribeTasks"
+                Resource: "*"
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      ContainerDefinitions:
+        - Name: ecs-integration-test-app
+          Image:
+            !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ecs-integration-test-app:1.0"
+          ReadonlyRootFilesystem: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: bootstrap-demo-aws-api-ecs
+          Environment:
+            - Name: JAVA_OPTS
+              Value: !Sub "-Dakka.management.cluster.bootstrap.\
+                contact-point-discovery.service-name=${AWS::StackName}
+                -Dakka.discovery.aws-api-ecs-async.cluster=ecs-integration-test-app
+                -Dakka.discovery.aws-api-ecs-async.container-name=ecs-integration-test-app"
+        - Name: proxy
+          Image: kitematic/hello-world-nginx
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: bootstrap-demo-aws-api-ecs
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${AWS::StackName}-service"
+      VpcId: vpc-03ad2b67
+      SecurityGroupIngress:
+        - IpProtocol: "tcp"
+          FromPort: 8558
+          ToPort: 8558
+          CidrIp: "0.0.0.0/0"
+        - IpProtocol: "tcp"
+          FromPort: 8558
+          ToPort: 8558
+          CidrIpv6: "::/0"
+  ServiceSecurityGroupAkkaManagementSelfIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt ServiceSecurityGroup.GroupId
+      IpProtocol: "tcp"
+      FromPort: 8558
+      ToPort: 8558
+      SourceSecurityGroupId: !GetAtt ServiceSecurityGroup.GroupId
+  ServiceSecurityGroupAkkaClusterSelfIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt ServiceSecurityGroup.GroupId
+      IpProtocol: "tcp"
+      FromPort: 2552
+      ToPort: 2552
+      SourceSecurityGroupId: !GetAtt ServiceSecurityGroup.GroupId
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref Cluster
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets: !Ref Subnets
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - !GetAtt ServiceSecurityGroup.GroupId
+      LaunchType: FARGATE
+      ServiceName: !Ref AWS::StackName
+      DesiredCount: 5
+      DeploymentConfiguration:
+        MinimumHealthyPercent: 100
+        MaximumPercent: 200
+      TaskDefinition: !Ref TaskDefinition

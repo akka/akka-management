@@ -65,6 +65,16 @@ just delegates to `aws cloudformation create-stack`):
 
 `./scripts/deploy.sh create`
 
+## Create the cluster with multiple containers in `TaskDefinition` (Optional)
+
+In case the `TaskDefinition` has multiple `ContainerDefinitions` along with `Akka` 
+application (e.g., sidecar), the `ECSServiceDiscovery` can't narrow it down to container 
+running `Akka` application. In this scenario the container name needs to passed 
+to service discovery:
+
+```-Dakka.discovery.aws-api-ecs-async.container-name=ecs-integration-test-app```
+
+`./scripts/deploy-multiple-containers.sh create`
 
 ## Watch it form
 
