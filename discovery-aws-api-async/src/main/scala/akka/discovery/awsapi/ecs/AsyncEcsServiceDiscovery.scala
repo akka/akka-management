@@ -30,6 +30,11 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs-async")
   private[this] val cluster = config.getString("cluster")
+  private[this] val containerName =
+    config.getString("container-name") match {
+      case "" => None
+      case other => Some(other)
+    }
 
   private[this] lazy val ecsClient = {
     val conf = ClientOverrideConfiguration.builder().retryPolicy(RetryPolicy.none).build()
@@ -51,6 +56,11 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
               addresses = for {
                 task <- tasks
                 container <- task.containers().asScala
+                _ = system.log.debug("Found container '{}' with IP addresses: '{}'", container.name(),
+                  container.networkInterfaces().asScala)
+                if (containerName.isDefined && container.name() == containerName.get) || containerName.isEmpty
+                _ = system.log.debug("Filtered container '{}' with IP addresses: '{}'", container.name(),
+                  container.networkInterfaces().asScala)
                 networkInterface <- container.networkInterfaces().asScala
               } yield {
                 val address = networkInterface.privateIpv4Address()
