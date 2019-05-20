@@ -229,6 +229,34 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         finally system.terminate()
       }
 
+      "bind random port" in {
+        val configClusterHttpManager = ConfigFactory.parseString(
+          s"""
+            akka.management.http.hostname = "127.0.0.1"
+            akka.management.http.port = 0
+          """
+        )
+
+        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+
+        val management = AkkaManagement(system)
+        val boundUri = Await.result(management.start(), 10.seconds)
+
+        boundUri.effectivePort should not be 0
+        boundUri.effectivePort should not be 80
+
+        val request1 = HttpRequest(uri = s"http://127.0.0.1:${boundUri.effectivePort}/alive")
+        val response1 = Await.result(Http().singleRequest(request1), 5.seconds)
+        response1.status shouldEqual StatusCodes.OK
+
+        val request2 = HttpRequest(uri = s"http://127.0.0.1:${boundUri.effectivePort}/ready")
+        val response2 = Await.result(Http().singleRequest(request2), 5.seconds)
+        response2.status shouldEqual StatusCodes.OK
+
+        try Await.ready(management.stop(), 5.seconds)
+        finally system.terminate()
+      }
+
       "HealthCheckRoutes are disabled" in {
         val httpPort = SocketUtil.temporaryLocalPort()
         val configClusterHttpManager = ConfigFactory.parseString(
