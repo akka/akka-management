@@ -11,7 +11,10 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.management.cluster.bootstrap.ClusterBootstrap
+//#start-akka-management
 import akka.management.scaladsl.AkkaManagement
+
+//#start-akka-management
 import akka.stream.ActorMaterializer
 
 object DemoApp extends App {
