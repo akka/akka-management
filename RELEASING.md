@@ -1,7 +1,5 @@
 ## Releasing
 
-1. Update the version number in the `akka-management-xx-stable` project name in the [whitesource web UI](https://saas.whitesourcesoftware.com)
-    - For example you'd call the project `akka-management-0.7-stable`
 1. Create a [new release](https://github.com/akka/akka-management/releases/new) with the next tag version (e.g. `v0.7`), title and release description including notable changes mentioning external contributors.
 1. Travis CI will start a [CI build](https://travis-ci.org/akka/akka-management/builds) for the new tag and publish artifacts to Bintray.
 1. Login to [Bintray](https://bintray.com/akka/maven/akka-management) and sync artifacts to Maven Central.
@@ -10,6 +8,7 @@
 1. Post an announcement to https://discuss.akka.io
 1. Post an announcement to the Lightbend Engineering Updates mailinglist
 1. Update version in https://github.com/lightbend/reactive-platform-docs/blob/master/build.sbt
+1. Close the current milestone in GitHub and create the next one
 
 ### Releasing only updated docs
 
