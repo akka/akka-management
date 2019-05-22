@@ -2,11 +2,19 @@ AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
+  AppName:
+    Type: String
+    Description: "Name of the application"
+    Default: "ecs-integration-test-app"
+  ClusterStackName:
+    Type: String
+    Description: ""
+    Default: "ecs-integration-test-cluster"
 Resources:
   Cluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: "ecs-integration-test-app"
+      ClusterName: !Ref ClusterStackName
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -59,7 +67,7 @@ Resources:
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
       TaskRoleArn: !GetAtt TaskRole.Arn
       ContainerDefinitions:
-        - Name: ecs-integration-test-app
+        - Name: !Ref AppName
           Image:
             !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ecs-integration-test-app:1.0"
           ReadonlyRootFilesystem: true
@@ -73,8 +81,8 @@ Resources:
             - Name: JAVA_OPTS
               Value: !Sub "-Dakka.management.cluster.bootstrap.\
                 contact-point-discovery.service-name=${AWS::StackName}
-                -Dakka.discovery.aws-api-ecs-async.cluster=ecs-integration-test-app
-                -Dakka.discovery.aws-api-ecs-async.container-name=ecs-integration-test-app"
+                -Dakka.discovery.aws-api-ecs-async.cluster=${ClusterStackName}
+                -Dakka.discovery.aws-api-ecs-async.container-name=${AppName}"
         - Name: proxy
           Image: kitematic/hello-world-nginx
           LogConfiguration:
