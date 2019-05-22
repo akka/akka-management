@@ -2,6 +2,11 @@ sudo: required
 dist: xenial
 language: scala
 
+env:
+  global:
+    - JDK=adopt@1.8.192-12
+    - JVM_OPTS=@.jvmopts-travis
+
 before_install:
   # make comparing to origin/master work
   - git remote set-branches --add origin master && git fetch
@@ -11,11 +16,8 @@ before_install:
   - curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.11.1/install.sh | bash && . ~/.jabba/jabba.sh
   - jabba install adopt@1.8.192-12
   - jabba install adopt@1.11.0-1
-
-script:
-  - jabba use ${JDK:=adopt@1.8.192-12}
+  - jabba use "$JDK"
   - java -version
-  - sbt -jvm-opts .jvmopts-travis "$CMD"
 
 before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" -print -delete
@@ -32,37 +34,36 @@ before_script:
 
 jobs:
   include:
-  - stage: test
+  - name: DOCS_AND_FORMATTING
     script:
-    - jabba use "adopt@1.8.192-12"
+    - jabba use "$JDK"
     - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
     - sbt -jvm-opts .jvmopts-travis ";+test:compile;docs/paradox"
     - git diff --exit-code --color || { echo "[error] Unformatted code found. Please run 'test:compile' and commit the reformatted code."; false; }
-    env: DOCS_AND_FORMATTING
   
-  - stage: test
-    env: CMD="+test"
+  - name: Tests
+    script: sbt +test
 
-  - env:
-    - JDK="adopt@1.11.0-1"
-    - CMD="+test"
+  - name: Tests on Java 11
+    script: sbt +test
+    env: JDK="adopt@1.11.0-1"
 
-  - script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api/test.sh
-    env: K8S_API
+  - name: K8S_API
+    script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api/test.sh
 
-  - script:
+  - name: K8S_DNS
+    script:
     - ./scripts/setup-minikube-for-linux.sh
     - ./integration-test/kubernetes-dns/test.sh
-    env: K8S_DNS
 
-  - script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api-java/test.sh
-    env: K8S_API_MAVEN
+  - name: K8S_API_MAVEN
+    script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api-java/test.sh
 
-  - stage: whitesource
+  - name: WHITESOURCE
+    stage: whitesource
     script:
-      - jabba use "adopt@1.8.192-12"
+      - jabba use "$JDK"
       - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
-    env: WHITESOURCE
 
 stages:
   - name: check
