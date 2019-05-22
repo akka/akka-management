@@ -131,6 +131,12 @@ you'll do so by setting the value of
 `akka.management.cluster.bootstrap.contact-point-discovery.service-name` to that of the
 ECS service itself.
 
+**NOTE:** If there are multiple containers within a single ECS task definition, 
+the AWS discovery API cannot narrow down the container running Akka application, 
+hence discovery API failed to form cluster properly. Please see the example in
+[integration-test](https://github.com/akka/akka-management/tree/master/integration-test/aws-api-ecs) 
+for how to initialize your cluster properly in this scenario.
+
 Screenshot of two ECS task instances (the service name is
 `liquidity-application`):
 
@@ -164,10 +170,12 @@ akka.discovery {
   aws-api-ecs {
     # Defaults to "default" to match the AWS default cluster name if not overridden
     cluster = "your-ecs-cluster-name"
+    
+    # Defaults to empty string if not overriden. The name of the container in the task definition
+    container-name = ""
   }
 }
 ```
-
 
 ##### akka-discovery-aws-api-async
 
@@ -194,10 +202,12 @@ akka.discovery {
   aws-api-ecs-async {
     # Defaults to "default" to match the AWS default cluster name if not overridden
     cluster = "your-ecs-cluster-name"
+    
+    # Defaults to empty string if not overriden. The name of the container in the task definition
+    container-name = ""
   }
 }
 ```
-
 
 Notes:
 
@@ -227,6 +237,11 @@ Notes:
   too) you'll need to set
   `akka.management.cluster.bootstrap.contact-point.fallback-port = 8558`, where
   8558 is whatever port you choose to bind akka-management to.
+  
+* As mentioned earlier since ECS service discovery doesn't work when there are multiple containers
+  within a single task definition, you need to set either of `akka.discovery.aws-api-ecs-async.container-name` 
+  or `akka.discovery.aws-api-ecs.container-name` (depends on whether you are using async or non-async) to name of
+  the container.
 
 * The current implementation only supports discovery of service task instances
   within the same region.
