@@ -222,18 +222,20 @@ lazy val `integration-test-local` = project
 
 lazy val docs = project
   .in(file("docs"))
-  .enablePlugins(AkkaParadoxPlugin)
+  .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PublishRsyncPlugin)
   .disablePlugins(BintrayPlugin)
   .settings(
     name := "Akka Management",
     publish / skip := true,
     whitesourceIgnore := true,
+    makeSite := makeSite.dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
+    previewPath := (Paradox / siteSubdirName).value,
     paradoxGroups := Map("Language" -> Seq("Java", "Scala")),
-    Compile / paradox := (Compile / paradox).dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
+    Paradox / siteSubdirName := s"docs/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
     Compile / paradoxProperties ++= Map(
       "version" -> version.value,
-      "project.url" -> "https://developer.lightbend.com/docs/akka-management/current/",
-      "canonical.base_url" -> "https://developer.lightbend.com/docs/akka-management/current/",
+      "project.url" -> "https://doc.akka.io/docs/akka-management/current/",
+      "canonical.base_url" -> "https://doc.akka.io/docs/akka-management/current",
       "scala.binary_version" -> scalaBinaryVersion.value,
       "akka.version" -> Dependencies.AkkaVersion,
       "extref.akka-docs.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s",
@@ -241,7 +243,9 @@ lazy val docs = project
       "extref.java-api.base_url" -> "https://docs.oracle.com/javase/8/docs/api/index.html?%s.html",
       "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.AkkaVersion}",
       "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.AkkaHttpVersion}/",
-      "scaladoc.akka.management.http.base_url" -> s"https://developer.lightbend.com/docs/api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
+      "scaladoc.akka.management.http.base_url" -> s"https://doc.akka.io/api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
       "scaladoc.version" -> "2.12.0"
-    )
+    ),
+    publishRsyncArtifact := makeSite.value -> "www/",
+    publishRsyncHost := "akkarepo@gustav.akka.io"
   )
