@@ -33,7 +33,7 @@ For small clusters it may make sense to set `maxUnavailable` to 0 and `maxSurge`
 This means that a new pod is created before removing any existing pods so if the new pod fails the cluster remains
 at full strength until a rollback happens. For large clusters it may be too slow to do 1 pod at a time.
 
-If using [SBR](https://developer.lightbend.com/docs/akka-commercial-addons/current/split-brain-resolver.html) have a `maxUnavailable` that will not cause downing
+If using @extref:[SBR](akka-enhancements-docs:split-brain-resolver.html) have a `maxUnavailable` that will not cause downing
 
 ### Cluster singletons
 

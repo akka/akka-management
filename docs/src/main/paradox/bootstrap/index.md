@@ -32,7 +32,7 @@ A discovery mechanism needs to be chosen. A good default choice is DNS.
 
 Add `akka-management-cluster-bootstrap` and one or more discovery mechanisms to use for the discovery process.
 
-For example, you might choose to use the [DNS discovery](https://doc.akka.io/docs/akka/current/discovery/index.html#discovery-method-dns)
+For example, you might choose to use the @extref:[DNS discovery](akka-docs:discovery/index.html#discovery-method-dns)
 and bootstrap extensions:
 
 @@dependency[sbt,Gradle,Maven] {
@@ -155,7 +155,7 @@ Akka Cluster can handle hard failures using a downing provider such as Lightbend
 However this should not be relied upon for regular rolling redeploys. Features such as `ClusterSingleton`s and `ClusterSharding`
 can safely restart actors on new nodes far quicker when it is certain that a node has shutdown rather than crashed. 
 
-Graceful leaving will happen with the default settings as it is part of [Coordinated Shutdown](https://doc.akka.io/docs/akka/current/actors.html#coordinated-shutdown). 
+Graceful leaving will happen with the default settings as it is part of @extref:[Coordinated Shutdown](akka-docs:actors.html#coordinated-shutdown). 
 Just ensure that a node is sent a `SIGTERM` and not a `SIGKILL`. Environments such as Kubernetes will do this, it is important to ensure 
 that if JVM is wrapped with a script that it forwards the signal. 
 
@@ -182,7 +182,7 @@ for Kubernetes deployments. Cluster Sharding uses a singleton internally so this
 
 Nodes can crash causing cluster members to become unreachable. This is a tricky problem as it is not
 possible to distinguish between a network partition and a node failure. To rectify this in an automated manner,
-Lightbend provides [Split Brain Resolver](https://developer.lightbend.com/docs/akka-commercial-addons/current/split-brain-resolver.html)
+Lightbend provides @extref:[Split Brain Resolver](akka-enhancements-docs:split-brain-resolver.html)
 as a feature of the Lightbend Subscription. This module has a number of strategies that can ensure that the cluster
 continues to function during network partitions and node failures.
 
