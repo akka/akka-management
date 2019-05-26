@@ -3,7 +3,7 @@
 @@@ warning
 
 This module is community maintained and the Lightbend subscription doesn't cover support for this module.
-  It is also marked as @extref:[may change](akka-docs:common/may-change.html).
+  It is also marked as @extref:[may change](akka:common/may-change.html).
   That means that the API, configuration or semantics can change without warning or deprecation period.
 
 @@@
@@ -19,7 +19,7 @@ If you are using Consul to do the service discovery this would allow you to base
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-consul_2.12"
-  version="$version$"
+  version="$project.version$"
 }
 
 In your application conf add:

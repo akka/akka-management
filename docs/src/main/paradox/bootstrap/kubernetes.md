@@ -7,7 +7,7 @@ The project shows how to:
 * Use Akka Bootstrap with `akka-dns` with cluster formation via DNS SRV records
 * Use a headless service for internal and Akka management/bootstrap so that readiness probes for prod traffic don't interfere with bootstrap
     * Note that this requires the use of the `publishNotReadyAddresses`, which replaces the `service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"` annotation , so bootstrap can see the pods before they are ready. Check your Kubernetes environment supports this feature
-* If required use a separate service and/or ingress for user-facing endpoints, for example @extref:[HTTP](akka-http-docs:) or @extref:[gRPC](akka-grpc-docs:)
+* If required use a separate service and/or ingress for user-facing endpoints, for example @extref:[HTTP](akka-http:) or @extref:[gRPC](akka-grpc:)
 
 ### Internal headless service for bootstrap
 

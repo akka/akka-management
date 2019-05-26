@@ -20,7 +20,7 @@ actually want to use (and load) in their project.
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.management"
   artifact="akka-management_$scala.binary_version$"
-  version="$version$"
+  version="$project.version$"
 }
 
 And in addition to that, include all of the dependencies for the features you'd like to use,
@@ -106,7 +106,7 @@ Java
 ### Enabling TLS/SSL (HTTPS) for Cluster HTTP Management
 
 To enable SSL you need to provide an `SSLContext`. You can find more information about it in
-@extref[Server HTTPS Support](akka-http-docs:/server-side/server-https-support).
+@extref:[Server HTTPS Support](akka-http:server-side/server-https-support.html).
 
 Scala
 :   @@snip[AkkaManagementHttpEndpointSpec.scala](/management/src/test/scala/akka/management/AkkaManagementHttpEndpointSpec.scala){ #start-akka-management-with-https-context }
@@ -119,7 +119,7 @@ You can also refer to [AkkaManagementHttpEndpointSpec](https://github.com/akka/a
 ### Enabling Basic Authentication
 
 To enable Basic Authentication you need to provide an authenticator object before starting the management extension.
-You can find more information in @extref:[Authenticate Basic Async directive](akka-http-docs:scala/http/routing-dsl/directives/security-directives/authenticateBasicAsync)
+You can find more information in @extref:[Authenticate Basic Async directive](akka-http:http/routing-dsl/directives/security-directives/authenticateBasicAsync.html)
 
 Scala
 :  @@snip[CompileOnly.scala](/management/src/test/scala/akka/management/CompileOnly.scala){ #basic-auth }

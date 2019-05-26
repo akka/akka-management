@@ -245,21 +245,23 @@ lazy val docs = project
     paradoxGroups := Map("Language" -> Seq("Java", "Scala")),
     Paradox / siteSubdirName := s"docs/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
     Compile / paradoxProperties ++= Map(
-        "version" -> version.value,
         "project.url" -> "https://doc.akka.io/docs/akka-management/current/",
         "canonical.base_url" -> "https://doc.akka.io/docs/akka-management/current",
         "scala.binary_version" -> scalaBinaryVersion.value,
         "akka.version" -> Dependencies.AkkaVersion,
-        "extref.akka-docs.base_url" -> s"https://doc.akka.io/docs/akka/current/%s",
-        "extref.akka-http-docs.base_url" -> s"https://doc.akka.io/docs/akka-http/current/%s",
-        "extref.akka-grpc-docs.base_url" -> s"https://doc.akka.io/docs/akka-grpc/current/%s",
-        "extref.akka-enhancements-docs.base_url" -> s"https://doc.akka.io/docs/akka-enhancements/current/%s",
-        "extref.java-api.base_url" -> "https://docs.oracle.com/javase/8/docs/api/index.html?%s.html",
-        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/current/",
-        "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/current/",
-        "scaladoc.akka.management.base_url" -> s"https://doc.akka.io/api/akka-management/${if (isSnapshot.value) "snapshot"
-        else version.value}",
-        "scaladoc.version" -> "2.12.0"
+        "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s",
+        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.AkkaVersion}/",
+        "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s",
+        "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.AkkaHttpVersion}/",
+        "extref.akka-grpc.base_url" -> s"https://doc.akka.io/docs/akka-grpc/current/%s",
+        "extref.akka-enhancements.base_url" -> s"https://doc.akka.io/docs/akka-enhancements/current/%s",
+        "scaladoc.akka.management.base_url" -> {
+          val docsHost = sys.env
+            .get("CI")
+            .map(_ => "https://doc.akka.io")
+            .getOrElse(s"http://localhost:${(previewSite / previewFixedPort).value.getOrElse(4000)}")
+          s"$docsHost/api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}/"
+        }
       ),
     publishRsyncArtifact := makeSite.value -> "www/",
     publishRsyncHost := "akkarepo@gustav.akka.io"

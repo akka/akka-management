@@ -33,7 +33,7 @@ For small clusters it may make sense to set `maxUnavailable` to 0 and `maxSurge`
 This means that a new pod is created before removing any existing pods so if the new pod fails the cluster remains
 at full strength until a rollback happens. For large clusters it may be too slow to do 1 pod at a time.
 
-If using @extref:[SBR](akka-enhancements-docs:split-brain-resolver.html) have a `maxUnavailable` that will not cause downing
+If using @extref:[SBR](akka-enhancements:split-brain-resolver.html) have a `maxUnavailable` that will not cause downing
 
 ### Cluster singletons
 
@@ -60,7 +60,7 @@ add the following dependency:
 @@dependency[sbt,Gradle,Maven] {
   group=com.lightbend.akka.management
   artifact=akka-management-cluster-http_$scala.binary_version$
-  version=$version$
+  version=$project.version$
 }
 
 The readiness check is exposed on the Akka Management port as a `GET` on `/ready` and the liveness check is a `GET` on `/alive`
