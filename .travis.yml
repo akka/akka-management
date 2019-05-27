@@ -9,11 +9,11 @@ before_install:
   - git fetch --unshallow
   # using jabba for custom jdk management
   - curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.11.1/install.sh | bash && . ~/.jabba/jabba.sh
-  - jabba install adopt@1.8.192-12
-  - jabba install adopt@1.11.0-1
+  - jabba install adopt@~1.8.192-12
+  - jabba install adopt@~1.11.0-1
 
 script:
-  - jabba use ${JDK:=adopt@1.8.192-12}
+  - jabba use ${JDK:=adopt@~1.8.192-12}
   - java -version
   - sbt -jvm-opts .jvmopts-travis "$CMD"
 
@@ -34,18 +34,20 @@ jobs:
   include:
   - stage: test
     script:
-    - jabba use "adopt@1.8.192-12"
+    - jabba use "adopt@~1.8.192-12"
     - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
     - sbt -jvm-opts .jvmopts-travis ";+test:compile;docs/paradox"
     - git diff --exit-code --color || { echo "[error] Unformatted code found. Please run 'test:compile' and commit the reformatted code."; false; }
-    env: DOCS_AND_FORMATTING
-  
+    name: "Compile on all Scala versions, check code style (fixed with `sbt Test/compile`)"
+
   - stage: test
     env: CMD="+test"
+    name: "Run tests on AdoptOpenJDK 8 (all Scala versions)"
 
   - env:
     - JDK="adopt@1.11.0-1"
     - CMD="+test"
+    name: "Run tests on AdoptOpenJDK 11 (all Scala versions)"
 
   - script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api/test.sh
     env: K8S_API
@@ -62,7 +64,7 @@ jobs:
     script:
       - jabba use "adopt@1.8.192-12"
       - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
-    env: WHITESOURCE
+    name: "Check licenses with WhiteSource"
 
 stages:
   - name: check
