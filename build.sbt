@@ -27,7 +27,7 @@ lazy val `akka-management-root` = project
   )
   .settings(
     parallelExecution in GlobalScope := false,
-    publish / skip := true,
+    publish / skip := true
   )
 
 lazy val `akka-discovery-kubernetes-api` = project
@@ -111,12 +111,13 @@ lazy val `integration-test-kubernetes-api` = project
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
     Dependencies.BootstrapDemos
-  ).dependsOn(
-  `akka-management`,
-  `cluster-http`,
-  `cluster-bootstrap`,
-  `akka-discovery-kubernetes-api`
-)
+  )
+  .dependsOn(
+    `akka-management`,
+    `cluster-http`,
+    `cluster-bootstrap`,
+    `akka-discovery-kubernetes-api`
+  )
 
 lazy val `integration-test-kubernetes-api-java` = project
   .in(file("integration-test/kubernetes-api-java"))
@@ -127,12 +128,13 @@ lazy val `integration-test-kubernetes-api-java` = project
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
     Dependencies.BootstrapDemos
-  ).dependsOn(
-  `akka-management`,
-  `cluster-http`,
-  `cluster-bootstrap`,
-  `akka-discovery-kubernetes-api`
-)
+  )
+  .dependsOn(
+    `akka-management`,
+    `cluster-http`,
+    `cluster-bootstrap`,
+    `akka-discovery-kubernetes-api`
+  )
 
 lazy val `integration-test-kubernetes-dns` = project
   .in(file("integration-test/kubernetes-dns"))
@@ -143,27 +145,29 @@ lazy val `integration-test-kubernetes-dns` = project
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
     Dependencies.BootstrapDemos
-  ).dependsOn(
+  )
+  .dependsOn(
     `akka-management`,
     `cluster-http`,
     `cluster-bootstrap`
   )
 
 lazy val `integration-test-aws-api-ec2-tag-based` = project
-    .in(file("integration-test/aws-api-ec2"))
-    .configs(IntegrationTest)
-    .disablePlugins(BintrayPlugin)
-    .enablePlugins(AutomateHeaderPlugin)
-    .settings(
-      skip in publish := true,
-      whitesourceIgnore := true,
-      sources in doc := Seq.empty,
-      Defaults.itSettings
-    ).dependsOn(
-      `akka-management`,
-      `cluster-http`,
-      `akka-discovery-aws-api`,
-      `cluster-bootstrap`
+  .in(file("integration-test/aws-api-ec2"))
+  .configs(IntegrationTest)
+  .disablePlugins(BintrayPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    skip in publish := true,
+    whitesourceIgnore := true,
+    sources in doc := Seq.empty,
+    Defaults.itSettings
+  )
+  .dependsOn(
+    `akka-management`,
+    `cluster-http`,
+    `akka-discovery-aws-api`,
+    `cluster-bootstrap`
   )
 
 lazy val `integration-test-marathon-api-docker` = project
@@ -175,7 +179,8 @@ lazy val `integration-test-marathon-api-docker` = project
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
-  ).dependsOn(
+  )
+  .dependsOn(
     `akka-management`,
     `cluster-http`,
     `cluster-bootstrap`,
@@ -190,7 +195,8 @@ lazy val `integration-test-aws-api-ecs` = project
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
-  ).dependsOn(
+  )
+  .dependsOn(
     `akka-management`,
     `cluster-http`,
     `cluster-bootstrap`,
@@ -213,7 +219,8 @@ lazy val `integration-test-local` = project
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
     Dependencies.BootstrapDemos
-  ).dependsOn(
+  )
+  .dependsOn(
     `akka-management`,
     `cluster-http`,
     `cluster-bootstrap`
@@ -222,26 +229,40 @@ lazy val `integration-test-local` = project
 
 lazy val docs = project
   .in(file("docs"))
-  .enablePlugins(AkkaParadoxPlugin)
+  .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
   .disablePlugins(BintrayPlugin)
   .settings(
     name := "Akka Management",
     publish / skip := true,
     whitesourceIgnore := true,
+    makeSite := makeSite.dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
+    Preprocess / siteSubdirName := s"api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
+    Preprocess / sourceDirectory := (LocalRootProject / ScalaUnidoc / unidoc / target).value,
+    Preprocess / preprocessRules := Seq(
+        ("\\.java\\.scala".r, _ => ".java")
+      ),
+    previewPath := (Paradox / siteSubdirName).value,
     paradoxGroups := Map("Language" -> Seq("Java", "Scala")),
-    Compile / paradox := (Compile / paradox).dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
+    Paradox / siteSubdirName := s"docs/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
     Compile / paradoxProperties ++= Map(
-      "version" -> version.value,
-      "project.url" -> "https://developer.lightbend.com/docs/akka-management/current/",
-      "canonical.base_url" -> "https://developer.lightbend.com/docs/akka-management/current/",
-      "scala.binary_version" -> scalaBinaryVersion.value,
-      "akka.version" -> Dependencies.AkkaVersion,
-      "extref.akka-docs.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s",
-      "extref.akka-http-docs.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s.html",
-      "extref.java-api.base_url" -> "https://docs.oracle.com/javase/8/docs/api/index.html?%s.html",
-      "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.AkkaVersion}",
-      "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.AkkaHttpVersion}/",
-      "scaladoc.akka.management.http.base_url" -> s"https://developer.lightbend.com/docs/api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
-      "scaladoc.version" -> "2.12.0"
-    )
+        "project.url" -> "https://doc.akka.io/docs/akka-management/current/",
+        "canonical.base_url" -> "https://doc.akka.io/docs/akka-management/current",
+        "scala.binary_version" -> scalaBinaryVersion.value,
+        "akka.version" -> Dependencies.AkkaVersion,
+        "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s",
+        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.AkkaVersion}/",
+        "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s",
+        "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.AkkaHttpVersion}/",
+        "extref.akka-grpc.base_url" -> s"https://doc.akka.io/docs/akka-grpc/current/%s",
+        "extref.akka-enhancements.base_url" -> s"https://doc.akka.io/docs/akka-enhancements/current/%s",
+        "scaladoc.akka.management.base_url" -> {
+          val docsHost = sys.env
+            .get("CI")
+            .map(_ => "https://doc.akka.io")
+            .getOrElse(s"http://localhost:${(previewSite / previewFixedPort).value.getOrElse(4000)}")
+          s"$docsHost/api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}/"
+        }
+      ),
+    publishRsyncArtifact := makeSite.value -> "www/",
+    publishRsyncHost := "akkarepo@gustav.akka.io"
   )

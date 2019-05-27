@@ -1,6 +1,6 @@
 ## Kubernetes API
 
-The typical way to consume a service in Kubernetes is to discover it through DNS: this will take into account liveness/readiness checks, and depending on the configuration take care of load balancing (removing the need for client-side load balancing). For this reason, for general usage the [`akka-dns`](https://doc.akka.io/docs/akka/current/discovery/index.html#discovery-method-dns) implementation is usually a better fit for discovering services in Kubernetes. However, in some cases, such as for @ref[Cluster Bootstrap](../bootstrap/index.md), it is desirable to connect to the pods directly, bypassing any liveness/readiness checks or load balancing. For such situations we provide a discovery implementation that uses the Kubernetes API.
+The typical way to consume a service in Kubernetes is to discover it through DNS: this will take into account liveness/readiness checks, and depending on the configuration take care of load balancing (removing the need for client-side load balancing). For this reason, for general usage the @extref:[`akka-dns`](akka:discovery/index.html#discovery-method-dns) implementation is usually a better fit for discovering services in Kubernetes. However, in some cases, such as for @ref[Cluster Bootstrap](../bootstrap/index.md), it is desirable to connect to the pods directly, bypassing any liveness/readiness checks or load balancing. For such situations we provide a discovery implementation that uses the Kubernetes API.
 
 ## Project Info
 
@@ -13,7 +13,7 @@ First, add the dependency on the component:
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-kubernetes-api_2.12"
-  version="$version$"
+  version="$project.version$"
 }
 
 As described above, it is uncommon to use the Kubernetes API discovery
