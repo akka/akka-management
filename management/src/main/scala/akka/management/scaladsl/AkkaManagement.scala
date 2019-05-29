@@ -182,15 +182,15 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
           inner
 
         case (Some(asyncAuthenticator), None) =>
-          authenticateBasicAsync[String](realm = "secured", asyncAuthenticator)(_ ⇒ inner)
+          authenticateBasicAsync[String](realm = "secured", asyncAuthenticator)(_ => inner)
 
         case (None, Some(auth)) =>
           def credsToJava(cred: Credentials): Optional[ProvidedCredentials] = cred match {
-            case provided: Credentials.Provided ⇒ Optional.of(ProvidedCredentials(provided))
-            case _ ⇒ Optional.empty()
+            case provided: Credentials.Provided => Optional.of(ProvidedCredentials(provided))
+            case _ => Optional.empty()
           }
-          authenticateBasicAsync(realm = "secured", c ⇒ auth.apply(credsToJava(c)).toScala.map(_.asScala)).optional
-            .apply(_ ⇒ inner)
+          authenticateBasicAsync(realm = "secured", c => auth.apply(credsToJava(c)).toScala.map(_.asScala)).optional
+            .apply(_ => inner)
 
         case (Some(_), Some(_)) =>
           throw new IllegalStateException("Unexpected that both scaladsl and javadsl auth were defined")
@@ -234,28 +234,28 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
     // since often the providers are akka extensions, we initialize them here as the ActorSystem would otherwise
     settings.Http.RouteProviders map {
-      case NamedRouteProvider(name, fqcn) ⇒
+      case NamedRouteProvider(name, fqcn) =>
         dynamicAccess.getObjectFor[ExtensionIdProvider](fqcn) recoverWith {
-          case _ ⇒ dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, Nil)
+          case _ => dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, Nil)
         } recoverWith {
-          case _: ClassCastException | _: NoSuchMethodException ⇒
+          case _: ClassCastException | _: NoSuchMethodException =>
             dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
         } recoverWith {
-          case _: ClassCastException | _: NoSuchMethodException ⇒
+          case _: ClassCastException | _: NoSuchMethodException =>
             dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, Nil)
         } recoverWith {
-          case _: ClassCastException | _: NoSuchMethodException ⇒
+          case _: ClassCastException | _: NoSuchMethodException =>
             dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn,
               (classOf[ExtendedActorSystem], system) :: Nil)
         } recoverWith {
-          case _: ClassCastException | _: NoSuchMethodException ⇒
+          case _: ClassCastException | _: NoSuchMethodException =>
             dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn, Nil)
         } recoverWith {
-          case _: ClassCastException | _: NoSuchMethodException ⇒
+          case _: ClassCastException | _: NoSuchMethodException =>
             dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn,
               (classOf[ExtendedActorSystem], system) :: Nil)
         } match {
-          case Success(p: ExtensionIdProvider) ⇒
+          case Success(p: ExtensionIdProvider) =>
             system.registerExtension(p.lookup()) match {
               case provider: ManagementRouteProvider => provider
               case provider: javadsl.ManagementRouteProvider => new ManagementRouteProviderAdapter(provider)
@@ -265,17 +265,17 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
                     s"[${other.getClass.getName}]")
             }
 
-          case Success(provider: ManagementRouteProvider) ⇒
+          case Success(provider: ManagementRouteProvider) =>
             provider
 
-          case Success(provider: javadsl.ManagementRouteProvider) ⇒
+          case Success(provider: javadsl.ManagementRouteProvider) =>
             new ManagementRouteProviderAdapter(provider)
 
-          case Success(_) ⇒
+          case Success(_) =>
             throw new RuntimeException(
                 s"[$fqcn] is not an 'ExtensionIdProvider', 'ExtensionId' or 'ManagementRouteProvider'")
 
-          case Failure(problem) ⇒
+          case Failure(problem) =>
             throw new RuntimeException(s"While trying to load route provider extension [$name = $fqcn]", problem)
         }
     }
