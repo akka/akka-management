@@ -102,8 +102,8 @@ Adjust as necessary.
 ---
 #
 # Create a role, `pod-reader`, that can list pods and
-# bind the default service account in the `default` namespace
-# to that role.
+# bind the default service account in the namespace
+# that the binding is deployed to to that role.
 #
 
 kind: Role
@@ -120,10 +120,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: read-pods
 subjects:
-# Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
-# For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
-- kind: User
-  name: system:serviceaccount:default:default
+- kind: ServiceAccount
+  name: default
 roleRef:
   kind: Role
   name: pod-reader
