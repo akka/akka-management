@@ -42,7 +42,7 @@ Variables to be expanded in this template:
 
 ### When everything is on maven central
   - [ ] Log into `gustav.akka.io` as `akkarepo` 
-    - [ ] update the `current` links on `repo.akka.io` to point to the latest version with (**relpace the minor appropriately**)
+    - [ ] update the `current` links on `repo.akka.io` to point to the latest version with (**replace the minor appropriately**)
          ```
          ln -nsf $AKKA_MANAGEMENT_VERSION$ www/docs/akka-management/1.0
          ln -nsf $AKKA_MANAGEMENT_VERSION$ www/api/akka-management/1.0
