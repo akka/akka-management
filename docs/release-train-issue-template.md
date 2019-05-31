@@ -42,15 +42,17 @@ Variables to be expanded in this template:
 
 ### When everything is on maven central
   - [ ] Log into `gustav.akka.io` as `akkarepo` 
-    - [ ] update the `current` links on `repo.akka.io` to point to the latest version with
+    - [ ] update the `current` links on `repo.akka.io` to point to the latest version with (**replace the minor appropriately**)
          ```
+         ln -nsf $AKKA_MANAGEMENT_VERSION$ www/docs/akka-management/1.0
+         ln -nsf $AKKA_MANAGEMENT_VERSION$ www/api/akka-management/1.0
          ln -nsf $AKKA_MANAGEMENT_VERSION$ www/docs/akka-management/current
          ln -nsf $AKKA_MANAGEMENT_VERSION$ www/api/akka-management/current
          ```
     - [ ] check changes and commit the new version to the local git repository
          ```
          cd ~/www
-         git add docs/akka-management/current docs/akka-management/$AKKA_MANAGEMENT_VERSION$ api/akka-management/current api/akka-management/$AKKA_MANAGEMENT_VERSION$ 
+         git add docs/akka-management/ api/akka-management/
          git commit -m "Akka Management $AKKA_MANAGEMENT_VERSION$"
          ```
 
