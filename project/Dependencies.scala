@@ -4,10 +4,10 @@ import Keys._
 object Dependencies {
 
   val AkkaVersion = "2.5.23"
-  val AkkaHttpVersion = "10.1.8+26-f33ec39a"
+  val AkkaHttpVersion = "10.1.8"
 
   val JUnitVersion = "4.12"
-  val ScalaTestVersion = "3.0.8-RC4"
+  val ScalaTestVersion = "3.0.8-RC5"
   val SprayJsonVersion = "1.3.5"
 
   val Common = Seq(
