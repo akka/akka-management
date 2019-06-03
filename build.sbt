@@ -1,5 +1,7 @@
 ThisBuild / resolvers += Resolver.jcenterRepo
 
+resolvers in ThisBuild += Resolver.bintrayRepo("akka", "snapshots")
+
 // root
 lazy val `akka-management-root` = project
   .in(file("."))
