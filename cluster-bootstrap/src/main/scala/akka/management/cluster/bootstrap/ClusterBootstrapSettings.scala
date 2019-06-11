@@ -10,8 +10,10 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
+import akka.management.cluster.bootstrap.internal.BootstrapCoordinator
 import com.typesafe.config.Config
-import scala.concurrent.duration.{ FiniteDuration, _ }
+
+import scala.concurrent.duration.{FiniteDuration, _}
 import scala.compat.java8.OptionConverters._
 import akka.util.JavaDurationConverters._
 
@@ -121,6 +123,10 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
 
   object contactPoint {
     private val contactPointConfig = bootConfig.getConfig("contact-point")
+
+    val probeMethod: String = contactPointConfig.getString("probe-method")
+
+    require(BootstrapCoordinator.ValidProbeMethods.contains(probeMethod), "Probe method must be one of: " + BootstrapCoordinator.ValidProbeMethods.mkString(", "))
 
     val fallbackPort: Int =
       contactPointConfig

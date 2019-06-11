@@ -7,9 +7,9 @@ package akka.management.cluster.bootstrap
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.AkkaVersion
+
 import scala.concurrent.Future
 import scala.concurrent.Promise
-
 import akka.actor.ActorSystem
 import akka.actor.ExtendedActorSystem
 import akka.actor.Extension
@@ -17,19 +17,18 @@ import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.{ Discovery, ServiceDiscovery }
+import akka.discovery.{Discovery, ServiceDiscovery}
 import akka.event.Logging
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
-import akka.management.cluster.bootstrap.internal.BootstrapCoordinator
+import akka.management.cluster.bootstrap.internal.{BootstrapCoordinator, RemotingContactPoint}
 import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.management.scaladsl.ManagementRouteProvider
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
   import ClusterBootstrap.Internal._
-  import system.dispatcher
 
   private val log = Logging(system, classOf[ClusterBootstrap])
 
@@ -59,11 +58,18 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
       .get
   }
 
-  private[this] val _selfContactPointUri: Promise[Uri] = Promise()
+  private[this] val _selfContactPointUri: Promise[(String, Int)] = settings.contactPoint.probeMethod match {
+    case BootstrapCoordinator.ProbeMethodRemoting =>
+      val self = Cluster(system).selfAddress
+      Promise.successful((self.host.getOrElse(sys.error("No host")), self.port.getOrElse(sys.error("No port"))))
+    case _ => Promise()
+  }
 
   override def routes(routeProviderSettings: ManagementRouteProviderSettings): Route = {
-    log.info(s"Using self contact point address: ${routeProviderSettings.selfBaseUri}")
-    this.setSelfContactPoint(routeProviderSettings.selfBaseUri)
+    if (settings.contactPoint.probeMethod == BootstrapCoordinator.ProbeMethodAkkaManagement) {
+      log.info(s"Using self contact point address: ${routeProviderSettings.selfBaseUri}")
+      this.setSelfContactPoint(routeProviderSettings.selfBaseUri)
+    }
 
     new HttpClusterBootstrapRoutes(settings).routes
   }
@@ -80,6 +86,10 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
       val bootstrapProps = BootstrapCoordinator.props(discovery, joinDecider, settings)
       val bootstrap = system.systemActorOf(bootstrapProps, "bootstrapCoordinator")
+      if (settings.contactPoint.probeMethod == BootstrapCoordinator.ProbeMethodRemoting) {
+        system.systemActorOf(RemotingContactPoint.props(settings), RemotingContactPoint.RemotingContactPointActorName)
+      }
+
       // Bootstrap already logs in several other execution points when it can't form a cluster, and why.
       bootstrap ! BootstrapCoordinator.Protocol.InitiateBootstrapping
     } else log.warning("Bootstrap already initiated, yet start() method was called again. Ignoring.")
@@ -96,13 +106,11 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
    */
   @InternalApi
   private[akka] def setSelfContactPoint(baseUri: Uri): Unit =
-    _selfContactPointUri.success(baseUri)
+    _selfContactPointUri.success((baseUri.authority.host.toString, baseUri.authority.port))
 
   /** INTERNAL API */
   @InternalApi private[akka] def selfContactPoint: Future[(String, Int)] =
-    _selfContactPointUri.future.map { uri =>
-      (uri.authority.host.toString, uri.authority.port)
-    }
+    _selfContactPointUri.future
 }
 
 object ClusterBootstrap extends ExtensionId[ClusterBootstrap] with ExtensionIdProvider {
