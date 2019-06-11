@@ -1,5 +1,4 @@
 ThisBuild / resolvers += Resolver.jcenterRepo
-ThisBuild / resolvers += Resolver.bintrayRepo("akka", "snapshots") // for akka-http prereleases
 
 // root
 lazy val `akka-management-root` = project
