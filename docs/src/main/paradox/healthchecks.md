@@ -7,8 +7,7 @@ Akka Management supports two kinds of health checks:
     * Establishing a connection to a database or queuing system
 * Liveness checks: should the application be left running 
 
-Readiness checks can be used to decide if a load balancer should route traffic where
-as liveness checks can be used in environments which can restart a hung process.
+Readiness checks can be used to decide if a load balancer should route traffic whereas liveness checks can be used in environments which can restart a hung process.
 
 This matches [Kubernetes Health checks](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/). 
 See [Kubernetes Liveness and Readiness Probes: How to Avoid Shooting Yourself in the Foot](https://blog.colinbreck.com/kubernetes-liveness-and-readiness-probes-how-to-avoid-shooting-yourself-in-the-foot/) for a
