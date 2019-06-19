@@ -23,8 +23,8 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
 
   import akka.http.scaladsl.server.Directives._
 
-  private def routeGetSeedNodes: Route = extractClientIP { clientIp ⇒
-    extractActorSystem { implicit system ⇒
+  private def routeGetSeedNodes: Route = extractClientIP { clientIp =>
+    extractActorSystem { implicit system =>
       import akka.cluster.MemberStatus
       val cluster = Cluster(system)
 

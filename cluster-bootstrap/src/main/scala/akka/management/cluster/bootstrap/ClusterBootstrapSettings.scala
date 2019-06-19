@@ -53,8 +53,8 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
           serviceName.getOrElse(system.name.toLowerCase(Locale.ROOT).replaceAll(" ", "-").replace("_", "-"))
 
         val namespace = serviceNamespace match {
-          case Some(ns) ⇒ s".$ns"
-          case _ ⇒ ""
+          case Some(ns) => s".$ns"
+          case _ => ""
         }
         service + namespace
       }

@@ -95,7 +95,7 @@ private[bootstrap] class HttpContactPointBootstrap(
     self ! ProbeTick
 
   override def receive = {
-    case ProbeTick ⇒
+    case ProbeTick =>
       val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
       log.debug("Probing [{}] for seed nodes...", req.uri)
 
@@ -115,7 +115,7 @@ private[bootstrap] class HttpContactPointBootstrap(
         scheduleNextContactPointProbing()
       }
 
-    case response: SeedNodes ⇒
+    case response: SeedNodes =>
       notifyParentAboutSeedNodes(response)
       resetProbingKeepFailingWithinDeadline()
       // we keep probing and looking if maybe a cluster does form after all
@@ -127,7 +127,7 @@ private[bootstrap] class HttpContactPointBootstrap(
     val strictEntity = response.entity.toStrict(1.second)
 
     if (response.status == StatusCodes.OK)
-      strictEntity.flatMap(res ⇒ Unmarshal(res).to[SeedNodes])
+      strictEntity.flatMap(res => Unmarshal(res).to[SeedNodes])
     else
       strictEntity.flatMap { entity =>
         val body = entity.data.utf8String

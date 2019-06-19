@@ -141,8 +141,8 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
     val rnd = 1.0 + ThreadLocalRandom.current().nextDouble() * randomFactor
     val calculatedDuration = Try(maxBackoff.min(minBackoff * math.pow(2, restartCount)) * rnd).getOrElse(maxBackoff)
     calculatedDuration match {
-      case f: FiniteDuration ⇒ f
-      case _ ⇒ maxBackoff
+      case f: FiniteDuration => f
+      case _ => maxBackoff
     }
   }
   def startSingleDiscoveryTimer(): Unit = {
@@ -159,7 +159,7 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   /** Awaiting initial signal to start the bootstrap process */
   override def receive: Receive = {
-    case InitiateBootstrapping ⇒
+    case InitiateBootstrapping =>
       log.info("Locating service members. Using discovery [{}], join decider [{}]", discovery.getClass.getName,
         joinDecider.getClass.getName)
       discoverContactPoints()
@@ -169,11 +169,11 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   /** In process of searching for seed-nodes */
   def bootstrapping(replyTo: ActorRef): Receive = {
-    case DiscoverTick ⇒
+    case DiscoverTick =>
       // the next round of discovery will be performed once this one returns
       discoverContactPoints()
 
-    case ServiceDiscovery.Resolved(_, contactPoints) ⇒
+    case ServiceDiscovery.Resolved(_, contactPoints) =>
       val filteredContactPoints: Iterable[ResolvedTarget] =
         if (lookup.portName.isDefined)
           contactPoints
@@ -191,14 +191,14 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
       resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals
       startSingleDiscoveryTimer() // keep looking in case other nodes join the discovery
 
-    case ex: Failure ⇒
+    case ex: Failure =>
       log.warning("Resolve attempt failed! Cause: {}", ex.cause)
       // prevent join decision until successful discoverContactPoints
       lastContactsObservation = None
       backoffDiscoveryInterval()
       startSingleDiscoveryTimer()
 
-    case ObtainedHttpSeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes) ⇒
+    case ObtainedHttpSeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes) =>
       lastContactsObservation.foreach { contacts =>
         if (contacts.observedContactPoints.contains(contactPoint)) {
           log.info("Contact point [{}] returned [{}] seed-nodes [{}]", infoFromAddress, observedSeedNodes.size,
@@ -304,9 +304,9 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
       None
     } else
       context.child(childActorName) match {
-        case Some(contactPointProbingChild) ⇒
+        case Some(contactPointProbingChild) =>
           Some(contactPointProbingChild)
-        case None ⇒
+        case None =>
           val props = HttpContactPointBootstrap.props(settings, contactPoint, baseUri)
           Some(context.actorOf(props, childActorName))
       }

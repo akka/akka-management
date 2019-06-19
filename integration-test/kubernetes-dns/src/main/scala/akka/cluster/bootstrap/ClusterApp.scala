@@ -66,7 +66,7 @@ object ClusterApp {
     val cluster = Cluster(context.system)
 
     override def receive = {
-      case msg ⇒ log.info(s"Cluster ${cluster.selfAddress} >>> " + msg)
+      case msg => log.info(s"Cluster ${cluster.selfAddress} >>> " + msg)
     }
   }
 }

@@ -38,11 +38,11 @@ final class MockDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     MockDiscovery.data.get().get(query) match {
-      case Some(res) ⇒
+      case Some(res) =>
         val items = res()
         log.info("Mock-resolved [{}] to [{}:{}]", query, items, items.value)
         items
-      case None ⇒
+      case None =>
         log.info("No mock-data for [{}], resolving as 'Nil'. Current mocks: {}", query, MockDiscovery.data.get())
         Future.successful(Resolved(query.serviceName, Nil))
     }
