@@ -197,5 +197,6 @@ To see how to configure and use bootstrap in various environments such as Kubern
 * [local-config](local-config.md)
 * [kuberntes-dns](kubernetes.md)
 * [kuberntes-api](kubernetes-api.md)
+* [istio](istio.md)
 
 @@@
