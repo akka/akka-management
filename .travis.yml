@@ -62,7 +62,7 @@ jobs:
 
   - stage: whitesource
     script:
-      - jabba use "adopt@1.8.192-12"
+      - jabba use "adopt@~1.8.192-12"
       - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
     name: "Check licenses with WhiteSource"
 
