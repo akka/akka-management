@@ -88,6 +88,11 @@ DNS has the benefit that it is agnostic of Kubernetes so does not require pods b
 server. However it requires a headless service that supports the `publishNotReadyAddresses` feature. If your Kubernetes setup
 does not support `publishNotReadyAddresses` yet then use the `kubernetes-api` discovery mechanism.
 
+### Running in Istio
+
+For considerations and configuration necessary for bootstrapping an Akka cluster in Istio, see @ref[Bootstrapping an Akka cluster in Istio](istio.md).
+
+
 ### Running the Kubernetes demos
 
 The following steps work for the `integration-test/kubernetes-api` or the `integration-test/kubernetes-dns` sub-project:
