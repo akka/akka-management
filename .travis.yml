@@ -66,6 +66,12 @@ jobs:
       - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
     name: "Check licenses with WhiteSource"
 
+  - stage: publish
+    script: sbt -J-XX:ReservedCodeCacheSize=128m +publish
+    name: Publish artifacts
+  - script: eval "$(ssh-agent -s)" && cp .travis/id_rsa /tmp/id_rsa && chmod 600 /tmp/id_rsa && ssh-keygen -p -P "$DEPLOY_PASSPHRASE" -N "" -f /tmp/id_rsa && ssh-add /tmp/id_rsa && sbt docs/publishRsync
+    name: Publish documentation
+
 stages:
   - name: check
     if: NOT tag =~ ^v
@@ -73,16 +79,9 @@ stages:
     if: NOT tag =~ ^v
   - name: whitesource
     if: repo = akka/akka-management AND ( ( branch = master AND type = push ) OR tag =~ ^v )
+  - name: publish
+    if: repo = akka/akka-management AND tag =~ ^v
   
-deploy:
-  provider: script
-  skip_cleanup: true
-  script:
-    - sbt -J-XX:ReservedCodeCacheSize=128m +publish && curl -I https://ci.lightbend.com/job/techhub-publisher/build?token=$TECH_HUB_TOKEN
-  on:
-    tags: true
-    repo: akka/akka-management
-    
 env:
   global:
     # encrypt with: travis encrypt WHITESOURCE_KEY=...
@@ -91,5 +90,5 @@ env:
     - secure: "aV03M2fhMugeGddRWpVHmY1v82mC1uF1uivyeHKNzEPKSYKWpHbiK9hx2RDY6dSccBURFIIkpzzGYCAyJa7AnDsvUy/voyscDZo0/cCbC2gMz5pTB0MpuzTnBPTbjzl4E8JNRryBszdMn7SXCRL9JTyrQLe9JS/XxQvv5ZBYXYg1A68Xa+RaIJkODzkzpD31ITnSpqtRUv1j2h/VqLIvVT03av4AOmq2In4WSQDmBj8Eq0enYPvQ9kLgeQ13zew2nOT0WL7Src+HO9BMwifdpih1kXw0qYs/rJMGwZOw2ksHjxZqO8BGHIxqcRo+wZnUDgK4S5SFSumPatdqFJeAegHV2TNSm6DPDcPxitl0oHkopHF+wCvSX+vv/VFwTATJy+gAi2L8X0D1XxjPz2V/CbDXsiPA6p7uE6YVmcnGe3pnx5jJCWduBr7O2g9ggUqtkNAYYeqb26zIZN2eEjBAmYeEC/B5HMLW8WcanRioDFA/pp4r7ilIBBuQ4AmRN3aaN8+N/a95NBuwbnP8wFqErNYwfV1Bqa576AuPF5sVCHgvmXDkrYshmbkuqjoJxtRhKMbyX9sbIJ1mah20b9k+3sndwh73zKPb3r8eF8ozxlLohPNOYshl6LFJRFRKMSK4fJ6y9lYgHZhYWSWcHACxGI90QCPWesSWTMfNwRM0Sno="
     # encrypt with: travis encrypt BINTRAY_PASS=...
     - secure: "YgwDYNlmCsGCtmf+Avm0TwkqsvaAVWsYilTRdsI/h1OEwn80j9F63QSF0qIg1qzGP9dNFA8VyS5gDgF8yMH0GwIa8a8kI8PXbRB3fH0jWjFGfMoJ+LKyG2MKIvdAMdqs5nVhARSjEajEDbjd7Azk32mSymc4ZSwxLr8yYR75pdfaIH+s4famoaHpUcwKxbd6fg2QY/ny5uckwcZwyu+y1+V0/i4ej0Btr82jtDnqRcIMyH+Fo35xVzosNiLD8s7faYfRoVaywcbjTSVr8TsonXRFKiaMBCbSs36GhHuC3IWzqXSnVwGIJ2eYkSoIwm9Qbg55UbpOUnPFPO9EHsg5jxXO4MxjPcl5ofipdBKWL6uYfq6Q5rzSRv8aJafMes6L87/YKeyDxel0BGcik7mLxNpuVjJ2RnYodN0KKGBO2PZhx4WErfieEsW2zz2TTZUxvMO2SCgzr1HUpRpWQmwlVnyI+q/U0bKAFmcGezHiGoXGp4zDZxwDE3LcZiriDa4M5qJLjHH5hGnU/FHBXDYygCPJyahgb7GjW+IZ8OaDhF19SJYgVqfw//c09pODDSAdKq4ae0cnM/c+vjzdaS/T93LCHKU7mlCRZmiG13Om9tK/WupUVAYNCjr86Pdqj8+pmTHzU2EG0RvzdHlQa4S6Xy97G2ZsJ+C9fvt+Glr/yPA="
-    # encrypt with travis encrypt TECH_HUB_TOKEN=...
-    - secure: "Ou3Hcn2WCz2YAP5gcG4k6zmLx8ZlolW9m2RxgV0mpMyN5gUhECVI+21HtxasvfBWHTKmCcfOLs9sZhoFq2kxTvTsNNFTfcDB2wwqg6dCEzmzop+oZLcNRmYfCJA7+8MOiwunK/GvSPwnbcy2o2ZYrIj3z9q1Qv8Nztsz6BO5ceMWmP28sJwnlzved/n3UipD9/jmTLIRthkolnvqcWCbXq+XLss20VukQYcj59KB7+HEpeTdy7ism5ndnIR7oW8F+aDA6hrrk0oKNpWwBqBzFvRCoqVbAKEJ+amO4qo0EjgBpx1m8E4ANatEsTGiL2QLiJvM7JQ4rIw2JRf+oB2UvCAS2jHYuzhYk8GvTmawbv9/U1D3fBc2huh3kcC5ggs8O92Zoa/QyDrjcuSzJdSj8aGQguUlGqnT76KezechT66SUdz/bgCXbppTTh1qPSUcP5G1wyc6+/0an4u3gmsnoDo6dtTM8rOxAJ+QtcxSo9b50n2YDQqmBN+JVzqvC2GwfORvAIE+h6KIS45v7l5/PN5KPuPut2Y6GZ8dJUKVGeeTNqxRk5SE1H7/oPM3dmN62nl5H15uP1pPopchvYaQ+qANwAFa1RQxxOWX9ImnSkogFB3R0Vy7Yw1bQRsst/LDUFBbm8C1KB4Dr+2HP/JwGpXvKxhBymDDDPZCqRETNPA="
+    # encrypt with travis encrypt DEPLOY_PASSPHRASE=...
+    - secure: "b+Ebc6lF+UrBARfluuzZtD5spctrElFfLfIoi6KAd7RNDtWzo8KZFlkVx9YZEk50Lp58fKZG3hlnl6AXedmwb36/xbR+V6vC891VmbEMmjMRcoAoX5DS1/dqBfs7AqU/sa0EvOc+fbNuLE79TGOJED4lO7t94OMCOvlEBpwTdGNV1qMpHUZbEl90iMvGUlUv0NiuAru6rakyB9DGw2ah+MQZWzbZM0vrRQP9rpDmPbGw0uk5dTT9+FBrPE3KQ8KPr8qaBcajAVvMxFoxwHKIdbMKJABZfpCAjoxV0VFjMWUkxhNZKGC3sGrZfZEbTRMu3XhdZkJBOx/ZivdcyorFFmB8F3HWO+65I5rHvf/9lRRWUcHYxeoBaV1wdSaJvaqbJUUFULeZwWXRcziiY4MUlOw+YPzkat4UYSDnYHAjb0K3UuE2pN58WPEOXrz88sytm15Tt9xfgbMHNwxaqPT6+ZufHazPRlz2SAGygk73Q/3gJc7mekkatT5NGrOneLLzwIXZfYyCzgUi6vqUpUHvncmey3BDInseisRikd8YA5tetLX2WubjWRmsJfNo7DZCfWutKjegNWGP9x0XpRm6mXyIys0VhLkMAJ7Bkp24rUhk2w9R2sk37xU9VR9vnpxhzXcGI5BFjqC09WSe7FiqnJ/2nbgb5d/MuPk78CS0xZQ="
