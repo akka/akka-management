@@ -353,28 +353,28 @@ class ClusterHttpManagementRoutesSpec
           TestShardedActor.extractShardId
         )
 
-        val t = ScalatestTimeout(3.seconds)
+        implicit val t = ScalatestTimeout(5.seconds)
 
         shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String].futureValue(t)
 
         val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
         val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
-        val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue(t)
+        val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue
 
         val responseGetShardDetails = Http().singleRequest(
           HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")).futureValue(t)
         responseGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseGetShardDetails.status shouldEqual StatusCodes.OK
-        val unmarshaledGetShardDetails = Unmarshal(responseGetShardDetails.entity).to[ShardDetails].futureValue(t)
+        val unmarshaledGetShardDetails = Unmarshal(responseGetShardDetails.entity).to[ShardDetails].futureValue
         unmarshaledGetShardDetails shouldEqual ShardDetails(Seq(ShardRegionInfo("ShardId", 1)))
 
         val responseInvalidGetShardDetails = Http().singleRequest(
           HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/ThisShardRegionDoesNotExist")
-        ).futureValue(t)
+        ).futureValue
         responseInvalidGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseInvalidGetShardDetails.status shouldEqual StatusCodes.NotFound
 
-        binding.unbind().futureValue(ScalatestTimeout(5.seconds))
+        binding.unbind().futureValue
         system.terminate()
       }
     }
