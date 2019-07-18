@@ -355,7 +355,7 @@ class ClusterHttpManagementRoutesSpec
 
         implicit val t = ScalatestTimeout(5.seconds)
 
-        shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String].futureValue(t)
+        shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String].futureValue
 
         val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
         val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
