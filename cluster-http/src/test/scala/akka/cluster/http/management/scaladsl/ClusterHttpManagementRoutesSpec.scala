@@ -362,7 +362,7 @@ class ClusterHttpManagementRoutesSpec
         val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue
 
         val responseGetShardDetails = Http().singleRequest(
-          HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")).futureValue(t)
+          HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")).futureValue
         responseGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseGetShardDetails.status shouldEqual StatusCodes.OK
         val unmarshaledGetShardDetails = Unmarshal(responseGetShardDetails.entity).to[ShardDetails].futureValue
