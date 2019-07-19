@@ -355,14 +355,14 @@ class ClusterHttpManagementRoutesSpec
 
         implicit val t = ScalatestTimeout(5.seconds)
 
-        shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String].futureValue
+        shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String].futureValue(t)
 
         val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
         val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
         val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue
 
         val responseGetShardDetails = Http().singleRequest(
-          HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")).futureValue
+          HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")).futureValue(t)
         responseGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseGetShardDetails.status shouldEqual StatusCodes.OK
         val unmarshaledGetShardDetails = Unmarshal(responseGetShardDetails.entity).to[ShardDetails].futureValue
