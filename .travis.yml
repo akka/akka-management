@@ -45,7 +45,7 @@ jobs:
     name: "Run tests on AdoptOpenJDK 8 (all Scala versions)"
 
   - env:
-    - JDK="adopt@1.11.0-1"
+    - JDK="adopt@~1.11.0-1"
     - CMD="+test"
     name: "Run tests on AdoptOpenJDK 11 (all Scala versions)"
 
