@@ -15,7 +15,7 @@ An example deployment (used for integration testing):
 
 An example role and rolebinding to allow the nodes to query the Kubernetes API server:
 
-@@snip [akka-cluster.yml](/integration-test/kubernetes-api/kubernetes/akka-cluster.yml) { #rbac}
+@@snip [akka-cluster.yml](/integration-test/kubernetes-api/kubernetes/akka-cluster.yml) { #rbac }
 
 The User name includes the namespace, this will need updated for your namespace.
 

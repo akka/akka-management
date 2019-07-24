@@ -60,6 +60,12 @@ spec:
 #deployment
 ---
 #rbac
+#
+# Create a role, `pod-reader`, that can list pods and
+# bind the default service account in the namespace
+# that the binding is deployed to to that role.
+#
+
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -74,9 +80,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: read-pods
 subjects:
-  # Create the default user for the 'akka-bootstrap-demo-ns' namespace, update for the namespace you are running in
-- kind: User
-  name: system:serviceaccount:akka-bootstrap-demo-ns:default
+  # Uses the default service account.
+  # Consider creating a dedicated service account to run your
+  # Akka Cluster services and binding the role to that one.
+- kind: ServiceAccount
+  name: default
 roleRef:
   kind: Role
   name: pod-reader
