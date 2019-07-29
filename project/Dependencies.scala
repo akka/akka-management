@@ -4,7 +4,7 @@ import Keys._
 object Dependencies {
 
   val AkkaVersion = "2.5.23"
-  val AkkaHttpVersion = "10.1.8"
+  val AkkaHttpVersion = "10.1.9"
 
   val JUnitVersion = "4.12"
   val ScalaTestVersion = "3.0.8"
