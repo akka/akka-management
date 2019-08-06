@@ -61,6 +61,6 @@ Variables to be expanded in this template:
 
 ### Afterwards
 
-- [ ] Update version for [Lightbend Supported Modules](https://developer.lightbend.com/docs/reactive-platform/2.0/supported-modules/#other-akka-modules) in [private project](https://github.com/lightbend/lightbend-platform-docs/blob/master/docs/modules/getting-help/examples/build.sbt#L153)
+- [ ] Update version for [Lightbend Supported Modules](https://developer.lightbend.com/docs/lightbend-platform/introduction/getting-help/build-dependencies.html#_akka_management) in [private project](https://github.com/lightbend/lightbend-platform-docs/blob/master/docs/modules/getting-help/examples/build.sbt#L153)
 - [ ] Close the [$AKKA_MANAGEMENT_VERSION$ milestone](https://github.com/akka/akka-management/milestones?direction=asc&sort=due_date)
 - Close this issue
