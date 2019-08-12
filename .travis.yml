@@ -67,7 +67,9 @@ jobs:
     name: "Check licenses with WhiteSource"
 
   - stage: publish
-    script: sbt -J-XX:ReservedCodeCacheSize=128m +publish
+    script:
+      - jabba use "adopt@~1.8.192-12"
+      - sbt -J-XX:ReservedCodeCacheSize=128m +publish
     name: Publish artifacts
   - script: eval "$(ssh-agent -s)" && cp .travis/id_rsa /tmp/id_rsa && chmod 600 /tmp/id_rsa && ssh-keygen -p -P "$DEPLOY_PASSPHRASE" -N "" -f /tmp/id_rsa && ssh-add /tmp/id_rsa && sbt docs/publishRsync
     name: Publish documentation
