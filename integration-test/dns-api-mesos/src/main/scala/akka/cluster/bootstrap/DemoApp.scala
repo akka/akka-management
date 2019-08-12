@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package akka.cluster.bootstrap
 
@@ -40,6 +40,6 @@ class ClusterWatcher extends Actor with ActorLogging {
   val cluster = Cluster(context.system)
 
   override def receive = {
-    case msg ⇒ log.info("Cluster {} >>> {}", msg, cluster.selfAddress)
+    case msg => log.info("Cluster {} >>> {}", msg, cluster.selfAddress)
   }
 }

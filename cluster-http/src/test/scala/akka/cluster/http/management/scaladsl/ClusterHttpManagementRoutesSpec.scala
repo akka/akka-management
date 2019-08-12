@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.cluster.http.management.scaladsl
@@ -354,7 +354,7 @@ class ClusterHttpManagementRoutesSpec
         val responseGetShardDetailsFuture = Http().singleRequest(
           HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")
         )
-        val responseGetShardDetails = Await.result(responseGetShardDetailsFuture, 1.second)
+        val responseGetShardDetails = Await.result(responseGetShardDetailsFuture, 3.seconds)
         responseGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseGetShardDetails.status shouldEqual StatusCodes.OK
         val unmarshaledGetShardDetails = Await.result(
@@ -366,7 +366,7 @@ class ClusterHttpManagementRoutesSpec
         val responseInvalidGetShardDetailsFuture = Http().singleRequest(
           HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/ThisShardRegionDoesNotExist")
         )
-        val responseInvalidGetShardDetails = Await.result(responseInvalidGetShardDetailsFuture, 1.second)
+        val responseInvalidGetShardDetails = Await.result(responseInvalidGetShardDetailsFuture, 3.seconds)
         responseInvalidGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseInvalidGetShardDetails.status shouldEqual StatusCodes.NotFound
 

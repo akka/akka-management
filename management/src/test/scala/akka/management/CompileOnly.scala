@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management
@@ -16,13 +16,13 @@ object CompileOnly {
   //#basic-auth
   def myUserPassAuthenticator(credentials: Credentials): Future[Option[String]] =
     credentials match {
-      case p @ Credentials.Provided(id) ⇒
+      case p @ Credentials.Provided(id) =>
         Future {
           // potentially
           if (p.verify("p4ssw0rd")) Some(id)
           else None
         }
-      case _ ⇒ Future.successful(None)
+      case _ => Future.successful(None)
     }
   // ...
   val management = AkkaManagement(system)

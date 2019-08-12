@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap.contactpoint
@@ -9,13 +9,19 @@ import akka.event.NoLogging
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.testkit.{ SocketUtil, TestProbe }
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.{ Matchers, WordSpecLike }
 
 class HttpContactPointRoutesSpec
     extends WordSpecLike
     with Matchers
     with ScalatestRouteTest
-    with HttpBootstrapJsonProtocol {
+    with HttpBootstrapJsonProtocol
+    with Eventually {
+
+  implicit override val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = scaled(Span(3, Seconds)), interval = scaled(Span(50, Millis)))
 
   override def testConfigSource =
     s"""
@@ -49,10 +55,12 @@ class HttpContactPointRoutesSpec
       val up = p.expectMsgType[ClusterEvent.MemberUp]
       up.member should ===(cluster.selfMember)
 
-      ClusterBootstrapRequests.bootstrapSeedNodes("") ~> httpBootstrap.routes ~> check {
-        val response = responseAs[HttpBootstrapJsonProtocol.SeedNodes]
-        response.seedNodes should !==(Nil)
-        response.seedNodes.map(_.node) should contain(cluster.selfAddress)
+      eventually {
+        ClusterBootstrapRequests.bootstrapSeedNodes("") ~> httpBootstrap.routes ~> check {
+          val response = responseAs[HttpBootstrapJsonProtocol.SeedNodes]
+          response.seedNodes should !==(Set.empty)
+          response.seedNodes.map(_.node) should contain(cluster.selfAddress)
+        }
       }
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.discovery.kubernetes
@@ -25,8 +25,8 @@ class JsonFormatSpec extends WordSpec with Matchers {
                   List(
                     Container(
                       "akka-cluster-tooling-example",
-                      Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("akka-mgmt-http"), 10001), ContainerPort(Some("http"), 10002))))))),
-                Some(PodStatus(Some("172.17.0.4"))), Some(Metadata(deletionTimestamp = None))),
+                      Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("management"), 10001), ContainerPort(Some("http"), 10002))))))),
+                Some(PodStatus(Some("172.17.0.4"), Some("Running"))), Some(Metadata(deletionTimestamp = None))),
 
             Pod(
               Some(
@@ -34,8 +34,8 @@ class JsonFormatSpec extends WordSpec with Matchers {
                   List(
                     Container(
                       "akka-cluster-tooling-example",
-                      Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("akka-mgmt-http"), 10001), ContainerPort(Some("http"), 10002))))))),
-                Some(PodStatus(Some("172.17.0.6"))), Some(Metadata(deletionTimestamp = None))),
+                      Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("management"), 10001), ContainerPort(Some("http"), 10002))))))),
+                Some(PodStatus(Some("172.17.0.6"), Some("Running"))), Some(Metadata(deletionTimestamp = None))),
 
             Pod(
               Some(
@@ -43,8 +43,17 @@ class JsonFormatSpec extends WordSpec with Matchers {
                   List(
                     Container(
                       "akka-cluster-tooling-example",
-                      Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("akka-mgmt-http"), 10001), ContainerPort(Some("http"), 10002))))))),
-                  Some(PodStatus(Some("172.17.0.7"))), Some(Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z"))))))
+                      Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("management"), 10001), ContainerPort(Some("http"), 10002))))))),
+                  Some(PodStatus(Some("172.17.0.7"), Some("Running"))), Some(Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z")))),
+
+            Pod(
+              Some(
+                PodSpec(
+                  List(
+                    Container(
+                      "akka-cluster-tooling-example",
+                      Some(List(ContainerPort(Some("management"), 10001))))))),
+                  Some(PodStatus(Some("172.17.0.47"), Some("Succeeded"))), Some(Metadata(deletionTimestamp = None)))))
     }
   }
 

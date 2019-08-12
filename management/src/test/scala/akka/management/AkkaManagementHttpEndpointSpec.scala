@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management
@@ -125,13 +125,13 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
 
         def myUserPassAuthenticator(credentials: Credentials): Future[Option[String]] =
           credentials match {
-            case p @ Credentials.Provided(id) ⇒
+            case p @ Credentials.Provided(id) =>
               Future {
                 // potentially
                 if (p.verify("p4ssw0rd")) Some(id)
                 else None
               }
-            case _ ⇒ Future.successful(None)
+            case _ => Future.successful(None)
           }
 
         val management = AkkaManagement(system)
@@ -222,6 +222,34 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         response1.status shouldEqual StatusCodes.OK
 
         val request2 = HttpRequest(uri = s"http://127.0.0.1:$httpPort/ready")
+        val response2 = Await.result(Http().singleRequest(request2), 5.seconds)
+        response2.status shouldEqual StatusCodes.OK
+
+        try Await.ready(management.stop(), 5.seconds)
+        finally system.terminate()
+      }
+
+      "bind random port" in {
+        val configClusterHttpManager = ConfigFactory.parseString(
+          s"""
+            akka.management.http.hostname = "127.0.0.1"
+            akka.management.http.port = 0
+          """
+        )
+
+        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+
+        val management = AkkaManagement(system)
+        val boundUri = Await.result(management.start(), 10.seconds)
+
+        boundUri.effectivePort should not be 0
+        boundUri.effectivePort should not be 80
+
+        val request1 = HttpRequest(uri = s"http://127.0.0.1:${boundUri.effectivePort}/alive")
+        val response1 = Await.result(Http().singleRequest(request1), 5.seconds)
+        response1.status shouldEqual StatusCodes.OK
+
+        val request2 = HttpRequest(uri = s"http://127.0.0.1:${boundUri.effectivePort}/ready")
         val response2 = Await.result(Http().singleRequest(request2), 5.seconds)
         response2.status shouldEqual StatusCodes.OK
 

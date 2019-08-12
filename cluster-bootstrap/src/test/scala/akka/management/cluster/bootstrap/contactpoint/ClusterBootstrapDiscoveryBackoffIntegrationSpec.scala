@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap.contactpoint
@@ -70,6 +70,8 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
                 stable-margin = 4 seconds
 
                 interval = 500 ms
+
+                port-name = "management"
               }
             }
           }

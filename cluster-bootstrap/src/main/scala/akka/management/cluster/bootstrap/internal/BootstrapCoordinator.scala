@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap.internal
@@ -59,13 +59,13 @@ private[akka] object BootstrapCoordinator {
   private case object DiscoverTick extends DeadLetterSuppression
   private case object DecideTick extends DeadLetterSuppression
 
-  protected[bootstrap] final case class DnsServiceContactsObservation(observedAt: LocalDateTime,
-                                                                      observedContactPoints: Set[ResolvedTarget]) {
+  protected[bootstrap] final case class ServiceContactsObservation(observedAt: LocalDateTime,
+                                                                   observedContactPoints: Set[ResolvedTarget]) {
 
-    def membersChanged(other: DnsServiceContactsObservation): Boolean =
+    def membersChanged(other: ServiceContactsObservation): Boolean =
       this.observedContactPoints != other.observedContactPoints
 
-    def sameOrChanged(other: DnsServiceContactsObservation): DnsServiceContactsObservation =
+    def sameOrChanged(other: ServiceContactsObservation): ServiceContactsObservation =
       if (membersChanged(other)) other
       else this
   }
@@ -73,7 +73,7 @@ private[akka] object BootstrapCoordinator {
 }
 
 /**
- * Looks up members of the same "service" in DNS and initiates [[HttpContactPointBootstrap]]'s for each such node.
+ * Looks up members of the same "service" via service discovery and initiates [[HttpContactPointBootstrap]]'s for each such node.
  *
  * If contact points do not return any seed-nodes for a `contactPointNoSeedsStableMargin` amount of time,
  * we decide that apparently there is no cluster formed yet in this deployment and someone has to become the first node
@@ -102,9 +102,9 @@ private[akka] object BootstrapCoordinator {
 // also known as the "Baron von Bootstrappen"
 /** INTERNAL API */
 @InternalApi
-private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
-                                               joinDecider: JoinDecider,
-                                               settings: ClusterBootstrapSettings)
+private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
+                                         joinDecider: JoinDecider,
+                                         settings: ClusterBootstrapSettings)
     extends Actor
     with ActorLogging
     with Timers {
@@ -121,7 +121,7 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
   private val lookup = Lookup(settings.contactPointDiscovery.effectiveName(context.system),
     settings.contactPointDiscovery.portName, settings.contactPointDiscovery.protocol)
 
-  private var lastContactsObservation: Option[DnsServiceContactsObservation] = None
+  private var lastContactsObservation: Option[ServiceContactsObservation] = None
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
 
   private var decisionInProgress = false
@@ -141,8 +141,8 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
     val rnd = 1.0 + ThreadLocalRandom.current().nextDouble() * randomFactor
     val calculatedDuration = Try(maxBackoff.min(minBackoff * math.pow(2, restartCount)) * rnd).getOrElse(maxBackoff)
     calculatedDuration match {
-      case f: FiniteDuration ⇒ f
-      case _ ⇒ maxBackoff
+      case f: FiniteDuration => f
+      case _ => maxBackoff
     }
   }
   def startSingleDiscoveryTimer(): Unit = {
@@ -159,7 +159,7 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   /** Awaiting initial signal to start the bootstrap process */
   override def receive: Receive = {
-    case InitiateBootstrapping ⇒
+    case InitiateBootstrapping =>
       log.info("Locating service members. Using discovery [{}], join decider [{}]", discovery.getClass.getName,
         joinDecider.getClass.getName)
       discoverContactPoints()
@@ -169,24 +169,36 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   /** In process of searching for seed-nodes */
   def bootstrapping(replyTo: ActorRef): Receive = {
-    case DiscoverTick ⇒
+    case DiscoverTick =>
       // the next round of discovery will be performed once this one returns
       discoverContactPoints()
 
-    case ServiceDiscovery.Resolved(_, contactPoints) ⇒
-      log.info("Located service members based on: [{}]: [{}]", lookup, contactPoints.mkString(", "))
-      onContactPointsResolved(contactPoints)
+    case ServiceDiscovery.Resolved(_, contactPoints) =>
+      val filteredContactPoints: Iterable[ResolvedTarget] =
+        if (lookup.portName.isDefined)
+          contactPoints
+        else
+          contactPoints.groupBy(_.host).flatMap {
+            case (host, immutable.Seq(singleResult)) =>
+              immutable.Seq(singleResult)
+            case (host, multipleResults) =>
+              multipleResults.filter(_.port.contains(settings.contactPoint.fallbackPort))
+          }
+
+      log.info("Located service members based on: [{}]: [{}], filtered to [{}]", lookup, contactPoints.mkString(", "),
+        filteredContactPoints.mkString(", "))
+      onContactPointsResolved(filteredContactPoints)
       resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals
       startSingleDiscoveryTimer() // keep looking in case other nodes join the discovery
 
-    case ex: Failure ⇒
+    case ex: Failure =>
       log.warning("Resolve attempt failed! Cause: {}", ex.cause)
       // prevent join decision until successful discoverContactPoints
       lastContactsObservation = None
       backoffDiscoveryInterval()
       startSingleDiscoveryTimer()
 
-    case ObtainedHttpSeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes) ⇒
+    case ObtainedHttpSeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes) =>
       lastContactsObservation.foreach { contacts =>
         if (contacts.observedContactPoints.contains(contactPoint)) {
           log.info("Contact point [{}] returned [{}] seed-nodes [{}]", infoFromAddress, observedSeedNodes.size,
@@ -253,8 +265,8 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
     discovery.lookup(lookup, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
   }
 
-  private def onContactPointsResolved(contactPoints: immutable.Seq[ResolvedTarget]): Unit = {
-    val newObservation = DnsServiceContactsObservation(timeNow(), contactPoints.toSet)
+  private def onContactPointsResolved(contactPoints: Iterable[ResolvedTarget]): Unit = {
+    val newObservation = ServiceContactsObservation(timeNow(), contactPoints.toSet)
     lastContactsObservation match {
       case Some(contacts) => lastContactsObservation = Some(contacts.sameOrChanged(newObservation))
       case None => lastContactsObservation = Some(newObservation)
@@ -270,7 +282,7 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
     newObservation.observedContactPoints.foreach(ensureProbing)
   }
 
-  private def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
+  private[internal] def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
     val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
     val rawBaseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint.host), targetPort))
     val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
@@ -292,9 +304,9 @@ private[akka] final class BootstrapCoordinator(discovery: ServiceDiscovery,
       None
     } else
       context.child(childActorName) match {
-        case Some(contactPointProbingChild) ⇒
+        case Some(contactPointProbingChild) =>
           Some(contactPointProbingChild)
-        case None ⇒
+        case None =>
           val props = HttpContactPointBootstrap.props(settings, contactPoint, baseUri)
           Some(context.actorOf(props, childActorName))
       }

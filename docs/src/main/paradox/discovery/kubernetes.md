@@ -1,45 +1,53 @@
 ## Kubernetes API
 
-Another discovery implementation provided is one that uses the Kubernetes API. Instead of doing a DNS lookup,
-it sends a request to the Kubernetes service API to find the other pods. This method allows you to define health
-and readiness checks that don't affect the discovery method. Configuration options are provided to adjust
-the namespace, label selector, and port name that are used in the pod selection process.
+The typical way to consume a service in Kubernetes is to discover it through DNS: this will take into account liveness/readiness checks, and depending on the configuration take care of load balancing (removing the need for client-side load balancing). For this reason, for general usage the @extref:[`akka-dns`](akka:discovery/index.html#discovery-method-dns) implementation is usually a better fit for discovering services in Kubernetes. However, in some cases, such as for @ref[Cluster Bootstrap](../bootstrap/index.md), it is desirable to connect to the pods directly, bypassing any liveness/readiness checks or load balancing. For such situations we provide a discovery implementation that uses the Kubernetes API.
+
+## Project Info
+
+@@project-info{ projectId="akka-discovery-kubernetes-api" }
 
 ### Dependencies and usage
 
-Kubernetes currently ignores all fields apart from service name. This is expected to change.
-
-Using `akka-discovery-kubernetes-api` is very simple, as you simply need to depend on the library::
+First, add the dependency on the component:
 
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-kubernetes-api_2.12"
-  version="$version$"
+  version="$project.version$"
 }
 
-And configure it to be used as default discovery implementation in your `application.conf`:
+As described above, it is uncommon to use the Kubernetes API discovery
+mechanism as your default discovery mechanism. When using it with Akka Cluster
+Bootstrap, it is sufficient to configure it as described @ref[here](../bootstrap/kubernetes-api.md).
+Otherwise, to load it manually, use `loadServiceDiscovery` on the `Discovery` extension:
 
-```
-akka.discovery {
-  method = kubernetes-api
-}
-```
+Scala
+:  @@snip [KubernetesApiServiceDiscoverySpec.scala](/discovery-kubernetes-api/src/test/scala/akka/discovery/kubernetes/KubernetesApiServiceDiscoverySpec.scala) { #kubernetes-api-discovery }
 
-To find other pods, this method needs to know how they are labeled, what the name of the Akka Management port is, and
+Java
+:  @@snip [KubernetesApiDiscoveryDocsTest.java](/discovery-kubernetes-api/src/test/java/docs/KubernetesApiDiscoveryDocsTest.java) { #kubernetes-api-discovery }
+
+
+To find other pods, this method needs to know how they are labeled, what the name of the target port is, and
 what namespace they reside in. Below, you'll find the default configuration. It can be customized by changing these
 values in your `application.conf`.
 
 ```
 akka.discovery {
   kubernetes-api {
-    pod-namespace = "default"
+    # Namespace discovery path
+    #
+    # If this path doesn't exist, the namespace will default to "default".
+    pod-namespace-path = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+  
+    # Namespace to query for pods.
+    #
+    # Set this value to a specific string to override discovering the namespace using pod-namespace-path.
+    pod-namespace = "<pod-namespace>"
 
-    # %s will be replaced with the configured effective name, which defaults to
-    # the actor system name
+    # Selector value to query pod API with.
+    # `%s` will be replaced with the configured effective name, which defaults to the actor system name
     pod-label-selector = "app=%s"
-
-    # This name must match the ports name in the deployment resource YAML.
-    pod-port-name = "management"
   }
 }
 ```
@@ -72,9 +80,9 @@ spec:
         - name: remoting
           containerPort: 2552
           protocol: TCP
-        # akka-management bootstrap
-        # This name must match the name defined in
-        # akka.discovery.kubernetes-api.pod-port-name configuration
+        # When
+        # akka.management.cluster.bootstrap.contact-point-discovery.port-name
+        # is defined, it must correspond to this name:
         - name: management
           containerPort: 8558
           protocol: TCP
@@ -121,4 +129,3 @@ roleRef:
   name: pod-reader
   apiGroup: rbac.authorization.k8s.io
 ```
-

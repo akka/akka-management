@@ -30,7 +30,7 @@ Upload `integration-test-marathon-api-0.1.0.tgz` to a webserver that your DC/OS 
 Step 3: Edit Config
 -------------------
 
-Edit `marathon/app.json`, replacing the value at `fetch[0].uri` ("http://yourwebserver.example.com/integration-test-marathon-api-0.1.0.tgz")
+Edit `marathon/app.json`, replacing the value at `fetch[0].uri` ("https://yourwebserver.example.com/integration-test-marathon-api-0.1.0.tgz")
 with the URL of the packaged application.
 
 Step 4: Deploy the App

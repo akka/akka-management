@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.scaladsl
@@ -48,7 +48,7 @@ object ReadinessCheckSetup {
   /**
    * Programmatic definition of readiness checks
    */
-  def apply(createHealthChecks: ActorSystem ⇒ immutable.Seq[HealthChecks.HealthCheck]): ReadinessCheckSetup = {
+  def apply(createHealthChecks: ActorSystem => immutable.Seq[HealthChecks.HealthCheck]): ReadinessCheckSetup = {
     new ReadinessCheckSetup(createHealthChecks)
   }
 
@@ -58,7 +58,7 @@ object ReadinessCheckSetup {
  * Setup for readiness checks, constructor is *Internal API*, use factories in [[ReadinessCheckSetup()]]
  */
 final class ReadinessCheckSetup private (
-    val createHealthChecks: ActorSystem ⇒ immutable.Seq[HealthChecks.HealthCheck]
+    val createHealthChecks: ActorSystem => immutable.Seq[HealthChecks.HealthCheck]
 ) extends Setup
 
 object LivenessCheckSetup {
@@ -66,7 +66,7 @@ object LivenessCheckSetup {
   /**
    * Programmatic definition of liveness checks
    */
-  def apply(createHealthChecks: ActorSystem ⇒ immutable.Seq[HealthChecks.HealthCheck]): LivenessCheckSetup = {
+  def apply(createHealthChecks: ActorSystem => immutable.Seq[HealthChecks.HealthCheck]): LivenessCheckSetup = {
     new LivenessCheckSetup(createHealthChecks)
   }
 
@@ -76,5 +76,5 @@ object LivenessCheckSetup {
  * Setup for liveness checks, constructor is *Internal API*, use factories in [[LivenessCheckSetup()]]
  */
 final class LivenessCheckSetup private (
-    val createHealthChecks: ActorSystem ⇒ immutable.Seq[HealthChecks.HealthCheck]
+    val createHealthChecks: ActorSystem => immutable.Seq[HealthChecks.HealthCheck]
 ) extends Setup

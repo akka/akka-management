@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.scaladsl
@@ -26,8 +26,8 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         val members = readView.state.members.map(memberToClusterMember)
 
         val unreachable = readView.reachability.observersGroupedByUnreachable.toVector.sortBy(_._1).map {
-          case (subject, observers) ⇒
-            ClusterUnreachableMember(s"${subject.address}", observers.toVector.sorted.map(m ⇒ s"${m.address}"))
+          case (subject, observers) =>
+            ClusterUnreachableMember(s"${subject.address}", observers.toVector.sorted.map(m => s"${m.address}"))
         }
 
         val thisDcMembers =
@@ -44,7 +44,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
 
   private def routePostMembers(cluster: Cluster): Route =
     post {
-      formField('address) { addressString ⇒
+      formField('address) { addressString =>
         complete {
           val address = AddressFromURIString(addressString)
           cluster.join(address)
@@ -70,15 +70,15 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
 
   private def routePutMember(cluster: Cluster, member: Member) =
     put {
-      formField('operation) { operation ⇒
+      formField('operation) { operation =>
         ClusterHttpManagementOperation.fromString(operation) match {
-          case Some(Down) ⇒
+          case Some(Down) =>
             cluster.down(member.uniqueAddress.address)
             complete(ClusterHttpManagementMessage(s"Downing ${member.uniqueAddress.address}"))
-          case Some(Leave) ⇒
+          case Some(Leave) =>
             cluster.leave(member.uniqueAddress.address)
             complete(ClusterHttpManagementMessage(s"Leaving ${member.uniqueAddress.address}"))
-          case _ ⇒
+          case _ =>
             complete(StatusCodes.BadRequest → ClusterHttpManagementMessage("Operation not supported"))
         }
       }
@@ -87,7 +87,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
   private def findMember(cluster: Cluster, memberAddress: String): Option[Member] = {
     val readView = ClusterReadViewAccess.internalReadView(cluster)
     readView.members.find(
-        m ⇒ s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress)
+        m => s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress)
   }
 
   private def routeFindMember(cluster: Cluster, readOnly: Boolean): Route = {
@@ -95,11 +95,11 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       if (readOnly && method != HttpMethods.GET) {
         complete(StatusCodes.MethodNotAllowed)
       } else {
-        path(Remaining) { memberAddress ⇒
+        path(Remaining) { memberAddress =>
           findMember(cluster, memberAddress) match {
-            case Some(member) ⇒
+            case Some(member) =>
               routeGetMember(cluster, member) ~ routeDeleteMember(cluster, member) ~ routePutMember(cluster, member)
-            case None ⇒
+            case None =>
               complete(
                 StatusCodes.NotFound → ClusterHttpManagementMessage(
                   s"Member [$memberAddress] not found"

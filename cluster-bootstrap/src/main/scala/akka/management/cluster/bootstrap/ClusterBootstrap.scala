@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap
@@ -42,12 +42,12 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   // used for initial discovery of contact points
   val discovery: ServiceDiscovery =
     settings.contactPointDiscovery.discoveryMethod match {
-      case "akka.discovery" ⇒
+      case "akka.discovery" =>
         val discovery = Discovery(system).discovery
         log.info("Bootstrap using default `akka.discovery` method: {}", Logging.simpleName(discovery))
         discovery
 
-      case otherDiscoveryMechanism ⇒
+      case otherDiscoveryMechanism =>
         log.info("Bootstrap using `akka.discovery` method: {}", otherDiscoveryMechanism)
         Discovery(system).loadServiceDiscovery(otherDiscoveryMechanism)
     }

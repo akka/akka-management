@@ -3,7 +3,7 @@
 @@@ warning
 
 This module is community maintained and the Lightbend subscription doesn't cover support for this module.
-  It is also marked as [may change](https://doc.akka.io/docs/akka/current/common/may-change.html).
+  It is also marked as @extref:[may change](akka:common/may-change.html).
   That means that the API, configuration or semantics can change without warning or deprecation period.
 
 @@@
@@ -17,6 +17,10 @@ effective name, which defaults to your applications actor system name.
 You'll also have to add a named port, by default `akkamgmthttp`, and ensure that Akka Management's HTTP interface
 is bound to this port.
 
+## Project Info
+
+@@project-info{ projectId="akka-discovery-marathon-api" }
+
 ### Dependencies and usage
 
 This is a separate JAR file:
@@ -24,7 +28,7 @@ This is a separate JAR file:
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-marathon-api_2.12"
-  version="$version$"
+  version="$project.version$"
 }
 
 And in your `application.conf`:

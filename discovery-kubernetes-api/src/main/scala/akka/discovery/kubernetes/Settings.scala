@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.discovery.kubernetes
@@ -55,12 +55,9 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
   def podLabelSelector(name: String): String =
     kubernetesApi.getString("pod-label-selector").format(name)
 
-  val podPortName: String =
-    kubernetesApi.getString("pod-port-name")
-
   override def toString =
     s"Settings($apiCaPath, $apiTokenPath, $apiServiceHostEnvName, $apiServicePortEnvName, " +
-    s"$podNamespacePath, $podNamespace, $podDomain, $podPortName)"
+    s"$podNamespacePath, $podNamespace, $podDomain)"
 }
 
 object Settings extends ExtensionId[Settings] with ExtensionIdProvider {

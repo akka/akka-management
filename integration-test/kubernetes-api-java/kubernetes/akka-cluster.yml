@@ -33,12 +33,21 @@ spec:
         - name: remoting
           containerPort: 2552
           protocol: TCP
-        # akka-management bootstrap
-        # must match up with contact-point-discovery.port-name for bootstrap
-        - name: management
-          containerPort: 8558
+        # akka-management
+        - containerPort: 8558
           protocol: TCP
-
+          # when contact-point-discovery.port-name is set for cluster bootstrap,
+          # the management port must be named accordingly:
+          # name: management
+        env:
+        # The Kubernetes API discovery will use this service name to look for
+        # nodes with this value in the 'app' label
+        # This can be customized with the 'pod-label-selector' setting.
+        - name: AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: "metadata.labels['app']"
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
@@ -54,9 +63,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: read-pods
 subjects:
-  # Create the default user for the akka-bootstrap namespace, change for your namespace
+  # Creates the default user for the akka-bootstrap-demo-ns namespace, change for your namespace
 - kind: User
-  name: system:serviceaccount:akka-bootstrap:default
+  name: system:serviceaccount:akka-bootstrap-demo-ns:default
 roleRef:
   kind: Role
   name: pod-reader

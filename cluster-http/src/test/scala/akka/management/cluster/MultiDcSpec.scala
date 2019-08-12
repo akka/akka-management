@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster
@@ -36,7 +36,7 @@ class MultiDcSpec
 
   "Http cluster management" must {
     "allow multiple DCs" in {
-      val Vector(httpPortA, portA, portB) = SocketUtil.temporaryServerAddresses(3).map(_.getPort)
+      val Vector(httpPortA, portA, portB) = SocketUtil.temporaryServerAddresses(3, "127.0.0.1").map(_.getPort)
       val dcA = ConfigFactory.parseString(
         s"""
            |akka.management.http.hostname = "127.0.0.1"
@@ -59,7 +59,7 @@ class MultiDcSpec
       implicit val materializer = ActorMaterializer()
 
       val routeSettings =
-        ManagementRouteProviderSettings(selfBaseUri = s"http://126.0.0.1:$httpPortA", readOnly = false)
+        ManagementRouteProviderSettings(selfBaseUri = s"http://127.0.0.1:$httpPortA", readOnly = false)
 
       try {
         Http()

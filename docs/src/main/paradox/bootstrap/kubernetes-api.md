@@ -21,7 +21,7 @@ The User name includes the namespace, this will need updated for your namespace.
 
 The following configuration is required:
 
-* Set `akka.management.cluster.bootstrap.contact-point-discovery.discovery-method` to `akka.discovery.kubernetes-api`
+* Set `akka.management.cluster.bootstrap.contact-point-discovery.discovery-method` to `kubernetes-api`
 * Set `akka.discovery.kubernetes-api.pod-label-selector` to a label selector that will match the Akka pods e.g. `app=%s`
 
 @@snip [akka-cluster.yml](/integration-test/kubernetes-api/src/main/resources/application.conf) { #discovery-config }

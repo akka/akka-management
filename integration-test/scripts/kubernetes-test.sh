@@ -1,6 +1,6 @@
 sbt $PROJECT_NAME/docker:publishLocal
 
-kubectl create namespace akka-bootstrap || true
+kubectl create namespace akka-bootstrap-demo-ns || true
 kubectl -n $NAMESPACE apply -f $DEPLOYMENT
 
 for i in {1..10}
@@ -19,7 +19,7 @@ fi
 
 POD=$(kubectl get pods -n $NAMESPACE | grep $APP_NAME | grep Running | head -n1 | awk '{ print $1 }')
 
-for i in {1..10}
+for i in {1..15}
 do
   echo "Checking for MemberUp logging..."
   kubectl logs $POD -n $NAMESPACE | grep MemberUp || true
@@ -36,7 +36,7 @@ do
 done
 
 
-if [ $i -eq 10 ]
+if [ $i -eq 15 ]
 then
   echo "No 3 MemberUp log events found"
   echo "=============================="

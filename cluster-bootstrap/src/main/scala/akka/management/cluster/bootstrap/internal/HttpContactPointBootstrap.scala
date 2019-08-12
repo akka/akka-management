@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap.internal
@@ -20,7 +20,10 @@ import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.contactpoint.ClusterBootstrapRequests
@@ -72,6 +75,7 @@ private[bootstrap] class HttpContactPointBootstrap(
 
   private implicit val mat = ActorMaterializer()(context.system)
   private val http = Http()(context.system)
+  private val connectionPoolWithoutRetries = ConnectionPoolSettings(context.system).withMaxRetries(0)
   import context.dispatcher
 
   private val probeInterval = settings.contactPoint.probeInterval
@@ -91,14 +95,11 @@ private[bootstrap] class HttpContactPointBootstrap(
     self ! ProbeTick
 
   override def receive = {
-    case ProbeTick ⇒
+    case ProbeTick =>
       val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
       log.debug("Probing [{}] for seed nodes...", req.uri)
 
-      val reply = http
-        .singleRequest(probeRequest)
-        .flatMap(_.entity.toStrict(1.second))
-        .flatMap(res ⇒ Unmarshal(res).to[SeedNodes])
+      val reply = http.singleRequest(probeRequest, settings = connectionPoolWithoutRetries).flatMap(handleResponse)
 
       val afterTimeout = after(settings.contactPoint.probingFailureTimeout, context.system.scheduler)(replyTimeout)
       Future.firstCompletedOf(List(reply, afterTimeout)).pipeTo(self)
@@ -114,12 +115,25 @@ private[bootstrap] class HttpContactPointBootstrap(
         scheduleNextContactPointProbing()
       }
 
-    case response: SeedNodes ⇒
+    case response: SeedNodes =>
       notifyParentAboutSeedNodes(response)
       resetProbingKeepFailingWithinDeadline()
       // we keep probing and looking if maybe a cluster does form after all
       // (technically could be long polling or web-sockets, but that would need reconnect logic, so this is simpler)
       scheduleNextContactPointProbing()
+  }
+
+  private def handleResponse(response: HttpResponse): Future[SeedNodes] = {
+    val strictEntity = response.entity.toStrict(1.second)
+
+    if (response.status == StatusCodes.OK)
+      strictEntity.flatMap(res => Unmarshal(res).to[SeedNodes])
+    else
+      strictEntity.flatMap { entity =>
+        val body = entity.data.utf8String
+        Future.failed(
+            new IllegalStateException(s"Expected response '200 OK' but found ${response.status}. Body: '$body'"))
+      }
   }
 
   private def notifyParentAboutSeedNodes(members: SeedNodes): Unit = {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap.contactpoint
@@ -23,8 +23,8 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
 
   import akka.http.scaladsl.server.Directives._
 
-  private def routeGetSeedNodes: Route = extractClientIP { clientIp ⇒
-    extractActorSystem { implicit system ⇒
+  private def routeGetSeedNodes: Route = extractClientIP { clientIp =>
+    extractActorSystem { implicit system =>
       import akka.cluster.MemberStatus
       val cluster = Cluster(system)
 

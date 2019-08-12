@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap.contactpoint
@@ -46,8 +46,8 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
     remotingPorts = remotingPorts.updated(id, remotingPort)
 
     val seeds = (seedNodes match {
-      case JoinYourself ⇒ List(s"akka.tcp://${systemName}@127.0.0.1:${remotingPort}")
-      case _ ⇒ seedNodes.map(_.toString)
+      case JoinYourself => List(s"akka.tcp://${systemName}@127.0.0.1:${remotingPort}")
+      case _ => seedNodes.map(_.toString)
     }).mkString("""["""", """", """", """"] """)
 
     val config = ConfigFactory.parseString(s"""

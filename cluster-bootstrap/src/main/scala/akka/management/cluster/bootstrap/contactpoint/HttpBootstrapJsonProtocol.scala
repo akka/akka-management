@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management.cluster.bootstrap.contactpoint
@@ -13,8 +13,8 @@ trait HttpBootstrapJsonProtocol extends SprayJsonSupport with DefaultJsonProtoco
 
   implicit object AddressFormat extends RootJsonFormat[Address] {
     override def read(json: JsValue): Address = json match {
-      case JsString(s) ⇒ AddressFromURIString.parse(s)
-      case invalid ⇒ throw new IllegalArgumentException(s"Illegal address value! Was [$invalid]")
+      case JsString(s) => AddressFromURIString.parse(s)
+      case invalid => throw new IllegalArgumentException(s"Illegal address value! Was [$invalid]")
     }
 
     override def write(obj: Address): JsValue = JsString(obj.toString)

@@ -3,15 +3,18 @@
 Below is a description of the bootstrap process in more detail.
 All configuration properties references below are in the `akka.management.cluster.bootstrap` section. 
 
-- Each node discovers its "neighbours" using Akka Discovery 
-    - This is NOT enough to safely join or form a cluster, some initial negotiation between the nodes must take place.
+- Each node discovers its "neighbours" using Akka Discovery
+    - Some initial negotiation between the nodes must take place to safely form a new cluster when there is no
+      existing cluster.
 - The node starts to probe the Contact Points of the discovered nodes (which are HTTP endpoints, exposed via
   Akka Management by the Bootstrap Management Extension) for known seeds to join.
-- Since no cluster exists yet, none of the contacted nodes return any seed nodes during the probing process. The following
+    - When a cluster exists the seed nodes are returned from probing the discovered Contact Points. It can
+      immediately join such seed nodes and the following steps for the initial bootstrap are not needed.
+- When no cluster exists yet, none of the contacted nodes return any seed nodes during the probing process. The following
   takes place to create a new cluster:
-    - A service discovey lookup is done every `contact-point-discovery.interval`
-    - If discovery returns the same contact points for the `contact-point-discovery.stable-margin`. This is to prevent
-      join decisions being made based on fluctuating contact points.
+    - A service discovery lookup is done every `contact-point-discovery.interval`
+    - If discovery returns the same Contact Points for the `contact-point-discovery.stable-margin`. This is to prevent
+      join decisions being made based on fluctuating Contact Points.
     - At least `contact-point-discovery.required-contact-point-nr` nodes have been discovered.
     - Communication with all discovered Contact Points have been confirmed via successful HTTP request-response.
     - Each node will discover that no cluster exists by probing each other and getting no `seed-nodes`, 

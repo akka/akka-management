@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.management
@@ -34,20 +34,20 @@ final class AkkaManagementSettings(val config: Config) {
     }
 
     val EffectiveBindHostname: String = cc.getString("bind-hostname") match {
-      case "" ⇒ Hostname
-      case value ⇒ value
+      case "" => Hostname
+      case value => value
     }
 
     val EffectiveBindPort: Int = cc.getString("bind-port") match {
-      case "" ⇒ Port
-      case value ⇒
+      case "" => Port
+      case value =>
         val p = value.toInt
         require(0 to 65535 contains p, s"akka.management.http.bind-port must be 0 through 65535 (was ${p})")
         p
     }
 
     val BasePath: Option[String] =
-      Option(cc.getString("base-path")).flatMap(it ⇒ if (it.trim == "") None else Some(it))
+      Option(cc.getString("base-path")).flatMap(it => if (it.trim == "") None else Some(it))
 
     val RouteProviders: immutable.Seq[NamedRouteProvider] = {
       def validFQCN(value: Any) = {

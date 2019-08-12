@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.cluster.bootstrap.demo;
@@ -11,7 +11,10 @@ import akka.cluster.ClusterEvent;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.server.AllDirectives;
-import akka.management.scaladsl.AkkaManagement;
+//#start-akka-management
+import akka.management.javadsl.AkkaManagement;
+
+//#start-akka-management
 import akka.management.cluster.bootstrap.ClusterBootstrap;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;

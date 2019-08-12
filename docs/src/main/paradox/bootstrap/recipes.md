@@ -33,7 +33,7 @@ For small clusters it may make sense to set `maxUnavailable` to 0 and `maxSurge`
 This means that a new pod is created before removing any existing pods so if the new pod fails the cluster remains
 at full strength until a rollback happens. For large clusters it may be too slow to do 1 pod at a time.
 
-If using [SBR](https://developer.lightbend.com/docs/akka-commercial-addons/current/split-brain-resolver.html) have a `maxUnavailable` that will not cause downing
+If using @extref:[SBR](akka-enhancements:split-brain-resolver.html) have a `maxUnavailable` that will not cause downing
 
 ### Cluster singletons
 
@@ -60,7 +60,7 @@ add the following dependency:
 @@dependency[sbt,Gradle,Maven] {
   group=com.lightbend.akka.management
   artifact=akka-management-cluster-http_$scala.binary_version$
-  version=$version$
+  version=$project.version$
 }
 
 The readiness check is exposed on the Akka Management port as a `GET` on `/ready` and the liveness check is a `GET` on `/alive`
@@ -87,6 +87,11 @@ Kubernetes-api is the more battle tested mechanism, DNS was added in Akka 2.5.15
 DNS has the benefit that it is agnostic of Kubernetes so does not require pods be able to communicate with the API
 server. However it requires a headless service that supports the `publishNotReadyAddresses` feature. If your Kubernetes setup
 does not support `publishNotReadyAddresses` yet then use the `kubernetes-api` discovery mechanism.
+
+### Running in Istio
+
+For considerations and configuration necessary for bootstrapping an Akka cluster in Istio, see @ref[Bootstrapping an Akka cluster in Istio](istio.md).
+
 
 ### Running the Kubernetes demos
 
@@ -119,17 +124,26 @@ $ sbt shell
 > docker:publishLocal 
 ```
 
-The resources in `kubernetes/akka-cluster.yml` are configured to run in the `akka-bootstrap` namespace. Either change that to the namespace
-you want to deploy to or ensure`akka-bootstrap` namespace exists either by creating it:
+You can run multiple different Akka Bootstrap-based applications in the same namespace,
+alongside any other containers that belong to the same logical application.
+The resources in `kubernetes/akka-cluster.yml` are configured to run in the `akka-bootstrap-demo-ns` namespace.
+Change that to the namespace you want to deploy to. If you do not have a namespace to run your application in yet,
+create it:
 
 ```
-kubectl create namespace akka-bootstrap
+kubectl create namespace <insert-namespace-name-here>
+
+# and set it as the default for subsequent commands
+kubectl config set-context $(kubectl config current-context) --namespace=<insert-namespace-name-here>
 ```
 
-Or if running with `minishift` creating a project called `akka-bootstrap`:
+Or if running with `minishift`:
 
 ```
-oc new-project akka-bootstrap
+oc new-project <insert-namespace-name-here>
+
+# and switch to that project to make it the default for subsequent comments
+oc project <insert-namespace-name-here>
 ```
 
 Next deploy the application:
@@ -160,10 +174,10 @@ In order to observe the logs during the cluster formation you can
 pick one of the pods and issue the kubectl logs command on it:
 
 ```
-$ POD=$(kubectl get pods --namespace akka-bootstrap | grep akka-bootstrap | grep Running | head -n1 | awk '{ print $1 }'); echo $POD
+$ POD=$(kubectl get pods | grep akka-bootstrap | grep Running | head -n1 | awk '{ print $1 }'); echo $POD
 akka-integration-test-bcc456d8c-6qx87
 
-$ kubectl logs $POD --namespace akka-bootstrap --follow | less
+$ kubectl logs $POD --follow | less
 ```
 
 ```
@@ -172,11 +186,11 @@ $ kubectl logs $POD --namespace akka-bootstrap --follow | less
 [DEBUG] [12/13/2018 07:13:42.919] [default-akka.actor.default-dispatcher-2] [TimerScheduler(akka://default)] Start timer [decide-key] with generation [2]
 [INFO] [12/13/2018 07:13:42.924] [default-akka.actor.default-dispatcher-2] [akka.tcp://default@172.17.0.7:2552/system/bootstrapCoordinator] Locating service members. Using discovery [akka.discovery.dns.DnsSimpleServiceDiscovery], join decider [akka.management.cluster.bootstrap.LowestAddressJoinDecider]
 [INFO] [12/13/2018 07:13:42.933] [default-akka.actor.default-dispatcher-2] [akka.tcp://default@172.17.0.7:2552/system/bootstrapCoordinator] Looking up [Lookup(integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local,Some(management),Some(tcp))]
-[DEBUG] [12/13/2018 07:13:42.936] [default-akka.actor.default-dispatcher-2] [DnsSimpleServiceDiscovery(akka://default)] Lookup [Lookup(integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local,Some(management),Some(tcp))] translated to SRV query [_management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local] as contains portName and protocol
-[DEBUG] [12/13/2018 07:13:42.995] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS] Resolution request for _management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local Srv from Actor[akka://default/temp/$a]
-[DEBUG] [12/13/2018 07:13:43.011] [default-akka.actor.default-dispatcher-6] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS/async-dns/$a] Attempting to resolve _management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local with Actor[akka://default/system/IO-DNS/async-dns/$a/$a#1272991285]
+[DEBUG] [12/13/2018 07:13:42.936] [default-akka.actor.default-dispatcher-2] [DnsSimpleServiceDiscovery(akka://default)] Lookup [Lookup(integration-test-kubernetes-dns-internal.akka-bootstrap-demo-ns.svc.cluster.local,Some(management),Some(tcp))] translated to SRV query [_management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap-demo-ns.svc.cluster.local] as contains portName and protocol
+[DEBUG] [12/13/2018 07:13:42.995] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS] Resolution request for _management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap-demo-ns.svc.cluster.local Srv from Actor[akka://default/temp/$a]
+[DEBUG] [12/13/2018 07:13:43.011] [default-akka.actor.default-dispatcher-6] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS/async-dns/$a] Attempting to resolve _management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap-demo-ns.svc.cluster.local with Actor[akka://default/system/IO-DNS/async-dns/$a/$a#1272991285]
 [DEBUG] [12/13/2018 07:13:43.049] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-TCP/selectors/$a/0] Successfully bound to /0.0.0.0:8558
-[DEBUG] [12/13/2018 07:13:43.134] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS/async-dns/$a/$a] Resolving [_management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap.svc.cluster.local] (SRV)
+[DEBUG] [12/13/2018 07:13:43.134] [default-akka.actor.default-dispatcher-18] [akka.tcp://default@172.17.0.7:2552/system/IO-DNS/async-dns/$a/$a] Resolving [_management._tcp.integration-test-kubernetes-dns-internal.akka-bootstrap-demo-ns.svc.cluster.local] (SRV)
 [INFO] [12/13/2018 07:13:43.147] [default-akka.actor.default-dispatcher-6] [AkkaManagement(akka://default)] Bound Akka Management (HTTP) endpoint to: 0.0.0.0:8558
 [DEBUG] [12/13/2018 07:13:43.156] [default-akka.actor.default-dispatcher-5] [akka.tcp://default@172.17.0.7:2552/system/IO-TCP/selectors/$a/1] Successfully bound to /0.0.0.0:8080
 [INFO] [12/13/2018 07:13:43.180] [main] [akka.actor.ActorSystemImpl(default)] Server online at http://localhost:8080/

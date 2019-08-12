@@ -1,11 +1,15 @@
 <a id="http-cluster-management"></a>
-# Cluster Http Management
+# Cluster HTTP Management
 
 Akka Management Cluster HTTP is a Management extension that allows interaction with an `akka-cluster` through an HTTP interface.
 This management extension exposes different operations to manage nodes in a cluster as well as health checks based
 on the cluster state.
 
 The operations exposed are comparable to the Command Line Management tool or the JMX interface `akka-cluster` provides.
+
+## Project Info
+
+@@project-info{ projectId="cluster-http" }
 
 ## Dependencies
 
@@ -15,10 +19,10 @@ Make sure to include it along with the core akka-management library in your proj
 @@dependency[sbt,Gradle,Maven] {
   group=com.lightbend.akka.management
   artifact=akka-management_$scala.binary_version$
-  version=$version$
+  version=$project.version$
   group2=com.lightbend.akka.management
   artifact2=akka-management-cluster-http_$scala.binary.version$
-  version2=$version$
+  version2=$project.version$
 }
 
 ## Running

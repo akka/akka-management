@@ -8,9 +8,9 @@ cd integration-test/kubernetes-api-java
 
 mvn -Dakka-management.version=$VERSION clean package docker:build
 
-export NAMESPACE=akka-bootstrap
+export NAMESPACE=akka-bootstrap-demo-ns
 
-kubectl create namespace akka-bootstrap || true
+kubectl create namespace akka-bootstrap-demo-ns || true
 kubectl -n $NAMESPACE apply -f kubernetes/akka-cluster.yml
 
 for i in {1..10}
@@ -23,13 +23,13 @@ done
 
 if [ $i -eq 10 ]
 then
-  echo "Pods did not get ready"
+  echo "*** Pods did not get ready ***"
   exit -1
 fi
 
 POD=$(kubectl get pods -n $NAMESPACE | grep akka-bootstrap-demo | grep Running | head -n1 | awk '{ print $1 }')
 
-for i in {1..10}
+for i in {1..15}
 do
   echo "Checking for MemberUp logging..."
   kubectl logs $POD -n $NAMESPACE | grep MemberUp || true
@@ -37,9 +37,9 @@ do
   sleep 3
 done
 
-if [ $i -eq 10 ]
+if [ $i -eq 15 ]
 then
-  echo "No 3 MemberUp log events found"
+  echo "*** No 3 MemberUp log events found ***"
   kubectl get pods -n $NAMESPACE
   echo "=============================="
   for POD in $(kubectl get pods -n $NAMESPACE | grep akka-bootstrap-demo | grep Running | awk '{ print $1 }')

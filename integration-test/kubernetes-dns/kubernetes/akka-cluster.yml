@@ -40,7 +40,9 @@ spec:
         #health
         ports:
         - containerPort: 8558
-          name: management
+          # when contact-point-discovery.port-name is set for cluster bootstrap,
+          # the management port must be named accordingly:
+          # name: management
         - containerPort: 2552
           name: remoting
         env:
@@ -49,6 +51,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        # The DNS-based discovery will use this service name to look for the headless
+        # service defined below
+        - name: AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME
+          value: "integration-test-kubernetes-dns-internal"
 
 ---
 #headless
