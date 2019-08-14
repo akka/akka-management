@@ -43,8 +43,12 @@ object Common extends AutoPlugin {
           "-target:jvm-1.8"
         ),
       javacOptions ++= Seq(
-          "-Xlint:unchecked"
+          "-Xlint:unchecked",
         ),
+      javacOptions ++= (
+        if (isJdk8) Seq.empty
+        else Seq("--release", "8")
+      ),
       Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
           "-doc-title",
           "Akka Management",
@@ -67,4 +71,7 @@ object Common extends AutoPlugin {
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
       scalaVersion := "2.12.8"
     )
+
+  private def isJdk8 =
+    VersionNumber(sys.props("java.specification.version")).matchesSemVer(SemanticSelector(s"=1.8"))
 }
