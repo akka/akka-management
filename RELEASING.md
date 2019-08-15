@@ -19,7 +19,6 @@ It is possible to release a revised documentation to the already existing releas
     ```
 1. If the generated documentation looks good, send it to Gustav:
     ```sh
-    rm -r docs/target/site
-    sbt docs/publishRsync
+    sbt ";clean ;docs/publishRsync"
     ```
 1. Do not forget to push the new branch back to GitHub.
