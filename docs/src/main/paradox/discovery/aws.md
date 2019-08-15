@@ -47,7 +47,7 @@ they can be tagged automatically on creation. Simply add the tag to the auto-sca
 ensure the "Tag New Instances" option is checked.
 
 
-#### Dependencies and usage
+#### Dependencies and usage (EC2 Tag-Based Discovery)
 
 This is a separate JAR file:
 
@@ -137,7 +137,7 @@ Screenshot of two ECS task instances (the service name is
 ![ECS task instances](../images/discovery-aws-ecs-task-instances.png)
 
 
-#### Dependencies and usage
+#### Dependencies and usage (ECS Discovery)
 
 There are two "flavours" of the ECS Discovery module. Functionally they are
 identical; the difference is in which version of the AWS SDK they use. They are
