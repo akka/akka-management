@@ -255,13 +255,7 @@ lazy val docs = project
         "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.AkkaHttpVersion}/",
         "extref.akka-grpc.base_url" -> s"https://doc.akka.io/docs/akka-grpc/current/%s",
         "extref.akka-enhancements.base_url" -> s"https://doc.akka.io/docs/akka-enhancements/current/%s",
-        "scaladoc.akka.management.base_url" -> {
-          val docsHost = sys.env
-            .get("CI")
-            .map(_ => "https://doc.akka.io")
-            .getOrElse(s"http://localhost:${(previewSite / previewFixedPort).value.getOrElse(4000)}")
-          s"$docsHost/api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}/"
-        }
+        "scaladoc.akka.management.base_url" -> s"/${(Preprocess / siteSubdirName).value}/",
       ),
     publishRsyncArtifact := makeSite.value -> "www/",
     publishRsyncHost := "akkarepo@gustav.akka.io"
