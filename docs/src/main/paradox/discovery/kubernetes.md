@@ -98,34 +98,4 @@ Adjust as necessary.
 
 > Using Google Kubernetes Engine? Your user will need permission to grant roles. See [Google's Documentation](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control#prerequisites_for_using_role-based_access_control) for more information.
 
-```yaml
----
-#
-# Create a role, `pod-reader`, that can list pods and
-# bind the default service account in the `default` namespace
-# to that role.
-#
-
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: pod-reader
-rules:
-- apiGroups: [""] # "" indicates the core API group
-  resources: ["pods"]
-  verbs: ["get", "watch", "list"]
----
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: read-pods
-subjects:
-# Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
-# For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
-- kind: User
-  name: system:serviceaccount:default:default
-roleRef:
-  kind: Role
-  name: pod-reader
-  apiGroup: rbac.authorization.k8s.io
-```
+@@snip [akka-cluster.yml](/integration-test/kubernetes-api/kubernetes/akka-cluster.yml) { #rbac }
