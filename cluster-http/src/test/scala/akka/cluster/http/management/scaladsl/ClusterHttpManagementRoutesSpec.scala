@@ -6,13 +6,22 @@ package akka.cluster.http.management.scaladsl
 
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
-import akka.actor.{ Actor, ActorSystem, Address, ExtendedActorSystem, Props }
+import scala.collection.immutable._
+
+import akka.actor.Actor
+import akka.actor.ActorSystem
+import akka.actor.Address
+import akka.actor.ExtendedActorSystem
+import akka.actor.Props
 import akka.cluster.ClusterEvent.CurrentClusterState
 import akka.cluster.InternalClusterAction.LeaderActionsTick
-import akka.cluster.MemberStatus.{ Joining, Up }
+import akka.cluster.MemberStatus.Joining
+import akka.cluster.MemberStatus.Up
 import akka.cluster._
 import akka.cluster.http.management.scaladsl.ClusterHttpManagementRoutesSpec.TestShardedActor
-import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
+import akka.cluster.sharding.ClusterSharding
+import akka.cluster.sharding.ClusterShardingSettings
+import akka.cluster.sharding.ShardRegion
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
@@ -24,16 +33,17 @@ import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.{ Matchers, WordSpecLike }
-
-import scala.collection.immutable._
-import scala.concurrent.Await
+import org.scalatest.Matchers
+import org.scalatest.WordSpecLike
+import org.scalatest.concurrent.PatienceConfiguration.{Timeout => ScalatestTimeout}
+import org.scalatest.concurrent.ScalaFutures
 
 class ClusterHttpManagementRoutesSpec
     extends WordSpecLike
     with Matchers
     with ScalatestRouteTest
-    with ClusterHttpManagementJsonProtocol {
+    with ClusterHttpManagementJsonProtocol
+    with ScalaFutures {
 
   "Http Cluster Management Routes" should {
     "return list of members with cluster leader and oldest" when {
@@ -304,9 +314,8 @@ class ClusterHttpManagementRoutesSpec
     "return shard region details" when {
 
       "calling GET /cluster/shard_regions/{name}" in {
-        import akka.pattern.ask
-
         import scala.concurrent.duration._
+        import akka.pattern.ask
 
         val config = ConfigFactory.parseString(
           """
@@ -343,34 +352,29 @@ class ClusterHttpManagementRoutesSpec
           TestShardedActor.extractEntityId,
           TestShardedActor.extractShardId
         )
-        val initializeEntityActorAsk = shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String]
-        Await.result(initializeEntityActorAsk, 3.seconds)
+
+        implicit val t = ScalatestTimeout(5.seconds)
+
+        shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String].futureValue(t)
 
         val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
         val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
-        val binding =
-          Await.result(Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100), 3.seconds)
+        val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue
 
-        val responseGetShardDetailsFuture = Http().singleRequest(
-          HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")
-        )
-        val responseGetShardDetails = Await.result(responseGetShardDetailsFuture, 3.seconds)
+        val responseGetShardDetails = Http().singleRequest(
+          HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")).futureValue(t)
         responseGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseGetShardDetails.status shouldEqual StatusCodes.OK
-        val unmarshaledGetShardDetails = Await.result(
-          Unmarshal(responseGetShardDetails.entity).to[ShardDetails],
-          3.seconds
-        )
+        val unmarshaledGetShardDetails = Unmarshal(responseGetShardDetails.entity).to[ShardDetails].futureValue
         unmarshaledGetShardDetails shouldEqual ShardDetails(Seq(ShardRegionInfo("ShardId", 1)))
 
-        val responseInvalidGetShardDetailsFuture = Http().singleRequest(
+        val responseInvalidGetShardDetails = Http().singleRequest(
           HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/ThisShardRegionDoesNotExist")
-        )
-        val responseInvalidGetShardDetails = Await.result(responseInvalidGetShardDetailsFuture, 3.seconds)
+        ).futureValue
         responseInvalidGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseInvalidGetShardDetails.status shouldEqual StatusCodes.NotFound
 
-        Await.ready(binding.unbind(), 5.seconds)
+        binding.unbind().futureValue
         system.terminate()
       }
     }
