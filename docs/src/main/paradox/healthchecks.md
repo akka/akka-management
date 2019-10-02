@@ -13,6 +13,10 @@ This matches [Kubernetes Health checks](https://kubernetes.io/docs/tasks/configu
 See [Kubernetes Liveness and Readiness Probes: How to Avoid Shooting Yourself in the Foot](https://blog.colinbreck.com/kubernetes-liveness-and-readiness-probes-how-to-avoid-shooting-yourself-in-the-foot/) for a
 good overview of how to use readiness and liveness probes.
 
+Akka Management provides endpoints for readiness and liveness checks out of the box at `/ready` and `/alive` (paths can be configured, see below).
+Configuration settings are used to add checks to back those endpoints. When called, each endpoint will only report to be healthy when
+*all* the configured health checks (for the particular kind, readiness or liveness) are succeeding.
+
 ## Defining a Health Check
 
 A health check must extend @scala[`Function0[Future[Boolean]]`]@java[`Supplier[CompletionStage[Boolean]]`] and have either a no argument constructor or a constructor
