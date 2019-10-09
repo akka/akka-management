@@ -23,7 +23,7 @@ import akka.event.Logging
                                                                     settings: ClusterBootstrapSettings)
     extends JoinDecider {
 
-  protected val log = Logging(system, getClass)
+  protected val log = Logging(system, ClusterBootstrapLogClass.BootstrapCore)
 
   /** Returns the current `selfContactPoints` as a String for logging, e.g. [127.0.0.1:64714]. */
   protected def contactPointString(contactPoint: (String, Int)): String =

@@ -186,6 +186,8 @@ Lightbend provides @extref:[Split Brain Resolver](akka-enhancements:split-brain-
 as a feature of the Lightbend Subscription. This module has a number of strategies that can ensure that the cluster
 continues to function during network partitions and node failures.
 
+
+
 ## Bootstrap Recipes
 
 To see how to configure and use bootstrap in various environments such as Kubernetes, see @ref[recipes](recipes.md).

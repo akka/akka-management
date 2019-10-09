@@ -19,12 +19,14 @@ import akka.actor.Timers
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.discovery.ServiceDiscovery.ResolvedTarget
+import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.management.cluster.bootstrap.ClusterBootstrapLogClass
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.contactpoint.ClusterBootstrapRequests
 import akka.management.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol
@@ -57,7 +59,6 @@ private[bootstrap] class HttpContactPointBootstrap(
     contactPoint: ResolvedTarget,
     baseUri: Uri
 ) extends Actor
-    with ActorLogging
     with Timers
     with HttpBootstrapJsonProtocol {
 
@@ -65,6 +66,9 @@ private[bootstrap] class HttpContactPointBootstrap(
   import HttpContactPointBootstrap.ProbingTimerKey
 
   private val cluster = Cluster(context.system)
+
+  // TODO use ActorWithLogClass once released https://github.com/akka/akka/pull/27934
+  private val log = Logging(context.system, ClusterBootstrapLogClass.BootstrapCore)
 
   if (baseUri.authority.host.address() == cluster.selfAddress.host.getOrElse("---") &&
       baseUri.authority.port == cluster.selfAddress.port.getOrElse(-1)) {

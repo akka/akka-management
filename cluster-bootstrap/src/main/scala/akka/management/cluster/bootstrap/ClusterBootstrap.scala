@@ -31,7 +31,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   import ClusterBootstrap.Internal._
   import system.dispatcher
 
-  private val log = Logging(system, classOf[ClusterBootstrap])
+  private val log = Logging(system, ClusterBootstrapLogClass.BootstrapCore)
 
   private final val bootstrapStep = new AtomicReference[BootstrapStep](NotRunning)
 
@@ -71,7 +71,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   def start(): Unit =
     if (Cluster(system).settings.SeedNodes.nonEmpty) {
       log.warning(
-          "Application is configured with specific `akka.cluster.seed-nodes`: {}, bailing out of the bootstrap process! " +
+          "Application is configured with specific `akka.cluster.seed-nodes`: {}, aborting the bootstrap process! " +
           "If you want to use the automatic bootstrap mechanism, make sure to NOT set explicit seed nodes in the configuration. " +
           "This node will attempt to join the configured seed nodes.",
           Cluster(system).settings.SeedNodes.mkString("[", ", ", "]"))

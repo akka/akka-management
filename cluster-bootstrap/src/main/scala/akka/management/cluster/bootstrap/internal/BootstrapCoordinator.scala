@@ -18,9 +18,11 @@ import akka.actor.Status.Failure
 import akka.actor.Timers
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.{ Lookup, ServiceDiscovery }
+import akka.discovery.{Lookup, ServiceDiscovery}
 import akka.discovery.ServiceDiscovery.ResolvedTarget
+import akka.event.Logging
 import akka.http.scaladsl.model.Uri
+import akka.management.cluster.bootstrap.ClusterBootstrapLogClass
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.management.cluster.bootstrap.JoinDecider
 import akka.management.cluster.bootstrap.JoinDecision
@@ -106,11 +108,13 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
                                          joinDecider: JoinDecider,
                                          settings: ClusterBootstrapSettings)
     extends Actor
-    with ActorLogging
     with Timers {
 
   import BootstrapCoordinator.Protocol._
   import BootstrapCoordinator._
+
+  // TODO use ActorWithLogClass once released https://github.com/akka/akka/pull/27934
+  private val log = Logging(context.system, ClusterBootstrapLogClass.BootstrapCore)
 
   implicit private val ec = context.dispatcher
   private val cluster = Cluster(context.system)
@@ -160,8 +164,8 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
   /** Awaiting initial signal to start the bootstrap process */
   override def receive: Receive = {
     case InitiateBootstrapping =>
-      log.info("Locating service members. Using discovery [{}], join decider [{}]", discovery.getClass.getName,
-        joinDecider.getClass.getName)
+      log.info("Locating service members. Using discovery [{}], join decider [{}], lookup [{}]", discovery.getClass.getName,
+        joinDecider.getClass.getName, lookup)
       discoverContactPoints()
 
       context become bootstrapping(sender())
@@ -201,7 +205,7 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
     case ObtainedHttpSeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes) =>
       lastContactsObservation.foreach { contacts =>
         if (contacts.observedContactPoints.contains(contactPoint)) {
-          log.info("Contact point [{}] returned [{}] seed-nodes [{}]", infoFromAddress, observedSeedNodes.size,
+          log.debug("Contact point [{}] returned [{}] seed-nodes [{}]", infoFromAddress, observedSeedNodes.size,
             observedSeedNodes.mkString(", "))
 
           seedNodesObservations = seedNodesObservations.updated(contactPoint,
@@ -261,7 +265,7 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
   }
 
   private def discoverContactPoints(): Unit = {
-    log.info("Looking up [{}]", lookup)
+    log.debug("Looking up [{}]", lookup)
     discovery.lookup(lookup, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
   }
 
