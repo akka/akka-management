@@ -42,7 +42,7 @@ private[akka] object BootstrapCoordinator {
     Props(new BootstrapCoordinator(discovery, joinDecider, settings))
 
   object Protocol {
-    final case object InitiateBootstrapping
+    final case class InitiateBootstrapping(selfUri: Uri)
     sealed trait BootstrappingCompleted
     final case object BootstrappingCompleted extends BootstrappingCompleted
 
@@ -142,6 +142,7 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   private var lastContactsObservation: Option[ServiceContactsObservation] = None
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
+  private var selfUri: Uri = _ // set via InitiateBootstrapping
 
   private var decisionInProgress = false
   def startPeriodicDecisionTimer(): Unit =
@@ -178,11 +179,11 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   /** Awaiting initial signal to start the bootstrap process */
   override def receive: Receive = {
-    case InitiateBootstrapping =>
-      log.info("Locating service members. Using discovery [{}], join decider [{}]", discovery.getClass.getName,
-        joinDecider.getClass.getName)
+    case InitiateBootstrapping(selfContactUri) =>
+      log.info("Locating service members. Using discovery [{}], join decider [{}], scheme [{}]",
+        discovery.getClass.getName, joinDecider.getClass.getName, selfContactUri.scheme)
+      selfUri = selfContactUri
       discoverContactPoints()
-
       context become bootstrapping(sender())
   }
 
@@ -294,7 +295,7 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   private[internal] def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
     val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
-    val rawBaseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint.host), targetPort))
+    val rawBaseUri = Uri(selfUri.scheme, Uri.Authority(Uri.Host(contactPoint.host), targetPort))
     val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
 
     val childActorName = s"contactPointProbe-${baseUri.authority.host}-${baseUri.authority.port}"

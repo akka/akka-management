@@ -96,11 +96,8 @@ private[bootstrap] class HttpContactPointBootstrap(
 
   override def receive = {
     case ProbeTick =>
-      val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
-      log.debug("Probing [{}] for seed nodes...", req.uri)
-
+      log.debug("Probing [{}] for seed nodes...", probeRequest.uri)
       val reply = http.singleRequest(probeRequest, settings = connectionPoolWithoutRetries).flatMap(handleResponse)
-
       val afterTimeout = after(settings.contactPoint.probingFailureTimeout, context.system.scheduler)(replyTimeout)
       Future.firstCompletedOf(List(reply, afterTimeout)).pipeTo(self)
 

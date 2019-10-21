@@ -20,7 +20,7 @@ import akka.event.Logging
  * leveraging self host logic.
  */
 @InternalApi private[bootstrap] abstract class SelfAwareJoinDecider(system: ActorSystem,
-                                                                    settings: ClusterBootstrapSettings)
+    settings: ClusterBootstrapSettings)
     extends JoinDecider {
 
   protected val log = Logging(system, getClass)
@@ -34,10 +34,13 @@ import akka.event.Logging
    * during [[akka.management.scaladsl.AkkaManagement.start()]], hence we accept blocking on
    * this initialization.
    */
-  private[bootstrap] def selfContactPoint: (String, Int) =
-    Try(Await.result(ClusterBootstrap(system).selfContactPoint, 10.seconds)).getOrElse(throw new IllegalStateException(
+  private[bootstrap] def selfContactPoint: (String, Int) = {
+    Try(Await.result(ClusterBootstrap(system).selfContactPoint, 10.seconds))
+        .map(uri => (uri.authority.host.toString, uri.authority.port))
+        .getOrElse(throw new IllegalStateException(
           "'Bootstrap.selfContactPoint' was NOT set, but is required for the bootstrap to work " +
-          "if binding bootstrap routes manually and not via akka-management."))
+              "if binding bootstrap routes manually and not via akka-management."))
+  }
 
   /**
    * Determines whether it has the need and ability to join self and create a new cluster.

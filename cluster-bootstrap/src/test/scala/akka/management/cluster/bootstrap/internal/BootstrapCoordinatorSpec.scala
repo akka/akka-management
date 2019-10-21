@@ -6,21 +6,23 @@ package akka.management.cluster.bootstrap.internal
 
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.actor.{ ActorRef, ActorSystem, Props }
-import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.{ Lookup, MockDiscovery }
+import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.{Lookup, MockDiscovery}
+import akka.http.scaladsl.model.Uri
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator.Protocol.InitiateBootstrapping
-import akka.management.cluster.bootstrap.{ ClusterBootstrapSettings, LowestAddressJoinDecider }
+import akka.management.cluster.bootstrap.{ClusterBootstrapSettings, LowestAddressJoinDecider}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
-import org.scalatest.time.{ Span, Seconds, Millis }
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.time.{Millis, Seconds, Span}
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfterAll with Eventually {
   val serviceName = "bootstrap-coordinator-test-service"
+  val selfUri = Uri("http://localhost:8558/")
   val system = ActorSystem("test", ConfigFactory.parseString(s"""
       |akka.management.cluster.bootstrap {
       | contact-point-discovery.service-name = $serviceName
@@ -58,7 +60,7 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
           None
         }
       }))
-      coordinator ! InitiateBootstrapping
+      coordinator ! InitiateBootstrapping(selfUri)
       eventually {
         val targetsToCheck = targets.get
         targetsToCheck.length should be >= (2)
