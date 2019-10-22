@@ -4,14 +4,13 @@
 
 package akka.management.cluster.bootstrap
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scala.util.Try
-
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.event.Logging
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 /**
  * INTERNAL API
@@ -30,17 +29,18 @@ import akka.event.Logging
     contactPoint.productIterator.mkString(":")
 
   /**
-   * The value `ClusterBootstrap(system).selfContactPoints` is set prior to HTTP binding,
-   * during [[akka.management.scaladsl.AkkaManagement.start()]], hence we accept blocking on
-   * this initialization.
+   * The value `ClusterBootstrap(system).selfContactPoints` is set prior
+   * to HTTP binding, during [[akka.management.scaladsl.AkkaManagement.start()]], hence we
+   * accept blocking on this initialization. If no value is received, the future will fail with
+   * a `TimeoutException` and ClusterBootstrap will log an explanatory error to the user.
    */
-  private[bootstrap] def selfContactPoint: (String, Int) = {
-    Try(Await.result(ClusterBootstrap(system).selfContactPoint, 10.seconds))
-        .map(uri => (uri.authority.host.toString, uri.authority.port))
-        .getOrElse(throw new IllegalStateException(
-          "'Bootstrap.selfContactPoint' was NOT set, but is required for the bootstrap to work " +
-              "if binding bootstrap routes manually and not via akka-management."))
-  }
+  private[bootstrap] def selfContactPoint: (String, Int) =
+    Await.result(
+      ClusterBootstrap(system)
+          .selfContactPoint
+          .map(uri => (uri.authority.host.toString, uri.authority.port))(system.dispatcher),
+      Duration.Inf // the future has a timeout
+    )
 
   /**
    * Determines whether it has the need and ability to join self and create a new cluster.

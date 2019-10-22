@@ -11,7 +11,10 @@ import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
 import akka.discovery.{Lookup, MockDiscovery}
 import akka.http.scaladsl.model.Uri
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator.Protocol.InitiateBootstrapping
-import akka.management.cluster.bootstrap.{ClusterBootstrapSettings, LowestAddressJoinDecider}
+import akka.management.cluster.bootstrap.{
+  ClusterBootstrapSettings,
+  LowestAddressJoinDecider
+}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
@@ -20,7 +23,11 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
-class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfterAll with Eventually {
+class BootstrapCoordinatorSpec
+    extends WordSpec
+    with Matchers
+    with BeforeAndAfterAll
+    with Eventually {
   val serviceName = "bootstrap-coordinator-test-service"
   val selfUri = Uri("http://localhost:8558/")
   val system = ActorSystem("test", ConfigFactory.parseString(s"""
@@ -33,7 +40,8 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
 
   val discovery = new MockDiscovery(system)
 
-  override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(100, Millis))
+  override implicit val patienceConfig =
+    PatienceConfig(timeout = Span(5, Seconds), interval = Span(100, Millis))
 
   "The bootstrap coordinator, when avoiding named port lookups" should {
 
@@ -52,14 +60,18 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
       )
 
       val targets = new AtomicReference[List[ResolvedTarget]](Nil)
-      val coordinator = system.actorOf(Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
-        override def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
-          println(s"Resolving $contactPoint")
-          val targetsSoFar = targets.get
-          targets.compareAndSet(targetsSoFar, contactPoint +: targetsSoFar)
-          None
-        }
-      }))
+      val coordinator = system.actorOf(
+        Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
+          override def ensureProbing(
+            contactPoint: ResolvedTarget
+          ): Option[ActorRef] = {
+            println(s"Resolving $contactPoint")
+            val targetsSoFar = targets.get
+            targets.compareAndSet(targetsSoFar, contactPoint +: targetsSoFar)
+            None
+          }
+        })
+      )
       coordinator ! InitiateBootstrapping(selfUri)
       eventually {
         val targetsToCheck = targets.get
