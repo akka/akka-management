@@ -118,7 +118,7 @@ You can also refer to [AkkaManagementHttpEndpointSpec](https://github.com/akka/a
 ### Enabling Basic Authentication
 
 To enable Basic Authentication you need to provide an authenticator object before starting the management extension.
-You can find more information in @extref:[Authenticate Basic Async directive](akka-http:http/routing-dsl/directives/security-directives/authenticateBasicAsync.html)
+You can find more information in @extref:[Authenticate Basic Async directive](akka-http:routing-dsl/directives/security-directives/authenticateBasicAsync.html)
 
 Scala
 :  @@snip[CompileOnly.scala](/management/src/test/scala/akka/management/CompileOnly.scala){ #basic-auth }
