@@ -182,7 +182,11 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
             case (host, immutable.Seq(singleResult)) =>
               immutable.Seq(singleResult)
             case (host, multipleResults) =>
-              multipleResults.filter(_.port.contains(settings.contactPoint.fallbackPort))
+              if (multipleResults.exists(_.port.isDefined)) {
+                multipleResults.filter(_.port.contains(settings.contactPoint.fallbackPort))
+              } else {
+                multipleResults
+              }
           }
 
       log.info("Located service members based on: [{}]: [{}], filtered to [{}]", lookup, contactPoints.mkString(", "),
