@@ -33,21 +33,22 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
 
   override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(100, Millis))
 
-  MockDiscovery.set(
-    Lookup(serviceName, portName = None, protocol = Some("tcp")),
-    () =>
-      Future.successful(Resolved(serviceName,
-          List(
-            ResolvedTarget("host1", Some(2552), None),
-            ResolvedTarget("host1", Some(8558), None),
-            ResolvedTarget("host2", Some(2552), None),
-            ResolvedTarget("host2", Some(8558), None)
-          )))
-  )
-
   "The bootstrap coordinator, when avoiding named port lookups" should {
 
     "probe only on the Akka Management port" in {
+
+      MockDiscovery.set(
+        Lookup(serviceName, portName = None, protocol = Some("tcp")),
+        () =>
+          Future.successful(Resolved(serviceName,
+            List(
+              ResolvedTarget("host1", Some(2552), None),
+              ResolvedTarget("host1", Some(8558), None),
+              ResolvedTarget("host2", Some(2552), None),
+              ResolvedTarget("host2", Some(8558), None)
+            )))
+      )
+
       val targets = new AtomicReference[List[ResolvedTarget]](Nil)
       val coordinator = system.actorOf(Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
         override def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
@@ -64,6 +65,39 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
         targetsToCheck.map(_.host) should contain("host1")
         targetsToCheck.map(_.host) should contain("host2")
         targetsToCheck.flatMap(_.port).toSet should be(Set(8558))
+      }
+    }
+
+    "probe all hosts with fallback port" in {
+
+      MockDiscovery.set(
+        Lookup(serviceName, portName = None, protocol = Some("tcp")),
+        () =>
+          Future.successful(Resolved(serviceName,
+            List(
+              ResolvedTarget("host1", None, None),
+              ResolvedTarget("host1", None, None),
+              ResolvedTarget("host2", None, None),
+              ResolvedTarget("host2", None, None)
+            )))
+      )
+
+      val targets = new AtomicReference[List[ResolvedTarget]](Nil)
+      val coordinator = system.actorOf(Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
+        override def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
+          println(s"Resolving $contactPoint")
+          val targetsSoFar = targets.get
+          targets.compareAndSet(targetsSoFar, contactPoint +: targetsSoFar)
+          None
+        }
+      }))
+      coordinator ! InitiateBootstrapping
+      eventually {
+        val targetsToCheck = targets.get
+        targetsToCheck.length should be >= (2)
+        targetsToCheck.map(_.host) should contain("host1")
+        targetsToCheck.map(_.host) should contain("host2")
+        targetsToCheck.flatMap(_.port).toSet shouldBe empty
       }
     }
   }
