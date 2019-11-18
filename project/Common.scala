@@ -28,7 +28,7 @@ object Common extends AutoPlugin {
       licenses := Seq(("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0"))),
       description := "Akka Management is a suite of tools for operating Akka Clusters.",
       headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2017-2019 Lightbend Inc. <https://www.lightbend.com>")),
-      crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0"),
+      crossScalaVersions := Seq(Dependencies.Scala211, Dependencies.Scala212, Dependencies.Scala213),
       projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
       crossVersion := CrossVersion.binary,
       scalacOptions ++= Seq(
@@ -43,33 +43,45 @@ object Common extends AutoPlugin {
           "-target:jvm-1.8"
         ),
       javacOptions ++= Seq(
-          "-Xlint:unchecked",
+          "-Xlint:unchecked"
         ),
       javacOptions ++= (
-        if (isJdk8) Seq.empty
-        else Seq("--release", "8")
-      ),
+          if (isJdk8) Seq.empty
+          else Seq("--release", "8")
+        ),
       Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
           "-doc-title",
           "Akka Management",
           "-doc-version",
           version.value,
-          "-sourcepath",
-          (baseDirectory in ThisBuild).value.toString,
-          "-doc-source-url", {
-            val branch = if (isSnapshot.value) "master" else s"v${version.value}"
-            s"https://github.com/akka/akka-management/tree/${branch}€{FILE_PATH}.scala#L1"
-          },
           "-skip-packages",
           "akka.pattern" // for some reason Scaladoc creates this
         ),
+      Compile / doc / scalacOptions ++= (scalaVersion.value match {
+          case Dependencies.Scala211 =>
+            Seq(
+              "-doc-source-url", {
+                val branch = if (isSnapshot.value) "master" else s"v${version.value}"
+                s"https://github.com/akka/akka-management/tree/${branch}€{FILE_PATH}.scala#L1"
+              }
+            )
+          case _ =>
+            Seq(
+              "-doc-source-url", {
+                val branch = if (isSnapshot.value) "master" else s"v${version.value}"
+                s"https://github.com/akka/akka-management/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
+              },
+              "-doc-canonical-base-url",
+              "https://doc.akka.io/api/akka-management/current/"
+            )
+        }),
       autoAPIMappings := true,
       // show full stack traces and test case durations
       testOptions in Test += Tests.Argument("-oDF"),
       // -v Log "test run started" / "test started" / "test run finished" events on log level "info" instead of "debug".
       // -a Show stack traces and exception class name for AssertionErrors.
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
-      scalaVersion := "2.12.8"
+      scalaVersion := Dependencies.Scala212
     )
 
   private def isJdk8 =
