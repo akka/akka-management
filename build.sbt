@@ -255,7 +255,7 @@ lazy val docs = project
         "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.AkkaHttpVersion}/",
         "extref.akka-grpc.base_url" -> s"https://doc.akka.io/docs/akka-grpc/current/%s",
         "extref.akka-enhancements.base_url" -> s"https://doc.akka.io/docs/akka-enhancements/current/%s",
-        "scaladoc.akka.management.base_url" -> s"/${(Preprocess / siteSubdirName).value}/",
+        "scaladoc.akka.management.base_url" -> s"/${(Preprocess / siteSubdirName).value}/"
       ),
     publishRsyncArtifact := makeSite.value -> "www/",
     publishRsyncHost := "akkarepo@gustav.akka.io"
