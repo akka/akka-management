@@ -128,6 +128,9 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
         .map(_.toInt)
         .getOrElse(config.getInt("akka.management.http.port"))
 
+    val filterOnFallbackPort: Boolean =
+      contactPointConfig.getBoolean("filter-on-fallback-port")
+
     val probingFailureTimeout: FiniteDuration =
       contactPointConfig.getDuration("probing-failure-timeout", TimeUnit.MILLISECONDS).millis
 
