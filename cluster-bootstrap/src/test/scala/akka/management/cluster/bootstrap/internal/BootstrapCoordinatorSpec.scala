@@ -126,7 +126,7 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
       BootstrapCoordinator.selectHosts(
         Lookup.create("service"), 8558, filterOnFallbackPort = true, beforeFiltering) shouldEqual List(
         ResolvedTarget("host1", Some(8558), None),
-        ResolvedTarget("host2", Some(8558), None),
+        ResolvedTarget("host2", Some(8558), None)
       )
     }
 
