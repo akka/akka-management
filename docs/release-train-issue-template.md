@@ -14,12 +14,12 @@ Variables to be expanded in this template:
 - [ ] Check that open PRs and issues assigned to the milestone are reasonable
 - [ ] Create a new milestone for the [next version](https://github.com/akka/akka-management/milestones)
 - [ ] Check [closed issues without a milestone](https://github.com/akka/akka-management/issues?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aclosed%20no%3Amilestone) and either assign them the 'upcoming' release milestone or `invalid/not release-bound`
-- [ ] Make sure all important / big PRs have been merged by now
 
 ### Preparing release notes in the documentation / announcement
 
-- [ ] For non-patch releases: rename the 'akka-management-x.x-stable' reporting projects in [WhiteSource](https://saas.whitesourcesoftware.com/Wss/WSS.html) accordingly (unfortunately this requires permissions that cannot be shared outside of Lightbend)
-- [ ] For non-patch releases: Create a news item draft PR on [akka.github.com](https://github.com/akka/akka.github.com), using the milestone
+- For non-patch releases: 
+    - [ ] rename the 'akka-management-x.x-stable' reporting projects in [WhiteSource](https://saas.whitesourcesoftware.com/Wss/WSS.html) accordingly (unfortunately this requires permissions that cannot be shared outside of Lightbend)
+    - [ ] Create a news item draft PR on [akka.github.com](https://github.com/akka/akka.github.com), using the milestone
 - [ ] Move all [unclosed issues](https://github.com/akka/akka-management/issues?q=is%3Aopen+is%3Aissue+milestone%3A$AKKA_MANAGEMENT_VERSION$) for this milestone to the next milestone
 
 ### Cutting the release
@@ -36,7 +36,7 @@ Variables to be expanded in this template:
 - [ ] Check the release on [Maven central](http://central.maven.org/maven2/com/lightbend/akka/management/akka-management_2.12/$AKKA_MANAGEMENT_VERSION$/)
 
 ### When everything is on maven central
-  - [ ] `ssh akkarepo@gustav.akka.io`
+  - `ssh akkarepo@gustav.akka.io`
     - [ ] update the `current` links on `repo.akka.io` to point to the latest version with (**replace the minor appropriately**)
          ```
          ln -nsf $AKKA_MANAGEMENT_VERSION$ www/docs/akka-management/1.0
@@ -54,10 +54,11 @@ Variables to be expanded in this template:
 ### Announcements
 
 - [ ] For non-patch releases: Merge draft news item for [akka.io](https://github.com/akka/akka.github.com)
-- [ ] Send a release notification to [Lightbend discuss](https://discuss.akka.io)
-- [ ] Tweet using the akkateam account (or ask someone to) about the new release
-- [ ] Announce on [Gitter akka/akka](https://gitter.im/akka/akka)
-- [ ] Announce internally
+- For non-patch releases or for a particularly interesting patch release: 
+    - [ ] Send a release notification to [Lightbend discuss](https://discuss.akka.io)
+    - [ ] Tweet using the akkateam account (or ask someone to) about the new release
+    - [ ] Announce on [Gitter akka/akka](https://gitter.im/akka/akka)
+    - [ ] Announce internally
 
 ### Afterwards
 
