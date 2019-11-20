@@ -70,6 +70,25 @@ private[akka] object BootstrapCoordinator {
       else this
   }
 
+  private[akka] def selectHosts(lookup: Lookup, fallbackPort: Int, filterOnFallbackPort: Boolean, contactPoints: immutable.Seq[ResolvedTarget]): immutable.Iterable[ResolvedTarget] = {
+      // if the user has specified a port name in the search, don't do any filtering and assume it
+      // is handled in the service discovery mechanism
+      if (lookup.portName.isDefined || !filterOnFallbackPort) {
+        contactPoints
+      } else {
+        contactPoints.groupBy(_.host).flatMap {
+          case (_, immutable.Seq(singleResult)) =>
+            immutable.Seq(singleResult)
+          case (_, multipleResults) =>
+            if (multipleResults.exists(_.port.isDefined)) {
+              multipleResults.filter(_.port.contains(fallbackPort))
+            } else {
+              multipleResults
+            }
+        }
+      }
+  }
+
 }
 
 /**
@@ -174,20 +193,7 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
       discoverContactPoints()
 
     case ServiceDiscovery.Resolved(_, contactPoints) =>
-      val filteredContactPoints: Iterable[ResolvedTarget] =
-        if (lookup.portName.isDefined)
-          contactPoints
-        else
-          contactPoints.groupBy(_.host).flatMap {
-            case (host, immutable.Seq(singleResult)) =>
-              immutable.Seq(singleResult)
-            case (host, multipleResults) =>
-              if (multipleResults.exists(_.port.isDefined)) {
-                multipleResults.filter(_.port.contains(settings.contactPoint.fallbackPort))
-              } else {
-                multipleResults
-              }
-          }
+      val filteredContactPoints: Iterable[ResolvedTarget] = selectHosts(lookup, settings.contactPoint.fallbackPort, settings.contactPoint.filterOnFallbackPort, contactPoints)
 
       log.info("Located service members based on: [{}]: [{}], filtered to [{}]", lookup, contactPoints.mkString(", "),
         filteredContactPoints.mkString(", "))

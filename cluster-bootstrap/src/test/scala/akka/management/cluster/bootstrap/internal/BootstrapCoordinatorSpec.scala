@@ -102,6 +102,62 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
     }
   }
 
+  "BootstrapCoordinator target filtering" should {
+    // For example when using DNS SRV-record-based discovery
+    "not filter when port-name is set" in {
+      val beforeFiltering = List(
+        ResolvedTarget("host1", Some(1), None),
+        ResolvedTarget("host2", Some(2), None),
+        ResolvedTarget("host3", Some(3), None),
+        ResolvedTarget("host4", Some(4), None)
+      )
+
+      BootstrapCoordinator.selectHosts(
+        Lookup.create("service").withPortName("cats"), 8558, filterOnFallbackPort = true, beforeFiltering) shouldEqual beforeFiltering
+    }
+
+    // For example when using DNS A-record-based discovery in K8s
+    "filter when port-name is not set" in {
+      val beforeFiltering = List(
+        ResolvedTarget("host1", Some(8558), None),
+        ResolvedTarget("host1", Some(2), None),
+        ResolvedTarget("host2", Some(8558), None),
+        ResolvedTarget("host2", Some(4), None)
+      )
+
+      BootstrapCoordinator.selectHosts(
+        Lookup.create("service"), 8558, filterOnFallbackPort = true, beforeFiltering) shouldEqual List(
+        ResolvedTarget("host1", Some(8558), None),
+        ResolvedTarget("host2", Some(8558), None)
+      )
+    }
+
+    // For example when using ECS service discovery
+    "not filter when port-name is not set but filtering disabled" in {
+      val beforeFiltering = List(
+        ResolvedTarget("host1", Some(1), None),
+        ResolvedTarget("host1", Some(2), None),
+        ResolvedTarget("host2", Some(3), None),
+        ResolvedTarget("host2", Some(4), None)
+      )
+
+      BootstrapCoordinator.selectHosts(
+        Lookup.create("service"), 8558, filterOnFallbackPort = false, beforeFiltering) shouldEqual beforeFiltering
+    }
+
+    "not filter if there is a single target per host" in {
+      val beforeFiltering = List(
+        ResolvedTarget("host1", Some(8558), None),
+        ResolvedTarget("host2", Some(2), None),
+        ResolvedTarget("host3", Some(8558), None),
+        ResolvedTarget("host4", Some(4), None)
+      )
+
+      BootstrapCoordinator.selectHosts(
+        Lookup.create("service"), 8558, filterOnFallbackPort = true, beforeFiltering).toSet shouldEqual beforeFiltering.toSet
+    }
+  }
+
   override def afterAll(): Unit = {
     Await.result(system.terminate(), 10.seconds)
     super.afterAll()
