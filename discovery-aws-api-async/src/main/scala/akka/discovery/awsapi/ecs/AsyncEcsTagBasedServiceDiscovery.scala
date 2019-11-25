@@ -23,7 +23,7 @@ import akka.pattern.after
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryPolicy
 import software.amazon.awssdk.services.ecs._
-import software.amazon.awssdk.services.ecs.model.{DescribeTasksRequest, DesiredStatus, ListTasksRequest, Task}
+import software.amazon.awssdk.services.ecs.model.{DescribeTasksRequest, DesiredStatus, ListTasksRequest, Task, TaskField}
 
 @ApiMayChange
 class AsyncEcsTagBasedServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
@@ -152,7 +152,7 @@ object AsyncEcsTagBasedServiceDiscovery {
         taskArnGroup =>
           toScala(
             ecsClient.describeTasks(
-              DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).build()
+              DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).include(TaskField.TAGS).build()
             )
           )
       )

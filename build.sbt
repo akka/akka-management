@@ -1,5 +1,8 @@
 ThisBuild / resolvers += Resolver.jcenterRepo
 
+ThisBuild / version := "1.0.8-PAIDY"
+ThisBuild / isSnapshot := false
+
 // root
 lazy val `akka-management-root` = project
   .in(file("."))
