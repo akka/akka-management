@@ -138,6 +138,14 @@ object Dependencies {
       )
   )
 
+  val LoglevelsLogback = Seq(
+    libraryDependencies ++=
+      DependencyGroups.Logging ++
+      DependencyGroups.AkkaHttp ++
+      DependencyGroups.AkkaTesting ++
+      DependencyGroups.AkkaHttpTesting
+  )
+
   val ClusterHttp = Seq(
     libraryDependencies ++=
       DependencyGroups.AkkaSharding ++

@@ -14,6 +14,7 @@ lazy val `akka-management-root` = project
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
+    `loglevels-logback`,
     `integration-test-aws-api-ec2-tag-based`,
     `integration-test-local`,
     `integration-test-aws-api-ecs`,
@@ -83,6 +84,14 @@ lazy val `akka-management` = project
     name := "akka-management",
     Dependencies.ManagementHttp
   )
+
+lazy val `loglevels-logback` = project
+  .in(file("loglevels-logback"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-management-loglevels-logback",
+    Dependencies.LoglevelsLogback
+  ).dependsOn(`akka-management`)
 
 lazy val `cluster-http` = project
   .in(file("cluster-http"))
