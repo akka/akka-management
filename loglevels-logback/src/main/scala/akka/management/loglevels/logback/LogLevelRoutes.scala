@@ -12,6 +12,7 @@ import akka.http.scaladsl.server.Route
 import akka.management.scaladsl.ManagementRouteProvider
 import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.unmarshalling.Unmarshaller
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.LoggerContext
 import org.slf4j.LoggerFactory
@@ -19,12 +20,19 @@ import org.slf4j.LoggerFactory
 object LogLevelRoutes extends ExtensionId[LogLevelRoutes] {
   override def createExtension(system: ExtendedActorSystem): LogLevelRoutes =
     new LogLevelRoutes
+
+  private implicit val levelFromStringUnmarshaller: Unmarshaller[String, Level] =
+    Unmarshaller.strict { string =>
+      Level.valueOf(string)
+    }
 }
 
 /**
  * Provides the path loglevel/logger which can be used to dynamically change log levels
  */
-class LogLevelRoutes private () extends Extension with ManagementRouteProvider {
+final class LogLevelRoutes private () extends Extension with ManagementRouteProvider {
+
+  import LogLevelRoutes.levelFromStringUnmarshaller
 
   private def getLogger(name: String) = {
     val context = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
@@ -35,21 +43,21 @@ class LogLevelRoutes private () extends Extension with ManagementRouteProvider {
       parameter("logger") { loggerName =>
         concat(
           post {
-            parameter("level") { level =>
-              // FIXME proper unmarshall of Level
-              val logger = getLogger(loggerName)
-
-              if (logger != null) {
-                logger.setLevel(Level.valueOf(level))
-                complete(StatusCodes.OK)
-              } else {
-                complete(StatusCodes.NotFound)
+            if (settings.readOnly) complete(StatusCodes.Forbidden)
+            else {
+              parameter("level".as[Level]) { level =>
+                val logger = getLogger(loggerName)
+                if (logger != null) {
+                  logger.setLevel(level)
+                  complete(StatusCodes.OK)
+                } else {
+                  complete(StatusCodes.NotFound)
+                }
               }
             }
           },
           get {
             val logger = getLogger(loggerName)
-
             if (logger != null) {
               complete(logger.getEffectiveLevel.toString)
             } else {
@@ -59,5 +67,4 @@ class LogLevelRoutes private () extends Extension with ManagementRouteProvider {
         )
       }
     }
-
 }

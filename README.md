@@ -34,6 +34,7 @@ for the following modules.
 * akka-discovery-aws-api
 * akka-discovery-aws-api-async
 * akka-discovery-consul
+* loglevels-logback
 
 
 
