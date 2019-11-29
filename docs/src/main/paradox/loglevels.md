@@ -27,7 +27,7 @@ A HTTP `GET` request to `loglevel?logger=[logger name]` will return the log leve
 
 Only enabled if `akka.management.http.route-providers-read-only` is set to true. 
 
-@@@ Warning
+@@@ warning
 
 If enabling this make sure to properly secure your endpoint with HTTPS and authentication or else anyone with access to the system could change logger levels and potentially do a DoS attack by setting all loggers to `TRACE`.
 
