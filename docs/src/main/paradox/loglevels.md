@@ -25,7 +25,7 @@ A HTTP `GET` request to `loglevel?logger=[logger name]` will return the log leve
 
 ### Changing Logger Levels
 
-Only enabled if `akka.management.http.route-providers-read-only` is set to true. 
+Only enabled if `akka.management.http.route-providers-read-only` is set to `false`. 
 
 @@@ warning
 
@@ -33,6 +33,10 @@ If enabling this make sure to properly secure your endpoint with HTTPS and authe
 
 @@@
 
-A HTTP `POST` request to `loglevel?logger=[logger name]&level=[level name]` will change the logger level of that logger.
+A HTTP `PUT` request to `loglevel?logger=[logger name]&level=[level name]` will change the level of that logger.
 
+For example using curl:
 
+```
+curl -X PUT "http://127.0.0.1:8558/loglevel?logger=com.example.MyActor&level=DEBUG"
+```

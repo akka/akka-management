@@ -29,14 +29,14 @@ class LogLevelRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest 
     }
 
     "change log level of a router" in {
-      Post("/loglevel?logger=LogLevelRoutesSpec&level=DEBUG") ~> routes ~> check {
+      Put("/loglevel?logger=LogLevelRoutesSpec&level=DEBUG") ~> routes ~> check {
         response.status should ===(StatusCodes.OK)
         LoggerFactory.getLogger("LogLevelRoutesSpec").isDebugEnabled should ===(true)
       }
     }
 
     "fail for unknown log level" in {
-      Post("/loglevel?logger=LogLevelRoutesSpec&level=MONKEY") ~> routes ~> check {
+      Put("/loglevel?logger=LogLevelRoutesSpec&level=MONKEY") ~> routes ~> check {
         rejection shouldBe an[MalformedQueryParamRejection]
       }
     }

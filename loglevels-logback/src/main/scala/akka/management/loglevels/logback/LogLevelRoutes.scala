@@ -27,7 +27,7 @@ object LogLevelRoutes extends ExtensionId[LogLevelRoutes] {
   private implicit val levelFromStringUnmarshaller: Unmarshaller[String, Level] =
     Unmarshaller.strict { string =>
       if (!validLevels(string.toUpperCase))
-        throw new IllegalArgumentException(s"Uknown logger level $string, allowed are [${validLevels.mkString(",")}]")
+        throw new IllegalArgumentException(s"Unknown logger level $string, allowed are [${validLevels.mkString(",")}]")
       Level.valueOf(string)
     }
 }
@@ -36,6 +36,8 @@ object LogLevelRoutes extends ExtensionId[LogLevelRoutes] {
  * Provides the path loglevel/logger which can be used to dynamically change log levels
  */
 final class LogLevelRoutes private () extends Extension with ManagementRouteProvider {
+
+  private val logger = LoggerFactory.getLogger(classOf[LogLevelRoutes])
 
   import LogLevelRoutes.levelFromStringUnmarshaller
 
@@ -47,16 +49,19 @@ final class LogLevelRoutes private () extends Extension with ManagementRouteProv
     path("loglevel") {
       parameter("logger") { loggerName =>
         concat(
-          post {
+          put {
             if (settings.readOnly) complete(StatusCodes.Forbidden)
             else {
               parameter("level".as[Level]) { level =>
-                val logger = getLogger(loggerName)
-                if (logger != null) {
-                  logger.setLevel(level)
-                  complete(StatusCodes.OK)
-                } else {
-                  complete(StatusCodes.NotFound)
+                extractClientIP { clientIp =>
+                  val logger = getLogger(loggerName)
+                  if (logger != null) {
+                    logger.info("Log level for [{}] set to [{}] through Akka Management loglevel endpoint from [{}]", loggerName, level, clientIp)
+                    logger.setLevel(level)
+                    complete(StatusCodes.OK)
+                  } else {
+                    complete(StatusCodes.NotFound)
+                  }
                 }
               }
             }
