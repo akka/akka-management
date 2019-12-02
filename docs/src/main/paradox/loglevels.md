@@ -33,7 +33,7 @@ If enabling this make sure to properly secure your endpoint with HTTPS and authe
 
 @@@
 
-A HTTP `PUT` request to `loglevel?logger=[logger name]&level=[level name]` will change the level of that logger.
+A HTTP `PUT` request to `loglevel?logger=[logger name]&level=[level name]` will change the level of that logger on the JVM the `ActorSystem` runs on.
 
 For example using curl:
 
