@@ -13,8 +13,16 @@ import akka.management.scaladsl.ManagementRouteProviderSettings
 import org.scalatest.Matchers
 import org.scalatest.WordSpec
 import org.slf4j.LoggerFactory
+import akka.event.{ Logging => ClassicLogging }
+
 
 class LogLevelRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest {
+
+
+  override def testConfigSource: String =
+    """
+      akka.loglevel = INFO
+      """
 
   val routes = LogLevelRoutes
     .createExtension(system.asInstanceOf[ExtendedActorSystem])
@@ -22,13 +30,13 @@ class LogLevelRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest 
 
   "The logback log level routes" must {
 
-    "show log level of a logger" in {
+    "show log level of a Logger" in {
       Get("/loglevel?logger=LogLevelRoutesSpec") ~> routes ~> check {
         responseAs[String]
       }
     }
 
-    "change log level of a router" in {
+    "change log level of a Logger" in {
       Put("/loglevel?logger=LogLevelRoutesSpec&level=DEBUG") ~> routes ~> check {
         response.status should ===(StatusCodes.OK)
         LoggerFactory.getLogger("LogLevelRoutesSpec").isDebugEnabled should ===(true)
@@ -45,8 +53,22 @@ class LogLevelRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest 
       val readOnlyRoutes = LogLevelRoutes
         .createExtension(system.asInstanceOf[ExtendedActorSystem])
         .routes(ManagementRouteProviderSettings(Uri("https://example.com"), readOnly = true))
-      Post("/loglevel?logger=LogLevelRoutesSpec&level=DEBUG") ~> readOnlyRoutes ~> check {
+      Put("/loglevel?logger=LogLevelRoutesSpec&level=DEBUG") ~> readOnlyRoutes ~> check {
         response.status should ===(StatusCodes.Forbidden)
+      }
+    }
+
+    "allow inspecting classic Akka loglevel" in {
+      Get("/akka/classic/loglevel") ~> routes ~> check {
+        response.status should === (StatusCodes.OK)
+        responseAs[String] should === ("INFO")
+      }
+    }
+
+    "allow changing classic Akka loglevel" in {
+      Put("/akka/classic/loglevel?level=DEBUG") ~> routes ~> check {
+        response.status should === (StatusCodes.OK)
+        system.eventStream.logLevel should === (ClassicLogging.DebugLevel)
       }
     }
   }
