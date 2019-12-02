@@ -44,7 +44,7 @@ curl -X PUT "http://127.0.0.1:8558/loglevel?logger=com.example.MyActor&level=DEB
 #### Classic Akka Logger Level
 
 When using classic Akka and logging through the built in API there is an [additional level of filtering](https://doc.akka.io/docs/akka/current/logging.html#slf4j) using the
-`akka.loglevel` setting. If you have not set `akka.loglevel` to `DEBUG` (recommended) log entries from the classic logging API may never reach the logger backend att all.
+`akka.loglevel` setting. If you have not set `akka.loglevel` to `DEBUG` (recommended) log entries from the classic logging API may never reach the logger backend at all.
 
 The current level configured with `akka.loglevel` can be inspected with a GET request to `akka/classic/loglevel`.
 
