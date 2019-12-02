@@ -5,13 +5,13 @@
 package akka.management.loglevels.logback
 
 import akka.actor.ExtendedActorSystem
+import akka.http.javadsl.server.MalformedQueryParamRejection
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.management.scaladsl.ManagementRouteProviderSettings
 import org.scalatest.Matchers
 import org.scalatest.WordSpec
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class LogLevelRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest {
@@ -32,6 +32,12 @@ class LogLevelRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest 
       Post("/loglevel?logger=LogLevelRoutesSpec&level=DEBUG") ~> routes ~> check {
         response.status should ===(StatusCodes.OK)
         LoggerFactory.getLogger("LogLevelRoutesSpec").isDebugEnabled should ===(true)
+      }
+    }
+
+    "fail for unknown log level" in {
+      Post("/loglevel?logger=LogLevelRoutesSpec&level=MONKEY") ~> routes ~> check {
+        rejection shouldBe an[MalformedQueryParamRejection]
       }
     }
 

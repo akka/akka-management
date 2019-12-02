@@ -21,8 +21,13 @@ object LogLevelRoutes extends ExtensionId[LogLevelRoutes] {
   override def createExtension(system: ExtendedActorSystem): LogLevelRoutes =
     new LogLevelRoutes
 
+  private val validLevels = Set(Level.ALL, Level.DEBUG, Level.ERROR, Level.INFO, Level.OFF, Level.TRACE, Level.WARN)
+    .map(_.toString)
+
   private implicit val levelFromStringUnmarshaller: Unmarshaller[String, Level] =
     Unmarshaller.strict { string =>
+      if (!validLevels(string.toUpperCase))
+        throw new IllegalArgumentException(s"Uknown logger level $string, allowed are [${validLevels.mkString(",")}]")
       Level.valueOf(string)
     }
 }
