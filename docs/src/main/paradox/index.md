@@ -33,5 +33,5 @@ You don't have to use all the modules but if you do here's how these modules wor
   - [Akka Discovery Methods](discovery/index.md)
   - [Akka Cluster Management (HTTP)](cluster-http-management.md)
   - [Akka Cluster Management (JMX)](cluster-jmx-management.md)
-
+  - [Dynamic Log Levels](loglevels.md)
 @@@
