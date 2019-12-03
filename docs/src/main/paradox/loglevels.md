@@ -21,7 +21,7 @@ With Akka Management started and this module on the classpath the module is auto
 
 ### Reading Logger Levels
 
-A HTTP `GET` request to `loglevel?logger=[logger name]` will return the log level of that logger.
+A HTTP `GET` request to `loglevel/logback?logger=[logger name]` will return the log level of that logger.
 
 ### Changing Logger Levels
 
@@ -33,12 +33,12 @@ If enabling this make sure to properly secure your endpoint with HTTPS and authe
 
 @@@
 
-A HTTP `PUT` request to `loglevel?logger=[logger name]&level=[level name]` will change the level of that logger on the JVM the `ActorSystem` runs on.
+A HTTP `PUT` request to `loglevel/logback?logger=[logger name]&level=[level name]` will change the level of that logger on the JVM the `ActorSystem` runs on.
 
 For example using curl:
 
 ```
-curl -X PUT "http://127.0.0.1:8558/loglevel?logger=com.example.MyActor&level=DEBUG"
+curl -X PUT "http://127.0.0.1:8558/loglevel/logback?logger=com.example.MyActor&level=DEBUG"
 ```
 
 #### Classic Akka Logger Level
@@ -46,13 +46,13 @@ curl -X PUT "http://127.0.0.1:8558/loglevel?logger=com.example.MyActor&level=DEB
 When using classic Akka and logging through the built in API there is an [additional level of filtering](https://doc.akka.io/docs/akka/current/logging.html#slf4j) using the
 `akka.loglevel` setting. If you have not set `akka.loglevel` to `DEBUG` (recommended) log entries from the classic logging API may never reach the logger backend at all.
 
-The current level configured with `akka.loglevel` can be inspected with a GET request to `akka/classic/loglevel`.
+The current level configured with `akka.loglevel` can be inspected with a GET request to `loglevel/akka`.
 
-If management `read-only` is set to `false` PUT requests to `akka/classic/loglevel?level=[level name]` will dynamically change that.
+If management `read-only` is set to `false` PUT requests to `loglevel/akka?level=[level name]` will dynamically change that.
 Note that the allowed level for Akka Classic logging is a subset of the loglevels supported by SLF4j, valid values are `OFF`, `DEBUG`, `INFO`, `WARNING` and `ERROR`.
 
 For example using curl:
 
 ```
-curl -X PUT "http://127.0.0.1:8558/akka/classic/loglevel?level=DEBUG"
+curl -X PUT "http://127.0.0.1:8558/loglevel/akka?level=DEBUG"
 ```
