@@ -40,69 +40,72 @@ final class LogLevelRoutes private (system: ExtendedActorSystem) extends Extensi
     val context = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
     context.getLogger(name)
   }
+
   override def routes(settings: ManagementRouteProviderSettings): Route =
-    concat(
-      path("loglevel") {
-        parameter("logger") {
-          loggerName =>
-            concat(
-              put {
-                if (settings.readOnly) complete(StatusCodes.Forbidden)
-                else {
-                  parameter("level".as[Level]) { level =>
-                    extractClientIP { clientIp =>
-                      val logger = getLogger(loggerName)
-                      if (logger != null) {
-                        logger.info(
-                          "Log level for [{}] set to [{}] through Akka Management loglevel endpoint from [{}]",
-                          loggerName,
-                          level,
-                          clientIp
-                        )
-                        logger.setLevel(level)
-                        complete(StatusCodes.OK)
-                      } else {
-                        complete(StatusCodes.NotFound)
+    pathPrefix("loglevel") {
+      concat(
+        path("logback") {
+          parameter("logger") {
+            loggerName =>
+              concat(
+                put {
+                  if (settings.readOnly) complete(StatusCodes.Forbidden)
+                  else {
+                    parameter("level".as[Level]) { level =>
+                      extractClientIP { clientIp =>
+                        val logger = getLogger(loggerName)
+                        if (logger != null) {
+                          logger.info(
+                            "Log level for [{}] set to [{}] through Akka Management loglevel endpoint from [{}]",
+                            loggerName,
+                            level,
+                            clientIp
+                          )
+                          logger.setLevel(level)
+                          complete(StatusCodes.OK)
+                        } else {
+                          complete(StatusCodes.NotFound)
+                        }
                       }
                     }
                   }
+                },
+                get {
+                  val logger = getLogger(loggerName)
+                  if (logger != null) {
+                    complete(logger.getEffectiveLevel.toString)
+                  } else {
+                    complete(StatusCodes.NotFound)
+                  }
                 }
-              },
-              get {
-                val logger = getLogger(loggerName)
-                if (logger != null) {
-                  complete(logger.getEffectiveLevel.toString)
-                } else {
-                  complete(StatusCodes.NotFound)
-                }
-              }
-            )
-        }
-      },
-      path("akka" / "classic" / "loglevel") {
-        concat(
-          get {
-            complete(classicLogLevelName(system.eventStream.logLevel))
-          },
-          put {
-            if (settings.readOnly) complete(StatusCodes.Forbidden)
-            else {
+              )
+          }
+        },
+        path("akka") {
+          concat(
+            get {
+              complete(classicLogLevelName(system.eventStream.logLevel))
+            },
+            put {
+              if (settings.readOnly) complete(StatusCodes.Forbidden)
+              else {
 
-              parameter("level".as[ClassicLogging.LogLevel]) { level =>
-                extractClientIP { clientIp =>
-                  logger.info(
-                    "Akka loglevel set to [{}] through Akka Management loglevel endpoint from [{}]",
-                    Array[Object](classicLogLevelName(level), clientIp): _*
-                  )
-                  system.eventStream.setLogLevel(level)
-                  complete(StatusCodes.OK)
+                parameter("level".as[ClassicLogging.LogLevel]) { level =>
+                  extractClientIP { clientIp =>
+                    logger.info(
+                      "Akka loglevel set to [{}] through Akka Management loglevel endpoint from [{}]",
+                      Array[Object](classicLogLevelName(level), clientIp): _*
+                    )
+                    system.eventStream.setLogLevel(level)
+                    complete(StatusCodes.OK)
+                  }
                 }
               }
             }
-          }
-        )
-      }
-    )
+          )
+        }
+      )
+    }
 }
 
 /**
@@ -137,5 +140,6 @@ private[akka] object LoggingUnmarshallers {
     case ClassicLogging.InfoLevel => "INFO"
     case ClassicLogging.WarningLevel => "WARNING"
     case ClassicLogging.ErrorLevel => "ERROR"
+    case _ => s"Unknown loglevel: $level"
   }
 }
