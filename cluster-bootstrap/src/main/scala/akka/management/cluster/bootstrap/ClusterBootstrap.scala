@@ -40,7 +40,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   val settings: ClusterBootstrapSettings = ClusterBootstrapSettings(system.settings.config, log)
 
   // used for initial discovery of contact points
-  val discovery: ServiceDiscovery =
+  lazy val discovery: ServiceDiscovery =
     settings.contactPointDiscovery.discoveryMethod match {
       case "akka.discovery" =>
         val discovery = Discovery(system).discovery
