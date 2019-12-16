@@ -10,7 +10,6 @@ Akka Management consists of multiple modules:
  * @ref[akka-management](akka-management.md) is the base module that provides an extensible HTTP management endpoint for Akka management tools as well a @ref[pluggable health check mechanism](healthchecks.md).
  * @ref[akka-cluster-bootstrap](bootstrap/index.md) helps bootstrapping an Akka cluster using @extref:[Akka Discovery](akka:discovery/index.html).
  * @ref[akka-management-cluster-http](cluster-http-management.md) is a module that provides HTTP endpoints for introspecting and managing Akka clusters.
- * @extref:[Akka's built-in JMX management support](akka:cluster-usage.html#cluster-jmx) provides JMX MBeans for cluster management.
  
  As well as @extref:[Akka Discovery](akka:discovery/index.html) methods for:
  
