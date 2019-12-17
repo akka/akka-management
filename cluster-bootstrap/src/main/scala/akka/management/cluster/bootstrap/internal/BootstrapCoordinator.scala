@@ -42,7 +42,7 @@ private[akka] object BootstrapCoordinator {
     Props(new BootstrapCoordinator(discovery, joinDecider, settings))
 
   object Protocol {
-    final case class InitiateBootstrapping(selfUri: Uri)
+    final case class InitiateBootstrapping(selfContactPoint: Uri)
     sealed trait BootstrappingCompleted
     final case object BootstrappingCompleted extends BootstrappingCompleted
 
@@ -142,7 +142,6 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   private var lastContactsObservation: Option[ServiceContactsObservation] = None
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
-  private var selfUri: Uri = _ // set via InitiateBootstrapping
 
   private var decisionInProgress = false
   def startPeriodicDecisionTimer(): Unit =
@@ -179,16 +178,15 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
 
   /** Awaiting initial signal to start the bootstrap process */
   override def receive: Receive = {
-    case InitiateBootstrapping(selfContactUri) =>
+    case InitiateBootstrapping(selfContactPoint) =>
       log.info("Locating service members. Using discovery [{}], join decider [{}], scheme [{}]",
-        discovery.getClass.getName, joinDecider.getClass.getName, selfContactUri.scheme)
-      selfUri = selfContactUri
+        discovery.getClass.getName, joinDecider.getClass.getName, selfContactPoint.scheme)
       discoverContactPoints()
-      context become bootstrapping(sender())
+      context become bootstrapping(sender(), selfContactPoint)
   }
 
   /** In process of searching for seed-nodes */
-  def bootstrapping(replyTo: ActorRef): Receive = {
+  def bootstrapping(replyTo: ActorRef, selfContactPoint: Uri): Receive = {
     case DiscoverTick =>
       // the next round of discovery will be performed once this one returns
       discoverContactPoints()
@@ -198,7 +196,7 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
 
       log.info("Located service members based on: [{}]: [{}], filtered to [{}]", lookup, contactPoints.mkString(", "),
         filteredContactPoints.mkString(", "))
-      onContactPointsResolved(filteredContactPoints)
+      onContactPointsResolved(filteredContactPoints, selfContactPoint)
       resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals
       startSingleDiscoveryTimer() // keep looking in case other nodes join the discovery
 
@@ -276,7 +274,7 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
     discovery.lookup(lookup, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
   }
 
-  private def onContactPointsResolved(contactPoints: Iterable[ResolvedTarget]): Unit = {
+  private def onContactPointsResolved(contactPoints: Iterable[ResolvedTarget], selfContactPoint: Uri): Unit = {
     val newObservation = ServiceContactsObservation(timeNow(), contactPoints.toSet)
     lastContactsObservation match {
       case Some(contacts) => lastContactsObservation = Some(contacts.sameOrChanged(newObservation))
@@ -290,12 +288,12 @@ private[akka] class BootstrapCoordinator(discovery: ServiceDiscovery,
 
     // TODO stop the obsolete children (they are stopped when probing fails for too long)
 
-    newObservation.observedContactPoints.foreach(ensureProbing)
+    newObservation.observedContactPoints.foreach(ensureProbing(selfContactPoint, _))
   }
 
-  private[internal] def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
+  private[internal] def ensureProbing(selfContactPoint: Uri, contactPoint: ResolvedTarget): Option[ActorRef] = {
     val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
-    val rawBaseUri = Uri(selfUri.scheme, Uri.Authority(Uri.Host(contactPoint.host), targetPort))
+    val rawBaseUri = Uri(selfContactPoint.scheme, Uri.Authority(Uri.Host(contactPoint.host), targetPort))
     val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
 
     val childActorName = s"contactPointProbe-${baseUri.authority.host}-${baseUri.authority.port}"
