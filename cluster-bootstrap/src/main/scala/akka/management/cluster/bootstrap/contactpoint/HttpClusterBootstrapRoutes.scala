@@ -36,13 +36,16 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
       // TODO shuffle the members so in a big deployment nodes start joining different ones and not all the same?
       val members = state.members
         .diff(state.unreachable)
-        .filter(
-            m => m.status == MemberStatus.up || m.status == MemberStatus.weaklyUp || m.status == MemberStatus.joining)
+        .filter(m =>
+          m.status == MemberStatus.up || m.status == MemberStatus.weaklyUp || m.status == MemberStatus.joining)
         .take(settings.contactPoint.httpMaxSeedNodesToExpose)
         .map(memberToClusterMember)
 
       val info = SeedNodes(cluster.selfMember.uniqueAddress.address, members)
-      log.info("Bootstrap request from {}: Contact Point returning {} seed-nodes ([{}])", clientIp, members.size,
+      log.info(
+        "Bootstrap request from {}: Contact Point returning {} seed-nodes ([{}])",
+        clientIp,
+        members.size,
         members)
       complete(info)
     }

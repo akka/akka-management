@@ -56,8 +56,8 @@ class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
         .filter(e => e.getValue.contains(settings.applicationNameTagPrefix + name))
         .map(_.getKey)
       catalogServices <- Future.sequence(serviceIds.map(id => getService(id).map(_.getResponse.asScala.toList)))
-      resolvedTargets = catalogServices.flatten.toSeq.map(
-          catalogService => extractResolvedTargetFromCatalogService(catalogService))
+      resolvedTargets = catalogServices.flatten.toSeq.map(catalogService =>
+        extractResolvedTargetFromCatalogService(catalogService))
     } yield resolvedTargets
     consulResult.map(targets => Resolved(name, scala.collection.immutable.Seq(targets: _*)))
   }
@@ -79,12 +79,12 @@ class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private def getServicesWithTags: Future[ConsulResponse[util.Map[String, util.List[String]]]] = {
     ((callback: ConsulResponseCallback[util.Map[String, util.List[String]]]) =>
-       consul.catalogClient().getServices(callback)).asFuture
+      consul.catalogClient().getServices(callback)).asFuture
   }
 
   private def getService(name: String) =
     ((callback: ConsulResponseCallback[util.List[CatalogService]]) =>
-       consul.catalogClient().getService(name, QueryOptions.BLANK, callback)).asFuture
+      consul.catalogClient().getService(name, QueryOptions.BLANK, callback)).asFuture
 
 }
 

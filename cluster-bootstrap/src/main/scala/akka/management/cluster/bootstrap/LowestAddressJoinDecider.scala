@@ -30,15 +30,20 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
       val seeds = joinOtherSeedNodes(info)
       if (seeds.isEmpty) KeepProbing.asCompletedFuture else JoinOtherSeedNodes(seeds).asCompletedFuture
     } else if (!hasEnoughContactPoints(info)) {
-      log.info("Discovered [{}] contact points, confirmed [{}], which is less than the required [{}], retrying",
-        info.contactPoints.size, info.seedNodesObservations.size,
-        settings.contactPointDiscovery.requiredContactPointsNr)
+      log.info(
+        "Discovered [{}] contact points, confirmed [{}], which is less than the required [{}], retrying",
+        info.contactPoints.size,
+        info.seedNodesObservations.size,
+        settings.contactPointDiscovery.requiredContactPointsNr
+      )
       KeepProbing.asCompletedFuture
     } else if (!isPastStableMargin(info)) {
       log.debug(
-          "Contact points observations have changed more recently than the stable-margin [{}], changed at [{}], " +
-          "not joining myself. This process will be retried.", settings.contactPointDiscovery.stableMargin,
-          info.contactPointsChangedAt)
+        "Contact points observations have changed more recently than the stable-margin [{}], changed at [{}], " +
+        "not joining myself. This process will be retried.",
+        settings.contactPointDiscovery.stableMargin,
+        info.contactPointsChangedAt
+      )
       KeepProbing.asCompletedFuture
     } else {
       // no seed nodes
@@ -59,16 +64,22 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
           if (log.isInfoEnabled) {
             if (settings.newClusterEnabled)
               log.info(
-                  "Exceeded stable margins without locating seed-nodes, however this node {} is NOT the lowest address " +
-                  "out of the discovered endpoints in this deployment, thus NOT joining self. Expecting node [{}] " +
-                  "(out of [{}]) to perform the self-join and initiate the cluster.",
-                  contactPointString(selfContactPoint), lowestAddress.getOrElse(""), info.contactPoints.mkString(", "))
+                "Exceeded stable margins without locating seed-nodes, however this node {} is NOT the lowest address " +
+                "out of the discovered endpoints in this deployment, thus NOT joining self. Expecting node [{}] " +
+                "(out of [{}]) to perform the self-join and initiate the cluster.",
+                contactPointString(selfContactPoint),
+                lowestAddress.getOrElse(""),
+                info.contactPoints.mkString(", ")
+              )
             else
               log.warning(
-                  "Exceeded stable margins without locating seed-nodes, however this node {} is configured with " +
-                  "new-cluster-enabled=off, thus NOT joining self. Expecting existing cluster or node [{}] " +
-                  "(out of [{}]) to perform the self-join and initiate the cluster.",
-                  contactPointString(selfContactPoint), lowestAddress.getOrElse(""), info.contactPoints.mkString(", "))
+                "Exceeded stable margins without locating seed-nodes, however this node {} is configured with " +
+                "new-cluster-enabled=off, thus NOT joining self. Expecting existing cluster or node [{}] " +
+                "(out of [{}]) to perform the self-join and initiate the cluster.",
+                contactPointString(selfContactPoint),
+                lowestAddress.getOrElse(""),
+                info.contactPoints.mkString(", ")
+              )
           }
 
           // the probing will continue until the lowest addressed node decides to join itself.
@@ -80,8 +91,10 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
         // missing info from some contact points (e.g. because of probe failing)
         if (log.isInfoEnabled)
           log.info(
-              "Exceeded stable margins but missing seed node information from some contact points [{}] (out of [{}])",
-              contactPointsWithoutSeedNodesObservations.mkString(", "), info.contactPoints.mkString(", "))
+            "Exceeded stable margins but missing seed node information from some contact points [{}] (out of [{}])",
+            contactPointsWithoutSeedNodesObservations.mkString(", "),
+            info.contactPoints.mkString(", ")
+          )
 
         KeepProbing.asCompletedFuture
       }

@@ -65,7 +65,9 @@ class LocalBootstrapTest extends WordSpec with ScalaFutures with Matchers with E
     )
 
   def newSystem(managementPort: Int): ActorSystem = {
-    ActorSystem("local-cluster", ConfigFactory.parseString(s"""
+    ActorSystem(
+      "local-cluster",
+      ConfigFactory.parseString(s"""
       akka.management.http.port = $managementPort
        """.stripMargin).withFallback(config))
   }
@@ -106,14 +108,12 @@ class LocalBootstrapTest extends WordSpec with ScalaFutures with Matchers with E
     "form a cluster" in {
       systems.foreach(ClusterBootstrap(_).start())
       eventually {
-        clusters.foreach(
-          c =>
-            c.state.members.toList.map(_.status) shouldEqual List(
-              MemberStatus.Up,
-              MemberStatus.Up,
-              MemberStatus.Up
-          )
-        )
+        clusters.foreach(c =>
+          c.state.members.toList.map(_.status) shouldEqual List(
+            MemberStatus.Up,
+            MemberStatus.Up,
+            MemberStatus.Up
+          ))
       }
     }
 

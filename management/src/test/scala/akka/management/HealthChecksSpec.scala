@@ -117,10 +117,7 @@ class HealthChecksSpec
     "succeed for all health checks returning true" in {
       val checks = HealthChecks(
         eas,
-        settings(
-          im.Seq(OkCheck),
-          im.Seq(OkCheck)
-        )
+        settings(im.Seq(OkCheck), im.Seq(OkCheck))
       )
       checks.alive().futureValue shouldEqual true
       checks.ready().futureValue shouldEqual true
@@ -128,10 +125,7 @@ class HealthChecksSpec
     "support no args constructor" in {
       val checks = HealthChecks(
         eas,
-        settings(
-          im.Seq(NoArgsCtrCheck),
-          im.Seq(NoArgsCtrCheck)
-        )
+        settings(im.Seq(NoArgsCtrCheck), im.Seq(NoArgsCtrCheck))
       )
       checks.alive().futureValue shouldEqual true
       checks.ready().futureValue shouldEqual true
@@ -139,10 +133,7 @@ class HealthChecksSpec
     "return false for health checks returning false" in {
       val checks = HealthChecks(
         eas,
-        settings(
-          im.Seq(FalseCheck),
-          im.Seq(FalseCheck)
-        )
+        settings(im.Seq(FalseCheck), im.Seq(FalseCheck))
       )
       checks.ready().futureValue shouldEqual false
       checks.alive().futureValue shouldEqual false
@@ -150,37 +141,25 @@ class HealthChecksSpec
     "return failure for all health checks fail" in {
       val checks = HealthChecks(
         eas,
-        settings(
-          im.Seq(ThrowsCheck),
-          im.Seq(ThrowsCheck)
-        )
+        settings(im.Seq(ThrowsCheck), im.Seq(ThrowsCheck))
       )
       checks.ready().failed.futureValue shouldEqual failedCause
       checks.alive().failed.futureValue shouldEqual failedCause
     }
     "return failure if any of the checks fail" in {
-      val checks = im.Seq(
-        OkCheck,
-        ThrowsCheck,
-        FalseCheck
-      )
+      val checks = im.Seq(OkCheck, ThrowsCheck, FalseCheck)
       val hc = HealthChecks(eas, settings(checks, checks))
       hc.ready().failed.futureValue shouldEqual failedCause
       hc.alive().failed.futureValue shouldEqual failedCause
     }
     "return failure if check throws" in {
-      val checks = im.Seq(
-        NaughtyCheck
-      )
+      val checks = im.Seq(NaughtyCheck)
       val hc = HealthChecks(eas, settings(checks, checks))
       hc.ready().failed.futureValue.getMessage shouldEqual "bad"
       hc.alive().failed.futureValue.getMessage shouldEqual "bad"
     }
     "return failure if checks timeout" in {
-      val checks = im.Seq(
-        SlowCheck,
-        OkCheck
-      )
+      val checks = im.Seq(SlowCheck, OkCheck)
       val hc = HealthChecks(eas, settings(checks, checks))
       Await.result(hc.ready().failed, 1.second) shouldEqual CheckTimeoutException("Timeout after 500 milliseconds")
       Await.result(hc.alive().failed, 1.second) shouldEqual CheckTimeoutException("Timeout after 500 milliseconds")
@@ -206,8 +185,7 @@ class HealthChecksSpec
     }
     "provide useful error if class ctr throws" in {
       intercept[InvalidHealthCheckException] {
-        val checks =
-          im.Seq(OkCheck, CtrExceptionCheck)
+        val checks = im.Seq(OkCheck, CtrExceptionCheck)
         HealthChecks(eas, settings(checks, checks))
       }.getCause shouldEqual ctxException
     }

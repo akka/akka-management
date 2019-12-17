@@ -18,14 +18,18 @@ class ClusterMembershipCheckSpec
 
   "Cluster Health" should {
     "be unhealthy if current state not one of healthy states" in {
-      val chc = new ClusterMembershipCheck(system, () => MemberStatus.joining,
+      val chc = new ClusterMembershipCheck(
+        system,
+        () => MemberStatus.joining,
         new ClusterMembershipCheckSettings(Set(MemberStatus.Up)))
 
       chc().futureValue shouldEqual false
     }
     "be unhealthy if current state is one of healthy states" in {
       val chc =
-        new ClusterMembershipCheck(system, () => MemberStatus.Up,
+        new ClusterMembershipCheck(
+          system,
+          () => MemberStatus.Up,
           new ClusterMembershipCheckSettings(Set(MemberStatus.Up)))
 
       chc().futureValue shouldEqual true

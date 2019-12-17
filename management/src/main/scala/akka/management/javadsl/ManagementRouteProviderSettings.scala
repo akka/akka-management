@@ -41,7 +41,7 @@ sealed abstract class ManagementRouteProviderSettings {
    * The async authenticator to be used for management routes.
    */
   def withAuth(newAuth: JFunction[Optional[ProvidedCredentials], CompletionStage[Optional[String]]])
-    : ManagementRouteProviderSettings
+      : ManagementRouteProviderSettings
 
   def httpsConnectionContext: Optional[HttpsConnectionContext]
 
@@ -74,12 +74,13 @@ sealed abstract class ManagementRouteProviderSettings {
   require(!(javadslAuth.isDefined && scaladslAuth.isDefined), "Defining both javadsl and scaladsl auth is not allowed")
 
   override def withAuth(newAuth: JFunction[Optional[ProvidedCredentials], CompletionStage[Optional[String]]])
-    : ManagementRouteProviderSettings =
+      : ManagementRouteProviderSettings =
     copy(javadslAuth = Option(newAuth))
 
   override def withHttpsConnectionContext(
       newHttpsConnectionContext: HttpsConnectionContext): ManagementRouteProviderSettings =
-    copy(selfBaseUri = selfBaseUri.scheme("https"),
+    copy(
+      selfBaseUri = selfBaseUri.scheme("https"),
       httpsConnectionContext = Optional.ofNullable(newHttpsConnectionContext))
 
   def scaladslHttpsConnectionContext: Option[akka.http.scaladsl.HttpsConnectionContext] = {
@@ -88,8 +89,8 @@ sealed abstract class ManagementRouteProviderSettings {
         case ctx: akka.http.scaladsl.HttpsConnectionContext => Option(ctx)
         case other =>
           throw new IllegalStateException(
-              "akka.http.javadsl.HttpsConnectionContext should be a " +
-              s"akka.http.scaladsl.HttpsConnectionContext, but was [${other.getClass.getName}]")
+            "akka.http.javadsl.HttpsConnectionContext should be a " +
+            s"akka.http.scaladsl.HttpsConnectionContext, but was [${other.getClass.getName}]")
       }
     } else {
       None
@@ -99,6 +100,10 @@ sealed abstract class ManagementRouteProviderSettings {
   override def withReadOnly(readOnly: Boolean): ManagementRouteProviderSettings = copy(readOnly = readOnly)
 
   def asScala: scaladsl.ManagementRouteProviderSettingsImpl =
-    scaladsl.ManagementRouteProviderSettingsImpl(selfBaseUri = selfBaseUri.asScala, scaladslAuth, javadslAuth,
-      scaladslHttpsConnectionContext, readOnly)
+    scaladsl.ManagementRouteProviderSettingsImpl(
+      selfBaseUri = selfBaseUri.asScala,
+      scaladslAuth,
+      javadslAuth,
+      scaladslHttpsConnectionContext,
+      readOnly)
 }

@@ -54,11 +54,12 @@ object HealthCheckSettings {
   /**
    * Java API
    */
-  def create(readinessChecks: java.util.List[NamedHealthCheck],
-             livenessChecks: java.util.List[NamedHealthCheck],
-             readinessPath: String,
-             livenessPath: String,
-             checkDuration: java.time.Duration) =
+  def create(
+      readinessChecks: java.util.List[NamedHealthCheck],
+      livenessChecks: java.util.List[NamedHealthCheck],
+      readinessPath: String,
+      livenessPath: String,
+      checkDuration: java.time.Duration) =
     new HealthCheckSettings(
       readinessChecks.asScala.toList,
       livenessChecks.asScala.toList,
@@ -75,11 +76,12 @@ object HealthCheckSettings {
  * @param livenessPath The path to serve liveness on
  * @param checkTimeout how long to wait for all health checks to complete
  */
-final class HealthCheckSettings(val readinessChecks: immutable.Seq[NamedHealthCheck],
-                                val livenessChecks: immutable.Seq[NamedHealthCheck],
-                                val readinessPath: String,
-                                val livenessPath: String,
-                                val checkTimeout: FiniteDuration) {
+final class HealthCheckSettings(
+    val readinessChecks: immutable.Seq[NamedHealthCheck],
+    val livenessChecks: immutable.Seq[NamedHealthCheck],
+    val readinessPath: String,
+    val livenessPath: String,
+    val checkTimeout: FiniteDuration) {
 
   /**
    * Java API

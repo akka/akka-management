@@ -43,12 +43,12 @@ final class AkkaManagement(delegate: scaladsl.AkkaManagement) {
    * @throws IllegalArgumentException if routes not configured for akka management
    */
   def getRoutes(transformSettings: JFunction[ManagementRouteProviderSettings, ManagementRouteProviderSettings])
-    : akka.http.javadsl.server.Route =
+      : akka.http.javadsl.server.Route =
     RouteAdapter(delegate.routes(convertSettingsTransformation(transformSettings)))
 
   private def convertSettingsTransformation(
       transformSettings: JFunction[ManagementRouteProviderSettings, ManagementRouteProviderSettings])
-    : scaladsl.ManagementRouteProviderSettings => scaladsl.ManagementRouteProviderSettings = { scaladslSettings =>
+      : scaladsl.ManagementRouteProviderSettings => scaladsl.ManagementRouteProviderSettings = { scaladslSettings =>
     {
       val scaladslSettingsImpl = scaladslSettings.asInstanceOf[scaladsl.ManagementRouteProviderSettingsImpl]
       val javadslTransformedSettings = transformSettings.apply(scaladslSettingsImpl.asJava)
@@ -67,7 +67,7 @@ final class AkkaManagement(delegate: scaladsl.AkkaManagement) {
    * Start an Akka HTTP server to serve the HTTP management endpoint.
    */
   def start(transformSettings: JFunction[ManagementRouteProviderSettings, ManagementRouteProviderSettings])
-    : CompletionStage[Uri] =
+      : CompletionStage[Uri] =
     delegate.start(convertSettingsTransformation(transformSettings)).map(Uri.create)(delegate.system.dispatcher).toJava
 
   def stop(): CompletionStage[Done] =

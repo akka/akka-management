@@ -48,10 +48,11 @@ trait JoinDecider {
  * The entry is removed if no reply was received within the `probing-failure-timeout` meaning that it
  * is unreachable or not running.
  */
-final class SeedNodesInformation(val currentTime: LocalDateTime,
-                                 val contactPointsChangedAt: LocalDateTime,
-                                 val contactPoints: Set[ResolvedTarget],
-                                 val seedNodesObservations: Set[SeedNodesObservation]) {
+final class SeedNodesInformation(
+    val currentTime: LocalDateTime,
+    val contactPointsChangedAt: LocalDateTime,
+    val contactPoints: Set[ResolvedTarget],
+    val seedNodesObservations: Set[SeedNodesObservation]) {
 
   def hasSeedNodes: Boolean =
     seedNodesObservations.nonEmpty && seedNodesObservations.exists(_.seedNodes.nonEmpty)
@@ -73,10 +74,11 @@ final class SeedNodesInformation(val currentTime: LocalDateTime,
 
 }
 
-final class SeedNodesObservation(val observedAt: LocalDateTime,
-                                 val contactPoint: ResolvedTarget,
-                                 val sourceAddress: Address,
-                                 val seedNodes: Set[Address]) {
+final class SeedNodesObservation(
+    val observedAt: LocalDateTime,
+    val contactPoint: ResolvedTarget,
+    val sourceAddress: Address,
+    val seedNodes: Set[Address]) {
 
   /** Java API */
   def getSeedNodes: java.util.Set[Address] =
