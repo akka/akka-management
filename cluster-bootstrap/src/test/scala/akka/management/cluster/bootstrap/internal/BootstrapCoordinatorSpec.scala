@@ -63,6 +63,7 @@ class BootstrapCoordinatorSpec
       val coordinator = system.actorOf(
         Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
           override def ensureProbing(
+            selfContactPoint: Uri,
             contactPoint: ResolvedTarget
           ): Option[ActorRef] = {
             println(s"Resolving $contactPoint")
@@ -98,7 +99,7 @@ class BootstrapCoordinatorSpec
 
       val targets = new AtomicReference[List[ResolvedTarget]](Nil)
       val coordinator = system.actorOf(Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
-        override def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
+        override def ensureProbing(selfContactPoint: Uri, contactPoint: ResolvedTarget): Option[ActorRef] = {
           println(s"Resolving $contactPoint")
           val targetsSoFar = targets.get
           targets.compareAndSet(targetsSoFar, contactPoint +: targetsSoFar)
