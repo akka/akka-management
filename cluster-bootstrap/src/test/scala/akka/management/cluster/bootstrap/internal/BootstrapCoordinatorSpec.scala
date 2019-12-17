@@ -105,7 +105,7 @@ class BootstrapCoordinatorSpec
           None
         }
       }))
-      coordinator ! InitiateBootstrapping
+      coordinator ! InitiateBootstrapping(selfUri)
       eventually {
         val targetsToCheck = targets.get
         targetsToCheck.length should be >= (2)
