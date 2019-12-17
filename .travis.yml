@@ -36,8 +36,7 @@ jobs:
     script:
     - jabba use "adopt@1.8-0"
     - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
-    - sbt -jvm-opts .jvmopts-travis ";+test:compile;docs/paradox"
-    - git diff --exit-code --color || { echo "[error] Unformatted code found. Please run 'test:compile' and commit the reformatted code."; false; }
+    - sbt -jvm-opts .jvmopts-travis ";+test:compile;scalafmtCheck;test:scalafmtCheck;docs/paradox"
     name: "Compile on all Scala versions, check code style (fixed with `sbt Test/compile`)"
 
   - stage: test
