@@ -42,11 +42,8 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
         .map(memberToClusterMember)
 
       val info = SeedNodes(cluster.selfMember.uniqueAddress.address, members)
-      log.info(
-        "Bootstrap request from {}: Contact Point returning {} seed-nodes ([{}])",
-        clientIp,
-        members.size,
-        members)
+      log.info("Bootstrap request from {}: Contact Point returning {} seed-nodes [{}]", clientIp, members.size,
+        members.map(_.node).mkString(", "))
       complete(info)
     }
   }

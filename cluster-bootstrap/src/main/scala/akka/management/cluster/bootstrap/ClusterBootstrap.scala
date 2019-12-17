@@ -35,7 +35,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
   private final val bootstrapStep = new AtomicReference[BootstrapStep](NotRunning)
 
-  AkkaVersion.require("cluster-bootstrap", "2.5.19")
+  AkkaVersion.require("cluster-bootstrap", "2.5.27")
 
   val settings: ClusterBootstrapSettings = ClusterBootstrapSettings(system.settings.config, log)
 

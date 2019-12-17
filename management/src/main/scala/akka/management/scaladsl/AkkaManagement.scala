@@ -37,6 +37,7 @@ import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.settings.ServerSettings
 import akka.management.AkkaManagementSettings
+import akka.management.ManagementLogMarker
 import akka.management.NamedRouteProvider
 import akka.management.javadsl
 import akka.stream.ActorMaterializer
@@ -68,7 +69,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
     logWarning = true
   )
 
-  private val log = Logging(system, getClass)
+  private val log = Logging.withMarker(system, getClass)
   val settings: AkkaManagementSettings = new AkkaManagementSettings(system.settings.config)
 
   @volatile private var materializer: Option[ActorMaterializer] = None
@@ -155,7 +156,11 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
         serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { binding =>
           val boundPort = binding.localAddress.getPort
-          log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, boundPort)
+          log.info(
+            ManagementLogMarker.boundHttp(s"$effectiveBindHostname:$boundPort"),
+            "Bound Akka Management (HTTP) endpoint to: {}:{}",
+            effectiveBindHostname,
+            boundPort)
           selfUriPromise.success(effectiveProviderSettings.selfBaseUri.withPort(boundPort)).future
         }
 
