@@ -4,32 +4,42 @@
 
 package akka.discovery.awsapi.ecs
 
-import java.net.{ InetAddress, NetworkInterface }
+import java.net.{InetAddress, NetworkInterface}
 import java.util.concurrent.TimeoutException
 
+import scala.collection.JavaConverters._
+import scala.collection.immutable.Seq
+import scala.compat.java8.FutureConverters.toScala
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
+
 import akka.actor.ActorSystem
-import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.{ Lookup, ServiceDiscovery }
+import akka.annotation.ApiMayChange
+import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
 import akka.discovery.awsapi.ecs.AsyncEcsServiceDiscovery._
+import akka.discovery.{Lookup, ServiceDiscovery}
 import akka.pattern.after
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryPolicy
 import software.amazon.awssdk.services.ecs._
 import software.amazon.awssdk.services.ecs.model._
-import scala.collection.JavaConverters._
-import scala.collection.immutable.Seq
-import scala.compat.java8.FutureConverters._
-import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.Try
-
-import akka.annotation.ApiMayChange
 
 @ApiMayChange
 class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs-async")
   private[this] val cluster = config.getString("cluster")
+  private[this] val tags = config
+    .getConfigList("tags")
+    .asScala
+    .map { tagConfig =>
+      Tag(
+        tagConfig.getString("key"),
+        tagConfig.getString("value")
+      )
+    }
+    .toList
 
   private[this] lazy val ecsClient = {
     val conf = ClientOverrideConfiguration.builder().retryPolicy(RetryPolicy.none).build()
@@ -44,7 +54,7 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
         after(resolveTimeout, using = system.scheduler)(
           Future.failed(new TimeoutException("Future timed out!"))
         ),
-        resolveTasks(ecsClient, cluster, lookup.serviceName).map(
+        resolveTasks(ecsClient, cluster, lookup.serviceName, tags).map(
           tasks =>
             Resolved(
               serviceName = lookup.serviceName,
@@ -56,7 +66,7 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
                 val address = networkInterface.privateIpv4Address()
                 ResolvedTarget(host = address, port = None, address = Try(InetAddress.getByName(address)).toOption)
               }
-          )
+            )
         )
       )
     )
@@ -65,6 +75,8 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
 @ApiMayChange
 object AsyncEcsServiceDiscovery {
+
+  case class Tag(key: String, value: String)
 
   // InetAddress.getLocalHost.getHostAddress throws an exception when running
   // in awsvpc mode because the container name cannot be resolved.
@@ -87,12 +99,16 @@ object AsyncEcsServiceDiscovery {
         Left(s"Exactly one private address must be configured (found: $other).")
     }
 
-  private def resolveTasks(ecsClient: EcsAsyncClient, cluster: String, serviceName: String)(
-      implicit ec: ExecutionContext): Future[Seq[Task]] =
+  private def resolveTasks(ecsClient: EcsAsyncClient, cluster: String, serviceName: String, tags: List[Tag])(
+    implicit ec: ExecutionContext): Future[Seq[Task]] =
     for {
       taskArns <- listTaskArns(ecsClient, cluster, serviceName)
-      task <- describeTasks(ecsClient, cluster, taskArns)
-    } yield task
+      tasks <- describeTasks(ecsClient, cluster, taskArns)
+      tasksWithTags = tasks.filter { task =>
+        val ecsTags = task.tags().asScala.map(tag => Tag(tag.key(), tag.value())).toList
+        tags.diff(ecsTags).isEmpty
+      }
+    } yield tasksWithTags
 
   private[this] def listTaskArns(
       ecsClient: EcsAsyncClient,
@@ -129,16 +145,16 @@ object AsyncEcsServiceDiscovery {
     } yield taskArns
 
   private[this] def describeTasks(ecsClient: EcsAsyncClient, cluster: String, taskArns: Seq[String])(
-      implicit ec: ExecutionContext): Future[Seq[Task]] =
+    implicit ec: ExecutionContext): Future[Seq[Task]] =
     for {
       // Each DescribeTasksRequest can contain at most 100 task ARNs.
       describeTasksResponses <- Future.traverse(taskArns.grouped(100))(
         taskArnGroup =>
           toScala(
             ecsClient.describeTasks(
-              DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).build()
+              DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).include(TaskField.TAGS).build()
             )
-        )
+          )
       )
       tasks = describeTasksResponses.flatMap(_.tasks().asScala).toList
     } yield tasks
