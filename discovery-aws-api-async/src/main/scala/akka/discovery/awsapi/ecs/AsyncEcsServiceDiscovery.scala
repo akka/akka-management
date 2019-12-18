@@ -23,7 +23,7 @@ import akka.pattern.after
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryPolicy
 import software.amazon.awssdk.services.ecs._
-import software.amazon.awssdk.services.ecs.model._
+import software.amazon.awssdk.services.ecs.model.{Tag => _, _}
 
 @ApiMayChange
 class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
