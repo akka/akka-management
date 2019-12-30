@@ -7,28 +7,41 @@ package akka.discovery.awsapi.ecs
 import java.net.{ InetAddress, NetworkInterface }
 import java.util.concurrent.TimeoutException
 
-import akka.actor.ActorSystem
-import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.{ Lookup, ServiceDiscovery }
-import akka.discovery.awsapi.ecs.AsyncEcsServiceDiscovery._
-import akka.pattern.after
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
-import software.amazon.awssdk.core.retry.RetryPolicy
-import software.amazon.awssdk.services.ecs._
-import software.amazon.awssdk.services.ecs.model._
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
-import scala.compat.java8.FutureConverters._
+import scala.compat.java8.FutureConverters.toScala
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 
+import akka.actor.ActorSystem
 import akka.annotation.ApiMayChange
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.awsapi.ecs.AsyncEcsTaskSetDiscovery._
+import akka.discovery.{ Lookup, ServiceDiscovery }
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.http.scaladsl.{ Http, HttpExt }
+import akka.pattern.after
+import akka.stream.ActorMaterializer
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
+import software.amazon.awssdk.core.retry.RetryPolicy
+import software.amazon.awssdk.services.ecs._
+import software.amazon.awssdk.services.ecs.model.{
+  DescribeTasksRequest,
+  DesiredStatus,
+  ListTasksRequest,
+  Task,
+  TaskField,
+  Tag => _
+}
+import spray.json.DefaultJsonProtocol._
 
 @ApiMayChange
-class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
+class AsyncEcsTaskSetDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
-  private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs-async")
+  private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs-task-set-async")
   private[this] val cluster = config.getString("cluster")
 
   private[this] lazy val ecsClient = {
@@ -36,7 +49,11 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
     EcsAsyncClient.builder().overrideConfiguration(conf).build()
   }
 
+  private[this] implicit val actorSystem: ActorSystem = system
+  private[this] implicit val materializer: ActorMaterializer = ActorMaterializer()
   private[this] implicit val ec: ExecutionContext = system.dispatcher
+
+  private[this] val httpClient: HttpExt = Http()
 
   override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
@@ -44,7 +61,7 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
         after(resolveTimeout, using = system.scheduler)(
           Future.failed(new TimeoutException("Future timed out!"))
         ),
-        resolveTasks(ecsClient, cluster, lookup.serviceName).map(
+        resolveTasks(ecsClient, cluster, httpClient).map(
           tasks =>
             Resolved(
               serviceName = lookup.serviceName,
@@ -64,7 +81,14 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 }
 
 @ApiMayChange
-object AsyncEcsServiceDiscovery {
+object AsyncEcsTaskSetDiscovery {
+
+  private[this] case class TaskMetadata(TaskARN: String)
+  private[this] case class TaskSet(value: String) extends AnyVal
+
+  private[this] implicit val orderFormat = jsonFormat1(TaskMetadata)
+
+  private val ECS_CONTAINER_METADATA_URI_PATH = "ECS_CONTAINER_METADATA_URI"
 
   // InetAddress.getLocalHost.getHostAddress throws an exception when running
   // in awsvpc mode because the container name cannot be resolved.
@@ -87,18 +111,62 @@ object AsyncEcsServiceDiscovery {
         Left(s"Exactly one private address must be configured (found: $other).")
     }
 
-  private def resolveTasks(ecsClient: EcsAsyncClient, cluster: String, serviceName: String)(
-      implicit ec: ExecutionContext
+  private def resolveTasks(ecsClient: EcsAsyncClient, cluster: String, httpClient: HttpExt)(
+      implicit
+      ec: ExecutionContext,
+      mat: ActorMaterializer
   ): Future[Seq[Task]] =
     for {
-      taskArns <- listTaskArns(ecsClient, cluster, serviceName)
-      task <- describeTasks(ecsClient, cluster, taskArns)
-    } yield task
+      taskArn <- resolveTaskMetadata(httpClient).map(_.map(_.TaskARN))
+      taskSet <- taskArn match {
+        case Some(arn) => resolveTaskSet(ecsClient, cluster, arn)
+        case None => Future.successful(None)
+      }
+      taskArns <- taskSet match {
+        case Some(ts) => listTaskArns(ecsClient, cluster, ts)
+        case None => Future.successful(Seq.empty[String])
+      }
+      tasks <- describeTasks(ecsClient, cluster, taskArns)
+    } yield tasks
+
+  // https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v3.html
+  private[this] def resolveTaskMetadata(httpClient: HttpExt)(
+      implicit
+      ec: ExecutionContext,
+      mat: ActorMaterializer
+  ): Future[Option[TaskMetadata]] = {
+    val ecsContainerMetadataUri = sys.env.get(ECS_CONTAINER_METADATA_URI_PATH) match {
+      case Some(uri) => uri
+      case None =>
+        throw new IllegalStateException("The environment variable ECS_CONTAINER_METADATA_URI cannot be found")
+    }
+
+    httpClient
+      .singleRequest(HttpRequest(uri = s"$ecsContainerMetadataUri/task"))
+      .flatMap {
+        case HttpResponse(StatusCodes.OK, _, entity, _) =>
+          val metadata = Unmarshal(entity).to[TaskMetadata].map(Option(_))
+          metadata
+        case resp @ HttpResponse(_, _, _, _) =>
+          resp.discardEntityBytes()
+          Future.successful(None)
+      }
+  }
+
+  private[this] def resolveTaskSet(ecsClient: EcsAsyncClient, cluster: String, taskArn: String)(
+      implicit ec: ExecutionContext
+  ): Future[Option[TaskSet]] =
+    toScala(
+      ecsClient.describeTasks(
+        DescribeTasksRequest.builder().cluster(cluster).tasks(taskArn).include(TaskField.TAGS).build()
+      )
+    ).map(_.tasks().asScala.headOption)
+      .map(_.map(task => TaskSet(task.startedBy())))
 
   private[this] def listTaskArns(
       ecsClient: EcsAsyncClient,
       cluster: String,
-      serviceName: String,
+      taskSet: TaskSet,
       pageTaken: Option[String] = None,
       accumulator: Seq[String] = Seq.empty
   )(implicit ec: ExecutionContext): Future[Seq[String]] =
@@ -108,7 +176,7 @@ object AsyncEcsServiceDiscovery {
           ListTasksRequest
             .builder()
             .cluster(cluster)
-            .serviceName(serviceName)
+            .startedBy(taskSet.value)
             .nextToken(pageTaken.orNull)
             .desiredStatus(DesiredStatus.RUNNING)
             .build()
@@ -123,7 +191,7 @@ object AsyncEcsServiceDiscovery {
           listTaskArns(
             ecsClient,
             cluster,
-            serviceName,
+            taskSet,
             Some(nextPageToken),
             accumulatedTasksArns
           )
@@ -139,7 +207,7 @@ object AsyncEcsServiceDiscovery {
         taskArnGroup =>
           toScala(
             ecsClient.describeTasks(
-              DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).build()
+              DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).include(TaskField.TAGS).build()
             )
           )
       )
