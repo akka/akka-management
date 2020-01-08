@@ -33,15 +33,19 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
       log.info(
         BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString), info.allSeedNodes),
         "Discovered [{}] contact points, confirmed [{}], which is less than the required [{}], retrying",
-        info.contactPoints.size, info.seedNodesObservations.size,
-        settings.contactPointDiscovery.requiredContactPointsNr)
+        info.contactPoints.size,
+        info.seedNodesObservations.size,
+        settings.contactPointDiscovery.requiredContactPointsNr
+      )
       KeepProbing.asCompletedFuture
     } else if (!isPastStableMargin(info)) {
       log.debug(
         BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString), info.allSeedNodes),
         "Contact points observations have changed more recently than the stable-margin [{}], changed at [{}], " +
-        "not joining myself. This process will be retried.", settings.contactPointDiscovery.stableMargin,
-        info.contactPointsChangedAt)
+        "not joining myself. This process will be retried.",
+        settings.contactPointDiscovery.stableMargin,
+        info.contactPointsChangedAt
+      )
       KeepProbing.asCompletedFuture
     } else {
       // no seed nodes
@@ -68,7 +72,8 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
                 "(out of [{}]) to perform the self-join and initiate the cluster.",
                 contactPointString(selfContactPoint),
                 lowestAddress.map(contactPointString).getOrElse(""),
-                info.contactPoints.map(contactPointString).mkString(", "))
+                info.contactPoints.map(contactPointString).mkString(", ")
+              )
             else
               log.warning(
                 BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString), info.allSeedNodes),
@@ -77,7 +82,8 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
                 "(out of [{}]) to perform the self-join and initiate the cluster.",
                 contactPointString(selfContactPoint),
                 lowestAddress.map(contactPointString).getOrElse(""),
-                info.contactPoints.map(contactPointString).mkString(", "))
+                info.contactPoints.map(contactPointString).mkString(", ")
+              )
           }
 
           // the probing will continue until the lowest addressed node decides to join itself.
@@ -92,7 +98,8 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
             BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString), info.allSeedNodes),
             "Exceeded stable margins but missing seed node information from some contact points [{}] (out of [{}])",
             contactPointsWithoutSeedNodesObservations.map(contactPointString).mkString(", "),
-            info.contactPoints.map(contactPointString).mkString(", "))
+            info.contactPoints.map(contactPointString).mkString(", ")
+          )
 
         KeepProbing.asCompletedFuture
       }

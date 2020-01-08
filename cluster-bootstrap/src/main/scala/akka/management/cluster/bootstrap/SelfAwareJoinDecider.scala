@@ -52,10 +52,12 @@ import akka.event.Logging
     if (matchesSelf(target, self)) true
     else {
       if (!info.contactPoints.exists(matchesSelf(_, self))) {
-        log.warning(BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString),
-          info.allSeedNodes),
-          "Self contact point [{}] not found in targets {}", contactPointString(selfContactPoint),
-          info.contactPoints.mkString(", "))
+        log.warning(
+          BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString), info.allSeedNodes),
+          "Self contact point [{}] not found in targets {}",
+          contactPointString(selfContactPoint),
+          info.contactPoints.mkString(", ")
+        )
       }
       false
     }

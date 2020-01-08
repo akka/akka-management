@@ -50,8 +50,9 @@ object BootstrapLogMarker {
    * @param seedNodes The address of the observed seed nodes of the Akka Cluster. Included as property "akkaSeedNodes".
    */
   def inProgress(contactPoints: Set[String], seedNodes: Set[Address]): LogMarker =
-    LogMarker("akkaBootstrapInProgress", Map(Properties.ContactPoints -> contactPoints.mkString(", "),
-      Properties.SeedNodes -> seedNodes.mkString(", ")))
+    LogMarker(
+      "akkaBootstrapInProgress",
+      Map(Properties.ContactPoints -> contactPoints.mkString(", "), Properties.SeedNodes -> seedNodes.mkString(", ")))
 
   /**
    * Marker "akkaBootstrapSeedNodes" of log event when seed nodes of the Akka Cluster have been discovered.

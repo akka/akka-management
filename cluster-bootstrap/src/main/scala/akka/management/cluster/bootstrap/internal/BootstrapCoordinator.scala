@@ -221,7 +221,8 @@ private[akka] class BootstrapCoordinator(
         "Located service members based on: [{}]: [{}], filtered to [{}]",
         lookup,
         contactPoints.mkString(", "),
-        formatContactPoints(filteredContactPoints).mkString(", "))
+        formatContactPoints(filteredContactPoints).mkString(", ")
+      )
       onContactPointsResolved(filteredContactPoints)
       resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals
       startSingleDiscoveryTimer() // keep looking in case other nodes join the discovery
@@ -241,7 +242,8 @@ private[akka] class BootstrapCoordinator(
             "Contact point [{}] returned [{}] seed-nodes [{}]",
             infoFromAddress,
             observedSeedNodes.size,
-            observedSeedNodes.mkString(", "))
+            observedSeedNodes.mkString(", ")
+          )
 
           seedNodesObservations = seedNodesObservations.updated(
             contactPoint,
@@ -280,7 +282,8 @@ private[akka] class BootstrapCoordinator(
             BootstrapLogMarker.joinSelf,
             "Initiating new cluster, self-joining [{}]. " +
             "Other nodes are expected to locate this cluster via continued contact-point probing.",
-            cluster.selfAddress)
+            cluster.selfAddress
+          )
 
           cluster.join(cluster.selfAddress)
 
@@ -294,7 +297,8 @@ private[akka] class BootstrapCoordinator(
         if (contacts.observedContactPoints.contains(contactPoint)) {
           log.info(
             BootstrapLogMarker.seedNodesProbingFailed(formatContactPoints(contacts.observedContactPoints)),
-            "Received signal that probing has failed, scheduling contact point probing again")
+            "Received signal that probing has failed, scheduling contact point probing again"
+          )
           // child actor will have terminated now, so we ride on another discovery round to cause looking up
           // target nodes and if the same still exists, that would cause probing it again
           //
@@ -354,7 +358,8 @@ private[akka] class BootstrapCoordinator(
         "matches our local remoting address [{}]. Avoiding probing this address. Consider double checking your service " +
         "discovery and port configurations.",
         baseUri,
-        cluster.selfAddress)
+        cluster.selfAddress
+      )
       None
     } else
       context.child(childActorName) match {
