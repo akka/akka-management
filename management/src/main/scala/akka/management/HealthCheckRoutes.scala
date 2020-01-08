@@ -41,15 +41,16 @@ private[akka] class HealthCheckRoutes(system: ExtendedActorSystem) extends Manag
 
   override def routes(mrps: ManagementRouteProviderSettings): Route = {
     concat(
-        path(PathMatchers.separateOnSlashes(settings.readinessPath)) {
-          get {
-            onComplete(healthChecks.ready())(healthCheckResponse)
-          }
-        },
-        path(PathMatchers.separateOnSlashes(settings.livenessPath)) {
-          get {
-            onComplete(healthChecks.alive())(healthCheckResponse)
-          }
-        })
+      path(PathMatchers.separateOnSlashes(settings.readinessPath)) {
+        get {
+          onComplete(healthChecks.ready())(healthCheckResponse)
+        }
+      },
+      path(PathMatchers.separateOnSlashes(settings.livenessPath)) {
+        get {
+          onComplete(healthChecks.alive())(healthCheckResponse)
+        }
+      }
+    )
   }
 }

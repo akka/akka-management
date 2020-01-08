@@ -15,9 +15,7 @@ import org.scalatest.WordSpec
 import org.slf4j.LoggerFactory
 import akka.event.{ Logging => ClassicLogging }
 
-
 class LogLevelRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest {
-
 
   override def testConfigSource: String =
     """
@@ -60,15 +58,15 @@ class LogLevelRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest 
 
     "allow inspecting classic Akka loglevel" in {
       Get("/loglevel/akka") ~> routes ~> check {
-        response.status should === (StatusCodes.OK)
-        responseAs[String] should === ("INFO")
+        response.status should ===(StatusCodes.OK)
+        responseAs[String] should ===("INFO")
       }
     }
 
     "allow changing classic Akka loglevel" in {
       Put("/loglevel/akka?level=DEBUG") ~> routes ~> check {
-        response.status should === (StatusCodes.OK)
-        system.eventStream.logLevel should === (ClassicLogging.DebugLevel)
+        response.status should ===(StatusCodes.OK)
+        system.eventStream.logLevel should ===(ClassicLogging.DebugLevel)
       }
     }
   }

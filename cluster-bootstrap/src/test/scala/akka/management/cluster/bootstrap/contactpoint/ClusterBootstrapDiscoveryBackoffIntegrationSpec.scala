@@ -104,37 +104,42 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
     var call3Timestamp = 0L
     val name = s"$systemName.svc.cluster.local"
 
-    MockDiscovery.set(Lookup(name).withProtocol("tcp").withPortName("management"), { () =>
-      this.synchronized {
-        called += 1
+    MockDiscovery.set(
+      Lookup(name).withProtocol("tcp").withPortName("management"), { () =>
+        this.synchronized {
+          called += 1
 
-        if (called == 2)
-          call2Timestamp = System.nanoTime()
-        else if (called == 3)
-          call3Timestamp = System.nanoTime()
+          if (called == 2)
+            call2Timestamp = System.nanoTime()
+          else if (called == 3)
+            call3Timestamp = System.nanoTime()
 
-        val res =
-          if (called < 4)
-            Future.failed(new Exception("Boom! Discovery failed, was rate limited for example..."))
-          else
-            Future.successful(Resolved(name,
-                List(
-                  ResolvedTarget(
-                    host = clusterA.selfAddress.host.get,
-                    port = contactPointPorts.get("A"),
-                    address = Option(InetAddress.getByName(clusterA.selfAddress.host.get))
-                  ),
-                  ResolvedTarget(
-                    host = clusterB.selfAddress.host.get,
-                    port = contactPointPorts.get("B"),
-                    address = Option(InetAddress.getByName(clusterB.selfAddress.host.get))
+          val res =
+            if (called < 4)
+              Future.failed(new Exception("Boom! Discovery failed, was rate limited for example..."))
+            else
+              Future.successful(
+                Resolved(
+                  name,
+                  List(
+                    ResolvedTarget(
+                      host = clusterA.selfAddress.host.get,
+                      port = contactPointPorts.get("A"),
+                      address = Option(InetAddress.getByName(clusterA.selfAddress.host.get))
+                    ),
+                    ResolvedTarget(
+                      host = clusterB.selfAddress.host.get,
+                      port = contactPointPorts.get("B"),
+                      address = Option(InetAddress.getByName(clusterB.selfAddress.host.get))
+                    )
                   )
-                )))
+                ))
 
-        resolveProbe.ref ! DiscoveryRequest(System.currentTimeMillis(), called, res)
-        res
+          resolveProbe.ref ! DiscoveryRequest(System.currentTimeMillis(), called, res)
+          res
+        }
       }
-    })
+    )
 
     "start listening with the http contact-points on 2 systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {
@@ -170,7 +175,7 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
         val durationBetweenCall2And3 = (call3Timestamp - call2Timestamp).nanos.toMillis
         info(s"duration between call 2 and 3 ${durationBetweenCall2And3} ms")
         durationBetweenCall2And3 shouldBe >=(
-            (ClusterBootstrap(systemA).settings.contactPointDiscovery.interval * 2).toMillis)
+          (ClusterBootstrap(systemA).settings.contactPointDiscovery.interval * 2).toMillis)
       }
     }
 

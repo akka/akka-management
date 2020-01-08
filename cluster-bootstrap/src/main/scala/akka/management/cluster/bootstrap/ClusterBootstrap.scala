@@ -54,7 +54,8 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
   private val joinDecider: JoinDecider = {
     system.dynamicAccess
-      .createInstanceFor[JoinDecider](settings.joinDecider.implClass,
+      .createInstanceFor[JoinDecider](
+        settings.joinDecider.implClass,
         List((classOf[ActorSystem], system), (classOf[ClusterBootstrapSettings], settings)))
       .get
   }
@@ -71,10 +72,11 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   def start(): Unit =
     if (Cluster(system).settings.SeedNodes.nonEmpty) {
       log.warning(
-          "Application is configured with specific `akka.cluster.seed-nodes`: {}, bailing out of the bootstrap process! " +
-          "If you want to use the automatic bootstrap mechanism, make sure to NOT set explicit seed nodes in the configuration. " +
-          "This node will attempt to join the configured seed nodes.",
-          Cluster(system).settings.SeedNodes.mkString("[", ", ", "]"))
+        "Application is configured with specific `akka.cluster.seed-nodes`: {}, bailing out of the bootstrap process! " +
+        "If you want to use the automatic bootstrap mechanism, make sure to NOT set explicit seed nodes in the configuration. " +
+        "This node will attempt to join the configured seed nodes.",
+        Cluster(system).settings.SeedNodes.mkString("[", ", ", "]")
+      )
     } else if (bootstrapStep.compareAndSet(NotRunning, Initializing)) {
       log.info("Initiating bootstrap procedure using {} method...", settings.contactPointDiscovery.discoveryMethod)
 

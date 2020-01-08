@@ -48,7 +48,7 @@ object ReadinessCheckSetup {
    * Programmatic definition of readiness checks
    */
   def create(createHealthChecks: JFunction[ActorSystem, JList[Supplier[CompletionStage[java.lang.Boolean]]]])
-    : ReadinessCheckSetup = {
+      : ReadinessCheckSetup = {
     new ReadinessCheckSetup(createHealthChecks)
   }
 
@@ -67,7 +67,7 @@ object LivenessCheckSetup {
    * Programmatic definition of liveness checks
    */
   def create(createHealthChecks: JFunction[ActorSystem, JList[Supplier[CompletionStage[java.lang.Boolean]]]])
-    : LivenessCheckSetup = {
+      : LivenessCheckSetup = {
     new LivenessCheckSetup(createHealthChecks)
   }
 

@@ -79,14 +79,18 @@ object ManagementRouteProviderSettings {
 
   def javadslHttpsConnectionContext: Optional[akka.http.javadsl.HttpsConnectionContext] =
     httpsConnectionContext match {
-      case None => Optional.empty()
+      case None      => Optional.empty()
       case Some(ctx) => Optional.of(ctx) // a scaladsl.HttpsConnectionContext is a javadsl.HttpsConnectionContext
     }
 
   override def withReadOnly(readOnly: Boolean): ManagementRouteProviderSettings = copy(readOnly = readOnly)
 
   def asJava: javadsl.ManagementRouteProviderSettingsImpl =
-    javadsl.ManagementRouteProviderSettingsImpl(selfBaseUri = akka.http.javadsl.model.Uri.create(selfBaseUri),
-      javadslAuth, scaladslAuth, javadslHttpsConnectionContext, readOnly)
+    javadsl.ManagementRouteProviderSettingsImpl(
+      selfBaseUri = akka.http.javadsl.model.Uri.create(selfBaseUri),
+      javadslAuth,
+      scaladslAuth,
+      javadslHttpsConnectionContext,
+      readOnly)
 
 }

@@ -88,10 +88,10 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         implicit val mat = ActorMaterializer() // needed for toStrict
 
         val management = AkkaManagement(system)
-        management.settings.Http.RouteProviders should contain(NamedRouteProvider("test1",
-            "akka.management.HttpManagementEndpointSpecRoutesScaladsl"))
-        management.settings.Http.RouteProviders should contain(NamedRouteProvider("test2",
-            "akka.management.HttpManagementEndpointSpecRoutesJavadsl"))
+        management.settings.Http.RouteProviders should contain(
+          NamedRouteProvider("test1", "akka.management.HttpManagementEndpointSpecRoutesScaladsl"))
+        management.settings.Http.RouteProviders should contain(
+          NamedRouteProvider("test2", "akka.management.HttpManagementEndpointSpecRoutesJavadsl"))
         Await.result(management.start(), 10.seconds)
 
         val responseFuture1 = Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:$httpPort/scaladsl"))
@@ -137,8 +137,8 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
         val management = AkkaManagement(system)
         Await.result(management.start(_.withAuth(myUserPassAuthenticator)), 10.seconds)
 
-        val httpRequest = HttpRequest(uri = s"http://127.0.0.1:$httpPort/scaladsl").addHeader(
-            Authorization(BasicHttpCredentials("user", "p4ssw0rd")))
+        val httpRequest = HttpRequest(uri = s"http://127.0.0.1:$httpPort/scaladsl")
+          .addHeader(Authorization(BasicHttpCredentials("user", "p4ssw0rd")))
         val responseGetMembersFuture = Http().singleRequest(httpRequest)
         val responseGetMembers = Await.result(responseGetMembersFuture, 5.seconds)
 
@@ -169,7 +169,8 @@ class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
 
         implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
 
-        val password: Array[Char] = "password".toCharArray // do not store passwords in code, read them from somewhere safe!
+        val password
+            : Array[Char] = "password".toCharArray // do not store passwords in code, read them from somewhere safe!
 
         val ks: KeyStore = KeyStore.getInstance("PKCS12")
         val keystore: InputStream = getClass.getClassLoader.getResourceAsStream("httpsDemoKeys/keys/keystore.p12")

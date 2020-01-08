@@ -18,20 +18,32 @@ class MarathonApiServiceDiscoverySpec extends WordSpec with Matchers {
 
       val appList = JsonFormat.appListFormat.read(data.parseJson)
 
-      MarathonApiServiceDiscovery.targets(appList, "management") shouldBe List(ResolvedTarget(host = "192.168.65.60",
-          port = Some(23236), address = Option(InetAddress.getByName("192.168.65.60"))),
-        ResolvedTarget(host = "192.168.65.111", port = Some(6850),
-          address = Option(InetAddress.getByName("192.168.65.111"))))
+      MarathonApiServiceDiscovery.targets(appList, "management") shouldBe List(
+        ResolvedTarget(
+          host = "192.168.65.60",
+          port = Some(23236),
+          address = Option(InetAddress.getByName("192.168.65.60"))),
+        ResolvedTarget(
+          host = "192.168.65.111",
+          port = Some(6850),
+          address = Option(InetAddress.getByName("192.168.65.111")))
+      )
     }
     "calculate the correct list of resolved targets for docker" in {
       val data = resourceAsString("docker-app.json")
 
       val appList = JsonFormat.appListFormat.read(data.parseJson)
 
-      MarathonApiServiceDiscovery.targets(appList, "akkamgmthttp") shouldBe List(ResolvedTarget(host = "10.121.48.204",
-          port = Some(29480), address = Option(InetAddress.getByName("10.121.48.204"))),
-        ResolvedTarget(host = "10.121.48.204", port = Some(10136),
-          address = Option(InetAddress.getByName("10.121.48.204"))))
+      MarathonApiServiceDiscovery.targets(appList, "akkamgmthttp") shouldBe List(
+        ResolvedTarget(
+          host = "10.121.48.204",
+          port = Some(29480),
+          address = Option(InetAddress.getByName("10.121.48.204"))),
+        ResolvedTarget(
+          host = "10.121.48.204",
+          port = Some(10136),
+          address = Option(InetAddress.getByName("10.121.48.204")))
+      )
     }
   }
 
