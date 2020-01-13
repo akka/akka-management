@@ -24,11 +24,14 @@ import akka.event.Logging
     settings: ClusterBootstrapSettings)
     extends JoinDecider {
 
-  protected val log = Logging(system, getClass)
+  protected val log = Logging.withMarker(system, getClass)
 
   /** Returns the current `selfContactPoints` as a String for logging, e.g. [127.0.0.1:64714]. */
   protected def contactPointString(contactPoint: (String, Int)): String =
     contactPoint.productIterator.mkString(":")
+
+  protected def contactPointString(contactPoint: ResolvedTarget): String =
+    s"${contactPoint.host}:${contactPoint.port.getOrElse("0")}"
 
   /**
    * The value `ClusterBootstrap(system).selfContactPoints` is set prior to HTTP binding,
@@ -50,9 +53,11 @@ import akka.event.Logging
     else {
       if (!info.contactPoints.exists(matchesSelf(_, self))) {
         log.warning(
+          BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString), info.allSeedNodes),
           "Self contact point [{}] not found in targets {}",
           contactPointString(selfContactPoint),
-          info.contactPoints.mkString(", "))
+          info.contactPoints.mkString(", ")
+        )
       }
       false
     }
