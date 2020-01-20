@@ -94,11 +94,12 @@ object EcsServiceDiscovery {
     tasks
   }
 
-  @tailrec private[this] def listTaskArns(ecsClient: AmazonECS,
-                                          cluster: String,
-                                          serviceName: String,
-                                          pageTaken: Option[String] = None,
-                                          accumulator: Seq[String] = Seq.empty): Seq[String] = {
+  @tailrec private[this] def listTaskArns(
+      ecsClient: AmazonECS,
+      cluster: String,
+      serviceName: String,
+      pageTaken: Option[String] = None,
+      accumulator: Seq[String] = Seq.empty): Seq[String] = {
     val listTasksResult = ecsClient.listTasks(
       new ListTasksRequest()
         .withCluster(cluster)

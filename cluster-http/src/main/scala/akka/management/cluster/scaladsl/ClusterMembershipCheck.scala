@@ -21,12 +21,12 @@ private[akka] object ClusterMembershipCheckSettings {
   def memberStatus(status: String): MemberStatus =
     Helpers.toRootLowerCase(status) match {
       case "weaklyup" => MemberStatus.WeaklyUp
-      case "up" => MemberStatus.Up
-      case "exiting" => MemberStatus.Exiting
-      case "down" => MemberStatus.Down
-      case "joining" => MemberStatus.Joining
-      case "leaving" => MemberStatus.Leaving
-      case "removed" => MemberStatus.Removed
+      case "up"       => MemberStatus.Up
+      case "exiting"  => MemberStatus.Exiting
+      case "down"     => MemberStatus.Down
+      case "joining"  => MemberStatus.Joining
+      case "leaving"  => MemberStatus.Leaving
+      case "removed"  => MemberStatus.Removed
       case invalid =>
         throw new IllegalArgumentException(
           s"'$invalid' is not a valid MemberStatus. See reference.conf for valid values"
@@ -38,13 +38,16 @@ private[akka] object ClusterMembershipCheckSettings {
 
 final class ClusterMembershipCheckSettings(val readyStates: Set[MemberStatus])
 
-final class ClusterMembershipCheck @InternalApi private[akka] (system: ActorSystem,
-                                                               selfStatus: () => MemberStatus,
-                                                               settings: ClusterMembershipCheckSettings)
+final class ClusterMembershipCheck @InternalApi private[akka] (
+    system: ActorSystem,
+    selfStatus: () => MemberStatus,
+    settings: ClusterMembershipCheckSettings)
     extends (() => Future[Boolean]) {
 
   def this(system: ActorSystem) =
-    this(system, () => Cluster(system).selfMember.status,
+    this(
+      system,
+      () => Cluster(system).selfMember.status,
       ClusterMembershipCheckSettings(system.settings.config.getConfig("akka.management.cluster.health-check")))
 
   override def apply(): Future[Boolean] = {

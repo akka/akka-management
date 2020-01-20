@@ -16,12 +16,13 @@ final case class ClusterMember(node: String, nodeUid: String, status: String, ro
 object ClusterMember {
   implicit val clusterMemberOrdering: Ordering[ClusterMember] = Ordering.by(_.node)
 }
-final case class ClusterMembers(selfNode: String,
-                                members: Set[ClusterMember],
-                                unreachable: immutable.Seq[ClusterUnreachableMember],
-                                leader: Option[String],
-                                oldest: Option[String],
-                                oldestPerRole: Map[String, String])
+final case class ClusterMembers(
+    selfNode: String,
+    members: Set[ClusterMember],
+    unreachable: immutable.Seq[ClusterUnreachableMember],
+    leader: Option[String],
+    oldest: Option[String],
+    oldestPerRole: Map[String, String])
 final case class ClusterHttpManagementMessage(message: String)
 final case class ShardRegionInfo(shardId: String, numEntities: Int)
 final case class ShardDetails(regions: immutable.Seq[ShardRegionInfo])

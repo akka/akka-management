@@ -113,8 +113,8 @@ final class LogLevelRoutes private (system: ExtendedActorSystem) extends Extensi
  */
 @InternalApi
 private[akka] object LoggingUnmarshallers {
-  private val validLevels = Set(Level.ALL, Level.DEBUG, Level.ERROR, Level.INFO, Level.OFF, Level.TRACE, Level.WARN)
-    .map(_.toString)
+  private val validLevels =
+    Set(Level.ALL, Level.DEBUG, Level.ERROR, Level.INFO, Level.OFF, Level.TRACE, Level.WARN).map(_.toString)
 
   implicit val levelFromStringUnmarshaller: Unmarshaller[String, Level] =
     Unmarshaller.strict { string =>
@@ -135,11 +135,11 @@ private[akka] object LoggingUnmarshallers {
     }
 
   def classicLogLevelName(level: ClassicLogging.LogLevel): String = level match {
-    case ClassicLogging.OffLevel => "OFF"
-    case ClassicLogging.DebugLevel => "DEBUG"
-    case ClassicLogging.InfoLevel => "INFO"
+    case ClassicLogging.OffLevel     => "OFF"
+    case ClassicLogging.DebugLevel   => "DEBUG"
+    case ClassicLogging.InfoLevel    => "INFO"
     case ClassicLogging.WarningLevel => "WARNING"
-    case ClassicLogging.ErrorLevel => "ERROR"
-    case _ => s"Unknown loglevel: $level"
+    case ClassicLogging.ErrorLevel   => "ERROR"
+    case _                           => s"Unknown loglevel: $level"
   }
 }

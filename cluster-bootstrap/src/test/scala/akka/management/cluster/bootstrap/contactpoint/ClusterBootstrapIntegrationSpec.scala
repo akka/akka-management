@@ -84,10 +84,12 @@ class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
 
     // prepare the "mock DNS"
     val name = "service.svc.cluster.local"
-    MockDiscovery.set(Lookup(name, Some("management2"), Some("tcp2")),
+    MockDiscovery.set(
+      Lookup(name, Some("management2"), Some("tcp2")),
       () =>
         Future.successful(
-          Resolved(name,
+          Resolved(
+            name,
             List(
               ResolvedTarget(
                 host = clusterA.selfAddress.host.get,
@@ -104,8 +106,10 @@ class ClusterBootstrapIntegrationSpec extends WordSpecLike with Matchers {
                 port = contactPointPorts.get("C"),
                 address = Option(InetAddress.getByName(clusterC.selfAddress.host.get))
               )
-            ))
-      ))
+            )
+          )
+        )
+    )
 
     "start listening with the http contact-points on 3 systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {

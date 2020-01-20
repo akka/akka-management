@@ -34,7 +34,7 @@ final class AkkaManagementSettings(val config: Config) {
     }
 
     val EffectiveBindHostname: String = cc.getString("bind-hostname") match {
-      case "" => Hostname
+      case ""    => Hostname
       case value => value
     }
 
@@ -105,7 +105,7 @@ final class AkkaManagementSettings(val config: Config) {
 
     def optValue(key: String): Option[String] =
       config.getString(key) match {
-        case "" => None
+        case ""    => None
         case other => Some(other)
       }
   }

@@ -20,6 +20,7 @@ import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
+import akka.management.ManagementLogMarker
 import akka.management.scaladsl.LivenessCheckSetup
 import akka.management.scaladsl.ReadinessCheckSetup
 import akka.management.javadsl.{ LivenessCheckSetup => JLivenessCheckSetup }
@@ -36,18 +37,22 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
   import HealthChecks._
   import system.dispatcher
 
-  private val log = Logging(system, classOf[HealthChecksImpl])
+  private val log = Logging.withMarker(system, classOf[HealthChecksImpl])
 
-  log.info("Loading readiness checks {}", settings.readinessChecks)
-  log.info("Loading liveness checks {}", settings.livenessChecks)
+  log.info(
+    "Loading readiness checks [{}]",
+    settings.readinessChecks.map(a => a.name -> a.fullyQualifiedClassName).mkString(", "))
+  log.info(
+    "Loading liveness checks [{}]",
+    settings.livenessChecks.map(a => a.name -> a.fullyQualifiedClassName).mkString(", "))
 
   private val readiness: immutable.Seq[HealthCheck] = {
     val fromScaladslSetup = system.settings.setup.get[ReadinessCheckSetup] match {
-      case None => Nil
+      case None        => Nil
       case Some(setup) => setup.createHealthChecks(system)
     }
     val fromJavadslSetup = system.settings.setup.get[JReadinessCheckSetup] match {
-      case None => Nil
+      case None        => Nil
       case Some(setup) => convertSuppliersToScala(setup.createHealthChecks(system))
     }
     val fromConfig = load(settings.readinessChecks)
@@ -56,11 +61,11 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
 
   private val liveness: immutable.Seq[HealthCheck] = {
     val fromScaladslSetup = system.settings.setup.get[LivenessCheckSetup] match {
-      case None => Nil
+      case None        => Nil
       case Some(setup) => setup.createHealthChecks(system)
     }
     val fromJavadslSetup = system.settings.setup.get[JLivenessCheckSetup] match {
-      case None => Nil
+      case None        => Nil
       case Some(setup) => convertSuppliersToScala(setup.createHealthChecks(system))
     }
     val fromConfig = load(settings.livenessChecks)
@@ -108,16 +113,14 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
       checks: immutable.Seq[NamedHealthCheck]
   ): immutable.Seq[HealthCheck] = {
     checks
-      .map(
-        namedHealthCheck =>
-          tryLoadScalaHealthCheck(namedHealthCheck.fullyQualifiedClassName).recoverWith {
-            case _: ClassCastException =>
-              tryLoadJavaHealthCheck(namedHealthCheck.fullyQualifiedClassName)
-            // Can be removed when 2.13.0-RC1 is out (https://github.com/scala/bug/issues/7390)
-            case o =>
-              Failure(o)
-        }
-      )
+      .map(namedHealthCheck =>
+        tryLoadScalaHealthCheck(namedHealthCheck.fullyQualifiedClassName).recoverWith {
+          case _: ClassCastException =>
+            tryLoadJavaHealthCheck(namedHealthCheck.fullyQualifiedClassName)
+          // Can be removed when 2.13.0-RC1 is out (https://github.com/scala/bug/issues/7390)
+          case o =>
+            Failure(o)
+        })
       .map {
         case Success(c) => c
         case Failure(_: NoSuchMethodException) =>
@@ -141,11 +144,27 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
   }
 
   def ready(): Future[Boolean] = {
-    check(readiness)
+    val result = check(readiness)
+    result.onComplete {
+      case Success(ok) =>
+        if (!ok)
+          log.info(ManagementLogMarker.readinessCheckFailed, "Readiness check not ok.")
+      case Failure(e) =>
+        log.warning(ManagementLogMarker.readinessCheckFailed, "Readiness check failed: {}", e)
+    }
+    result
   }
 
   def alive(): Future[Boolean] = {
-    check(liveness)
+    val result = check(liveness)
+    result.onComplete {
+      case Success(ok) =>
+        if (!ok)
+          log.info(ManagementLogMarker.livenessCheckFailed, "Liveness check not ok.")
+      case Failure(e) =>
+        log.warning(ManagementLogMarker.livenessCheckFailed, "Readiness check failed: {}", e)
+    }
+    result
   }
 
   private def runCheck(check: HealthCheck): Future[Boolean] = {

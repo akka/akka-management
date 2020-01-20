@@ -14,7 +14,7 @@ trait HttpBootstrapJsonProtocol extends SprayJsonSupport with DefaultJsonProtoco
   implicit object AddressFormat extends RootJsonFormat[Address] {
     override def read(json: JsValue): Address = json match {
       case JsString(s) => AddressFromURIString.parse(s)
-      case invalid => throw new IllegalArgumentException(s"Illegal address value! Was [$invalid]")
+      case invalid     => throw new IllegalArgumentException(s"Illegal address value! Was [$invalid]")
     }
 
     override def write(obj: Address): JsValue = JsString(obj.toString)

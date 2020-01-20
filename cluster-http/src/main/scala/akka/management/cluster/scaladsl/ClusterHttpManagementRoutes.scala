@@ -31,8 +31,8 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         }
 
         val thisDcMembers =
-          cluster.state.members.toSeq.filter(
-              node => node.status == MemberStatus.Up && node.dataCenter == cluster.selfDataCenter)
+          cluster.state.members.toSeq.filter(node =>
+            node.status == MemberStatus.Up && node.dataCenter == cluster.selfDataCenter)
 
         val leader = readView.leader.map(_.toString)
 
@@ -79,15 +79,15 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
             cluster.leave(member.uniqueAddress.address)
             complete(ClusterHttpManagementMessage(s"Leaving ${member.uniqueAddress.address}"))
           case _ =>
-            complete(StatusCodes.BadRequest → ClusterHttpManagementMessage("Operation not supported"))
+            complete(StatusCodes.BadRequest -> ClusterHttpManagementMessage("Operation not supported"))
         }
       }
     }
 
   private def findMember(cluster: Cluster, memberAddress: String): Option[Member] = {
     val readView = ClusterReadViewAccess.internalReadView(cluster)
-    readView.members.find(
-        m => s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress)
+    readView.members.find(m =>
+      s"${m.uniqueAddress.address}" == memberAddress || m.uniqueAddress.address.hostPort == memberAddress)
   }
 
   private def routeFindMember(cluster: Cluster, readOnly: Boolean): Route = {
@@ -101,7 +101,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
               routeGetMember(cluster, member) ~ routeDeleteMember(cluster, member) ~ routePutMember(cluster, member)
             case None =>
               complete(
-                StatusCodes.NotFound → ClusterHttpManagementMessage(
+                StatusCodes.NotFound -> ClusterHttpManagementMessage(
                   s"Member [$memberAddress] not found"
                 )
               )
@@ -126,10 +126,10 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
               }
           } catch {
             case _: AskTimeoutException =>
-              StatusCodes.NotFound → ClusterHttpManagementMessage(
-                  s"Shard Region $shardRegionName not responding, may have been terminated")
+              StatusCodes.NotFound -> ClusterHttpManagementMessage(
+                s"Shard Region $shardRegionName not responding, may have been terminated")
             case _: IllegalArgumentException =>
-              StatusCodes.NotFound → ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
+              StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
           }
         }
       }
@@ -159,13 +159,14 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
    */
   def readOnly(cluster: Cluster): Route = {
     concat(
-        pathPrefix("cluster" / "members") {
-          concat(pathEndOrSingleSlash {
-            routeGetMembers(cluster)
-          }, routeFindMember(cluster, readOnly = true))
-        },
-        pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
-          routeGetShardInfo(cluster, shardRegionName)
-        })
+      pathPrefix("cluster" / "members") {
+        concat(pathEndOrSingleSlash {
+          routeGetMembers(cluster)
+        }, routeFindMember(cluster, readOnly = true))
+      },
+      pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
+        routeGetShardInfo(cluster, shardRegionName)
+      }
+    )
   }
 }

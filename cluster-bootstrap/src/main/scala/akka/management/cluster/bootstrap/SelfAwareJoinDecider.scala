@@ -23,11 +23,14 @@ import scala.concurrent.duration._
     settings: ClusterBootstrapSettings
 ) extends JoinDecider {
 
-  protected val log = Logging(system, getClass)
+  protected val log = Logging.withMarker(system, getClass)
 
   /** Returns the current `selfContactPoints` as a String for logging, e.g. [127.0.0.1:64714]. */
   protected def contactPointString(contactPoint: (String, Int)): String =
     contactPoint.productIterator.mkString(":")
+
+  protected def contactPointString(contactPoint: ResolvedTarget): String =
+    s"${contactPoint.host}:${contactPoint.port.getOrElse("0")}"
 
   /**
    * The value `ClusterBootstrap(system).selfContactPoints` is set prior
@@ -51,6 +54,7 @@ import scala.concurrent.duration._
     else {
       if (!info.contactPoints.exists(matchesSelf(_, self))) {
         log.warning(
+          BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString), info.allSeedNodes),
           "Self contact point [{}] not found in targets {}",
           contactPointString(selfContactPoint),
           info.contactPoints.mkString(", ")
@@ -63,7 +67,7 @@ import scala.concurrent.duration._
   private[bootstrap] def matchesSelf(target: ResolvedTarget, contactPoint: (String, Int)): Boolean = {
     val (host, port) = contactPoint
     target.port match {
-      case None => hostMatches(host, target)
+      case None             => hostMatches(host, target)
       case Some(lowestPort) => hostMatches(host, target) && port == lowestPort
     }
   }

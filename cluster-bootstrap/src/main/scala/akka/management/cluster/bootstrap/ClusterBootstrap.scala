@@ -25,7 +25,6 @@ import akka.management.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator
 import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.management.scaladsl.ManagementRouteProvider
-import akka.pattern.pipe
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
@@ -36,7 +35,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
   private final val bootstrapStep = new AtomicReference[BootstrapStep](NotRunning)
 
-  AkkaVersion.require("cluster-bootstrap", "2.5.19")
+  AkkaVersion.require("cluster-bootstrap", "2.5.27")
 
   val settings: ClusterBootstrapSettings = ClusterBootstrapSettings(system.settings.config, log)
 
@@ -86,8 +85,8 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
       val bootstrapProps = BootstrapCoordinator.props(discovery, joinDecider, settings)
       val bootstrap = system.systemActorOf(bootstrapProps, "bootstrapCoordinator")
       // Bootstrap already logs in several other execution points when it can't form a cluster, and why.
-      selfContactPoint.foreach {
-        uri => bootstrap ! BootstrapCoordinator.Protocol.InitiateBootstrapping(uri)
+      selfContactPoint.foreach { uri =>
+        bootstrap ! BootstrapCoordinator.Protocol.InitiateBootstrapping(uri)
       }
     } else log.warning("Bootstrap already initiated, yet start() method was called again. Ignoring.")
 
