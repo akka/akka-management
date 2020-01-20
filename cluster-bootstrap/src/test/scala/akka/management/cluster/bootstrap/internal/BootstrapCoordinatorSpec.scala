@@ -63,7 +63,7 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
       val coordinator = system.actorOf(
         Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
           override def ensureProbing(
-              selfContactPoint: Uri,
+              selfContactPointScheme: String,
               contactPoint: ResolvedTarget
           ): Option[ActorRef] = {
             println(s"Resolving $contactPoint")
@@ -103,7 +103,7 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
 
       val targets = new AtomicReference[List[ResolvedTarget]](Nil)
       val coordinator = system.actorOf(Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
-        override def ensureProbing(selfContactPoint: Uri, contactPoint: ResolvedTarget): Option[ActorRef] = {
+        override def ensureProbing(selfContactPointScheme: String, contactPoint: ResolvedTarget): Option[ActorRef] = {
           println(s"Resolving $contactPoint")
           val targetsSoFar = targets.get
           targets.compareAndSet(targetsSoFar, contactPoint +: targetsSoFar)

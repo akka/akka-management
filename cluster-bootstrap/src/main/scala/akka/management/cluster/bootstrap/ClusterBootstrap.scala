@@ -86,8 +86,9 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
       val bootstrapProps = BootstrapCoordinator.props(discovery, joinDecider, settings)
       val bootstrap = system.systemActorOf(bootstrapProps, "bootstrapCoordinator")
       // Bootstrap already logs in several other execution points when it can't form a cluster, and why.
-      val initiateBootstrapping = selfContactPoint.map(BootstrapCoordinator.Protocol.InitiateBootstrapping)
-      initiateBootstrapping pipeTo bootstrap
+      selfContactPoint.foreach {
+        uri => bootstrap ! BootstrapCoordinator.Protocol.InitiateBootstrapping(uri)
+      }
     } else log.warning("Bootstrap already initiated, yet start() method was called again. Ignoring.")
 
   /**

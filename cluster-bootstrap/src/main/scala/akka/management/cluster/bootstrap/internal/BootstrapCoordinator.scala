@@ -202,11 +202,11 @@ private[akka] class BootstrapCoordinator(
         selfContactPoint.scheme
       )
       discoverContactPoints()
-      context become bootstrapping(sender(), selfContactPoint)
+      context become bootstrapping(sender(), selfContactPoint.scheme)
   }
 
   /** In process of searching for seed-nodes */
-  def bootstrapping(replyTo: ActorRef, selfContactPoint: Uri): Receive = {
+  def bootstrapping(replyTo: ActorRef, selfContactPointScheme: String): Receive = {
     case DiscoverTick =>
       // the next round of discovery will be performed once this one returns
       discoverContactPoints()
@@ -225,7 +225,7 @@ private[akka] class BootstrapCoordinator(
         contactPoints.mkString(", "),
         filteredContactPoints.mkString(", ")
       )
-      onContactPointsResolved(filteredContactPoints, selfContactPoint)
+      onContactPointsResolved(filteredContactPoints, selfContactPointScheme)
       resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals
       startSingleDiscoveryTimer() // keep looking in case other nodes join the discovery
 
@@ -310,7 +310,7 @@ private[akka] class BootstrapCoordinator(
     discovery.lookup(lookup, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
   }
 
-  private def onContactPointsResolved(contactPoints: Iterable[ResolvedTarget], selfContactPoint: Uri): Unit = {
+  private def onContactPointsResolved(contactPoints: Iterable[ResolvedTarget], selfContactPointScheme: String): Unit = {
     val newObservation = ServiceContactsObservation(timeNow(), contactPoints.toSet)
     lastContactsObservation match {
       case Some(contacts) => lastContactsObservation = Some(contacts.sameOrChanged(newObservation))
@@ -324,12 +324,12 @@ private[akka] class BootstrapCoordinator(
 
     // TODO stop the obsolete children (they are stopped when probing fails for too long)
 
-    newObservation.observedContactPoints.foreach(ensureProbing(selfContactPoint, _))
+    newObservation.observedContactPoints.foreach(ensureProbing(selfContactPointScheme, _))
   }
 
-  private[internal] def ensureProbing(selfContactPoint: Uri, contactPoint: ResolvedTarget): Option[ActorRef] = {
+  private[internal] def ensureProbing(selfContactPointScheme: String, contactPoint: ResolvedTarget): Option[ActorRef] = {
     val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
-    val rawBaseUri = Uri(selfContactPoint.scheme, Uri.Authority(Uri.Host(contactPoint.host), targetPort))
+    val rawBaseUri = Uri(selfContactPointScheme, Uri.Authority(Uri.Host(contactPoint.host), targetPort))
     val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
 
     val childActorName = s"contactPointProbe-${baseUri.authority.host}-${baseUri.authority.port}"
