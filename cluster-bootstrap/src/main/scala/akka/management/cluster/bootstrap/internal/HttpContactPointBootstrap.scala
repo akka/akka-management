@@ -69,8 +69,9 @@ private[bootstrap] class HttpContactPointBootstrap(
   if (baseUri.authority.host.address() == cluster.selfAddress.host.getOrElse("---") &&
       baseUri.authority.port == cluster.selfAddress.port.getOrElse(-1)) {
     throw new IllegalArgumentException(
-        "Requested base Uri to be probed matches local remoting address, bailing out! " +
-        s"Uri: $baseUri, this node's remoting address: ${cluster.selfAddress}")
+      "Requested base Uri to be probed matches local remoting address, bailing out! " +
+      s"Uri: $baseUri, this node's remoting address: ${cluster.selfAddress}"
+    )
   }
 
   private implicit val mat = ActorMaterializer()(context.system)
@@ -129,14 +130,19 @@ private[bootstrap] class HttpContactPointBootstrap(
       strictEntity.flatMap { entity =>
         val body = entity.data.utf8String
         Future.failed(
-            new IllegalStateException(s"Expected response '200 OK' but found ${response.status}. Body: '$body'"))
+          new IllegalStateException(s"Expected response '200 OK' but found ${response.status}. Body: '$body'")
+        )
       }
   }
 
   private def notifyParentAboutSeedNodes(members: SeedNodes): Unit = {
     val seedAddresses = members.seedNodes.map(_.node)
-    context.parent ! BootstrapCoordinator.Protocol.ObtainedHttpSeedNodesObservation(timeNow(), contactPoint,
-      members.selfNode, seedAddresses)
+    context.parent ! BootstrapCoordinator.Protocol.ObtainedHttpSeedNodesObservation(
+      timeNow(),
+      contactPoint,
+      members.selfNode,
+      seedAddresses
+    )
   }
 
   private def scheduleNextContactPointProbing(): Unit =

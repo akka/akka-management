@@ -6,35 +6,31 @@ package akka.management.cluster.bootstrap.internal
 
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
-import akka.discovery.{Lookup, MockDiscovery}
+import akka.actor.{ ActorRef, ActorSystem, Props }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.{ Lookup, MockDiscovery }
 import akka.http.scaladsl.model.Uri
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator.Protocol.InitiateBootstrapping
-import akka.management.cluster.bootstrap.{
-  ClusterBootstrapSettings,
-  LowestAddressJoinDecider
-}
+import akka.management.cluster.bootstrap.{ ClusterBootstrapSettings, LowestAddressJoinDecider }
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
-import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
+import org.scalatest.time.{ Millis, Seconds, Span }
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
-class BootstrapCoordinatorSpec
-    extends WordSpec
-    with Matchers
-    with BeforeAndAfterAll
-    with Eventually {
+class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfterAll with Eventually {
   val serviceName = "bootstrap-coordinator-test-service"
   val selfUri = Uri("http://localhost:8558/")
-  val system = ActorSystem("test", ConfigFactory.parseString(s"""
+  val system = ActorSystem(
+    "test",
+    ConfigFactory.parseString(s"""
       |akka.management.cluster.bootstrap {
       | contact-point-discovery.service-name = $serviceName
       |}
-    """.stripMargin).withFallback(ConfigFactory.load()))
+    """.stripMargin).withFallback(ConfigFactory.load())
+  )
   val settings = ClusterBootstrapSettings(system.settings.config, system.log)
   val joinDecider = new LowestAddressJoinDecider(system, settings)
 
@@ -50,21 +46,25 @@ class BootstrapCoordinatorSpec
       MockDiscovery.set(
         Lookup(serviceName, portName = None, protocol = Some("tcp")),
         () =>
-          Future.successful(Resolved(serviceName,
-            List(
-              ResolvedTarget("host1", Some(2552), None),
-              ResolvedTarget("host1", Some(8558), None),
-              ResolvedTarget("host2", Some(2552), None),
-              ResolvedTarget("host2", Some(8558), None)
-            )))
+          Future.successful(
+            Resolved(
+              serviceName,
+              List(
+                ResolvedTarget("host1", Some(2552), None),
+                ResolvedTarget("host1", Some(8558), None),
+                ResolvedTarget("host2", Some(2552), None),
+                ResolvedTarget("host2", Some(8558), None)
+              )
+            )
+          )
       )
 
       val targets = new AtomicReference[List[ResolvedTarget]](Nil)
       val coordinator = system.actorOf(
         Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
           override def ensureProbing(
-            selfContactPoint: Uri,
-            contactPoint: ResolvedTarget
+              selfContactPoint: Uri,
+              contactPoint: ResolvedTarget
           ): Option[ActorRef] = {
             println(s"Resolving $contactPoint")
             val targetsSoFar = targets.get
@@ -88,13 +88,17 @@ class BootstrapCoordinatorSpec
       MockDiscovery.set(
         Lookup(serviceName, portName = None, protocol = Some("tcp")),
         () =>
-          Future.successful(Resolved(serviceName,
-            List(
-              ResolvedTarget("host1", None, None),
-              ResolvedTarget("host1", None, None),
-              ResolvedTarget("host2", None, None),
-              ResolvedTarget("host2", None, None)
-            )))
+          Future.successful(
+            Resolved(
+              serviceName,
+              List(
+                ResolvedTarget("host1", None, None),
+                ResolvedTarget("host1", None, None),
+                ResolvedTarget("host2", None, None),
+                ResolvedTarget("host2", None, None)
+              )
+            )
+          )
       )
 
       val targets = new AtomicReference[List[ResolvedTarget]](Nil)
@@ -128,7 +132,11 @@ class BootstrapCoordinatorSpec
       )
 
       BootstrapCoordinator.selectHosts(
-        Lookup.create("service").withPortName("cats"), 8558, filterOnFallbackPort = true, beforeFiltering) shouldEqual beforeFiltering
+        Lookup.create("service").withPortName("cats"),
+        8558,
+        filterOnFallbackPort = true,
+        beforeFiltering
+      ) shouldEqual beforeFiltering
     }
 
     // For example when using DNS A-record-based discovery in K8s
@@ -140,8 +148,7 @@ class BootstrapCoordinatorSpec
         ResolvedTarget("host2", Some(4), None)
       )
 
-      BootstrapCoordinator.selectHosts(
-        Lookup.create("service"), 8558, filterOnFallbackPort = true, beforeFiltering) shouldEqual List(
+      BootstrapCoordinator.selectHosts(Lookup.create("service"), 8558, filterOnFallbackPort = true, beforeFiltering) shouldEqual List(
         ResolvedTarget("host1", Some(8558), None),
         ResolvedTarget("host2", Some(8558), None)
       )
@@ -156,8 +163,7 @@ class BootstrapCoordinatorSpec
         ResolvedTarget("host2", Some(4), None)
       )
 
-      BootstrapCoordinator.selectHosts(
-        Lookup.create("service"), 8558, filterOnFallbackPort = false, beforeFiltering) shouldEqual beforeFiltering
+      BootstrapCoordinator.selectHosts(Lookup.create("service"), 8558, filterOnFallbackPort = false, beforeFiltering) shouldEqual beforeFiltering
     }
 
     "not filter if there is a single target per host" in {
@@ -168,8 +174,9 @@ class BootstrapCoordinatorSpec
         ResolvedTarget("host4", Some(4), None)
       )
 
-      BootstrapCoordinator.selectHosts(
-        Lookup.create("service"), 8558, filterOnFallbackPort = true, beforeFiltering).toSet shouldEqual beforeFiltering.toSet
+      BootstrapCoordinator
+        .selectHosts(Lookup.create("service"), 8558, filterOnFallbackPort = true, beforeFiltering)
+        .toSet shouldEqual beforeFiltering.toSet
     }
   }
 

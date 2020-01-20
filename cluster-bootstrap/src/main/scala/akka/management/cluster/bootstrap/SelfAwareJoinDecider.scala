@@ -18,9 +18,10 @@ import scala.concurrent.duration._
  * Class for further behavior in a [[akka.management.cluster.bootstrap.JoinDecider]]
  * leveraging self host logic.
  */
-@InternalApi private[bootstrap] abstract class SelfAwareJoinDecider(system: ActorSystem,
-    settings: ClusterBootstrapSettings)
-    extends JoinDecider {
+@InternalApi private[bootstrap] abstract class SelfAwareJoinDecider(
+    system: ActorSystem,
+    settings: ClusterBootstrapSettings
+) extends JoinDecider {
 
   protected val log = Logging(system, getClass)
 
@@ -36,9 +37,8 @@ import scala.concurrent.duration._
    */
   private[bootstrap] def selfContactPoint: (String, Int) =
     Await.result(
-      ClusterBootstrap(system)
-          .selfContactPoint
-          .map(uri => (uri.authority.host.toString, uri.authority.port))(system.dispatcher),
+      ClusterBootstrap(system).selfContactPoint
+        .map(uri => (uri.authority.host.toString, uri.authority.port))(system.dispatcher),
       Duration.Inf // the future has a timeout
     )
 
@@ -50,8 +50,11 @@ import scala.concurrent.duration._
     if (matchesSelf(target, self)) true
     else {
       if (!info.contactPoints.exists(matchesSelf(_, self))) {
-        log.warning("Self contact point [{}] not found in targets {}", contactPointString(selfContactPoint),
-          info.contactPoints.mkString(", "))
+        log.warning(
+          "Self contact point [{}] not found in targets {}",
+          contactPointString(selfContactPoint),
+          info.contactPoints.mkString(", ")
+        )
       }
       false
     }
