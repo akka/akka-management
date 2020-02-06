@@ -7,14 +7,13 @@ package akka.management.javadsl
 import java.util.concurrent.CompletionStage
 import java.util.function.Supplier
 import java.util.function.{ Function => JFunction }
-import java.util.{ List => JList }
+import java.util.{ Optional, List => JList }
 
+import scala.compat.java8.FunctionConverters._
 import scala.compat.java8.FutureConverters._
-
 import akka.actor.ActorSystem
 import akka.actor.ExtendedActorSystem
 import akka.actor.setup.Setup
-import akka.dispatch.ExecutionContexts
 import akka.management.HealthCheckSettings
 import akka.management.internal.HealthChecksImpl
 
@@ -28,18 +27,30 @@ final class HealthChecks(system: ExtendedActorSystem, settings: HealthCheckSetti
   private val delegate = new HealthChecksImpl(system, settings)
 
   /**
+   * Returns CompletionStage(result), containing the system's readiness result
+   */
+  def readyResult(): CompletionStage[CheckResult] =
+    delegate.readyResult().map(new CheckResult(_))(system.dispatcher).toJava
+
+  /**
    * Returns CompletionStage(true) if the system is ready to receive user traffic
    */
   def ready(): CompletionStage[java.lang.Boolean] =
-    delegate.ready().map(Boolean.box)(ExecutionContexts.sameThreadExecutionContext).toJava
+    readyResult().thenApply(((r: CheckResult) => r.isSuccess).asJava)
 
   /**
    * Returns CompletionStage(true) to indicate that the process is alive but does not
    * mean that it is ready to receive traffic e.g. is has not joined the cluster
    * or is loading initial state from a database
    */
+  def aliveResult(): CompletionStage[CheckResult] =
+    delegate.aliveResult().map(new CheckResult(_))(system.dispatcher).toJava
+
+  /**
+   * Returns CompletionStage(result) containing the system's liveness result
+   */
   def alive(): CompletionStage[java.lang.Boolean] =
-    delegate.alive().map(Boolean.box)(ExecutionContexts.sameThreadExecutionContext).toJava
+    aliveResult().thenApply(((r: CheckResult) => r.isSuccess).asJava)
 }
 
 object ReadinessCheckSetup {
@@ -79,3 +90,18 @@ object LivenessCheckSetup {
 final class LivenessCheckSetup private (
     val createHealthChecks: JFunction[ActorSystem, JList[Supplier[CompletionStage[java.lang.Boolean]]]]
 ) extends Setup
+
+/**
+ * Result for readiness and liveness checks
+ */
+final class CheckResult private[javadsl] (private val result: Either[String, Unit]) {
+  def failure: Optional[String] =
+    Optional.ofNullable(result.left.toOption.orNull)
+
+  def isFailure: java.lang.Boolean = result.isLeft
+
+  def isSuccess: java.lang.Boolean = result.isRight
+
+  def success: Optional[Unit] =
+    Optional.ofNullable(result.right.toOption.orNull)
+}

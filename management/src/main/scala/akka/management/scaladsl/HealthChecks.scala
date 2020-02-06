@@ -36,11 +36,21 @@ abstract class HealthChecks {
   def ready(): Future[Boolean]
 
   /**
+   * Returns Future(result) containing the system's readiness result
+   */
+  def readyResult(): Future[Either[String, Unit]]
+
+  /**
    * Returns Future(true) to indicate that the process is alive but does not
    * mean that it is ready to receive traffic e.g. is has not joined the cluster
    * or is loading initial state from a database
    */
   def alive(): Future[Boolean]
+
+  /**
+   * Returns Future(result) containing the system's liveness result
+   */
+  def aliveResult(): Future[Either[String, Unit]]
 }
 
 object ReadinessCheckSetup {

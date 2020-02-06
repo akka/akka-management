@@ -18,31 +18,33 @@ class HealthCheckRoutesSpec extends WordSpec with Matchers with ScalatestRouteTe
   private val eas = system.asInstanceOf[ExtendedActorSystem]
 
   private def testRoute(
-      readyResult: Future[Boolean] = Future.successful(true),
-      aliveResult: Future[Boolean] = Future.successful(true)
+      readyResultValue: Future[Either[String, Unit]] = Future.successful(Right(())),
+      aliveResultValue: Future[Either[String, Unit]] = Future.successful(Right(()))
   ): Route = {
     new HealthCheckRoutes(eas) {
       override protected val healthChecks: HealthChecks = new HealthChecks {
-        override def ready(): Future[Boolean] = readyResult
-        override def alive(): Future[Boolean] = aliveResult
+        override def readyResult(): Future[Either[String, Unit]] = readyResultValue
+        override def ready(): Future[Boolean] = readyResultValue.map(_.isRight)
+        override def aliveResult(): Future[Either[String, Unit]] = aliveResultValue
+        override def alive(): Future[Boolean] = aliveResultValue.map(_.isRight)
       }
     }.routes(ManagementRouteProviderSettings(Uri("http://whocares"), readOnly = false))
   }
 
-  tests("/ready", result => testRoute(readyResult = result))
-  tests("/alive", result => testRoute(aliveResult = result))
+  tests("/ready", result => testRoute(readyResultValue = result))
+  tests("/alive", result => testRoute(aliveResultValue = result))
 
-  def tests(endpoint: String, route: Future[Boolean] => Route) = {
+  def tests(endpoint: String, route: Future[Either[String, Unit]] => Route) = {
     s"Health check ${endpoint} endpoint" should {
-      "return 200 for true" in {
-        Get(endpoint) ~> route(Future.successful(true)) ~> check {
+      "return 200 for Right" in {
+        Get(endpoint) ~> route(Future.successful(Right(()))) ~> check {
           status shouldEqual StatusCodes.OK
         }
       }
-      "return 500 for false" in {
-        Get(endpoint) ~> route(Future.successful(false)) ~> check {
+      "return 500 for Left" in {
+        Get(endpoint) ~> route(Future.successful(Left("com.someclass.MyCheck"))) ~> check {
           status shouldEqual StatusCodes.InternalServerError
-          responseAs[String] shouldEqual "Not Healthy"
+          responseAs[String] shouldEqual "Not Healthy: com.someclass.MyCheck"
         }
       }
       "return 500 for fail" in {

@@ -111,10 +111,12 @@ class HealthChecksSpec
   "HealthCheck" should {
     "succeed by default" in {
       val checks = HealthChecks(eas, settings(Nil, Nil))
+      checks.aliveResult().futureValue shouldEqual Right(())
+      checks.readyResult().futureValue shouldEqual Right(())
       checks.alive().futureValue shouldEqual true
       checks.ready().futureValue shouldEqual true
     }
-    "succeed for all health checks returning true" in {
+    "succeed for all health checks returning Right" in {
       val checks = HealthChecks(
         eas,
         settings(
@@ -122,6 +124,8 @@ class HealthChecksSpec
           im.Seq(OkCheck)
         )
       )
+      checks.aliveResult().futureValue shouldEqual Right(())
+      checks.readyResult().futureValue shouldEqual Right(())
       checks.alive().futureValue shouldEqual true
       checks.ready().futureValue shouldEqual true
     }
@@ -133,10 +137,12 @@ class HealthChecksSpec
           im.Seq(NoArgsCtrCheck)
         )
       )
+      checks.aliveResult().futureValue shouldEqual Right(())
+      checks.readyResult().futureValue shouldEqual Right(())
       checks.alive().futureValue shouldEqual true
       checks.ready().futureValue shouldEqual true
     }
-    "return false for health checks returning false" in {
+    "fail for health checks returning Left" in {
       val checks = HealthChecks(
         eas,
         settings(
@@ -144,6 +150,8 @@ class HealthChecksSpec
           im.Seq(FalseCheck)
         )
       )
+      checks.readyResult().futureValue.isRight shouldEqual false
+      checks.aliveResult().futureValue.isRight shouldEqual false
       checks.ready().futureValue shouldEqual false
       checks.alive().futureValue shouldEqual false
     }
@@ -155,8 +163,14 @@ class HealthChecksSpec
           im.Seq(ThrowsCheck)
         )
       )
-      checks.ready().failed.futureValue shouldEqual failedCause
-      checks.alive().failed.futureValue shouldEqual failedCause
+      checks.readyResult().failed.futureValue shouldEqual akka.management.internal
+        .CheckFailedException("Check [akka.management.Throws] failed: null", failedCause)
+      checks.aliveResult().failed.futureValue shouldEqual akka.management.internal
+        .CheckFailedException("Check [akka.management.Throws] failed: null", failedCause)
+      checks.ready().failed.futureValue shouldEqual akka.management.internal
+        .CheckFailedException("Check [akka.management.Throws] failed: null", failedCause)
+      checks.alive().failed.futureValue shouldEqual akka.management.internal
+        .CheckFailedException("Check [akka.management.Throws] failed: null", failedCause)
     }
     "return failure if any of the checks fail" in {
       val checks = im.Seq(
@@ -165,16 +179,24 @@ class HealthChecksSpec
         FalseCheck
       )
       val hc = HealthChecks(eas, settings(checks, checks))
-      hc.ready().failed.futureValue shouldEqual failedCause
-      hc.alive().failed.futureValue shouldEqual failedCause
+      hc.readyResult().failed.futureValue shouldEqual akka.management.internal
+        .CheckFailedException("Check [akka.management.Throws] failed: null", failedCause)
+      hc.aliveResult().failed.futureValue shouldEqual akka.management.internal
+        .CheckFailedException("Check [akka.management.Throws] failed: null", failedCause)
+      hc.ready().failed.futureValue shouldEqual akka.management.internal
+        .CheckFailedException("Check [akka.management.Throws] failed: null", failedCause)
+      hc.alive().failed.futureValue shouldEqual akka.management.internal
+        .CheckFailedException("Check [akka.management.Throws] failed: null", failedCause)
     }
     "return failure if check throws" in {
       val checks = im.Seq(
         NaughtyCheck
       )
       val hc = HealthChecks(eas, settings(checks, checks))
-      hc.ready().failed.futureValue.getMessage shouldEqual "bad"
-      hc.alive().failed.futureValue.getMessage shouldEqual "bad"
+      hc.readyResult().failed.futureValue.getMessage shouldEqual "Check [akka.management.Naughty] failed: bad"
+      hc.aliveResult().failed.futureValue.getMessage shouldEqual "Check [akka.management.Naughty] failed: bad"
+      hc.ready().failed.futureValue.getMessage shouldEqual "Check [akka.management.Naughty] failed: bad"
+      hc.alive().failed.futureValue.getMessage shouldEqual "Check [akka.management.Naughty] failed: bad"
     }
     "return failure if checks timeout" in {
       val checks = im.Seq(
@@ -182,8 +204,14 @@ class HealthChecksSpec
         OkCheck
       )
       val hc = HealthChecks(eas, settings(checks, checks))
-      Await.result(hc.ready().failed, 1.second) shouldEqual CheckTimeoutException("Timeout after 500 milliseconds")
-      Await.result(hc.alive().failed, 1.second) shouldEqual CheckTimeoutException("Timeout after 500 milliseconds")
+      Await.result(hc.readyResult().failed, 1.second) shouldEqual CheckTimeoutException(
+        "Check [akka.management.Slow] timed out after 500 milliseconds")
+      Await.result(hc.aliveResult().failed, 1.second) shouldEqual CheckTimeoutException(
+        "Check [akka.management.Slow] timed out after 500 milliseconds")
+      Await.result(hc.ready().failed, 1.second) shouldEqual CheckTimeoutException(
+        "Check [akka.management.Slow] timed out after 500 milliseconds")
+      Await.result(hc.alive().failed, 1.second) shouldEqual CheckTimeoutException(
+        "Check [akka.management.Slow] timed out after 500 milliseconds")
     }
     "provide useful error if user's ctr is invalid" in {
       intercept[InvalidHealthCheckException] {
@@ -223,6 +251,8 @@ class HealthChecksSpec
           sys2,
           settings(Nil, Nil) // no checks from config
         )
+        checks.aliveResult().futureValue shouldEqual Left("Check [akka.management.False] not ok")
+        checks.readyResult().futureValue shouldEqual Left("Check [akka.management.False] not ok")
         checks.alive().futureValue shouldEqual false
         checks.ready().futureValue shouldEqual false
       } finally {

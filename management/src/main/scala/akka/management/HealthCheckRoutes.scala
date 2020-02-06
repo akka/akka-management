@@ -29,10 +29,10 @@ private[akka] class HealthCheckRoutes(system: ExtendedActorSystem) extends Manag
   // exposed for testing
   protected val healthChecks = HealthChecks(system, settings)
 
-  private val healthCheckResponse: Try[Boolean] => Route = {
-    case Success(true) => complete(StatusCodes.OK)
-    case Success(false) =>
-      complete(StatusCodes.InternalServerError -> "Not Healthy")
+  private val healthCheckResponse: Try[Either[String, Unit]] => Route = {
+    case Success(Right(())) => complete(StatusCodes.OK)
+    case Success(Left(failingChecks)) =>
+      complete(StatusCodes.InternalServerError -> s"Not Healthy: $failingChecks")
     case Failure(t) =>
       complete(
         StatusCodes.InternalServerError -> s"Health Check Failed: ${t.getMessage}"
@@ -43,12 +43,12 @@ private[akka] class HealthCheckRoutes(system: ExtendedActorSystem) extends Manag
     concat(
       path(PathMatchers.separateOnSlashes(settings.readinessPath)) {
         get {
-          onComplete(healthChecks.ready())(healthCheckResponse)
+          onComplete(healthChecks.readyResult())(healthCheckResponse)
         }
       },
       path(PathMatchers.separateOnSlashes(settings.livenessPath)) {
         get {
-          onComplete(healthChecks.alive())(healthCheckResponse)
+          onComplete(healthChecks.aliveResult())(healthCheckResponse)
         }
       }
     )

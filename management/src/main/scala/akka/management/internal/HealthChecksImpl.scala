@@ -26,6 +26,8 @@ import akka.management.scaladsl.ReadinessCheckSetup
 import akka.management.javadsl.{ LivenessCheckSetup => JLivenessCheckSetup }
 import akka.management.javadsl.{ ReadinessCheckSetup => JReadinessCheckSetup }
 
+final case class CheckFailedException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
+
 final case class CheckTimeoutException(msg: String) extends RuntimeException(msg)
 
 /**
@@ -143,45 +145,70 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
       }
   }
 
-  def ready(): Future[Boolean] = {
+  def readyResult(): Future[Either[String, Unit]] = {
     val result = check(readiness)
     result.onComplete {
-      case Success(ok) =>
-        if (!ok)
-          log.info(ManagementLogMarker.readinessCheckFailed, "Readiness check not ok.")
+      case Success(Right(())) =>
+      case Success(Left(reason)) =>
+        log.info(ManagementLogMarker.readinessCheckFailed, reason)
       case Failure(e) =>
-        log.warning(ManagementLogMarker.readinessCheckFailed, "Readiness check failed: {}", e)
+        log.warning(ManagementLogMarker.readinessCheckFailed, e.getMessage)
     }
     result
   }
 
-  def alive(): Future[Boolean] = {
+  def ready(): Future[Boolean] = readyResult().map(_.isRight)
+
+  def aliveResult(): Future[Either[String, Unit]] = {
     val result = check(liveness)
     result.onComplete {
-      case Success(ok) =>
-        if (!ok)
-          log.info(ManagementLogMarker.livenessCheckFailed, "Liveness check not ok.")
+      case Success(Right(())) =>
+      case Success(Left(reason)) =>
+        log.info(ManagementLogMarker.livenessCheckFailed, reason)
       case Failure(e) =>
-        log.warning(ManagementLogMarker.livenessCheckFailed, "Readiness check failed: {}", e)
+        log.warning(ManagementLogMarker.livenessCheckFailed, e.getMessage)
     }
     result
   }
+
+  def alive(): Future[Boolean] = aliveResult().map(_.isRight)
 
   private def runCheck(check: HealthCheck): Future[Boolean] = {
     Future.fromTry(Try(check())).flatMap(identity)
   }
 
-  private def check(checks: immutable.Seq[HealthCheck]): Future[Boolean] = {
+  private def check(checks: immutable.Seq[HealthCheck]): Future[Either[String, Unit]] = {
     val timeout = akka.pattern.after(settings.checkTimeout, system.scheduler)(
-      Future.failed(
-        CheckTimeoutException(s"Timeout after ${settings.checkTimeout}")
-      )
+      Future.failed(new RuntimeException) // will be enriched with which check timed out below
     )
-    Future.firstCompletedOf(
-      Seq(
-        Future.traverse(checks)(runCheck).map(_.forall(identity)),
-        timeout
+
+    val spawnedChecks = checks.map { check =>
+      val checkName = check.getClass.getName
+      Future.firstCompletedOf(
+        Seq(
+          timeout.recoverWith {
+            case t: Throwable =>
+              Future.failed(
+                CheckTimeoutException(s"Check [$checkName] timed out after ${settings.checkTimeout}")
+              )
+          },
+          runCheck(check)
+            .map {
+              case true  => Right(())
+              case false => Left(s"Check [$checkName] not ok")
+            }
+            .recoverWith {
+              case t: Throwable => Future.failed(CheckFailedException(s"Check [$checkName] failed: ${t.getMessage}", t))
+            }
+        )
       )
-    )
+    }
+
+    Future.sequence(spawnedChecks).map { completedChecks =>
+      completedChecks.collectFirst { case Left(failure) => failure } match {
+        case Some(notOk) => Left(notOk)
+        case None        => Right(())
+      }
+    }
   }
 }
