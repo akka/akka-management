@@ -37,6 +37,7 @@ import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.settings.ServerSettings
 import akka.management.AkkaManagementSettings
+import akka.management.ManagementLogMarker
 import akka.management.NamedRouteProvider
 import akka.management.javadsl
 import akka.stream.ActorMaterializer
@@ -53,7 +54,8 @@ object AkkaManagement extends ExtensionId[AkkaManagement] with ExtensionIdProvid
 
 final class AkkaManagement(implicit private[akka] val system: ExtendedActorSystem) extends Extension {
 
-  ManifestInfo(system).checkSameVersion(productName = "Akka Management",
+  ManifestInfo(system).checkSameVersion(
+    productName = "Akka Management",
     dependencies = List(
       "akka-discovery-consul",
       "akka-discovery-aws-api",
@@ -64,9 +66,10 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
       "akka-management-cluster-bootstrap",
       "akka-management-cluster-http"
     ),
-    logWarning = true)
+    logWarning = true
+  )
 
-  private val log = Logging(system, getClass)
+  private val log = Logging.withMarker(system, getClass)
   val settings: AkkaManagementSettings = new AkkaManagementSettings(system.settings.config)
 
   @volatile private var materializer: Option[ActorMaterializer] = None
@@ -153,7 +156,11 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
         serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { binding =>
           val boundPort = binding.localAddress.getPort
-          log.info("Bound Akka Management (HTTP) endpoint to: {}:{}", effectiveBindHostname, boundPort)
+          log.info(
+            ManagementLogMarker.boundHttp(s"$effectiveBindHostname:$boundPort"),
+            "Bound Akka Management (HTTP) endpoint to: {}:{}",
+            effectiveBindHostname,
+            boundPort)
           selfUriPromise.success(effectiveProviderSettings.selfBaseUri.withPort(boundPort)).future
         }
 
@@ -187,7 +194,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
         case (None, Some(auth)) =>
           def credsToJava(cred: Credentials): Optional[ProvidedCredentials] = cred match {
             case provided: Credentials.Provided => Optional.of(ProvidedCredentials(provided))
-            case _ => Optional.empty()
+            case _                              => Optional.empty()
           }
           authenticateBasicAsync(realm = "secured", c => auth.apply(credsToJava(c)).toScala.map(_.asScala)).optional
             .apply(_ => inner)
@@ -208,8 +215,8 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
       }
     } else
       throw new IllegalArgumentException(
-          "No routes configured for akka management! " +
-          "Double check your `akka.management.http.routes` config.")
+        "No routes configured for akka management! " +
+        "Double check your `akka.management.http.routes` config.")
   }
 
   def stop(): Future[Done] = {
@@ -219,11 +226,10 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
       Future.successful(Done)
     } else if (bindingFuture.compareAndSet(binding, null)) {
       val stopFuture = binding.flatMap(_.unbind()).map((_: Any) => Done)
-      stopFuture.onComplete(
-          _ =>
-            materializer.foreach { mat =>
-            mat.shutdown()
-            materializer = None
+      stopFuture.onComplete(_ =>
+        materializer.foreach { mat =>
+          mat.shutdown()
+          materializer = None
         })
       stopFuture
     } else stop() // retry, CAS was not successful, someone else completed the stop()
@@ -233,36 +239,44 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
     val dynamicAccess = system.dynamicAccess
 
     // since often the providers are akka extensions, we initialize them here as the ActorSystem would otherwise
-    settings.Http.RouteProviders map {
+    settings.Http.RouteProviders.map {
       case NamedRouteProvider(name, fqcn) =>
-        dynamicAccess.getObjectFor[ExtensionIdProvider](fqcn) recoverWith {
-          case _ => dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, Nil)
-        } recoverWith {
-          case _: ClassCastException | _: NoSuchMethodException =>
-            dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
-        } recoverWith {
-          case _: ClassCastException | _: NoSuchMethodException =>
-            dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, Nil)
-        } recoverWith {
-          case _: ClassCastException | _: NoSuchMethodException =>
-            dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn,
-              (classOf[ExtendedActorSystem], system) :: Nil)
-        } recoverWith {
-          case _: ClassCastException | _: NoSuchMethodException =>
-            dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn, Nil)
-        } recoverWith {
-          case _: ClassCastException | _: NoSuchMethodException =>
-            dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn,
-              (classOf[ExtendedActorSystem], system) :: Nil)
-        } match {
+        dynamicAccess
+          .getObjectFor[ExtensionIdProvider](fqcn)
+          .recoverWith {
+            case _ => dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, Nil)
+          }
+          .recoverWith {
+            case _: ClassCastException | _: NoSuchMethodException =>
+              dynamicAccess.createInstanceFor[ExtensionIdProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
+          }
+          .recoverWith {
+            case _: ClassCastException | _: NoSuchMethodException =>
+              dynamicAccess.createInstanceFor[ManagementRouteProvider](fqcn, Nil)
+          }
+          .recoverWith {
+            case _: ClassCastException | _: NoSuchMethodException =>
+              dynamicAccess.createInstanceFor[ManagementRouteProvider](
+                fqcn,
+                (classOf[ExtendedActorSystem], system) :: Nil)
+          }
+          .recoverWith {
+            case _: ClassCastException | _: NoSuchMethodException =>
+              dynamicAccess.createInstanceFor[javadsl.ManagementRouteProvider](fqcn, Nil)
+          }
+          .recoverWith {
+            case _: ClassCastException | _: NoSuchMethodException =>
+              dynamicAccess
+                .createInstanceFor[javadsl.ManagementRouteProvider](fqcn, (classOf[ExtendedActorSystem], system) :: Nil)
+          } match {
           case Success(p: ExtensionIdProvider) =>
             system.registerExtension(p.lookup()) match {
-              case provider: ManagementRouteProvider => provider
+              case provider: ManagementRouteProvider         => provider
               case provider: javadsl.ManagementRouteProvider => new ManagementRouteProviderAdapter(provider)
               case other =>
                 throw new RuntimeException(
-                    s"Extension [$fqcn] should create a 'ManagementRouteProvider' but was " +
-                    s"[${other.getClass.getName}]")
+                  s"Extension [$fqcn] should create a 'ManagementRouteProvider' but was " +
+                  s"[${other.getClass.getName}]")
             }
 
           case Success(provider: ManagementRouteProvider) =>
@@ -273,7 +287,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
           case Success(_) =>
             throw new RuntimeException(
-                s"[$fqcn] is not an 'ExtensionIdProvider', 'ExtensionId' or 'ManagementRouteProvider'")
+              s"[$fqcn] is not an 'ExtensionIdProvider', 'ExtensionId' or 'ManagementRouteProvider'")
 
           case Failure(problem) =>
             throw new RuntimeException(s"While trying to load route provider extension [$name = $fqcn]", problem)

@@ -53,7 +53,7 @@ object MarathonApiServiceDiscovery {
 
     // Tasks in the API don't have port names, so we have to look to the app to get the position we use
     def portIndex(app: App) =
-      dockerContainerPort(app) orElse appContainerPort(app) orElse appPort(app)
+      dockerContainerPort(app).orElse(appContainerPort(app)).orElse(appPort(app))
 
     for {
       app <- appList.apps
@@ -63,7 +63,9 @@ object MarathonApiServiceDiscovery {
       taskPorts <- task.ports
       taskAkkaManagementPort <- taskPorts.lift(portNumber)
     } yield {
-      ResolvedTarget(host = taskHost, port = Some(taskAkkaManagementPort),
+      ResolvedTarget(
+        host = taskHost,
+        port = Some(taskAkkaManagementPort),
         address = Try(InetAddress.getByName(taskHost)).toOption)
     }
   }
@@ -87,7 +89,10 @@ class MarathonApiServiceDiscovery(system: ActorSystem) extends ServiceDiscovery 
 
   override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     val uri =
-      Uri(settings.appApiUrl).withQuery(Uri.Query("embed" -> "apps.tasks", "embed" -> "apps.deployments",
+      Uri(settings.appApiUrl).withQuery(
+        Uri.Query(
+          "embed" -> "apps.tasks",
+          "embed" -> "apps.deployments",
           "label" -> settings.appLabelQuery.format(lookup.serviceName)))
 
     val request = HttpRequest(uri = uri)
@@ -96,7 +101,7 @@ class MarathonApiServiceDiscovery(system: ActorSystem) extends ServiceDiscovery 
 
     val portName = lookup.portName match {
       case Some(name) => name
-      case None => settings.appPortName
+      case None       => settings.appPortName
     }
 
     for {
@@ -109,8 +114,11 @@ class MarathonApiServiceDiscovery(system: ActorSystem) extends ServiceDiscovery 
         val unmarshalled = Unmarshal(entity).to[AppList]
 
         unmarshalled.failed.foreach { _ =>
-          log.error("Failed to unmarshal Marathon API response status [{}], entity: [{}], uri: [{}]",
-            response.status.value, entity.data.utf8String, uri)
+          log.error(
+            "Failed to unmarshal Marathon API response status [{}], entity: [{}], uri: [{}]",
+            response.status.value,
+            entity.data.utf8String,
+            uri)
         }
         unmarshalled
       }

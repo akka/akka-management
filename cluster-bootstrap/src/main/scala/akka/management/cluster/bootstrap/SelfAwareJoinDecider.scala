@@ -19,15 +19,19 @@ import akka.event.Logging
  * Class for further behavior in a [[akka.management.cluster.bootstrap.JoinDecider]]
  * leveraging self host logic.
  */
-@InternalApi private[bootstrap] abstract class SelfAwareJoinDecider(system: ActorSystem,
-                                                                    settings: ClusterBootstrapSettings)
+@InternalApi private[bootstrap] abstract class SelfAwareJoinDecider(
+    system: ActorSystem,
+    settings: ClusterBootstrapSettings)
     extends JoinDecider {
 
-  protected val log = Logging(system, getClass)
+  protected val log = Logging.withMarker(system, getClass)
 
   /** Returns the current `selfContactPoints` as a String for logging, e.g. [127.0.0.1:64714]. */
   protected def contactPointString(contactPoint: (String, Int)): String =
     contactPoint.productIterator.mkString(":")
+
+  protected def contactPointString(contactPoint: ResolvedTarget): String =
+    s"${contactPoint.host}:${contactPoint.port.getOrElse("0")}"
 
   /**
    * The value `ClusterBootstrap(system).selfContactPoints` is set prior to HTTP binding,
@@ -35,9 +39,10 @@ import akka.event.Logging
    * this initialization.
    */
   private[bootstrap] def selfContactPoint: (String, Int) =
-    Try(Await.result(ClusterBootstrap(system).selfContactPoint, 10.seconds)).getOrElse(throw new IllegalStateException(
-          "'Bootstrap.selfContactPoint' was NOT set, but is required for the bootstrap to work " +
-          "if binding bootstrap routes manually and not via akka-management."))
+    Try(Await.result(ClusterBootstrap(system).selfContactPoint, 10.seconds)).getOrElse(
+      throw new IllegalStateException(
+        "'Bootstrap.selfContactPoint' was NOT set, but is required for the bootstrap to work " +
+        "if binding bootstrap routes manually and not via akka-management."))
 
   /**
    * Determines whether it has the need and ability to join self and create a new cluster.
@@ -47,8 +52,12 @@ import akka.event.Logging
     if (matchesSelf(target, self)) true
     else {
       if (!info.contactPoints.exists(matchesSelf(_, self))) {
-        log.warning("Self contact point [{}] not found in targets {}", contactPointString(selfContactPoint),
-          info.contactPoints.mkString(", "))
+        log.warning(
+          BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString), info.allSeedNodes),
+          "Self contact point [{}] not found in targets {}",
+          contactPointString(selfContactPoint),
+          info.contactPoints.mkString(", ")
+        )
       }
       false
     }
@@ -57,7 +66,7 @@ import akka.event.Logging
   private[bootstrap] def matchesSelf(target: ResolvedTarget, contactPoint: (String, Int)): Boolean = {
     val (host, port) = contactPoint
     target.port match {
-      case None => hostMatches(host, target)
+      case None             => hostMatches(host, target)
       case Some(lowestPort) => hostMatches(host, target) && port == lowestPort
     }
   }

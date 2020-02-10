@@ -1,5 +1,7 @@
 ## Kubernetes API
 
+If you want to use Kubernetes for @ref[Cluster Bootstrap](../bootstrap/index.md), please follow the @ref[Cluster Bootstrap Kubernetes API](../bootstrap/kubernetes-api.md) documentation that is tailored for that use case.
+
 The typical way to consume a service in Kubernetes is to discover it through DNS: this will take into account liveness/readiness checks, and depending on the configuration take care of load balancing (removing the need for client-side load balancing). For this reason, for general usage the @extref:[`akka-dns`](akka:discovery/index.html#discovery-method-dns) implementation is usually a better fit for discovering services in Kubernetes. However, in some cases, such as for @ref[Cluster Bootstrap](../bootstrap/index.md), it is desirable to connect to the pods directly, bypassing any liveness/readiness checks or load balancing. For such situations we provide a discovery implementation that uses the Kubernetes API.
 
 ## Project Info
@@ -39,7 +41,7 @@ akka.discovery {
     #
     # If this path doesn't exist, the namespace will default to "default".
     pod-namespace-path = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
-  
+
     # Namespace to query for pods.
     #
     # Set this value to a specific string to override discovering the namespace using pod-namespace-path.
