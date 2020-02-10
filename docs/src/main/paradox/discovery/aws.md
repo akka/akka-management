@@ -247,7 +247,7 @@ Notes:
   to set this explicitly. An alternative host address discovery method is
   provided by both modules. The methods are
   `EcsSimpleServiceDiscovery.getContainerAddress` and
-  `AsyncEcsSimpleServiceDiscovery.getContainerAddress` respectively, which you
+  `AsyncEcsDiscovery.getContainerAddress` respectively, which you
   should use to programmatically set both config hostnames.
 
 * Because ECS service discovery is only able to discover IP addresses (not ports
