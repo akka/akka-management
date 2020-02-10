@@ -41,19 +41,19 @@ import spray.json.DefaultJsonProtocol._
 @ApiMayChange
 class AsyncEcsTaskSetDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
-  private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs-task-set-async")
-  private[this] val cluster = config.getString("cluster")
+  private val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs-task-set-async")
+  private val cluster = config.getString("cluster")
 
-  private[this] lazy val ecsClient = {
+  private lazy val ecsClient = {
     val conf = ClientOverrideConfiguration.builder().retryPolicy(RetryPolicy.none).build()
     EcsAsyncClient.builder().overrideConfiguration(conf).build()
   }
 
-  private[this] implicit val actorSystem: ActorSystem = system
-  private[this] implicit val materializer: ActorMaterializer = ActorMaterializer()
-  private[this] implicit val ec: ExecutionContext = system.dispatcher
+  private implicit val actorSystem: ActorSystem = system
+  private implicit val materializer: ActorMaterializer = ActorMaterializer()
+  private implicit val ec: ExecutionContext = system.dispatcher
 
-  private[this] val httpClient: HttpExt = Http()
+  private val httpClient: HttpExt = Http()
 
   override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.firstCompletedOf(
