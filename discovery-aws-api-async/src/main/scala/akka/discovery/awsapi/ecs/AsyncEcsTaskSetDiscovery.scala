@@ -4,7 +4,7 @@
 
 package akka.discovery.awsapi.ecs
 
-import java.net.{ InetAddress, NetworkInterface }
+import java.net.InetAddress
 import java.util.concurrent.TimeoutException
 
 import scala.collection.JavaConverters._
@@ -59,7 +59,7 @@ class AsyncEcsTaskSetDiscovery(system: ActorSystem) extends ServiceDiscovery {
     Future.firstCompletedOf(
       Seq(
         after(resolveTimeout, using = system.scheduler)(
-          Future.failed(new TimeoutException("Future timed out!"))
+          Future.failed(new TimeoutException(s"$lookup timed out after $resolveTimeout"))
         ),
         resolveTasks(ecsClient, cluster, httpClient).map(
           tasks =>
@@ -89,27 +89,6 @@ object AsyncEcsTaskSetDiscovery {
   private[this] implicit val orderFormat = jsonFormat1(TaskMetadata)
 
   private val ECS_CONTAINER_METADATA_URI_PATH = "ECS_CONTAINER_METADATA_URI"
-
-  // InetAddress.getLocalHost.getHostAddress throws an exception when running
-  // in awsvpc mode because the container name cannot be resolved.
-  // ECS provides a metadata file
-  // (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/container-metadata.html)
-  // that we ought to be able to use instead to find our IP address, but the
-  // metadata file does not get set when running on Fargate. So this is our
-  // only option for determining what the canonical Akka and akka-management
-  // hostname values should be set to.
-  def getContainerAddress: Either[String, InetAddress] =
-    NetworkInterface.getNetworkInterfaces.asScala
-      .flatMap(_.getInetAddresses.asScala)
-      .filterNot(_.isLoopbackAddress)
-      .filter(_.isSiteLocalAddress)
-      .toList match {
-      case List(value) =>
-        Right(value)
-
-      case other =>
-        Left(s"Exactly one private address must be configured (found: $other).")
-    }
 
   private def resolveTasks(ecsClient: EcsAsyncClient, cluster: String, httpClient: HttpExt)(
       implicit
