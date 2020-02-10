@@ -61,20 +61,18 @@ class AsyncEcsTaskSetDiscovery(system: ActorSystem) extends ServiceDiscovery {
         after(resolveTimeout, using = system.scheduler)(
           Future.failed(new TimeoutException(s"$lookup timed out after $resolveTimeout"))
         ),
-        resolveTasks(ecsClient, cluster, httpClient).map(
-          tasks =>
-            Resolved(
-              serviceName = lookup.serviceName,
-              addresses = for {
-                task <- tasks
-                container <- task.containers().asScala
-                networkInterface <- container.networkInterfaces().asScala
-              } yield {
-                val address = networkInterface.privateIpv4Address()
-                ResolvedTarget(host = address, port = None, address = Try(InetAddress.getByName(address)).toOption)
-              }
-            )
-        )
+        resolveTasks(ecsClient, cluster, httpClient).map(tasks =>
+          Resolved(
+            serviceName = lookup.serviceName,
+            addresses = for {
+              task <- tasks
+              container <- task.containers().asScala
+              networkInterface <- container.networkInterfaces().asScala
+            } yield {
+              val address = networkInterface.privateIpv4Address()
+              ResolvedTarget(host = address, port = None, address = Try(InetAddress.getByName(address)).toOption)
+            }
+          ))
       )
     )
 
@@ -99,11 +97,11 @@ object AsyncEcsTaskSetDiscovery {
       taskArn <- resolveTaskMetadata(httpClient).map(_.map(_.TaskARN))
       taskSet <- taskArn match {
         case Some(arn) => resolveTaskSet(ecsClient, cluster, arn)
-        case None => Future.successful(None)
+        case None      => Future.successful(None)
       }
       taskArns <- taskSet match {
         case Some(ts) => listTaskArns(ecsClient, cluster, ts)
-        case None => Future.successful(Seq.empty[String])
+        case None     => Future.successful(Seq.empty[String])
       }
       tasks <- describeTasks(ecsClient, cluster, taskArns)
     } yield tasks
@@ -120,16 +118,14 @@ object AsyncEcsTaskSetDiscovery {
         throw new IllegalStateException("The environment variable ECS_CONTAINER_METADATA_URI cannot be found")
     }
 
-    httpClient
-      .singleRequest(HttpRequest(uri = s"$ecsContainerMetadataUri/task"))
-      .flatMap {
-        case HttpResponse(StatusCodes.OK, _, entity, _) =>
-          val metadata = Unmarshal(entity).to[TaskMetadata].map(Option(_))
-          metadata
-        case resp @ HttpResponse(_, _, _, _) =>
-          resp.discardEntityBytes()
-          Future.successful(None)
-      }
+    httpClient.singleRequest(HttpRequest(uri = s"$ecsContainerMetadataUri/task")).flatMap {
+      case HttpResponse(StatusCodes.OK, _, entity, _) =>
+        val metadata = Unmarshal(entity).to[TaskMetadata].map(Option(_))
+        metadata
+      case resp @ HttpResponse(_, _, _, _) =>
+        resp.discardEntityBytes()
+        Future.successful(None)
+    }
   }
 
   private[this] def resolveTaskSet(ecsClient: EcsAsyncClient, cluster: String, taskArn: String)(
@@ -139,8 +135,7 @@ object AsyncEcsTaskSetDiscovery {
       ecsClient.describeTasks(
         DescribeTasksRequest.builder().cluster(cluster).tasks(taskArn).include(TaskField.TAGS).build()
       )
-    ).map(_.tasks().asScala.headOption)
-      .map(_.map(task => TaskSet(task.startedBy())))
+    ).map(_.tasks().asScala.headOption).map(_.map(task => TaskSet(task.startedBy())))
 
   private[this] def listTaskArns(
       ecsClient: EcsAsyncClient,
@@ -182,14 +177,12 @@ object AsyncEcsTaskSetDiscovery {
   ): Future[Seq[Task]] =
     for {
       // Each DescribeTasksRequest can contain at most 100 task ARNs.
-      describeTasksResponses <- Future.traverse(taskArns.grouped(100))(
-        taskArnGroup =>
-          toScala(
-            ecsClient.describeTasks(
-              DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).include(TaskField.TAGS).build()
-            )
+      describeTasksResponses <- Future.traverse(taskArns.grouped(100))(taskArnGroup =>
+        toScala(
+          ecsClient.describeTasks(
+            DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).include(TaskField.TAGS).build()
           )
-      )
+        ))
       tasks = describeTasksResponses.flatMap(_.tasks().asScala).toList
     } yield tasks
 
