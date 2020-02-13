@@ -15,6 +15,7 @@ import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.event.Logging
 import akka.pattern.after
 import com.amazonaws.ClientConfiguration
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.retry.PredefinedRetryPolicies
 import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter, Reservation }
 import com.amazonaws.services.ec2.{ AmazonEC2, AmazonEC2ClientBuilder }
@@ -107,7 +108,17 @@ class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDi
       case None =>
         defaultClientConfiguration
     }
-    AmazonEC2ClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
+    val endpointConfiguration = (config.getString("endpoint"), config.getString("region")) match {
+      case ("", _) | (_, "") =>
+        null
+      case (endpoint, region) =>
+        new EndpointConfiguration(endpoint, region)
+    }
+    AmazonEC2ClientBuilder
+      .standard()
+      .withClientConfiguration(clientConfiguration)
+      .withEndpointConfiguration(endpointConfiguration)
+      .build()
   }
 
   @tailrec
