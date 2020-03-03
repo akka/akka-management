@@ -125,6 +125,7 @@ object Dependencies {
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
       DependencyGroups.AkkaDiscovery ++
+      DependencyGroups.AkkaHttp ++
       DependencyGroups.Aws2Ecs
   )
 
