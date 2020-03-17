@@ -7,9 +7,9 @@ package akka.management.cluster.bootstrap
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.AkkaVersion
-import scala.concurrent.Future
-import scala.concurrent.Promise
 
+import scala.concurrent.{ Future, Promise, TimeoutException }
+import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import akka.actor.ExtendedActorSystem
 import akka.actor.Extension
@@ -56,7 +56,8 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     system.dynamicAccess
       .createInstanceFor[JoinDecider](
         settings.joinDecider.implClass,
-        List((classOf[ActorSystem], system), (classOf[ClusterBootstrapSettings], settings)))
+        List((classOf[ActorSystem], system), (classOf[ClusterBootstrapSettings], settings))
+      )
       .get
   }
 
@@ -80,11 +81,29 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
     } else if (bootstrapStep.compareAndSet(NotRunning, Initializing)) {
       log.info("Initiating bootstrap procedure using {} method...", settings.contactPointDiscovery.discoveryMethod)
 
+      ensureSelfContactPoint()
       val bootstrapProps = BootstrapCoordinator.props(discovery, joinDecider, settings)
       val bootstrap = system.systemActorOf(bootstrapProps, "bootstrapCoordinator")
       // Bootstrap already logs in several other execution points when it can't form a cluster, and why.
-      bootstrap ! BootstrapCoordinator.Protocol.InitiateBootstrapping
+      selfContactPoint.foreach { uri =>
+        bootstrap ! BootstrapCoordinator.Protocol.InitiateBootstrapping(uri)
+      }
     } else log.warning("Bootstrap already initiated, yet start() method was called again. Ignoring.")
+
+  /**
+   * INTERNAL API
+   *
+   * We give the required selfContactPoint some time to be set asynchronously, or else log an error.
+   */
+  @InternalApi private[bootstrap] def ensureSelfContactPoint(): Unit = system.scheduler.scheduleOnce(10.seconds) {
+    if (!selfContactPoint.isCompleted) {
+      _selfContactPointUri.failure(new TimeoutException("Awaiting Bootstrap.selfContactPoint timed out."))
+      log.error(
+        "'Bootstrap.selfContactPoint' was NOT set, but is required for the bootstrap to work " +
+        "if binding bootstrap routes manually and not via akka-management."
+      )
+    }
+  }
 
   /**
    * INTERNAL API
@@ -93,18 +112,13 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
    * This allows us to "reverse lookup" from a lowest-address sorted contact point list,
    * that we discover via discovery, if a given contact point corresponds to our remoting address,
    * and if so, we may opt to join ourselves using the address.
-   *
-   * @return true if successfully set, false otherwise (i.e. was set already)
    */
   @InternalApi
   private[akka] def setSelfContactPoint(baseUri: Uri): Unit =
     _selfContactPointUri.success(baseUri)
 
   /** INTERNAL API */
-  @InternalApi private[akka] def selfContactPoint: Future[(String, Int)] =
-    _selfContactPointUri.future.map { uri =>
-      (uri.authority.host.toString, uri.authority.port)
-    }
+  @InternalApi private[akka] def selfContactPoint: Future[Uri] = _selfContactPointUri.future
 }
 
 object ClusterBootstrap extends ExtensionId[ClusterBootstrap] with ExtensionIdProvider {

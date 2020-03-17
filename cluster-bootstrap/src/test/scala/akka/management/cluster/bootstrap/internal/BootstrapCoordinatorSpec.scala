@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicReference
 import akka.actor.{ ActorRef, ActorSystem, Props }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.{ Lookup, MockDiscovery }
+import akka.http.scaladsl.model.Uri
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator.Protocol.InitiateBootstrapping
 import akka.management.cluster.bootstrap.{ ClusterBootstrapSettings, LowestAddressJoinDecider }
 import com.typesafe.config.ConfigFactory
@@ -21,6 +22,7 @@ import scala.concurrent.duration._
 
 class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfterAll with Eventually {
   val serviceName = "bootstrap-coordinator-test-service"
+  val selfUri = Uri("http://localhost:8558/")
   val system = ActorSystem(
     "test",
     ConfigFactory.parseString(s"""
@@ -34,7 +36,8 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
 
   val discovery = new MockDiscovery(system)
 
-  override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(100, Millis))
+  override implicit val patienceConfig =
+    PatienceConfig(timeout = Span(5, Seconds), interval = Span(100, Millis))
 
   "The bootstrap coordinator, when avoiding named port lookups" should {
 
@@ -52,19 +55,25 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
                 ResolvedTarget("host2", Some(2552), None),
                 ResolvedTarget("host2", Some(8558), None)
               )
-            ))
+            )
+          )
       )
 
       val targets = new AtomicReference[List[ResolvedTarget]](Nil)
-      val coordinator = system.actorOf(Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
-        override def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
-          println(s"Resolving $contactPoint")
-          val targetsSoFar = targets.get
-          targets.compareAndSet(targetsSoFar, contactPoint +: targetsSoFar)
-          None
-        }
-      }))
-      coordinator ! InitiateBootstrapping
+      val coordinator = system.actorOf(
+        Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
+          override def ensureProbing(
+              selfContactPointScheme: String,
+              contactPoint: ResolvedTarget
+          ): Option[ActorRef] = {
+            println(s"Resolving $contactPoint")
+            val targetsSoFar = targets.get
+            targets.compareAndSet(targetsSoFar, contactPoint +: targetsSoFar)
+            None
+          }
+        })
+      )
+      coordinator ! InitiateBootstrapping(selfUri)
       eventually {
         val targetsToCheck = targets.get
         targetsToCheck.length should be >= (2)
@@ -88,19 +97,20 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
                 ResolvedTarget("host2", None, None),
                 ResolvedTarget("host2", None, None)
               )
-            ))
+            )
+          )
       )
 
       val targets = new AtomicReference[List[ResolvedTarget]](Nil)
       val coordinator = system.actorOf(Props(new BootstrapCoordinator(discovery, joinDecider, settings) {
-        override def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
+        override def ensureProbing(selfContactPointScheme: String, contactPoint: ResolvedTarget): Option[ActorRef] = {
           println(s"Resolving $contactPoint")
           val targetsSoFar = targets.get
           targets.compareAndSet(targetsSoFar, contactPoint +: targetsSoFar)
           None
         }
       }))
-      coordinator ! InitiateBootstrapping
+      coordinator ! InitiateBootstrapping(selfUri)
       eventually {
         val targetsToCheck = targets.get
         targetsToCheck.length should be >= (2)
@@ -125,7 +135,8 @@ class BootstrapCoordinatorSpec extends WordSpec with Matchers with BeforeAndAfte
         Lookup.create("service").withPortName("cats"),
         8558,
         filterOnFallbackPort = true,
-        beforeFiltering) shouldEqual beforeFiltering
+        beforeFiltering
+      ) shouldEqual beforeFiltering
     }
 
     // For example when using DNS A-record-based discovery in K8s

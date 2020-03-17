@@ -44,7 +44,7 @@ private[akka] object BootstrapCoordinator {
     Props(new BootstrapCoordinator(discovery, joinDecider, settings))
 
   object Protocol {
-    final case object InitiateBootstrapping
+    final case class InitiateBootstrapping(selfContactPoint: Uri)
     sealed trait BootstrappingCompleted
     final case object BootstrappingCompleted extends BootstrappingCompleted
 
@@ -63,7 +63,8 @@ private[akka] object BootstrapCoordinator {
 
   protected[bootstrap] final case class ServiceContactsObservation(
       observedAt: LocalDateTime,
-      observedContactPoints: Set[ResolvedTarget]) {
+      observedContactPoints: Set[ResolvedTarget]
+  ) {
 
     def membersChanged(other: ServiceContactsObservation): Boolean =
       this.observedContactPoints != other.observedContactPoints
@@ -77,7 +78,9 @@ private[akka] object BootstrapCoordinator {
       lookup: Lookup,
       fallbackPort: Int,
       filterOnFallbackPort: Boolean,
-      contactPoints: immutable.Seq[ResolvedTarget]): immutable.Iterable[ResolvedTarget] = {
+      contactPoints: immutable.Seq[ResolvedTarget]
+  ): immutable.Iterable[ResolvedTarget] = {
+
     // if the user has specified a port name in the search, don't do any filtering and assume it
     // is handled in the service discovery mechanism
     if (lookup.portName.isDefined || !filterOnFallbackPort) {
@@ -131,8 +134,8 @@ private[akka] object BootstrapCoordinator {
 private[akka] class BootstrapCoordinator(
     discovery: ServiceDiscovery,
     joinDecider: JoinDecider,
-    settings: ClusterBootstrapSettings)
-    extends Actor
+    settings: ClusterBootstrapSettings
+) extends Actor
     with Timers {
 
   import BootstrapCoordinator.Protocol._
@@ -141,14 +144,14 @@ private[akka] class BootstrapCoordinator(
   implicit private val ec = context.dispatcher
   private val log = Logging.withMarker(this)
   private val cluster = Cluster(context.system)
-
   private val DiscoverTimerKey = "resolve-key"
   private val DecideTimerKey = "decide-key"
 
   private val lookup = Lookup(
     settings.contactPointDiscovery.effectiveName(context.system),
     settings.contactPointDiscovery.portName,
-    settings.contactPointDiscovery.protocol)
+    settings.contactPointDiscovery.protocol
+  )
 
   private var lastContactsObservation: Option[ServiceContactsObservation] = None
   private var seedNodesObservations: Map[ResolvedTarget, SeedNodesObservation] = Map.empty
@@ -167,7 +170,8 @@ private[akka] class BootstrapCoordinator(
       restartCount: Int,
       minBackoff: FiniteDuration,
       maxBackoff: FiniteDuration,
-      randomFactor: Double): FiniteDuration = {
+      randomFactor: Double
+  ): FiniteDuration = {
     val rnd = 1.0 + ThreadLocalRandom.current().nextDouble() * randomFactor
     val calculatedDuration = Try(maxBackoff.min(minBackoff * math.pow(2, restartCount)) * rnd).getOrElse(maxBackoff)
     calculatedDuration match {
@@ -192,19 +196,20 @@ private[akka] class BootstrapCoordinator(
 
   /** Awaiting initial signal to start the bootstrap process */
   override def receive: Receive = {
-    case InitiateBootstrapping =>
+    case InitiateBootstrapping(selfContactPoint) =>
       log.info(
         BootstrapLogMarker.init,
-        "Locating service members. Using discovery [{}], join decider [{}]",
+        "Locating service members. Using discovery [{}], join decider [{}], scheme [{}]",
         discovery.getClass.getName,
-        joinDecider.getClass.getName)
+        joinDecider.getClass.getName,
+        selfContactPoint.scheme
+      )
       discoverContactPoints()
-
-      context.become(bootstrapping(sender()))
+      context.become(bootstrapping(sender(), selfContactPoint.scheme))
   }
 
   /** In process of searching for seed-nodes */
-  def bootstrapping(replyTo: ActorRef): Receive = {
+  def bootstrapping(replyTo: ActorRef, selfContactPointScheme: String): Receive = {
     case DiscoverTick =>
       // the next round of discovery will be performed once this one returns
       discoverContactPoints()
@@ -214,7 +219,8 @@ private[akka] class BootstrapCoordinator(
         lookup,
         settings.contactPoint.fallbackPort,
         settings.contactPoint.filterOnFallbackPort,
-        contactPoints)
+        contactPoints
+      )
 
       log.info(
         BootstrapLogMarker.resolved(formatContactPoints(filteredContactPoints)),
@@ -223,7 +229,8 @@ private[akka] class BootstrapCoordinator(
         contactPoints.mkString(", "),
         formatContactPoints(filteredContactPoints).mkString(", ")
       )
-      onContactPointsResolved(filteredContactPoints)
+      onContactPointsResolved(filteredContactPoints, selfContactPointScheme)
+
       resetDiscoveryInterval() // in case we were backed-off, we reset back to healthy intervals
       startSingleDiscoveryTimer() // keep looking in case other nodes join the discovery
 
@@ -247,7 +254,8 @@ private[akka] class BootstrapCoordinator(
 
           seedNodesObservations = seedNodesObservations.updated(
             contactPoint,
-            new SeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes))
+            new SeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes)
+          )
         }
 
         // if we got seed nodes it is likely that it should join those immediately
@@ -320,7 +328,7 @@ private[akka] class BootstrapCoordinator(
     discovery.lookup(lookup, settings.contactPointDiscovery.resolveTimeout).pipeTo(self)
   }
 
-  private def onContactPointsResolved(contactPoints: Iterable[ResolvedTarget]): Unit = {
+  private def onContactPointsResolved(contactPoints: Iterable[ResolvedTarget], selfContactPointScheme: String): Unit = {
     val newObservation = ServiceContactsObservation(timeNow(), contactPoints.toSet)
     lastContactsObservation match {
       case Some(contacts) => lastContactsObservation = Some(contacts.sameOrChanged(newObservation))
@@ -334,12 +342,14 @@ private[akka] class BootstrapCoordinator(
 
     // TODO stop the obsolete children (they are stopped when probing fails for too long)
 
-    newObservation.observedContactPoints.foreach(ensureProbing)
+    newObservation.observedContactPoints.foreach(ensureProbing(selfContactPointScheme, _))
   }
 
-  private[internal] def ensureProbing(contactPoint: ResolvedTarget): Option[ActorRef] = {
+  private[internal] def ensureProbing(
+      selfContactPointScheme: String,
+      contactPoint: ResolvedTarget): Option[ActorRef] = {
     val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
-    val rawBaseUri = Uri("http", Uri.Authority(Uri.Host(contactPoint.host), targetPort))
+    val rawBaseUri = Uri(selfContactPointScheme, Uri.Authority(Uri.Host(contactPoint.host), targetPort))
     val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
 
     val childActorName = s"contactPointProbe-${baseUri.authority.host}-${baseUri.authority.port}"

@@ -70,7 +70,8 @@ private[bootstrap] class HttpContactPointBootstrap(
       baseUri.authority.port == cluster.selfAddress.port.getOrElse(-1)) {
     throw new IllegalArgumentException(
       "Requested base Uri to be probed matches local remoting address, bailing out! " +
-      s"Uri: $baseUri, this node's remoting address: ${cluster.selfAddress}")
+      s"Uri: $baseUri, this node's remoting address: ${cluster.selfAddress}"
+    )
   }
 
   private implicit val mat = ActorMaterializer()(context.system)
@@ -96,11 +97,8 @@ private[bootstrap] class HttpContactPointBootstrap(
 
   override def receive = {
     case ProbeTick =>
-      val req = ClusterBootstrapRequests.bootstrapSeedNodes(baseUri)
-      log.debug("Probing [{}] for seed nodes...", req.uri)
-
+      log.debug("Probing [{}] for seed nodes...", probeRequest.uri)
       val reply = http.singleRequest(probeRequest, settings = connectionPoolWithoutRetries).flatMap(handleResponse)
-
       val afterTimeout = after(settings.contactPoint.probingFailureTimeout, context.system.scheduler)(replyTimeout)
       Future.firstCompletedOf(List(reply, afterTimeout)).pipeTo(self)
 
@@ -132,7 +130,8 @@ private[bootstrap] class HttpContactPointBootstrap(
       strictEntity.flatMap { entity =>
         val body = entity.data.utf8String
         Future.failed(
-          new IllegalStateException(s"Expected response '200 OK' but found ${response.status}. Body: '$body'"))
+          new IllegalStateException(s"Expected response '200 OK' but found ${response.status}. Body: '$body'")
+        )
       }
   }
 
@@ -142,7 +141,8 @@ private[bootstrap] class HttpContactPointBootstrap(
       timeNow(),
       contactPoint,
       members.selfNode,
-      seedAddresses)
+      seedAddresses
+    )
   }
 
   private def scheduleNextContactPointProbing(): Unit =
