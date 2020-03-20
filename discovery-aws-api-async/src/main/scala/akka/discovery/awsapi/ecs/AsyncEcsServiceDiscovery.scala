@@ -54,20 +54,18 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
         after(resolveTimeout, using = system.scheduler)(
           Future.failed(new TimeoutException("Future timed out!"))
         ),
-        resolveTasks(ecsClient, cluster, lookup.serviceName, tags).map(
-          tasks =>
-            Resolved(
-              serviceName = lookup.serviceName,
-              addresses = for {
-                task <- tasks
-                container <- task.containers().asScala
-                networkInterface <- container.networkInterfaces().asScala
-              } yield {
-                val address = networkInterface.privateIpv4Address()
-                ResolvedTarget(host = address, port = None, address = Try(InetAddress.getByName(address)).toOption)
-              }
-            )
-        )
+        resolveTasks(ecsClient, cluster, lookup.serviceName, tags).map(tasks =>
+          Resolved(
+            serviceName = lookup.serviceName,
+            addresses = for {
+              task <- tasks
+              container <- task.containers().asScala
+              networkInterface <- container.networkInterfaces().asScala
+            } yield {
+              val address = networkInterface.privateIpv4Address()
+              ResolvedTarget(host = address, port = None, address = Try(InetAddress.getByName(address)).toOption)
+            }
+          ))
       )
     )
 
@@ -130,14 +128,12 @@ object AsyncEcsServiceDiscovery {
   ): Future[Seq[Task]] =
     for {
       // Each DescribeTasksRequest can contain at most 100 task ARNs.
-      describeTasksResponses <- Future.traverse(taskArns.grouped(100))(
-        taskArnGroup =>
-          toScala(
-            ecsClient.describeTasks(
-              DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).include(TaskField.TAGS).build()
-            )
+      describeTasksResponses <- Future.traverse(taskArns.grouped(100))(taskArnGroup =>
+        toScala(
+          ecsClient.describeTasks(
+            DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).include(TaskField.TAGS).build()
           )
-      )
+        ))
       tasks = describeTasksResponses.flatMap(_.tasks().asScala).toList
     } yield tasks
 
