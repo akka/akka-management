@@ -18,9 +18,9 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <akka.version>2.5.19</akka.version>
+    <akka.version>2.5.27</akka.version>
     <akka.http.version>10.1.6</akka.http.version>
-    <akka-management.version>0.20.0</akka-management.version>
+    <akka-management.version>1.0.5</akka-management.version>
     <scala.compat.version>2.12</scala.compat.version>
   </properties>
 

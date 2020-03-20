@@ -183,7 +183,11 @@ Once the async AWS SDK is out of preview it is likely that the
   version="$project.version$"
 }
 
-And in your `application.conf`:
+We have 2 approaches in ECS: `aws-api-ecs-async` and `aws-api-ecs-task-set-async`.
+
+###### aws-api-ecs-async
+
+In your `application.conf`:
 
 ```
 akka.discovery {
@@ -198,6 +202,31 @@ akka.discovery {
   }
 }
 ```
+
+This will query the AWS API to retrieve all running tasks of the ESC service specified at
+`akka.management.cluster.bootstrap.contact-point-discovery.service-name`.
+
+###### aws-api-ecs-task-set-async
+
+If you use AWS CodeDeploy, you probably want to use this method of discovery.
+
+In your `application.conf`:
+
+```
+akka.discovery {
+  method = aws-api-ecs-task-set-async
+  aws-api-ecs-task-set-async {
+    # Defaults to "default" to match the AWS default cluster name if not overridden
+    cluster = "your-ecs-cluster-name"
+  }
+}
+```
+
+The service-discovery works in 3 steps:
+1. Query the internal ECS metadata API to retrieve the TaskARN of itself 
+(See [AWS docs](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v3.html))
+2. Retrieve the TaskSet to which the TaskARN belongs
+3. Retrieve all Tasks belonging to that TaskSet
 
 
 Notes:
@@ -221,7 +250,7 @@ Notes:
   to set this explicitly. An alternative host address discovery method is
   provided by both modules. The methods are
   `EcsSimpleServiceDiscovery.getContainerAddress` and
-  `AsyncEcsSimpleServiceDiscovery.getContainerAddress` respectively, which you
+  `AsyncEcsDiscovery.getContainerAddress` respectively, which you
   should use to programmatically set both config hostnames.
 
 * Because ECS service discovery is only able to discover IP addresses (not ports

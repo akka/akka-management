@@ -7,7 +7,7 @@ object Dependencies {
   val Scala212 = "2.12.10"
   val Scala213 = "2.13.0"
 
-  val AkkaVersion = "2.5.23"
+  val AkkaVersion = "2.5.27"
   val AkkaHttpVersion = "10.1.10"
 
   val JUnitVersion = "4.12"
@@ -85,7 +85,6 @@ object Dependencies {
         "software.amazon.awssdk" % "ecs" % "2.3.9"
       ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
-    // For demos/tests
     val Logging = Seq(
       "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
       "ch.qos.logback" % "logback-classic" % "1.2.3"
@@ -126,6 +125,7 @@ object Dependencies {
     libraryDependencies ++=
       DependencyGroups.AkkaActor ++
       DependencyGroups.AkkaDiscovery ++
+      DependencyGroups.AkkaHttp ++
       DependencyGroups.Aws2Ecs
   )
 
@@ -136,6 +136,14 @@ object Dependencies {
       DependencyGroups.AkkaHttpTesting ++ Seq(
         "com.typesafe.akka" %% "akka-cluster" % AkkaVersion % "test"
       )
+  )
+
+  val LoglevelsLogback = Seq(
+    libraryDependencies ++=
+      DependencyGroups.Logging ++
+      DependencyGroups.AkkaHttp ++
+      DependencyGroups.AkkaTesting ++
+      DependencyGroups.AkkaHttpTesting
   )
 
   val ClusterHttp = Seq(

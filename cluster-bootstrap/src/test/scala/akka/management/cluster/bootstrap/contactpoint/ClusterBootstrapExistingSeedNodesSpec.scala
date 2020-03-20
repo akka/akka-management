@@ -47,7 +47,7 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
 
     val seeds = (seedNodes match {
       case JoinYourself => List(s"akka.tcp://${systemName}@127.0.0.1:${remotingPort}")
-      case _ => seedNodes.map(_.toString)
+      case _            => seedNodes.map(_.toString)
     }).mkString("""["""", """", """", """"] """)
 
     val config = ConfigFactory.parseString(s"""

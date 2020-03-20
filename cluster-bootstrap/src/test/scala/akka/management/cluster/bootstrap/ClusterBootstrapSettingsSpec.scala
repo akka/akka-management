@@ -27,11 +27,14 @@ class ClusterBootstrapSettingsSpec extends AbstractBootstrapSpec {
 
     "fall back to old `form-new-cluster` if present for backward compatibility`" in {
       val settings =
-        ClusterBootstrapSettings(config.withFallback(ConfigFactory.parseString("""
+        ClusterBootstrapSettings(
+          config.withFallback(ConfigFactory.parseString("""
           akka.management.cluster.bootstrap {
             form-new-cluster=on
             new-cluster-enabled=off
-          }""")), NoLogging)
+          }""")),
+          NoLogging
+        )
       settings.newClusterEnabled should ===(true)
 
     }

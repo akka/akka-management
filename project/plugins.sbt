@@ -1,7 +1,7 @@
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.1")
 
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.2.0")
-addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.0.0-RC5")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.3.0")
 addSbtPlugin("com.dwijnand" % "sbt-dynver" % "3.3.0")
 addSbtPlugin("com.lightbend.akka" % "sbt-paradox-akka" % "0.25")
 addSbtPlugin("com.eed3si9n" % "sbt-unidoc" % "0.4.2")

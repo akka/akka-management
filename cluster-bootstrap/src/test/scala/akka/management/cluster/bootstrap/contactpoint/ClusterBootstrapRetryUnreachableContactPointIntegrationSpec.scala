@@ -88,40 +88,46 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSp
 
     val name = "systemunreachablenodes.svc.cluster.local"
 
-    MockDiscovery.set(Lookup(name).withProtocol("tcp").withPortName("management"), { () =>
-      called += 1
+    MockDiscovery.set(
+      Lookup(name).withProtocol("tcp").withPortName("management"), { () =>
+        called += 1
 
-      Future.successful(
-        if (called > 3)
-          Resolved(name,
-            List(
-              ResolvedTarget(
-                host = clusterA.selfAddress.host.get,
-                port = contactPointPorts.get("A"),
-                address = Option(InetAddress.getByName(clusterA.selfAddress.host.get))
-              ),
-              ResolvedTarget(
-                host = clusterB.selfAddress.host.get,
-                port = contactPointPorts.get("B"),
-                address = Option(InetAddress.getByName(clusterB.selfAddress.host.get))
+        Future.successful(
+          if (called > 3)
+            Resolved(
+              name,
+              List(
+                ResolvedTarget(
+                  host = clusterA.selfAddress.host.get,
+                  port = contactPointPorts.get("A"),
+                  address = Option(InetAddress.getByName(clusterA.selfAddress.host.get))
+                ),
+                ResolvedTarget(
+                  host = clusterB.selfAddress.host.get,
+                  port = contactPointPorts.get("B"),
+                  address = Option(InetAddress.getByName(clusterB.selfAddress.host.get))
+                )
               )
-            ))
-        else
-          Resolved(name,
-            List(
-              ResolvedTarget(
-                host = clusterA.selfAddress.host.get,
-                port = unreachablePorts.get("A"),
-                address = Option(InetAddress.getByName(clusterA.selfAddress.host.get))
-              ),
-              ResolvedTarget(
-                host = clusterB.selfAddress.host.get,
-                port = unreachablePorts.get("B"),
-                address = Option(InetAddress.getByName(clusterB.selfAddress.host.get))
+            )
+          else
+            Resolved(
+              name,
+              List(
+                ResolvedTarget(
+                  host = clusterA.selfAddress.host.get,
+                  port = unreachablePorts.get("A"),
+                  address = Option(InetAddress.getByName(clusterA.selfAddress.host.get))
+                ),
+                ResolvedTarget(
+                  host = clusterB.selfAddress.host.get,
+                  port = unreachablePorts.get("B"),
+                  address = Option(InetAddress.getByName(clusterB.selfAddress.host.get))
+                )
               )
-            ))
-      )
-    })
+            )
+        )
+      }
+    )
 
     "start listening with the http contact-points on 3 systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {

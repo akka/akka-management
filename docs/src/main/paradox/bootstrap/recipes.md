@@ -23,13 +23,17 @@ The recommended approach is to:
 * Use either the Kubernetes API or DNS for contact point discovery (details below)
 * Optionally use a service or ingress for any for traffic coming from outside of the Akka Cluster e.g. gRPC and HTTP
 
-### Kubernetes Deployment 
+### Example project
 
-Use a regular deployment (not a StatefulSet) with the following settings. 
+To get started, it might be helpful to have a look at the [Akka Cluster on Kubernetes](https://developer.lightbend.com/start/?group=akka&project=akka-sample-cluster-kubernetes-java) example project.
+
+### Kubernetes Deployment
+
+Use a regular deployment (not a StatefulSet) with the following settings.
 
 #### Update strategy
 
-For small clusters it may make sense to set `maxUnavailable` to 0 and `maxSurge` to 1. 
+For small clusters it may make sense to set `maxUnavailable` to 0 and `maxSurge` to 1.
 This means that a new pod is created before removing any existing pods so if the new pod fails the cluster remains
 at full strength until a rollback happens. For large clusters it may be too slow to do 1 pod at a time.
 
@@ -38,18 +42,18 @@ If using @extref:[SBR](akka-enhancements:split-brain-resolver.html) have a `maxU
 ### Cluster singletons
 
 Deployments order pods by pod state and then time spent ready when deciding which to remove first. This works well
-with cluster singletons as they are typically removed last and then the cluster singletons move to the the oldest new pod.  
+with cluster singletons as they are typically removed last and then the cluster singletons move to the the oldest new pod.
 
 ### External traffic
 
-For production traffic e.g. HTTP use a regular service or an alternative ingress mechanism. 
+For production traffic e.g. HTTP use a regular service or an alternative ingress mechanism.
 With an appropriate readiness check this results in traffic not being routed until bootstrap has finished.
 
 @@snip [akka-cluster.yml](/integration-test/kubernetes-dns/kubernetes/akka-cluster.yml)  { #public }
 
 This will result in a ClusterIP being created and only added to `Endpoints` when the pods are `ready`
 
-Note that the `app` is the same for both services as they both refer to the same pods. 
+Note that the `app` is the same for both services as they both refer to the same pods.
 
 ### Health checks
 
@@ -71,7 +75,7 @@ Configure them to be used in your deployment:
 
 
 This will mean that a pod won't get traffic until it is part of a cluster, which is important
-if either `ClusterSharding` or `ClusterSingleton` are used. 
+if either `ClusterSharding` or `ClusterSingleton` are used.
 
 
 ### Contact point discovery
@@ -92,7 +96,6 @@ does not support `publishNotReadyAddresses` yet then use the `kubernetes-api` di
 
 For considerations and configuration necessary for bootstrapping an Akka cluster in Istio, see @ref[Bootstrapping an Akka cluster in Istio](istio.md).
 
-
 ### Running the Kubernetes demos
 
 The following steps work for the `integration-test/kubernetes-api` or the `integration-test/kubernetes-dns` sub-project:
@@ -110,9 +113,9 @@ $ minikube start
 ```
 
 Make sure your shell is configured to target the docker daemon running inside the VM:
- 
+
 ```
-$ eval $(minikube docker-env) 
+$ eval $(minikube docker-env)
 ```
 
 Publish the application docker image locally. If running this project in a real cluster you'll need to publish the image to a repository
@@ -121,7 +124,7 @@ that is accessible from your Kubernetes cluster and update the `kubernetes/akka-
 ```
 $ sbt shell
 > project integration-test-kubernetes-api (or integration-test-kubernetes-dns)
-> docker:publishLocal 
+> docker:publishLocal
 ```
 
 You can run multiple different Akka Bootstrap-based applications in the same namespace,
@@ -168,9 +171,9 @@ or
 oc apply -f integration-test/kubernetes-dns/kubernetes/akka-cluster.yaml
 ```
 
-This will create and start running a number of Pods hosting the application. The application nodes will form a cluster. 
+This will create and start running a number of Pods hosting the application. The application nodes will form a cluster.
 
-In order to observe the logs during the cluster formation you can 
+In order to observe the logs during the cluster formation you can
 pick one of the pods and issue the kubectl logs command on it:
 
 ```
