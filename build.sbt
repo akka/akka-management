@@ -14,6 +14,7 @@ lazy val `akka-management-root` = project
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
+    `loglevels-logback`,
     `integration-test-aws-api-ec2-tag-based`,
     `integration-test-local`,
     `integration-test-aws-api-ecs`,
@@ -83,6 +84,14 @@ lazy val `akka-management` = project
     name := "akka-management",
     Dependencies.ManagementHttp
   )
+
+lazy val `loglevels-logback` = project
+  .in(file("loglevels-logback"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-management-loglevels-logback",
+    Dependencies.LoglevelsLogback
+  ).dependsOn(`akka-management`)
 
 lazy val `cluster-http` = project
   .in(file("cluster-http"))
@@ -255,13 +264,7 @@ lazy val docs = project
         "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.AkkaHttpVersion}/",
         "extref.akka-grpc.base_url" -> s"https://doc.akka.io/docs/akka-grpc/current/%s",
         "extref.akka-enhancements.base_url" -> s"https://doc.akka.io/docs/akka-enhancements/current/%s",
-        "scaladoc.akka.management.base_url" -> {
-          val docsHost = sys.env
-            .get("CI")
-            .map(_ => "https://doc.akka.io")
-            .getOrElse(s"http://localhost:${(previewSite / previewFixedPort).value.getOrElse(4000)}")
-          s"$docsHost/api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}/"
-        }
+        "scaladoc.akka.management.base_url" -> s"/${(Preprocess / siteSubdirName).value}/"
       ),
     publishRsyncArtifact := makeSite.value -> "www/",
     publishRsyncHost := "akkarepo@gustav.akka.io"

@@ -29,7 +29,7 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
     if (bootConfig.hasPath("form-new-cluster")) {
       val enabled = bootConfig.getBoolean("form-new-cluster")
       log.info(
-          "Old `form-new-cluster` property set. Using value {} as `new-cluster-enabled` and ignoring `new-cluster-enabled`. Please update to using `new-cluster-enabled`")
+        "Old `form-new-cluster` property set. Using value {} as `new-cluster-enabled` and ignoring `new-cluster-enabled`. Please update to using `new-cluster-enabled`")
       enabled
     } else {
       bootConfig.getBoolean("new-cluster-enabled")
@@ -54,7 +54,7 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
 
         val namespace = serviceNamespace match {
           case Some(ns) => s".$ns"
-          case _ => ""
+          case _        => ""
         }
         service + namespace
       }
@@ -127,6 +127,9 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
         .optDefinedValue("fallback-port")
         .map(_.toInt)
         .getOrElse(config.getInt("akka.management.http.port"))
+
+    val filterOnFallbackPort: Boolean =
+      contactPointConfig.getBoolean("filter-on-fallback-port")
 
     val probingFailureTimeout: FiniteDuration =
       contactPointConfig.getDuration("probing-failure-timeout", TimeUnit.MILLISECONDS).millis

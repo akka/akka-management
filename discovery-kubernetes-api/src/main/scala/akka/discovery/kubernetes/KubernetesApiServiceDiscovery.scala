@@ -5,14 +5,14 @@
 package akka.discovery.kubernetes
 
 import java.net.InetAddress
-import java.nio.file.{Files, Paths}
+import java.nio.file.{ Files, Paths }
 
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.discovery._
 import akka.http.scaladsl._
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
@@ -23,10 +23,10 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 import JsonFormat._
-import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.kubernetes.PodList.Container
 
-import scala.util.control.{NoStackTrace, NonFatal}
+import scala.util.control.{ NoStackTrace, NonFatal }
 import akka.event.Logging
 
 object KubernetesApiServiceDiscovery {
@@ -38,10 +38,11 @@ object KubernetesApiServiceDiscovery {
    * to do that.
    */
   @InternalApi
-  private[kubernetes] def targets(podList: PodList,
-                                  portName: Option[String],
-                                  podNamespace: String,
-                                  podDomain: String): Seq[ResolvedTarget] =
+  private[kubernetes] def targets(
+      podList: PodList,
+      portName: Option[String],
+      podNamespace: String,
+      podDomain: String): Seq[ResolvedTarget] =
     for {
       item <- podList.items
       if item.metadata.flatMap(_.deletionTimestamp).isEmpty
@@ -95,8 +96,8 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
     TrustStoreConfig(data = None, filePath = Some(settings.apiCaPath)).withStoreType("PEM")
 
   private val httpsConfig =
-    AkkaSSLConfig()(system).mapSettings(
-        s => s.withTrustManagerConfig(s.trustManagerConfig.withTrustStoreConfigs(Seq(httpsTrustStoreConfig))))
+    AkkaSSLConfig()(system).mapSettings(s =>
+      s.withTrustManagerConfig(s.trustManagerConfig.withTrustStoreConfigs(Seq(httpsTrustStoreConfig))))
 
   private val httpsContext = http.createClientHttpsContext(httpsConfig)
 
@@ -105,12 +106,17 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     val labelSelector = settings.podLabelSelector(query.serviceName)
 
-    log.info("Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}]", labelSelector, podNamespace,
+    log.info(
+      "Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}]",
+      labelSelector,
+      podNamespace,
       query.portName)
 
     for {
-      request <- optionToFuture(podRequest(apiToken, podNamespace, labelSelector),
-        s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})")
+      request <- optionToFuture(
+        podRequest(apiToken, podNamespace, labelSelector),
+        s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})"
+      )
 
       response <- http.singleRequest(request, httpsContext)
 
@@ -124,18 +130,20 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
             val unmarshalled = Unmarshal(entity).to[PodList]
             unmarshalled.failed.foreach { t =>
               log.warning(
-                  "Failed to unmarshal Kubernetes API response.  Status code: [{}]; Response body: [{}]. Ex: [{}]",
-                  response.status.value, entity, t.getMessage)
+                "Failed to unmarshal Kubernetes API response.  Status code: [{}]; Response body: [{}]. Ex: [{}]",
+                response.status.value,
+                entity,
+                t.getMessage)
             }
             unmarshalled
           case StatusCodes.Forbidden =>
             Unmarshal(entity).to[String].foreach { body =>
-              log.warning("Forbidden to communicate with Kubernetes API server; check RBAC settings. Response: [{}]",
+              log.warning(
+                "Forbidden to communicate with Kubernetes API server; check RBAC settings. Response: [{}]",
                 body)
             }
             Future.failed(
-                new KubernetesApiException(
-                    "Forbidden when communicating with the Kubernetes API. Check RBAC settings."))
+              new KubernetesApiException("Forbidden when communicating with the Kubernetes API. Check RBAC settings."))
           case other =>
             Unmarshal(entity).to[String].foreach { body =>
               log.warning(
@@ -169,10 +177,11 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
     }
   }
 
-  private val apiToken = readConfigVarFromFilesystem(settings.apiTokenPath, "api-token") getOrElse ""
+  private val apiToken = readConfigVarFromFilesystem(settings.apiTokenPath, "api-token").getOrElse("")
 
-  private val podNamespace = settings.podNamespace orElse
-    readConfigVarFromFilesystem(settings.podNamespacePath, "pod-namespace") getOrElse "default"
+  private val podNamespace = settings.podNamespace
+    .orElse(readConfigVarFromFilesystem(settings.podNamespacePath, "pod-namespace"))
+    .getOrElse("default")
 
   /**
    * This uses blocking IO, and so should only be used to read configuration at startup.

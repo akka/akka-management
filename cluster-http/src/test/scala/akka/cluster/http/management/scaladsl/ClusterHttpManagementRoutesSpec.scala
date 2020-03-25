@@ -6,13 +6,22 @@ package akka.cluster.http.management.scaladsl
 
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
-import akka.actor.{ Actor, ActorSystem, Address, ExtendedActorSystem, Props }
+import scala.collection.immutable._
+
+import akka.actor.Actor
+import akka.actor.ActorSystem
+import akka.actor.Address
+import akka.actor.ExtendedActorSystem
+import akka.actor.Props
 import akka.cluster.ClusterEvent.CurrentClusterState
 import akka.cluster.InternalClusterAction.LeaderActionsTick
-import akka.cluster.MemberStatus.{ Joining, Up }
+import akka.cluster.MemberStatus.Joining
+import akka.cluster.MemberStatus.Up
 import akka.cluster._
 import akka.cluster.http.management.scaladsl.ClusterHttpManagementRoutesSpec.TestShardedActor
-import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
+import akka.cluster.sharding.ClusterSharding
+import akka.cluster.sharding.ClusterShardingSettings
+import akka.cluster.sharding.ShardRegion
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
@@ -24,16 +33,17 @@ import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.{ Matchers, WordSpecLike }
-
-import scala.collection.immutable._
-import scala.concurrent.Await
+import org.scalatest.Matchers
+import org.scalatest.WordSpecLike
+import org.scalatest.concurrent.PatienceConfiguration.{ Timeout => ScalatestTimeout }
+import org.scalatest.concurrent.ScalaFutures
 
 class ClusterHttpManagementRoutesSpec
     extends WordSpecLike
     with Matchers
     with ScalatestRouteTest
-    with ClusterHttpManagementJsonProtocol {
+    with ClusterHttpManagementJsonProtocol
+    with ScalaFutures {
 
   "Http Cluster Management Routes" should {
     "return list of members with cluster leader and oldest" when {
@@ -52,7 +62,7 @@ class ClusterHttpManagementRoutesSpec
           CurrentClusterState(SortedSet(clusterMember1, clusterMember2), leader = Some(address1))
 
         val unreachable = Map(
-          UniqueAddress(address3, 2L) → Set(uniqueAddress1, uniqueAddress2)
+          UniqueAddress(address3, 2L) -> Set(uniqueAddress1, uniqueAddress2)
         )
 
         val mockedCluster = mock(classOf[Cluster])
@@ -69,14 +79,22 @@ class ClusterHttpManagementRoutesSpec
         when(mockedReachability.observersGroupedByUnreachable).thenReturn(unreachable)
 
         Get("/cluster/members") ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
-          val clusterUnreachableMember = ClusterUnreachableMember("akka://Main@hostname3.com:3311",
+          val clusterUnreachableMember = ClusterUnreachableMember(
+            "akka://Main@hostname3.com:3311",
             Seq("akka://Main@hostname.com:3311", "akka://Main@hostname2.com:3311"))
-          val clusterMembers = Set(ClusterMember("akka://Main@hostname.com:3311", "1", "Up", Set(s"dc-$dcName")),
-            ClusterMember("akka://Main@hostname2.com:3311", "2", "Joining", Set(s"dc-$dcName")))
+          val clusterMembers = Set(
+            ClusterMember("akka://Main@hostname.com:3311", "1", "Up", Set(s"dc-$dcName")),
+            ClusterMember("akka://Main@hostname2.com:3311", "2", "Joining", Set(s"dc-$dcName"))
+          )
 
-          val expected = ClusterMembers(selfNode = s"$address1", members = clusterMembers,
-            unreachable = Seq(clusterUnreachableMember), leader = Some(address1.toString),
-            oldest = Some(address1.toString), Map(s"dc-$dcName" -> address1.toString))
+          val expected = ClusterMembers(
+            selfNode = s"$address1",
+            members = clusterMembers,
+            unreachable = Seq(clusterUnreachableMember),
+            leader = Some(address1.toString),
+            oldest = Some(address1.toString),
+            Map(s"dc-$dcName" -> address1.toString)
+          )
 
           val members = responseAs[ClusterMembers]
           // specific checks for easier spotting in failure output what was not matching
@@ -94,7 +112,7 @@ class ClusterHttpManagementRoutesSpec
     "join a member" when {
       "calling POST /cluster/members with form field 'memberAddress'" in {
         val address = "akka.tcp://Main@hostname.com:3311"
-        val urlEncodedForm = FormData(Map("address" → address))
+        val urlEncodedForm = FormData(Map("address" -> address))
 
         val mockedCluster = mock(classOf[Cluster])
         doNothing().when(mockedCluster).join(any[Address])
@@ -161,7 +179,7 @@ class ClusterHttpManagementRoutesSpec
 
       "calling PUT /cluster/members/akka://Main@hostname.com:3311 with form field operation LEAVE" in {
 
-        val urlEncodedForm = FormData(Map("operation" → "leave"))
+        val urlEncodedForm = FormData(Map("operation" -> "leave"))
 
         val address1 = Address("akka", "Main", "hostname.com", 3311)
         val address2 = Address("akka", "Main", "hostname2.com", 3311)
@@ -190,7 +208,7 @@ class ClusterHttpManagementRoutesSpec
 
       "does not exist and return Not Found" in {
         val address = "akka://Main2@hostname.com:3311"
-        val urlEncodedForm = FormData(Map("operation" → "leave"))
+        val urlEncodedForm = FormData(Map("operation" -> "leave"))
 
         val address1 = Address("akka", "Main", "hostname.com", 3311)
 
@@ -208,7 +226,7 @@ class ClusterHttpManagementRoutesSpec
 
         Put(s"/cluster/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
           responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(
-              s"Member [$address] not found")
+            s"Member [$address] not found")
           status == StatusCodes.NotFound
         }
       }
@@ -217,7 +235,7 @@ class ClusterHttpManagementRoutesSpec
     "execute down on a member" when {
       "calling PUT /cluster/members/akka://Main@hostname.com:3311 with form field operation DOWN" in {
 
-        val urlEncodedForm = FormData(Map("operation" → "down"))
+        val urlEncodedForm = FormData(Map("operation" -> "down"))
 
         val address1 = Address("akka", "Main", "hostname.com", 3311)
         val address2 = Address("akka", "Main", "hostname2.com", 3311)
@@ -246,7 +264,7 @@ class ClusterHttpManagementRoutesSpec
 
       "does not exist and return Not Found" in {
 
-        val urlEncodedForm = FormData(Map("operation" → "down"))
+        val urlEncodedForm = FormData(Map("operation" -> "down"))
 
         val address1 = Address("akka", "Main", "hostname.com", 3311)
 
@@ -265,7 +283,7 @@ class ClusterHttpManagementRoutesSpec
         Seq("akka://Main2@hostname.com:3311", "Main2@hostname.com:3311").foreach(address => {
           Put(s"/cluster/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
             responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(
-                s"Member [$address] not found")
+              s"Member [$address] not found")
             status == StatusCodes.NotFound
           }
         })
@@ -275,7 +293,7 @@ class ClusterHttpManagementRoutesSpec
     "return not found operation" when {
       "calling PUT /cluster/members/akka://Main@hostname.com:3311 with form field operation UNKNOWN" in {
 
-        val urlEncodedForm = FormData(Map("operation" → "unknown"))
+        val urlEncodedForm = FormData(Map("operation" -> "unknown"))
 
         val address1 = Address("akka", "Main", "hostname.com", 3311)
 
@@ -293,8 +311,7 @@ class ClusterHttpManagementRoutesSpec
 
         Seq("akka://Main@hostname.com:3311", "Main@hostname.com:3311").foreach(address => {
           Put(s"/cluster/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
-            responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(
-                "Operation not supported")
+            responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage("Operation not supported")
             status == StatusCodes.NotFound
           }
         })
@@ -304,9 +321,8 @@ class ClusterHttpManagementRoutesSpec
     "return shard region details" when {
 
       "calling GET /cluster/shard_regions/{name}" in {
-        import akka.pattern.ask
-
         import scala.concurrent.duration._
+        import akka.pattern.ask
 
         val config = ConfigFactory.parseString(
           """
@@ -343,34 +359,31 @@ class ClusterHttpManagementRoutesSpec
           TestShardedActor.extractEntityId,
           TestShardedActor.extractShardId
         )
-        val initializeEntityActorAsk = shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String]
-        Await.result(initializeEntityActorAsk, 3.seconds)
+
+        implicit val t = ScalatestTimeout(5.seconds)
+
+        shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String].futureValue(t)
 
         val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
         val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
-        val binding =
-          Await.result(Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100), 3.seconds)
+        val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue
 
-        val responseGetShardDetailsFuture = Http().singleRequest(
-          HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")
-        )
-        val responseGetShardDetails = Await.result(responseGetShardDetailsFuture, 3.seconds)
+        val responseGetShardDetails =
+          Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")).futureValue(t)
         responseGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseGetShardDetails.status shouldEqual StatusCodes.OK
-        val unmarshaledGetShardDetails = Await.result(
-          Unmarshal(responseGetShardDetails.entity).to[ShardDetails],
-          3.seconds
-        )
+        val unmarshaledGetShardDetails = Unmarshal(responseGetShardDetails.entity).to[ShardDetails].futureValue
         unmarshaledGetShardDetails shouldEqual ShardDetails(Seq(ShardRegionInfo("ShardId", 1)))
 
-        val responseInvalidGetShardDetailsFuture = Http().singleRequest(
-          HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/ThisShardRegionDoesNotExist")
-        )
-        val responseInvalidGetShardDetails = Await.result(responseInvalidGetShardDetailsFuture, 3.seconds)
+        val responseInvalidGetShardDetails = Http()
+          .singleRequest(
+            HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/ThisShardRegionDoesNotExist")
+          )
+          .futureValue
         responseInvalidGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseInvalidGetShardDetails.status shouldEqual StatusCodes.NotFound
 
-        Await.ready(binding.unbind(), 5.seconds)
+        binding.unbind().futureValue
         system.terminate()
       }
     }

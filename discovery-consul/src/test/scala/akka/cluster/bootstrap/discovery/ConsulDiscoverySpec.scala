@@ -20,12 +20,7 @@ import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
-class ConsulDiscoverySpec
-    extends WordSpecLike
-    with Matchers
-    with BeforeAndAfterAll
-    with TestKitBase
-    with ScalaFutures {
+class ConsulDiscoverySpec extends WordSpecLike with Matchers with BeforeAndAfterAll with TestKitBase with ScalaFutures {
 
   private val consul: ConsulProcess =
     ConsulStarterBuilder.consulStarter().withHttpPort(8500).build().start()

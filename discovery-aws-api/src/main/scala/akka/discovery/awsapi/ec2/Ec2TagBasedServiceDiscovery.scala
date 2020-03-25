@@ -54,7 +54,7 @@ class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDi
 
   private val clientConfigFqcn: Option[String] = { // FQCN of a class that extends com.amazonaws.ClientConfiguration
     config.getString("client-config") match {
-      case "" => None
+      case ""   => None
       case fqcn => Some(fqcn)
     }
   }
@@ -66,7 +66,7 @@ class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDi
 
   private val preDefinedPorts =
     config.getIntList("ports").asScala.toList match {
-      case Nil => None
+      case Nil  => None
       case list => Some(list) // Akka Management ports
     }
 
@@ -80,11 +80,12 @@ class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDi
   }
 
   private def getCustomClientConfigurationInstance(fqcn: String): Try[ClientConfiguration] = {
-    system.dynamicAccess.createInstanceFor[ClientConfiguration](fqcn,
-      List(classOf[ExtendedActorSystem] → system)) recoverWith {
-      case _: NoSuchMethodException =>
-        system.dynamicAccess.createInstanceFor[ClientConfiguration](fqcn, Nil)
-    }
+    system.dynamicAccess
+      .createInstanceFor[ClientConfiguration](fqcn, List(classOf[ExtendedActorSystem] -> system))
+      .recoverWith {
+        case _: NoSuchMethodException =>
+          system.dynamicAccess.createInstanceFor[ClientConfiguration](fqcn, Nil)
+      }
   }
 
   protected val ec2Client: AmazonEC2 = {
@@ -94,10 +95,10 @@ class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDi
           case Success(clientConfig) =>
             if (clientConfig.getRetryPolicy != PredefinedRetryPolicies.NO_RETRY_POLICY) {
               log.warning(
-                  "If you're using this module for bootstrapping your Akka cluster, " +
-                  "Cluster Bootstrap already has its own retry/back-off mechanism. " +
-                  "To avoid RequestLimitExceeded errors from AWS, " +
-                  "disable retries in the EC2 client configuration.")
+                "If you're using this module for bootstrapping your Akka cluster, " +
+                "Cluster Bootstrap already has its own retry/back-off mechanism. " +
+                "To avoid RequestLimitExceeded errors from AWS, " +
+                "disable retries in the EC2 client configuration.")
             }
             clientConfig
           case Failure(ex) =>
@@ -158,16 +159,13 @@ class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDi
     val allFilters: List[Filter] = runningInstancesFilter :: tagFilter :: otherFilters
 
     Future {
-      getInstances(ec2Client, allFilters, None).flatMap(
-        (ip: String) =>
-          preDefinedPorts match {
-            case None =>
-              ResolvedTarget(host = ip, port = None, address = Try(InetAddress.getByName(ip)).toOption) :: Nil
-            case Some(ports) =>
-              ports
-                .map(p => ResolvedTarget(host = ip, port = Some(p), address = Try(InetAddress.getByName(ip)).toOption)) // this allows multiple akka nodes (i.e. JVMs) per EC2 instance
-        }
-      )
+      getInstances(ec2Client, allFilters, None).flatMap((ip: String) =>
+        preDefinedPorts match {
+          case None =>
+            ResolvedTarget(host = ip, port = None, address = Try(InetAddress.getByName(ip)).toOption) :: Nil
+          case Some(ports) =>
+            ports.map(p => ResolvedTarget(host = ip, port = Some(p), address = Try(InetAddress.getByName(ip)).toOption)) // this allows multiple akka nodes (i.e. JVMs) per EC2 instance
+        })
     }.map(resoledTargets => Resolved(query.serviceName, resoledTargets))
 
   }

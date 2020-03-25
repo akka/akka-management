@@ -9,11 +9,11 @@ before_install:
   - git fetch --unshallow
   # using jabba for custom jdk management
   - curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.11.1/install.sh | bash && . ~/.jabba/jabba.sh
-  - jabba install adopt@~1.8.192-12
-  - jabba install adopt@~1.11.0-1
+  - jabba install adopt@1.8-0
+  - jabba install adopt@1.11-0
 
 script:
-  - jabba use ${JDK:=adopt@~1.8.192-12}
+  - jabba use ${JDK:=adopt@1.8-0}
   - java -version
   - sbt -jvm-opts .jvmopts-travis "$CMD"
 
@@ -34,10 +34,9 @@ jobs:
   include:
   - stage: test
     script:
-    - jabba use "adopt@~1.8.192-12"
+    - jabba use "adopt@1.8-0"
     - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
-    - sbt -jvm-opts .jvmopts-travis ";+test:compile;docs/paradox"
-    - git diff --exit-code --color || { echo "[error] Unformatted code found. Please run 'test:compile' and commit the reformatted code."; false; }
+    - sbt -jvm-opts .jvmopts-travis ";scalafmtCheckAll;+test:compile;docs/paradox"
     name: "Compile on all Scala versions, check code style (fixed with `sbt Test/compile`)"
 
   - stage: test
@@ -45,7 +44,7 @@ jobs:
     name: "Run tests on AdoptOpenJDK 8 (all Scala versions)"
 
   - env:
-    - JDK="adopt@~1.11.0-1"
+    - JDK="adopt@1.11-0"
     - CMD="+test"
     name: "Run tests on AdoptOpenJDK 11 (all Scala versions)"
 
@@ -62,12 +61,14 @@ jobs:
 
   - stage: whitesource
     script:
-      - jabba use "adopt@~1.8.192-12"
+      - jabba use "adopt@1.8-0"
       - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
     name: "Check licenses with WhiteSource"
 
   - stage: publish
-    script: sbt -J-XX:ReservedCodeCacheSize=128m +publish
+    script:
+      - jabba use "adopt@1.8-0"
+      - sbt -J-XX:ReservedCodeCacheSize=128m +publish
     name: Publish artifacts
   - script: eval "$(ssh-agent -s)" && cp .travis/id_rsa /tmp/id_rsa && chmod 600 /tmp/id_rsa && ssh-keygen -p -P "$DEPLOY_PASSPHRASE" -N "" -f /tmp/id_rsa && ssh-add /tmp/id_rsa && sbt docs/publishRsync
     name: Publish documentation
@@ -87,8 +88,8 @@ env:
     # encrypt with: travis encrypt WHITESOURCE_KEY=...
     - secure: "KK7AsqpqUBRl3vnPzVfmlfogl/HMq7Xb2t6EHHB9pi8QWmK25ufPAxF6G+vx0mIAAP7r6n/lkdVBnuZC1jp6G1/I4adsXJOkCF6YTSb9XmH9jK+YhI6xuqFx5vRqxb2faK+6VY6IJXQFD8/1gkdVr0hN3Hq4I5Yg0GAUxAaKKNWeh7VsFmrFiMCj7Q8s2U4+aGSgyKnptQ35JV63SPZV0rgPPIv1kZuqLi526fQMwOIfhpaRh763v7wgINJjZhvAjIbpicGmayZSnZPhs0+Z/jh9pK8sja1S+dUJSEe4IIfGMJINko58fKNPrxaenk05pwTJ+pWKmYWwxyEIiJrTkNHHUnXYCaJf7Qfiyv+sdZ9opGTs0xXS+/kaI9WPQ/vToyMTSjhZnCx0D9vJMuIVDM0OD+1GO66LqdBWK5nC+tgSstf79HK0gZP7hLzhxNj+4mXajECBlg+GucN6wmhrUB2UMGZ6/NvfIdzuXFFQCuSf3Hp+4z7yDV+FgqZeiedLLlZrvaE0IKrNaJ1CfzZ8jIzhjYXFFG9ERMeyGp7n8/7LW2NcHOI+BvKcaNOV4umRXWcXh7mQqzmZ+t3t+4IQFCR1lTrYj59KA4UI2Z9viZBefwIll1X2UNJ2uzbcCqdQSNrTi8LPfuqU39hdxYcw69it7K55Ktah6qiFwKpPlUc="
     # encrypt with: travis encrypt BINTRAY_USER=...
-    - secure: "aV03M2fhMugeGddRWpVHmY1v82mC1uF1uivyeHKNzEPKSYKWpHbiK9hx2RDY6dSccBURFIIkpzzGYCAyJa7AnDsvUy/voyscDZo0/cCbC2gMz5pTB0MpuzTnBPTbjzl4E8JNRryBszdMn7SXCRL9JTyrQLe9JS/XxQvv5ZBYXYg1A68Xa+RaIJkODzkzpD31ITnSpqtRUv1j2h/VqLIvVT03av4AOmq2In4WSQDmBj8Eq0enYPvQ9kLgeQ13zew2nOT0WL7Src+HO9BMwifdpih1kXw0qYs/rJMGwZOw2ksHjxZqO8BGHIxqcRo+wZnUDgK4S5SFSumPatdqFJeAegHV2TNSm6DPDcPxitl0oHkopHF+wCvSX+vv/VFwTATJy+gAi2L8X0D1XxjPz2V/CbDXsiPA6p7uE6YVmcnGe3pnx5jJCWduBr7O2g9ggUqtkNAYYeqb26zIZN2eEjBAmYeEC/B5HMLW8WcanRioDFA/pp4r7ilIBBuQ4AmRN3aaN8+N/a95NBuwbnP8wFqErNYwfV1Bqa576AuPF5sVCHgvmXDkrYshmbkuqjoJxtRhKMbyX9sbIJ1mah20b9k+3sndwh73zKPb3r8eF8ozxlLohPNOYshl6LFJRFRKMSK4fJ6y9lYgHZhYWSWcHACxGI90QCPWesSWTMfNwRM0Sno="
+    - secure: "O7Mub2EGDXp9iGFVClSN+C35gxTEEaew9elPl074FCtm1DAqIIK6FyLhs0OJY+pcSGopVzkDB+4aVF1xVDGmbtmiTg3hpoer94rJxellUxK+N+tMaYElqJWjbnSkk9cqOR1i0x935jvImi7lJsDBfwZR7BVFzXw9jvF+V9Ebtao2QmL1Zr89lV84kZHMJg2bTlfibpDUfy50Oq+/GMiEdQmSbM3JHvMyLW1LqOd2b73FT8aOu1UnY3U3jzFaBzV0g0tcyt+DvvHOXjw6+UxOtg4PvrtsG2Qf6Lfd4sTje3WoXezzYGYjoSavhYMw3OLnp6G5BTj4161k6tiHe5xNefEXyEJO4IHjCbXeEIsSUV/gcuMQiNjYhwG86Flc26tkfTR/Jgw15P/wr7mE4ZFdaOhGmh+nHegHKMJL8hJYVn8PNGVaJC8bCWPUmkgkV5eKjQ9pLdMUjiG6Y7x1ZuJvUdzsTBdxtntQuzST/h5BfGwwMMkiVySYV5UB5jJei3LLkFTV6eLF+jvcG0ejvZ+yol6yFbcwexJPpJBXSLMWZtJynZPxlU1+PDF4nG+82pBldBn5nyJVWgzefQrK1jlzXdWUpUcMg4FT1HSLp+auZ3P31dzeAjROkyeCQMBb4E87uCJoo96k9LUPlV7wyfWe3RH863G9VWZT2QmuZaQqumo="
     # encrypt with: travis encrypt BINTRAY_PASS=...
-    - secure: "YgwDYNlmCsGCtmf+Avm0TwkqsvaAVWsYilTRdsI/h1OEwn80j9F63QSF0qIg1qzGP9dNFA8VyS5gDgF8yMH0GwIa8a8kI8PXbRB3fH0jWjFGfMoJ+LKyG2MKIvdAMdqs5nVhARSjEajEDbjd7Azk32mSymc4ZSwxLr8yYR75pdfaIH+s4famoaHpUcwKxbd6fg2QY/ny5uckwcZwyu+y1+V0/i4ej0Btr82jtDnqRcIMyH+Fo35xVzosNiLD8s7faYfRoVaywcbjTSVr8TsonXRFKiaMBCbSs36GhHuC3IWzqXSnVwGIJ2eYkSoIwm9Qbg55UbpOUnPFPO9EHsg5jxXO4MxjPcl5ofipdBKWL6uYfq6Q5rzSRv8aJafMes6L87/YKeyDxel0BGcik7mLxNpuVjJ2RnYodN0KKGBO2PZhx4WErfieEsW2zz2TTZUxvMO2SCgzr1HUpRpWQmwlVnyI+q/U0bKAFmcGezHiGoXGp4zDZxwDE3LcZiriDa4M5qJLjHH5hGnU/FHBXDYygCPJyahgb7GjW+IZ8OaDhF19SJYgVqfw//c09pODDSAdKq4ae0cnM/c+vjzdaS/T93LCHKU7mlCRZmiG13Om9tK/WupUVAYNCjr86Pdqj8+pmTHzU2EG0RvzdHlQa4S6Xy97G2ZsJ+C9fvt+Glr/yPA="
+    - secure: "KpMo4cxeepyMilzQzfueZAlUbFrjjEmkf7Vm2QM2L31tqJzT0cRrw7LHorAxOg+XJmdmymP+NQ9+rkB/ydX78elDhh91LqXaxfhXRgrTtgHb52tBwpOXqibLCVEk9fsF37GXHXcqWjDrC4QCgx8XoBUKkFzhYZNqosobLgwr9lqvVnWh9UPWn0/lLnkiHeCly87lB13H0HMKWNfk/XyPMIcYeGa0AHsingBMNCbP3puHLmkpgYdd5j0YBHtuacLRAJB2FMrzqXTgljFZWpbOKUmzR5THeUALU1Tcszs6fqCEYhzcDFsAcFIFJyf4ZwySIXV615jSye/iCQBFYZ4ioXQDwXRhq4zGXPNSrp7tvudZj7k6viJKayE9ilqvaB28ff0WUK27rGhrFfRp500jZAdZxa5jgKEI9n1Ao3TBZi+NLF58T1tOmrNR57F043oBcyOCpPa8nIDsWMSWyTGLgHncPdiofWkOzbVLUPO+siapP0Wtr+FpNc+z98wYIthiVyoCqewV5qth+5imXSD2wkS/cOb2oulXejogQEv4b8kT5yPkiRybHnBUjwJE5MDKalhVghMV6B+UKMsvbS+Lp+FsE8YzGKGctvWth5OOIsdzm5zlivBFtpPQmNK886n1DxBpbTn9hbX+/1IKWW/UUwcwItUhTWA5tZ08r/72g00="
     # encrypt with travis encrypt DEPLOY_PASSPHRASE=...
     - secure: "b+Ebc6lF+UrBARfluuzZtD5spctrElFfLfIoi6KAd7RNDtWzo8KZFlkVx9YZEk50Lp58fKZG3hlnl6AXedmwb36/xbR+V6vC891VmbEMmjMRcoAoX5DS1/dqBfs7AqU/sa0EvOc+fbNuLE79TGOJED4lO7t94OMCOvlEBpwTdGNV1qMpHUZbEl90iMvGUlUv0NiuAru6rakyB9DGw2ah+MQZWzbZM0vrRQP9rpDmPbGw0uk5dTT9+FBrPE3KQ8KPr8qaBcajAVvMxFoxwHKIdbMKJABZfpCAjoxV0VFjMWUkxhNZKGC3sGrZfZEbTRMu3XhdZkJBOx/ZivdcyorFFmB8F3HWO+65I5rHvf/9lRRWUcHYxeoBaV1wdSaJvaqbJUUFULeZwWXRcziiY4MUlOw+YPzkat4UYSDnYHAjb0K3UuE2pN58WPEOXrz88sytm15Tt9xfgbMHNwxaqPT6+ZufHazPRlz2SAGygk73Q/3gJc7mekkatT5NGrOneLLzwIXZfYyCzgUi6vqUpUHvncmey3BDInseisRikd8YA5tetLX2WubjWRmsJfNo7DZCfWutKjegNWGP9x0XpRm6mXyIys0VhLkMAJ7Bkp24rUhk2w9R2sk37xU9VR9vnpxhzXcGI5BFjqC09WSe7FiqnJ/2nbgb5d/MuPk78CS0xZQ="
