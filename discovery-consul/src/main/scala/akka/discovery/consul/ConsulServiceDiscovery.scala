@@ -45,20 +45,22 @@ class ConsulServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
   }
 
   private def lookupInConsul(name: String)(implicit executionContext: ExecutionContext): Future[Resolved] = {
-    getService(name + settings.managementServiceSuffix).map {
-      _.getResponse.asScala.map { catalogService =>
-        ResolvedTarget(
-          host = catalogService.getServiceAddress match {
-            case "" | null => catalogService.getAddress
-            case serviceAddress => serviceAddress
-          },
-          port = Some(catalogService.getServicePort),
-          address = Try(InetAddress.getByName(catalogService.getAddress)).toOption
-        )
+    getService(name + settings.managementServiceSuffix)
+      .map {
+        _.getResponse.asScala.map { catalogService =>
+          ResolvedTarget(
+            host = catalogService.getServiceAddress match {
+              case "" | null      => catalogService.getAddress
+              case serviceAddress => serviceAddress
+            },
+            port = Some(catalogService.getServicePort),
+            address = Try(InetAddress.getByName(catalogService.getAddress)).toOption
+          )
+        }
       }
-    } map { targets =>
-      Resolved(name, targets.toList)
-    }
+      .map { targets =>
+        Resolved(name, targets.toList)
+      }
   }
 
   private def getService(name: String): Future[ConsulResponse[util.List[CatalogService]]] = {
