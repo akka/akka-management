@@ -9,7 +9,10 @@ import java.nio.file.{ Files, Paths }
 
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery._
+import akka.discovery.kubernetes.JsonFormat._
+import akka.event.Logging
 import akka.http.scaladsl._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
@@ -22,12 +25,7 @@ import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
-import JsonFormat._
-import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.kubernetes.PodList.Container
-
 import scala.util.control.{ NoStackTrace, NonFatal }
-import akka.event.Logging
 
 object KubernetesApiServiceDiscovery {
 
@@ -113,51 +111,93 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
       query.portName)
 
     for {
-      request <- optionToFuture(
-        podRequest(apiToken, podNamespace, labelSelector),
-        s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})"
-      )
-
-      response <- http.singleRequest(request, httpsContext)
-
-      entity <- response.entity.toStrict(resolveTimeout)
-
-      podList <- {
-
-        response.status match {
-          case StatusCodes.OK =>
-            log.debug("Kubernetes API entity: [{}]", entity.data.utf8String)
-            val unmarshalled = Unmarshal(entity).to[PodList]
-            unmarshalled.failed.foreach { t =>
-              log.warning(
-                "Failed to unmarshal Kubernetes API response.  Status code: [{}]; Response body: [{}]. Ex: [{}]",
-                response.status.value,
-                entity,
-                t.getMessage)
+      requests <- Future.sequence(Seq(
+        (sys.env.get(settings.apiServiceHostEnvName), sys.env.get(settings.apiServicePortEnvName)) match {
+          case (Some(h), Some(p)) =>
+            Try(p.toInt).fold(
+              { _ =>
+                Future.failed(new NoSuchElementException(
+                  s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})"))
+              }, { port =>
+                Future.successful(podRequest(h, port, apiToken, podNamespace, labelSelector))
+              }
+            )
+          case _ =>
+            Future.failed(new NoSuchElementException(
+              s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})"))
+        }
+      ) ++ sys.env
+        .get(settings.apiServiceEndpointsEnvName)
+        .map { endpoints =>
+          endpoints
+            .split(",")
+            .map(_.trim)
+            .map { endpoint =>
+              val Array(host, portStr) = endpoint.split(":")
+              Try(portStr.toInt).fold(
+                { _ =>
+                  Future.failed(new NoSuchElementException(
+                    s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})"))
+                }, { port =>
+                  Future.successful(podRequest(host, port, apiToken, podNamespace, labelSelector))
+                }
+              )
             }
-            unmarshalled
-          case StatusCodes.Forbidden =>
+            .toSeq
+        }
+        .getOrElse {
+          Seq.empty
+        })
+      responses <- Future.traverse(requests)(http.singleRequest(_, httpsContext))
+      entities <- Future.traverse(responses)(_.entity.toStrict(resolveTimeout))
+      podList <- {
+        if (responses.forall(_.status == StatusCodes.OK)) {
+          log.debug("Kubernetes API entities: [{}]", entities.map(_.data.utf8String).mkString(","))
+          val unmarshalleds = entities.map { entity =>
+            Unmarshal(entity).to[PodList]
+          }
+          unmarshalleds.zip(entities).zip(responses).foreach {
+            case ((unmarshalled, entity), response) =>
+              unmarshalled.failed.foreach { t =>
+                log.warning(
+                  "Failed to unmarshal Kubernetes API response.  Status code: [{}]; Response body: [{}]. Ex: [{}]",
+                  response.status.value,
+                  entity,
+                  t.getMessage)
+              }
+          }
+          val result = Future.sequence(unmarshalleds).map {
+            _.reduceLeft { (l, r) =>
+              l.copy(l.items ++ r.items)
+            }
+          }
+          result
+        } else if (responses.exists(_.status == StatusCodes.Forbidden)) {
+          responses.filter(_.status == StatusCodes.Forbidden).foreach { entity =>
             Unmarshal(entity).to[String].foreach { body =>
               log.warning(
                 "Forbidden to communicate with Kubernetes API server; check RBAC settings. Response: [{}]",
                 body)
             }
-            Future.failed(
-              new KubernetesApiException("Forbidden when communicating with the Kubernetes API. Check RBAC settings."))
-          case other =>
-            Unmarshal(entity).to[String].foreach { body =>
-              log.warning(
-                "Non-200 when communicating with Kubernetes API server. Status code: [{}]. Response body: [{}]",
-                other,
-                body
-              )
-            }
-
-            Future.failed(new KubernetesApiException(s"Non-200 from Kubernetes API server: $other"))
+          }
+          Future.failed(
+            new KubernetesApiException("Forbidden when communicating with the Kubernetes API. Check RBAC settings."))
+        } else {
+          entities.zip(responses).foreach {
+            case (entity, response) =>
+              Unmarshal(entity).to[String].foreach { body =>
+                log.warning(
+                  "Non-200 when communicating with Kubernetes API server. Status code: [{}]. Response body: [{}]",
+                  response.status,
+                  body
+                )
+              }
+          }
+          Future.failed(
+            new KubernetesApiException(
+              s"Non-200 from Kubernetes API server: ${responses.filterNot(_.status == StatusCodes.OK).mkString(",")}"))
         }
-
       }
-
     } yield {
       val addresses = targets(podList, query.portName, podNamespace, settings.podDomain)
       if (addresses.isEmpty && podList.items.nonEmpty) {
@@ -205,16 +245,16 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
   private def optionToFuture[T](option: Option[T], failMsg: String): Future[T] =
     option.fold(Future.failed[T](new NoSuchElementException(failMsg)))(Future.successful)
 
-  private def podRequest(token: String, namespace: String, labelSelector: String) =
-    for {
-      host <- sys.env.get(settings.apiServiceHostEnvName)
-      portStr <- sys.env.get(settings.apiServicePortEnvName)
-      port <- Try(portStr.toInt).toOption
-    } yield {
-      val path = Uri.Path.Empty / "api" / "v1" / "namespaces" / namespace / "pods"
-      val query = Uri.Query("labelSelector" -> labelSelector)
-      val uri = Uri.from(scheme = "https", host = host, port = port).withPath(path).withQuery(query)
+  private def podRequest(
+      host: String,
+      port: Int,
+      token: String,
+      namespace: String,
+      labelSelector: String): HttpRequest = {
+    val path = Uri.Path.Empty / "api" / "v1" / "namespaces" / namespace / "pods"
+    val query = Uri.Query("labelSelector" -> labelSelector)
+    val uri = Uri.from(scheme = "https", host = host, port = port).withPath(path).withQuery(query)
 
-      HttpRequest(uri = uri, headers = Seq(Authorization(OAuth2BearerToken(token))))
-    }
+    HttpRequest(uri = uri, headers = Seq(Authorization(OAuth2BearerToken(token))))
+  }
 }

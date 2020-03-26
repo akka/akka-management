@@ -39,6 +39,9 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
   val apiServicePortEnvName: String =
     kubernetesApi.getString("api-service-port-env-name")
 
+  val apiServiceEndpointsEnvName: String =
+    kubernetesApi.getString("api-service-endpoints-env-name")
+
   val podNamespacePath: String =
     kubernetesApi.getString("pod-namespace-path")
 
