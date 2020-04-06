@@ -1,5 +1,8 @@
 ThisBuild / resolvers += Resolver.jcenterRepo
 
+// brute force solution to https://github.com/akka/akka-management/issues/651
+ThisBuild / useCoursier := false
+
 // root
 lazy val `akka-management-root` = project
   .in(file("."))
