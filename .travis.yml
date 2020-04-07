@@ -87,7 +87,14 @@ stages:
     if: repo = akka/akka-management AND ( ( branch = master AND type = push ) OR tag =~ ^v )
   - name: publish
     if: repo = akka/akka-management AND tag =~ ^v
-  
+
+notifications:
+  email:
+    recipients:
+      secure: "Jqrw+zGxVFNxdPioir+dYW5vur2DfnVmSnQnmgf93yjkYFUoyLjqEW0CPPK3srv5AgVZL8KMrCVDTm3890e1LvEcPudZS6eiPrS58cvmfoxHkqNZd2c3PUFH+zlBVsdW2nlue8NHmLIS2R1oZuy9+i/a00qqbvn4sUylDiFQLAXOctIB7lUdXl/pmXiAxS9W3wWRbQqA7V6PrOy38HEWSB1OdzVZ/+rompBTjff1LzMt67bZKIeAJj+T942tO9MOgbLJUq+HcLg6Pvk8Swm8FPXcmHkEl9tULaOKHOnSJyU+XDYy5hBc+ymOh1xH0iXCki73b/a4Av5zVzFX2XFDAIRgzlJdfWO/QMg4G9joJcn12ozyBzR13mlontDV3hR8zJaRqy6buwW3v2DgX7873NwrjkwCR8Zy5unIE3UIvnUU5wISN+RpMHF8T/Oqu4mEYGOSPxqgxIOOZvnEKbyckYT2BSl4cZdWtiUdgWPsvAwJmBIZeuBu5OailqbySO0R5P0AeXgD7ae9LOFNxXuhuLsC/F7+KfboYcmQgpJrrHvU8ySpFq0i8lxDY9ahc5sGQ3IJidMNrK76VSKt2yTJb0my4KzEaxAfFcRuxRS4JQ+J53b5GZXaQw+a8+ThI6D8Lb3kPILQcSrP8dAbnkaggrnn20KxlPx1hC1YHf9Gz6g="
+    on_success: never
+    on_failure: always
+
 env:
   global:
     # encrypt with: travis encrypt WHITESOURCE_KEY=...
