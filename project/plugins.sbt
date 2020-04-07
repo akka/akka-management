@@ -9,7 +9,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "1.4.0")
 addSbtPlugin("com.lightbend.sbt" % "sbt-publish-rsync" % "0.1")
 addSbtPlugin("com.thoughtworks.sbt-api-mappings" % "sbt-api-mappings" % "3.0.0")
 addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")
-addSbtPlugin("com.lightbend" % "sbt-whitesource" % "0.1.14")
+addSbtPlugin("com.lightbend" % "sbt-whitesource" % "0.1.18")
 addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "1.0.0")
 
 resolvers += Resolver.jcenterRepo
