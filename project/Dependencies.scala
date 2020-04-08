@@ -4,15 +4,18 @@ import Keys._
 object Dependencies {
 
   val Scala211 = "2.11.12"
-  val Scala212 = "2.12.10"
-  val Scala213 = "2.13.0"
+  val Scala212 = "2.12.11"
+  val Scala213 = "2.13.1"
 
-  val AkkaVersion = "2.5.27"
+  val AkkaVersion = "2.5.31"
   val AkkaHttpVersion = "10.1.11"
 
-  val JUnitVersion = "4.12"
+  val JUnitVersion = "4.13"
   val ScalaTestVersion = "3.0.8"
   val SprayJsonVersion = "1.3.5"
+
+  val AwsSdkVersion = "1.11.761"
+  val JacksonDatabindVersion = "2.10.3"
 
   val Common = Seq(
     libraryDependencies ++= Seq(
@@ -63,7 +66,7 @@ object Dependencies {
 
     // often called-in transitively with insecure versions of databind / core
     val JacksonDatabind = Seq(
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.7"
+      "com.fasterxml.jackson.core" % "jackson-databind" % JacksonDatabindVersion
     )
 
     val ConsulClient = Seq(
@@ -77,8 +80,8 @@ object Dependencies {
       ) ++ JacksonDatabind // consul depends on insecure version of jackson
 
     val AwsJavaSdkEc2Ecs = Seq(
-        "com.amazonaws" % "aws-java-sdk-ec2" % "1.11.292",
-        "com.amazonaws" % "aws-java-sdk-ecs" % "1.11.292"
+        "com.amazonaws" % "aws-java-sdk-ec2" % AwsSdkVersion,
+        "com.amazonaws" % "aws-java-sdk-ecs" % AwsSdkVersion
       ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
     val Aws2Ecs = Seq(
