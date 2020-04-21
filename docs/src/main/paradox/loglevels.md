@@ -10,7 +10,7 @@ Requires @ref:[Akka Management](akka-management.md) and that the application use
 
 @@dependency[sbt,Gradle,Maven] {
   group=com.lightbend.akka.management
-  artifact=loglevel-logback_$scala.binary_version$
+  artifact=akka-management-loglevels-logback_$scala.binary_version$
   version=$project.version$
   group2=com.lightbend.akka.management
   artifact2=akka-management_$scala.binary.version$
