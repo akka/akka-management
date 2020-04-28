@@ -39,7 +39,8 @@ private[bootstrap] object HttpContactPointBootstrap {
 
   def name(host: Host, port: Int): String = {
     val ValidSymbols = """-_.*$+:@&=,!~';"""
-    val cleanHost = host.address.filter(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (ValidSymbols.indexOf(c) != -1))
+    val cleanHost = host.address.filter(c =>
+      (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (ValidSymbols.indexOf(c) != -1))
     s"contactPointProbe-$cleanHost-$port"
   }
   def props(settings: ClusterBootstrapSettings, contactPoint: ResolvedTarget, baseUri: Uri): Props =
