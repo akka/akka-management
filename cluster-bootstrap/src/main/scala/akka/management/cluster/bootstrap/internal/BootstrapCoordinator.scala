@@ -352,7 +352,7 @@ private[akka] class BootstrapCoordinator(
     val rawBaseUri = Uri(selfContactPointScheme, Uri.Authority(Uri.Host(contactPoint.host), targetPort))
     val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
 
-    val childActorName = s"contactPointProbe-${baseUri.authority.host}-${baseUri.authority.port}"
+    val childActorName = HttpContactPointBootstrap.name(baseUri.authority.host, baseUri.authority.port)
     log.debug("Ensuring probing actor: " + childActorName)
 
     // This should never really happen in well configured env, but it may happen that someone is confused with ports

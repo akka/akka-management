@@ -23,6 +23,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.model.Uri.Host
 import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
@@ -36,6 +37,12 @@ import akka.stream.ActorMaterializer
 @InternalApi
 private[bootstrap] object HttpContactPointBootstrap {
 
+  def name(host: Host, port: Int): String = {
+    val ValidSymbols = """-_.*$+:@&=,!~';"""
+    val cleanHost = host.address.filter(c =>
+      (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (ValidSymbols.indexOf(c) != -1))
+    s"contactPointProbe-$cleanHost-$port"
+  }
   def props(settings: ClusterBootstrapSettings, contactPoint: ResolvedTarget, baseUri: Uri): Props =
     Props(new HttpContactPointBootstrap(settings, contactPoint, baseUri))
 
