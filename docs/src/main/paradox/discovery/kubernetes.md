@@ -18,6 +18,20 @@ First, add the dependency on the component:
   version="$project.version$"
 }
 
+`akka-discovery-kubernetes-api` can be used with Akka $akka.version$ or $akka.version26$ or later.
+You have to override the following Akka dependencies by defining them explicitly in your build and
+define the Akka version to the one that you are using. Latest patch version of Akka is recommended and
+a later version than $akka.version26$ can be used.
+
+@@dependency[sbt,Gradle,Maven] {
+  group=com.typesafe.akka
+  artifact=akka-cluster
+  version="$akka.version26$"
+  group2=com.typesafe.akka
+  artifact2=akka-discovery
+  version2="$akka.version26$"
+}
+
 As described above, it is uncommon to use the Kubernetes API discovery
 mechanism as your default discovery mechanism. When using it with Akka Cluster
 Bootstrap, it is sufficient to configure it as described @ref[here](../bootstrap/kubernetes-api.md).

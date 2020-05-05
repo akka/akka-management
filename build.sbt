@@ -258,6 +258,7 @@ lazy val docs = project
         "canonical.base_url" -> "https://doc.akka.io/docs/akka-management/current",
         "scala.binary_version" -> scalaBinaryVersion.value,
         "akka.version" -> Dependencies.AkkaVersion,
+        "akka.version26" -> "2.6.5",
         "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.AkkaVersion}/%s",
         "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.AkkaVersion}/",
         "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpVersion}/%s",

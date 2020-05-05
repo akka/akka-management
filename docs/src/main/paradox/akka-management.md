@@ -9,8 +9,6 @@ management extensions.
 
 ## Dependencies
 
-Akka management requires Akka 2.5 or later.
-
 The main Akka Management dependency is called `akka-management`. By itself however it does not provide any capabilities,
 and you have to combine it with the management extension libraries that you want to make use of (e.g. cluster http management,
 or cluster bootstrap). This design choice enables users to include only the minimal set of features they
@@ -25,6 +23,17 @@ actually want to use (and load) in their project.
 And in addition to that, include all of the dependencies for the features you'd like to use,
 like `akka-management-bootstrap` etc. Refer to each extensions documentation page to learn about how
 to configure and use it.
+
+Akka Management can be used with Akka $akka.version$ or $akka.version26$ or later.
+You have to override the following Akka dependencies by defining them explicitly in your build and
+define the Akka version to the one that you are using. Latest patch version of Akka is recommended and
+a later version than $akka.version26$ can be used.
+
+@@dependency[sbt,Gradle,Maven] {
+  group=com.typesafe.akka
+  artifact=akka-stream
+  version="$akka.version26$"
+}
 
 ## Basic Usage
 
