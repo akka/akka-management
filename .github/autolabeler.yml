@@ -1,0 +1,14 @@
+# configuration for https://github.com/probot/autolabeler
+
+documentation: ["/docs", "/doc-examples"]
+dependency-change: "/project/Dependencies.scala"
+
+'t:bootstrap': ["/cluster-bootstrap", "/bootstrap-demo", "/bootstrap-joining-demo"]
+'t:cluster-http': ["/cluster-http"]
+
+'t:aws': ["/discovery-aws-api", "/discovery-aws-api-async"]
+'t:consul': ["/discovery-consul"]
+'t:kubernetes': ["/discovery-kubernetes-api"]
+'t:marathon': ["/discovery-marathon-api"]
+
+'t:dynamic-log-levels': ["/loglevels-logback"]

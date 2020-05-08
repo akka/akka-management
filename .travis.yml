@@ -6,17 +6,18 @@ addons:
     - conntrack
 language: scala
 
+git:
+  depth: 500 # to make sure we have enough depth to power git describe for sbt-dynver (used for snapshot version numbers)
+
 before_install:
   # make comparing to origin/master work
   - git remote set-branches --add origin master && git fetch
-  # fetch full history for correct current and previous version detection
-  - git fetch --unshallow
   # using jabba for custom jdk management
   - curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.11.1/install.sh | bash && . ~/.jabba/jabba.sh
   - jabba install adopt@1.8-0
-  - jabba install adopt@1.11-0
 
 script:
+  - jabba install ${JDK:=adopt@1.8-0}
   - jabba use ${JDK:=adopt@1.8-0}
   - java -version
   - sbt -jvm-opts .jvmopts-travis "$CMD"
@@ -44,8 +45,7 @@ jobs:
     - sbt -jvm-opts .jvmopts-travis ";scalafmtCheckAll;+test:compile;docs/paradox"
     name: "Compile on all Scala versions, check code style (fixed with `sbt Test/compile`)"
 
-  - stage: test
-    env: CMD="+test"
+  - env: CMD="+test"
     name: "Run tests on AdoptOpenJDK 8 (all Scala versions)"
 
   - env:
@@ -53,7 +53,8 @@ jobs:
     - CMD="+test"
     name: "Run tests on AdoptOpenJDK 11 (all Scala versions)"
 
-  - script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api/test.sh
+  - stage: integration
+    script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api/test.sh
     env: K8S_API
 
   - script:
@@ -82,6 +83,8 @@ stages:
   - name: check
     if: NOT tag =~ ^v
   - name: test
+    if: NOT tag =~ ^v
+  - name: integration
     if: NOT tag =~ ^v
   - name: whitesource
     if: repo = akka/akka-management AND ( ( branch = master AND type = push ) OR tag =~ ^v )
