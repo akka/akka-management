@@ -16,7 +16,7 @@ categories:
     label: 't:marathon'
 
 
-change-template: '- $TITLE [#$NUMBER](https://github.com/akka/alpakka/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
+change-template: '- $TITLE [#$NUMBER](https://github.com/akka/akka-management/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
 template: |
   ## Changes
 
