@@ -64,7 +64,7 @@ object KubernetesApiServiceDiscovery {
           } yield Some(port.containerPort)
       }
     } yield {
-      val hostOrIp = if(rawIp) ip else s"${ip.replace('.', '-')}.$podNamespace.pod.$podDomain"
+      val hostOrIp = if (rawIp) ip else s"${ip.replace('.', '-')}.$podNamespace.pod.$podDomain"
       ResolvedTarget(
         host = hostOrIp,
         port = maybePort,

@@ -145,7 +145,7 @@ class KubernetesApiServiceDiscoverySpec extends WordSpec with Matchers {
       KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local", false) shouldBe List.empty
     }
 
-    "use a ip instead of the host if requested" in  {
+    "use a ip instead of the host if requested" in {
       val podList =
         PodList(
           List(
