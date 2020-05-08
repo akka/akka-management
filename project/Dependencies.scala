@@ -4,10 +4,10 @@ import Keys._
 object Dependencies {
 
   val Scala211 = "2.11.12"
-  val Scala212 = "2.12.11"
-  val Scala213 = "2.13.1"
+  val Scala212 = "2.12.10"
+  val Scala213 = "2.13.0"
 
-  val AkkaVersion = "2.5.31"
+  val AkkaVersion = "2.5.27"
   val AkkaHttpVersion = "10.1.11"
 
   val JUnitVersion = "4.13"
@@ -15,7 +15,7 @@ object Dependencies {
   val SprayJsonVersion = "1.3.5"
 
   val AwsSdkVersion = "1.11.761"
-  val JacksonDatabindVersion = "2.10.3"
+  val JacksonDatabindVersion = "2.10.4"
 
   val Common = Seq(
     libraryDependencies ++= Seq(
