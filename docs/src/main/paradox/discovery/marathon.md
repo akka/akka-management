@@ -31,6 +31,22 @@ This is a separate JAR file:
   version="$project.version$"
 }
 
+`akka-discovery-marathon-api` can be used with Akka $akka.version$ or $akka.version26$ or later.
+You have to override the following Akka dependencies by defining them explicitly in your build and
+define the Akka version to the one that you are using. Latest patch version of Akka is recommended and
+a later version than $akka.version26$ can be used.
+
+@@dependency[sbt,Gradle,Maven] {
+  symbol=AkkaVersion
+  value=$akka.version26$
+  group=com.typesafe.akka
+  artifact=akka-cluster_$scala.binary_version$
+  version=AkkaVersion
+  group2=com.typesafe.akka
+  artifact2=akka-discovery_$scala.binary_version$
+  version2=AkkaVersion
+}
+
 And in your `application.conf`:
 
 ```

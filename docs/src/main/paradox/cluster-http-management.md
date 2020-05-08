@@ -21,8 +21,24 @@ Make sure to include it along with the core akka-management library in your proj
   artifact=akka-management_$scala.binary_version$
   version=$project.version$
   group2=com.lightbend.akka.management
-  artifact2=akka-management-cluster-http_$scala.binary.version$
+  artifact2=akka-management-cluster-http_$scala.binary_version$
   version2=$project.version$
+}
+
+Akka Cluster HTTP Management can be used with Akka $akka.version$ or $akka.version26$ or later.
+You have to override the following Akka dependencies by defining them explicitly in your build and
+define the Akka version to the one that you are using. Latest patch version of Akka is recommended and
+a later version than $akka.version26$ can be used.
+
+@@dependency[sbt,Gradle,Maven] {
+  symbol=AkkaVersion
+  value=$akka.version26$
+  group=com.typesafe.akka
+  artifact=akka-cluster-sharding_$scala.binary_version$
+  version=AkkaVersion
+  group2=com.typesafe.akka
+  artifact2=akka-discovery
+  version2=AkkaVersion
 }
 
 ## Running

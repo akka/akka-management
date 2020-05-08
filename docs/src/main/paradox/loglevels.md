@@ -13,8 +13,24 @@ Requires @ref:[Akka Management](akka-management.md) and that the application use
   artifact=akka-management-loglevels-logback_$scala.binary_version$
   version=$project.version$
   group2=com.lightbend.akka.management
-  artifact2=akka-management_$scala.binary.version$
+  artifact2=akka-management_$scala.binary_version$
   version2=$project.version$
+}
+
+Akka Management and `akka-management-loglevels-logback` can be used with Akka $akka.version$ or $akka.version26$ or later.
+You have to override the following Akka dependencies by defining them explicitly in your build and
+define the Akka version to the one that you are using. Latest patch version of Akka is recommended and
+a later version than $akka.version26$ can be used.
+
+@@dependency[sbt,Gradle,Maven] {
+  symbol=AkkaVersion
+  value=$akka.version26$
+  group=com.typesafe.akka
+  artifact=akka-stream_$scala.binary_version$
+  version=AkkaVersion
+  group2=com.typesafe.akka
+  artifact2=akka-slf4j_$scala.binary_version$
+  version2=AkkaVersion
 }
 
 With Akka Management started and this module on the classpath the module is automatically picked up and provides the following two HTTP routes:
