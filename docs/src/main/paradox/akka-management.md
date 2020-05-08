@@ -16,7 +16,7 @@ actually want to use (and load) in their project.
 
 @@dependency[sbt,Gradle,Maven] {
   group="com.lightbend.akka.management"
-  artifact="akka-management_$scala.binary_version$"
+  artifact="akka-management_$scala.binary.version$"
   version="$project.version$"
 }
 

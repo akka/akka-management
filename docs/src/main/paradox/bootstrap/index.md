@@ -37,10 +37,10 @@ and bootstrap extensions:
 
 @@dependency[sbt,Gradle,Maven] {
   group=com.lightbend.akka.management
-  artifact=akka-management-cluster-bootstrap_$scala.binary_version$
+  artifact=akka-management-cluster-bootstrap_$scala.binary.version$
   version=$project.version$
   group2=com.typesafe.akka
-  artifact2=akka-discovery_$scala.binary_version$
+  artifact2=akka-discovery_$scala.binary.version$
   version2=$akka.version$
 }
 
