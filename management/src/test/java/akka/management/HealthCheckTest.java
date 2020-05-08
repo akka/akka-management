@@ -74,6 +74,8 @@ public class HealthCheckTest extends JUnitSuite {
                 "alive",
                 java.time.Duration.ofSeconds(1)
         ));
+        assertEquals(true, checks.aliveResult().toCompletableFuture().get().isSuccess());
+        assertEquals(true, checks.readyResult().toCompletableFuture().get().isSuccess());
         assertEquals(true, checks.alive().toCompletableFuture().get());
         assertEquals(true, checks.ready().toCompletableFuture().get());
     }
@@ -88,6 +90,8 @@ public class HealthCheckTest extends JUnitSuite {
                 "alive",
                 java.time.Duration.ofSeconds(1)
         ));
+        assertEquals(true, checks.aliveResult().toCompletableFuture().get().isSuccess());
+        assertEquals(true, checks.readyResult().toCompletableFuture().get().isSuccess());
         assertEquals(true, checks.alive().toCompletableFuture().get());
         assertEquals(true, checks.ready().toCompletableFuture().get());
     }
@@ -107,7 +111,7 @@ public class HealthCheckTest extends JUnitSuite {
             checks.alive().toCompletableFuture().get();
             Assert.fail("Expected exception");
         } catch (ExecutionException re) {
-            assertEquals(cause, re.getCause());
+            assertEquals(cause, re.getCause().getCause());
         }
     }
 
@@ -129,6 +133,8 @@ public class HealthCheckTest extends JUnitSuite {
               "alive",
               java.time.Duration.ofSeconds(1)
             ));
+            assertEquals(false, checks.aliveResult().toCompletableFuture().get().isSuccess());
+            assertEquals(false, checks.readyResult().toCompletableFuture().get().isSuccess());
             assertEquals(false, checks.alive().toCompletableFuture().get());
             assertEquals(false, checks.ready().toCompletableFuture().get());
       } finally {
