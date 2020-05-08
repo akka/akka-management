@@ -18,7 +18,7 @@ Make sure to include it along with the core akka-management library in your proj
 
 @@dependency[sbt,Gradle,Maven] {
   group=com.lightbend.akka.management
-  artifact=akka-management_$scala.binary_version$
+  artifact=akka-management_$scala.binary.version$
   version=$project.version$
   group2=com.lightbend.akka.management
   artifact2=akka-management-cluster-http_$scala.binary_version$
