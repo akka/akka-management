@@ -23,12 +23,14 @@ define the Akka version to the one that you are using. Latest patch version of A
 a later version than $akka.version26$ can be used.
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol=AkkaVersion
+  value=$akka.version26$
   group=com.typesafe.akka
-  artifact=akka-stream
-  version="$akka.version26$"
+  artifact=akka-stream_$scala.binary.version$
+  version=AkkaVersion
   group2=com.typesafe.akka
-  artifact2=akka-slf4j
-  version2="$akka.version26$"
+  artifact2=akka-slf4j_$scala.binary.version$
+  version2=AkkaVersion
 }
 
 With Akka Management started and this module on the classpath the module is automatically picked up and provides the following two HTTP routes:

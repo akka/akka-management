@@ -31,12 +31,14 @@ define the Akka version to the one that you are using. Latest patch version of A
 a later version than $akka.version26$ can be used.
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol=AkkaVersion
+  value=$akka.version26$
   group=com.typesafe.akka
-  artifact=akka-cluster-sharding
-  version="$akka.version26$"
+  artifact=akka-cluster-sharding_$scala.binary.version$
+  version=AkkaVersion
   group2=com.typesafe.akka
   artifact2=akka-discovery
-  version2="$akka.version26$"
+  version2=AkkaVersion
 }
 
 ## Running
