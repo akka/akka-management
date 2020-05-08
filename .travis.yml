@@ -1,3 +1,6 @@
+version: ~> 1.0
+import: scala/scala-dev:travis/default.yml
+
 sudo: required
 dist: xenial
 addons:
@@ -12,13 +15,8 @@ git:
 before_install:
   # make comparing to origin/master work
   - git remote set-branches --add origin master && git fetch
-  # using jabba for custom jdk management
-  - curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.11.1/install.sh | bash && . ~/.jabba/jabba.sh
-  - jabba install adopt@1.8-0
 
 script:
-  - jabba install ${JDK:=adopt@1.8-0}
-  - jabba use ${JDK:=adopt@1.8-0}
   - java -version
   - sbt -jvm-opts .jvmopts-travis "$CMD"
 
@@ -31,7 +29,6 @@ cache:
     - $HOME/.cache/coursier
     - $HOME/.ivy2/cache
     - $HOME/.sbt
-    - $HOME/.jabba/jdk
 
 before_script:
   - unset _JAVA_OPTIONS
@@ -40,17 +37,16 @@ jobs:
   include:
   - stage: test
     script:
-    - jabba use "adopt@1.8-0"
     - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
     - sbt -jvm-opts .jvmopts-travis ";scalafmtCheckAll;+test:compile;docs/paradox"
     name: "Compile on all Scala versions, check code style (fixed with `sbt Test/compile`)"
 
-  - env: CMD="+test"
+  - env:
+    - ADOPTOPENJDK=8
+    - CMD="+test"
     name: "Run tests on AdoptOpenJDK 8 (all Scala versions)"
 
-  - env:
-    - JDK="adopt@1.11-0"
-    - CMD="+test"
+  - env: CMD="+test"
     name: "Run tests on AdoptOpenJDK 11 (all Scala versions)"
 
   - stage: integration
@@ -67,13 +63,11 @@ jobs:
 
   - stage: whitesource
     script:
-      - jabba use "adopt@1.8-0"
       - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt 'set credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
     name: "Check licenses with WhiteSource"
 
   - stage: publish
     script:
-      - jabba use "adopt@1.8-0"
       - sbt -J-XX:ReservedCodeCacheSize=128m +publish
     name: Publish artifacts
   - script: eval "$(ssh-agent -s)" && cp .travis/id_rsa /tmp/id_rsa && chmod 600 /tmp/id_rsa && ssh-keygen -p -P "$DEPLOY_PASSPHRASE" -N "" -f /tmp/id_rsa && ssh-add /tmp/id_rsa && sbt docs/publishRsync
@@ -100,6 +94,7 @@ notifications:
 
 env:
   global:
+    - ADOPTOPENJDK=11
     # encrypt with: travis encrypt WHITESOURCE_KEY=...
     - secure: "KK7AsqpqUBRl3vnPzVfmlfogl/HMq7Xb2t6EHHB9pi8QWmK25ufPAxF6G+vx0mIAAP7r6n/lkdVBnuZC1jp6G1/I4adsXJOkCF6YTSb9XmH9jK+YhI6xuqFx5vRqxb2faK+6VY6IJXQFD8/1gkdVr0hN3Hq4I5Yg0GAUxAaKKNWeh7VsFmrFiMCj7Q8s2U4+aGSgyKnptQ35JV63SPZV0rgPPIv1kZuqLi526fQMwOIfhpaRh763v7wgINJjZhvAjIbpicGmayZSnZPhs0+Z/jh9pK8sja1S+dUJSEe4IIfGMJINko58fKNPrxaenk05pwTJ+pWKmYWwxyEIiJrTkNHHUnXYCaJf7Qfiyv+sdZ9opGTs0xXS+/kaI9WPQ/vToyMTSjhZnCx0D9vJMuIVDM0OD+1GO66LqdBWK5nC+tgSstf79HK0gZP7hLzhxNj+4mXajECBlg+GucN6wmhrUB2UMGZ6/NvfIdzuXFFQCuSf3Hp+4z7yDV+FgqZeiedLLlZrvaE0IKrNaJ1CfzZ8jIzhjYXFFG9ERMeyGp7n8/7LW2NcHOI+BvKcaNOV4umRXWcXh7mQqzmZ+t3t+4IQFCR1lTrYj59KA4UI2Z9viZBefwIll1X2UNJ2uzbcCqdQSNrTi8LPfuqU39hdxYcw69it7K55Ktah6qiFwKpPlUc="
     # encrypt with: travis encrypt BINTRAY_USER=...
