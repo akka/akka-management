@@ -42,7 +42,8 @@ object KubernetesApiServiceDiscovery {
       podList: PodList,
       portName: Option[String],
       podNamespace: String,
-      podDomain: String): Seq[ResolvedTarget] =
+      podDomain: String,
+      rawIp: Boolean): Seq[ResolvedTarget] =
     for {
       item <- podList.items
       if item.metadata.flatMap(_.deletionTimestamp).isEmpty
@@ -63,9 +64,9 @@ object KubernetesApiServiceDiscovery {
           } yield Some(port.containerPort)
       }
     } yield {
-      val host = s"${ip.replace('.', '-')}.$podNamespace.pod.$podDomain"
+      val hostOrIp = if (rawIp) ip else s"${ip.replace('.', '-')}.$podNamespace.pod.$podDomain"
       ResolvedTarget(
-        host = host,
+        host = hostOrIp,
         port = maybePort,
         address = Some(InetAddress.getByName(ip))
       )
@@ -159,7 +160,7 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscover
       }
 
     } yield {
-      val addresses = targets(podList, query.portName, podNamespace, settings.podDomain)
+      val addresses = targets(podList, query.portName, podNamespace, settings.podDomain, settings.rawIp)
       if (addresses.isEmpty && podList.items.nonEmpty) {
         if (log.isInfoEnabled) {
           val containerPortNames = podList.items.flatMap(_.spec).flatMap(_.containers).flatMap(_.ports).flatten.toSet
