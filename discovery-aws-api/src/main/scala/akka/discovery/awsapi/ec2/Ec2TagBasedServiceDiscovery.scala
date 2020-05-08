@@ -108,16 +108,17 @@ class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDi
       case None =>
         defaultClientConfiguration
     }
-    val endpointConfiguration = (config.getString("endpoint"), config.getString("region")) match {
-      case ("", _) | (_, "") =>
-        null
-      case (endpoint, region) =>
-        new EndpointConfiguration(endpoint, region)
-    }
-    AmazonEC2ClientBuilder
+    val builder = AmazonEC2ClientBuilder
       .standard()
       .withClientConfiguration(clientConfiguration)
-      .withEndpointConfiguration(endpointConfiguration)
+
+    if (config.hasPath("endpoint") && config.hasPath("region")) {
+      val endpoint = config.getString("endpoint")
+      val region = config.getString("region")
+      builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, region))
+    }
+
+    builder
       .build()
   }
 
