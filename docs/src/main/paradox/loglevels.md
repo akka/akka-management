@@ -13,7 +13,7 @@ Requires @ref:[Akka Management](akka-management.md) and that the application use
   artifact=akka-management-loglevels-logback_$scala.binary_version$
   version=$project.version$
   group2=com.lightbend.akka.management
-  artifact2=akka-management_$scala.binary.version$
+  artifact2=akka-management_$scala.binary_version$
   version2=$project.version$
 }
 
@@ -26,10 +26,10 @@ a later version than $akka.version26$ can be used.
   symbol=AkkaVersion
   value=$akka.version26$
   group=com.typesafe.akka
-  artifact=akka-stream_$scala.binary.version$
+  artifact=akka-stream_$scala.binary_version$
   version=AkkaVersion
   group2=com.typesafe.akka
-  artifact2=akka-slf4j_$scala.binary.version$
+  artifact2=akka-slf4j_$scala.binary_version$
   version2=AkkaVersion
 }
 
