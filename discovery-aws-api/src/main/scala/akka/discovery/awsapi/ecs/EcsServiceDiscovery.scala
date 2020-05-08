@@ -36,9 +36,7 @@ class EcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
     // we have our own retry/backoff mechanism, so we don't need EC2Client's in addition
     val clientConfiguration = new ClientConfiguration()
     clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
-    val builder = AmazonECSClientBuilder
-      .standard()
-      .withClientConfiguration(clientConfiguration)
+    val builder = AmazonECSClientBuilder.standard().withClientConfiguration(clientConfiguration)
 
     if (config.hasPath("endpoint") && config.hasPath("region")) {
       val endpoint = config.getString("endpoint")
@@ -46,8 +44,7 @@ class EcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
       builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, region))
     }
 
-    builder
-      .build()
+    builder.build()
   }
 
   private[this] implicit val ec: ExecutionContext = system.dispatcher
