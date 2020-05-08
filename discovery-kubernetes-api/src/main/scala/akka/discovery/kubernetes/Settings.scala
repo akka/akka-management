@@ -8,7 +8,9 @@ import java.util.Optional
 
 import akka.actor._
 import com.typesafe.config.Config
+
 import scala.compat.java8.OptionConverters._
+import scala.util.Try
 
 final class Settings(system: ExtendedActorSystem) extends Extension {
 
@@ -54,6 +56,8 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
 
   def podLabelSelector(name: String): String =
     kubernetesApi.getString("pod-label-selector").format(name)
+
+  lazy val rawIp: Boolean = kubernetesApi.getBoolean("raw-ip-enabled")
 
   override def toString =
     s"Settings($apiCaPath, $apiTokenPath, $apiServiceHostEnvName, $apiServicePortEnvName, " +
