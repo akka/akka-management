@@ -57,7 +57,7 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
   def podLabelSelector(name: String): String =
     kubernetesApi.getString("pod-label-selector").format(name)
 
-  lazy val rawIp: Boolean = kubernetesApi.getBoolean("raw-ip-enabled")
+  lazy val rawIp: Boolean = kubernetesApi.getBoolean("use-raw-ip")
 
   override def toString =
     s"Settings($apiCaPath, $apiTokenPath, $apiServiceHostEnvName, $apiServicePortEnvName, " +
