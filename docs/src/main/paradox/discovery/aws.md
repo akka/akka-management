@@ -139,8 +139,7 @@ Screenshot of two ECS task instances (the service name is
 
 #### Dependencies and usage (ECS Discovery)
 
-There are two "flavours" of the ECS Discovery module. One offers service-discovery using
-the AWS SDK with blocking IO and the second one uses the newer AWS SDK with non-blocking IO.
+There are two "flavours" of the ECS Discovery module.
 
 ##### akka-discovery-aws-api
 
@@ -196,6 +195,10 @@ akka.discovery {
   aws-api-ecs-async {
     # Defaults to "default" to match the AWS default cluster name if not overridden
     cluster = "your-ecs-cluster-name"
+    # Defaults to an empty list
+    tags = [
+      { key = "deployment-side", value = "blue" }
+    ]
   }
 }
 ```
@@ -254,6 +257,24 @@ Notes:
   too) you'll need to set
   `akka.management.cluster.bootstrap.contact-point.fallback-port = 8558`, where
   8558 is whatever port you choose to bind akka-management to.
+
+* You can set additional filters to only discover nodes with specific tag values in 
+  your application.conf file, in the `akka.discovery.aws-api-ecs-async.tags` key. 
+  An empty list of tags will not filter any nodes out.
+
+  For example:
+    ```
+    akka {
+      discovery {
+        aws-api-ecs-async {
+          tags = [
+                { key = "environment", value = "staging" },
+                { key = "deployment-side", value = "blue" }
+              ]
+        }
+      }
+    }
+    ```
 
 * The current implementation only supports discovery of service task instances
   within the same region.
