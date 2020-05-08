@@ -13,6 +13,7 @@ import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.discovery.awsapi.ecs.EcsServiceDiscovery._
 import akka.pattern.after
 import com.amazonaws.ClientConfiguration
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.retry.PredefinedRetryPolicies
 import com.amazonaws.services.ecs.model.{ DescribeTasksRequest, DesiredStatus, ListTasksRequest, Task }
 import com.amazonaws.services.ecs.{ AmazonECS, AmazonECSClientBuilder }
@@ -35,7 +36,15 @@ class EcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
     // we have our own retry/backoff mechanism, so we don't need EC2Client's in addition
     val clientConfiguration = new ClientConfiguration()
     clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
-    AmazonECSClientBuilder.standard().withClientConfiguration(clientConfiguration).build()
+    val builder = AmazonECSClientBuilder.standard().withClientConfiguration(clientConfiguration)
+
+    if (config.hasPath("endpoint") && config.hasPath("region")) {
+      val endpoint = config.getString("endpoint")
+      val region = config.getString("region")
+      builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, region))
+    }
+
+    builder.build()
   }
 
   private[this] implicit val ec: ExecutionContext = system.dispatcher
