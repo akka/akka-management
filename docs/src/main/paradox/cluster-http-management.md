@@ -21,7 +21,7 @@ Make sure to include it along with the core akka-management library in your proj
   artifact=akka-management_$scala.binary.version$
   version=$project.version$
   group2=com.lightbend.akka.management
-  artifact2=akka-management-cluster-http_$scala.binary_version$
+  artifact2=akka-management-cluster-http_$scala.binary.version$
   version2=$project.version$
 }
 
@@ -34,7 +34,7 @@ a later version than $akka.version26$ can be used.
   symbol=AkkaVersion
   value=$akka.version26$
   group=com.typesafe.akka
-  artifact=akka-cluster-sharding_$scala.binary_version$
+  artifact=akka-cluster-sharding_$scala.binary.version$
   version=AkkaVersion
   group2=com.typesafe.akka
   artifact2=akka-discovery

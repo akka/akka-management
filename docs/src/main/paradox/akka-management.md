@@ -31,7 +31,7 @@ a later version than $akka.version26$ can be used.
 
 @@dependency[sbt,Gradle,Maven] {
   group=com.typesafe.akka
-  artifact=akka-stream_$scala.binary_version$
+  artifact=akka-stream_$scala.binary.version$
   version="$akka.version26$"
 }
 
