@@ -4,4 +4,4 @@
 -Xmx1G
 -Xss2M
 -XX:ReservedCodeCacheSize=128m
-
+-Dsbt.color=always

@@ -2,6 +2,10 @@
 
 Create a new issue from the [Release Train Issue Template](docs/release-train-issue-template.md) and follow the steps.
 
+```bash
+~/akka-management> ./scripts/create-release-issue.sh `version-to-be-released`
+```
+
 ### Releasing only updated docs
 
 It is possible to release a revised documentation to the already existing release.
