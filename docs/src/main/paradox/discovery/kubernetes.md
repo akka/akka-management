@@ -27,10 +27,10 @@ a later version than $akka.version26$ can be used.
   symbol=AkkaVersion
   value=$akka.version26$
   group=com.typesafe.akka
-  artifact=akka-cluster_$scala.binary_version$
+  artifact=akka-cluster_$scala.binary.version$
   version=AkkaVersion
   group2=com.typesafe.akka
-  artifact2=akka-discovery_$scala.binary_version$
+  artifact2=akka-discovery_$scala.binary.version$
   version2=AkkaVersion
 }
 
