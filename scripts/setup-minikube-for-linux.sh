@@ -2,6 +2,10 @@
 
 set -exu
 
+# Required by minikube
+sudo apt update
+sudo apt install conntrack
+
 # MINIKUBE_VERSION="latest" -- https://github.com/kubernetes/minikube/issues/2704
 MINIKUBE_VERSION="latest"
 
