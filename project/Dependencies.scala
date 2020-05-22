@@ -20,12 +20,17 @@ object Dependencies {
   val AwsSdkVersion = "1.11.761"
   val JacksonDatabindVersion = "2.10.4"
 
+
+  object TestDeps {
+    val scalaTest = "org.scalatest"     %% "scalatest"     % ScalaTestVersion
+    val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % AkkaVersion
+  }
+
   val Common = Seq(
     libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test // ApacheV2
-      )
+      TestDeps.scalaTest % Test // ApacheV2
+    )
   )
-
   private object DependencyGroups {
     val AkkaActor = Seq(
       "com.typesafe.akka" %% "akka-actor" % AkkaVersion
@@ -33,6 +38,10 @@ object Dependencies {
 
     val AkkaDiscovery = Seq(
       "com.typesafe.akka" %% "akka-discovery" % AkkaVersion
+    )
+
+    val AkkaCoordination = Seq(
+      "com.typesafe.akka" %% "akka-coordination" % AkkaVersion
     )
 
     val AkkaHttpCore = Seq(
@@ -58,7 +67,7 @@ object Dependencies {
     )
 
     val AkkaTesting = Seq(
-      "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "test",
+      TestDeps.akkaTestKit % "test",
       "junit" % "junit" % JUnitVersion % "test",
       "org.mockito" % "mockito-all" % "1.10.19" % "test" // Common Public License 1.0
     )
@@ -94,6 +103,10 @@ object Dependencies {
     val Logging = Seq(
       "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
       "ch.qos.logback" % "logback-classic" % "1.2.3"
+    )
+
+    val WireMock = Seq(
+      "com.github.tomakehurst" % "wiremock-jre8" % "2.21.0" % "test" // ApacheV2
     )
   }
 
@@ -171,6 +184,22 @@ object Dependencies {
       DependencyGroups.AkkaHttpTesting ++ Seq(
         "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % "test"
       )
+  )
+
+  val LeaseKubernetes = Seq(
+    libraryDependencies ++=
+      DependencyGroups.AkkaHttp ++
+      DependencyGroups.AkkaCoordination ++
+      DependencyGroups.WireMock ++
+      Seq(
+        TestDeps.scalaTest % "it,test",
+        TestDeps.akkaTestKit % "it,test"
+      )
+  )
+
+  val LeaseKubernetesTest = Seq(
+    libraryDependencies ++=
+      Seq(TestDeps.scalaTest)
   )
 
   val BootstrapDemos = Seq(

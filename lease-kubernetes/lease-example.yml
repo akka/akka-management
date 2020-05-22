@@ -1,0 +1,7 @@
+apiVersion: "akka.io/v1" 
+kind: Lease
+metadata:
+  name: akka-sbr
+spec:
+  owner: ""
+  time: 0
