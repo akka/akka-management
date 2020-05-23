@@ -160,7 +160,7 @@ akka {
 
 #### Full configuration options
 
-@@snip [reference.conf](/akka-lease-kubernetes/src/main/resources/reference.conf) { }
+@@snip [reference.conf](/lease-kubernetes/src/main/resources/reference.conf)
 
 ### F.A.Q
 
