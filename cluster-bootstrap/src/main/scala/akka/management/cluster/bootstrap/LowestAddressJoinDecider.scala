@@ -63,8 +63,8 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
         if (isJoinSelfAble && settings.newClusterEnabled)
           JoinSelf.asCompletedFuture
         else {
-          if (log.isInfoEnabled) {
-            if (settings.newClusterEnabled)
+          if (settings.newClusterEnabled) {
+            if (log.isInfoEnabled)
               log.info(
                 BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString), info.allSeedNodes),
                 "Exceeded stable margins without locating seed-nodes, however this node {} is NOT the lowest address " +
@@ -74,7 +74,8 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
                 lowestAddress.map(contactPointString).getOrElse(""),
                 info.contactPoints.map(contactPointString).mkString(", ")
               )
-            else
+          } else {
+            if (log.isWarningEnabled)
               log.warning(
                 BootstrapLogMarker.inProgress(info.contactPoints.map(contactPointString), info.allSeedNodes),
                 "Exceeded stable margins without locating seed-nodes, however this node {} is configured with " +
