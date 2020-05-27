@@ -15,10 +15,12 @@ import scala.concurrent.Future
 private[akka] case class LeaseResource(owner: Option[String], version: String, time: Long) {
   def isTaken(): Boolean = owner.isDefined
 }
+
 /**
  * INTERNAL API
  */
 private[akka] trait KubernetesApi {
+
   /**
    * Reads a Lease from the API server. If it doesn't exist it tries to create it.
    * The creation can fail due to another instance creating at the same time, in this case
@@ -38,6 +40,9 @@ private[akka] trait KubernetesApi {
    *
    *  Any subsequent updates should also use the latest version or re-read with [[readOrCreateLeaseResource]]
    */
-  def updateLeaseResource(name: String, clientName: String, version: String, time: Long = System.currentTimeMillis()): Future[Either[LeaseResource, LeaseResource]]
+  def updateLeaseResource(
+      name: String,
+      clientName: String,
+      version: String,
+      time: Long = System.currentTimeMillis()): Future[Either[LeaseResource, LeaseResource]]
 }
-

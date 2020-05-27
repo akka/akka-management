@@ -12,7 +12,9 @@ import scala.concurrent.duration._
 class KubernetesSettingsSpec extends WordSpec with Matchers {
 
   private def conf(overrides: String): KubernetesSettings = {
-    val c = ConfigFactory.parseString(overrides).withFallback(ConfigFactory.load().getConfig("akka.coordination.lease.kubernetes"))
+    val c = ConfigFactory
+      .parseString(overrides)
+      .withFallback(ConfigFactory.load().getConfig("akka.coordination.lease.kubernetes"))
     KubernetesSettings(c, TimeoutSettings(c))
   }
 
@@ -24,16 +26,14 @@ class KubernetesSettingsSpec extends WordSpec with Matchers {
       conf("lease-operation-timeout=5s").bodyReadTimeout shouldEqual 1.seconds
     }
     "allow overriding of api server request timeout" in {
-      conf(
-        """
+      conf("""
            lease-operation-timeout=5s
            api-server-request-timeout=4s
         """.stripMargin).apiServerRequestTimeout shouldEqual 4.seconds
     }
     "not allow server request timeout greater than operation timeout" in {
       intercept[IllegalArgumentException] {
-        conf(
-          """
+        conf("""
            lease-operation-timeout=5s
            api-server-request-timeout=6s
         """.stripMargin).apiServerRequestTimeout

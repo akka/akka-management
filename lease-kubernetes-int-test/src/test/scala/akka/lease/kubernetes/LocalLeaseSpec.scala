@@ -9,8 +9,9 @@ import com.typesafe.config.ConfigFactory
 // For testing locally with a kubectl proxy 8080
 // the actual spec is run in kubernetes from Jenkins
 abstract class LocalLeaseSpec extends LeaseSpec {
-  private lazy val _system = ActorSystem("LocalLeaseSpec", ConfigFactory.parseString(
-    """
+  private lazy val _system = ActorSystem(
+    "LocalLeaseSpec",
+    ConfigFactory.parseString("""
      akka.loglevel = INFO
     akka.coordination.lease.kubernetes {
       api-service-host = localhost
@@ -19,7 +20,8 @@ abstract class LocalLeaseSpec extends LeaseSpec {
       namespace-path = ""
       secure-api-server = false
     }
-    """))
+    """)
+  )
 
   override def system = _system
 }

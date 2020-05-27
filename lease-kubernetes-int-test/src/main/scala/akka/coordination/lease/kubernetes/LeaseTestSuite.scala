@@ -4,9 +4,9 @@
 
 package akka.coordination.lease.kubernetes
 
-import akka.actor.{ActorSystem, CoordinatedShutdown}
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 object LeaseTestSuite {
 

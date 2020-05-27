@@ -21,11 +21,15 @@ object KubernetesLease {
   private val leaseCounter = new AtomicInteger(1)
 }
 
-class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: AtomicBoolean, settings: LeaseSettings) extends Lease(settings) {
+class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: AtomicBoolean, settings: LeaseSettings)
+    extends Lease(settings) {
 
   private val k8sSettings = KubernetesSettings(settings.leaseConfig, settings.timeoutSettings)
   private val k8sApi = new KubernetesApiImpl(system, k8sSettings)
-  private val leaseActor = system.systemActorOf(LeaseActor.props(k8sApi, settings, leaseTaken), s"kubernetesLease${KubernetesLease.leaseCounter.incrementAndGet}-${settings.leaseName}-${settings.ownerName}")
+  private val leaseActor = system.systemActorOf(
+    LeaseActor.props(k8sApi, settings, leaseTaken),
+    s"kubernetesLease${KubernetesLease.leaseCounter.incrementAndGet}-${settings.leaseName}-${settings.ownerName}"
+  )
 
   def this(leaseSettings: LeaseSettings, system: ExtendedActorSystem) =
     this(system, new AtomicBoolean(false), leaseSettings)
@@ -40,12 +44,16 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
   // TODO (followup) make release idempotent so client can retry?
   override def release(): Future[Boolean] = {
     // replace with transform once 2.11 dropped
-    (leaseActor ? Release()).flatMap {
-      case LeaseReleased       => Future.successful(true)
-      case InvalidRequest(msg) => Future.failed(new LeaseException(msg))
-    }.recoverWith {
-      case _: AskTimeoutException => Future.failed(new LeaseTimeoutException(s"Timed out trying to release lease [${settings.leaseName}, ${settings.ownerName}]. It may still be taken."))
-    }
+    (leaseActor ? Release())
+      .flatMap {
+        case LeaseReleased       => Future.successful(true)
+        case InvalidRequest(msg) => Future.failed(new LeaseException(msg))
+      }
+      .recoverWith {
+        case _: AskTimeoutException =>
+          Future.failed(new LeaseTimeoutException(
+            s"Timed out trying to release lease [${settings.leaseName}, ${settings.ownerName}]. It may still be taken."))
+      }
   }
 
   override def acquire(): Future[Boolean] = {
@@ -54,13 +62,16 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
   }
   override def acquire(leaseLostCallback: Option[Throwable] => Unit): Future[Boolean] = {
     // replace with transform once 2.11 dropped
-    (leaseActor ? Acquire(leaseLostCallback)).flatMap {
-      case LeaseAcquired       => Future.successful(true)
-      case LeaseTaken          => Future.successful(false)
-      case InvalidRequest(msg) => Future.failed(new LeaseException(msg))
-    }.recoverWith {
-      case _: AskTimeoutException => Future.failed[Boolean](new LeaseTimeoutException(s"Timed out trying to acquire lease [${settings.leaseName}, ${settings.ownerName}]. It may still be taken."))
-    }
+    (leaseActor ? Acquire(leaseLostCallback))
+      .flatMap {
+        case LeaseAcquired       => Future.successful(true)
+        case LeaseTaken          => Future.successful(false)
+        case InvalidRequest(msg) => Future.failed(new LeaseException(msg))
+      }
+      .recoverWith {
+        case _: AskTimeoutException =>
+          Future.failed[Boolean](new LeaseTimeoutException(
+            s"Timed out trying to acquire lease [${settings.leaseName}, ${settings.ownerName}]. It may still be taken."))
+      }
   }
 }
-

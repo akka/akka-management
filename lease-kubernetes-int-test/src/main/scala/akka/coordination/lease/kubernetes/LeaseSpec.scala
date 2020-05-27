@@ -8,9 +8,9 @@ import akka.actor.ActorSystem
 import akka.coordination.lease.TimeoutSettings
 import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.coordination.lease.scaladsl.LeaseProvider
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import org.scalatest.time.{Milliseconds, Seconds, Span}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.time.{ Milliseconds, Seconds, Span }
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 
 /**
  * This spec is for running inside a k8s cluster.

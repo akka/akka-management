@@ -14,11 +14,17 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import org.scalatest.concurrent.ScalaFutures
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
 
-class KubernetesApiSpec extends TestKit(ActorSystem("KubernetesApiSpec")) with ScalaFutures with WordSpecLike with BeforeAndAfterAll with Matchers with BeforeAndAfterEach  {
+class KubernetesApiSpec
+    extends TestKit(ActorSystem("KubernetesApiSpec"))
+    with ScalaFutures
+    with WordSpecLike
+    with BeforeAndAfterAll
+    with Matchers
+    with BeforeAndAfterEach {
 
   val wireMockServer = new WireMockServer(wireMockConfig().port(0))
   wireMockServer.start()
@@ -52,12 +58,9 @@ class KubernetesApiSpec extends TestKit(ActorSystem("KubernetesApiSpec")) with S
   "Kubernetes lease resource" should {
     "be able to be created" in {
       val version = "1234"
-      stubFor(post(urlEqualTo("/apis/akka.io/v1/namespaces/lease/leases/lease-1"))
-        .willReturn(aResponse()
-          .withStatus(201)
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            s"""
+      stubFor(
+        post(urlEqualTo("/apis/akka.io/v1/namespaces/lease/leases/lease-1"))
+          .willReturn(aResponse().withStatus(201).withHeader("Content-Type", "application/json").withBody(s"""
                |{
                |    "apiVersion": "akka.io/v1",
                |    "kind": "Lease",
@@ -88,12 +91,9 @@ class KubernetesApiSpec extends TestKit(ActorSystem("KubernetesApiSpec")) with S
       val version = "2"
       val updatedVersion = "3"
       val timestamp = System.currentTimeMillis()
-      stubFor(put(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
-        .willReturn(aResponse()
-          .withStatus(200)
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            s"""
+      stubFor(
+        put(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
+          .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(s"""
                |{
                |    "apiVersion": "akka.io/v1",
                |    "kind": "Lease",
@@ -112,8 +112,7 @@ class KubernetesApiSpec extends TestKit(ActorSystem("KubernetesApiSpec")) with S
             """.stripMargin)))
 
       val response = underTest.updateLeaseResource(lease, owner, version, timestamp).futureValue
-      response shouldEqual Right(
-        LeaseResource(Some(owner), updatedVersion, timestamp))
+      response shouldEqual Right(LeaseResource(Some(owner), updatedVersion, timestamp))
     }
 
     "update a lease conflict" in {
@@ -124,17 +123,14 @@ class KubernetesApiSpec extends TestKit(ActorSystem("KubernetesApiSpec")) with S
       val updatedVersion = "3"
       val timestamp = System.currentTimeMillis()
       // Conflict
-      stubFor(put(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
-        .willReturn(aResponse()
-          .withStatus(StatusCodes.Conflict.intValue)))
+      stubFor(
+        put(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
+          .willReturn(aResponse().withStatus(StatusCodes.Conflict.intValue)))
 
       // Read to get version
-      stubFor(get(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
-        .willReturn(aResponse()
-          .withStatus(StatusCodes.OK.intValue)
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            s"""
+      stubFor(
+        get(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease")).willReturn(
+          aResponse().withStatus(StatusCodes.OK.intValue).withHeader("Content-Type", "application/json").withBody(s"""
                |{
                |    "apiVersion": "akka.io/v1",
                |    "kind": "Lease",
@@ -153,15 +149,14 @@ class KubernetesApiSpec extends TestKit(ActorSystem("KubernetesApiSpec")) with S
             """.stripMargin)))
 
       val response = underTest.updateLeaseResource(lease, owner, version, timestamp).futureValue
-      response shouldEqual Left(
-        LeaseResource(Some(conflictedOwner), updatedVersion, timestamp))
+      response shouldEqual Left(LeaseResource(Some(conflictedOwner), updatedVersion, timestamp))
     }
 
     "remove lease via DELETE" in {
       val lease = "lease-1"
-      stubFor(delete(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
-        .willReturn(aResponse()
-          .withStatus(StatusCodes.OK.intValue)))
+      stubFor(
+        delete(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
+          .willReturn(aResponse().withStatus(StatusCodes.OK.intValue)))
 
       val response = underTest.removeLease(lease).futureValue
       response shouldEqual Done
@@ -173,13 +168,13 @@ class KubernetesApiSpec extends TestKit(ActorSystem("KubernetesApiSpec")) with S
       val version = "2"
       val timestamp = System.currentTimeMillis()
 
-      stubFor(get(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
-        .willReturn(aResponse()
-          .withFixedDelay((settings.apiServerRequestTimeout * 2).toMillis.toInt) // Oh noes
-          .withStatus(StatusCodes.OK.intValue)
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            s"""
+      stubFor(
+        get(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease")).willReturn(
+          aResponse()
+            .withFixedDelay((settings.apiServerRequestTimeout * 2).toMillis.toInt) // Oh noes
+            .withStatus(StatusCodes.OK.intValue)
+            .withHeader("Content-Type", "application/json")
+            .withBody(s"""
                |{
                |    "apiVersion": "akka.io/v1",
                |    "kind": "Lease",
@@ -197,47 +192,58 @@ class KubernetesApiSpec extends TestKit(ActorSystem("KubernetesApiSpec")) with S
                |}
             """.stripMargin)))
 
-      underTest.readOrCreateLeaseResource(lease).failed.futureValue.getMessage shouldEqual s"Timed out reading lease $lease. Is the API server up?"
+      underTest
+        .readOrCreateLeaseResource(lease)
+        .failed
+        .futureValue
+        .getMessage shouldEqual s"Timed out reading lease $lease. Is the API server up?"
     }
 
     "timeout on create lease" in {
       val lease = "lease-1"
 
-      stubFor(get(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
-        .willReturn(aResponse()
-          .withStatus(StatusCodes.NotFound.intValue)))
+      stubFor(
+        get(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
+          .willReturn(aResponse().withStatus(StatusCodes.NotFound.intValue)))
 
-      stubFor(post(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
-        .willReturn(aResponse()
-          .withFixedDelay((settings.apiServerRequestTimeout * 2).toMillis.toInt) // Oh noes
-          .withStatus(StatusCodes.OK.intValue)
-          .withHeader("Content-Type", "application/json")))
+      stubFor(
+        post(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease")).willReturn(
+          aResponse()
+            .withFixedDelay((settings.apiServerRequestTimeout * 2).toMillis.toInt) // Oh noes
+            .withStatus(StatusCodes.OK.intValue)
+            .withHeader("Content-Type", "application/json")))
 
-      underTest.readOrCreateLeaseResource(lease).failed.futureValue.getMessage shouldEqual s"Timed out creating lease $lease. Is the API server up?"
+      underTest
+        .readOrCreateLeaseResource(lease)
+        .failed
+        .futureValue
+        .getMessage shouldEqual s"Timed out creating lease $lease. Is the API server up?"
     }
 
     "timeout on updating lease" in {
       val lease = "lease-1"
       val owner = "client"
-      stubFor(put(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
-        .willReturn(aResponse()
-          .withFixedDelay((settings.apiServerRequestTimeout * 2).toMillis.toInt) // Oh noes
-          .withStatus(StatusCodes.OK.intValue)
-          .withHeader("Content-Type", "application/json")))
+      stubFor(
+        put(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease")).willReturn(
+          aResponse()
+            .withFixedDelay((settings.apiServerRequestTimeout * 2).toMillis.toInt) // Oh noes
+            .withStatus(StatusCodes.OK.intValue)
+            .withHeader("Content-Type", "application/json")))
 
       underTest.updateLeaseResource(lease, owner, "1").failed.futureValue.getMessage shouldEqual
-        s"Timed out updating lease [$lease] to owner [$owner]. It is not known if the update happened. Is the API server up?"
+      s"Timed out updating lease [$lease] to owner [$owner]. It is not known if the update happened. Is the API server up?"
     }
 
     "timeout on remove lease " in {
       val lease = "lease-1"
-      stubFor(delete(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
-        .willReturn(aResponse()
-          .withFixedDelay((settings.apiServerRequestTimeout * 2).toMillis.toInt) // Oh noes
-          .withStatus(StatusCodes.OK.intValue)))
+      stubFor(
+        delete(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease")).willReturn(
+          aResponse()
+            .withFixedDelay((settings.apiServerRequestTimeout * 2).toMillis.toInt) // Oh noes
+            .withStatus(StatusCodes.OK.intValue)))
 
       underTest.removeLease(lease).failed.futureValue.getMessage shouldEqual
-        s"Timed out removing lease [$lease]. It is not known if the remove happened. Is the API server up?"
+      s"Timed out removing lease [$lease]. It is not known if the remove happened. Is the API server up?"
     }
   }
 

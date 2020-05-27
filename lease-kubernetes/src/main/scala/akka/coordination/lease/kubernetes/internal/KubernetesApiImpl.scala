@@ -31,24 +31,28 @@ import scala.util.control.NonFatal
 /**
  * INTERNAL API
  */
-@InternalApi private[akka] class KubernetesApiImpl(system: ActorSystem, settings: KubernetesSettings) extends KubernetesApi with KubernetesJsonSupport {
+@InternalApi private[akka] class KubernetesApiImpl(system: ActorSystem, settings: KubernetesSettings)
+    extends KubernetesApi
+    with KubernetesJsonSupport {
 
   import system.dispatcher
 
   private implicit val materializer: ActorMaterializer = ActorMaterializer()(system)
   private val log = Logging(system, getClass)
   private val http = Http()(system)
-  private val httpsTrustStoreConfig = TrustStoreConfig(data = None, filePath = Some(settings.apiCaPath)).withStoreType("PEM")
+  private val httpsTrustStoreConfig =
+    TrustStoreConfig(data = None, filePath = Some(settings.apiCaPath)).withStoreType("PEM")
 
   private lazy val httpsConfig =
-    AkkaSSLConfig()(system).mapSettings(
-      s => s.withTrustManagerConfig(s.trustManagerConfig.withTrustStoreConfigs(immutable.Seq(httpsTrustStoreConfig))))
+    AkkaSSLConfig()(system).mapSettings(s =>
+      s.withTrustManagerConfig(s.trustManagerConfig.withTrustStoreConfigs(immutable.Seq(httpsTrustStoreConfig))))
   private lazy val httpsContext = http.createClientHttpsContext(httpsConfig)
 
-  private val namespace = settings.namespace orElse readConfigVarFromFilesystem(settings.namespacePath, "namespace") getOrElse "default"
+  private val namespace =
+    settings.namespace.orElse(readConfigVarFromFilesystem(settings.namespacePath, "namespace")).getOrElse("default")
 
   private val scheme = if (settings.secure) "https" else "http"
-  private lazy val apiToken = readConfigVarFromFilesystem(settings.apiTokenPath, "api-token") getOrElse ""
+  private lazy val apiToken = readConfigVarFromFilesystem(settings.apiTokenPath, "api-token").getOrElse("")
   private lazy val headers = if (settings.secure) immutable.Seq(Authorization(OAuth2BearerToken(apiToken))) else Nil
 
   log.debug("kubernetes access namespace: {}. Secure: {}", namespace, settings.secure)
@@ -82,7 +86,9 @@ import scala.util.control.NonFatal
             log.info("lease {} does not exist, creating", name)
             createLeaseResource(name).flatMap {
               case Some(created) => Future.successful(created)
-              case None          => if (tries < maxTries) loop(tries + 1) else Future.failed(new LeaseException(s"Unable to create or read lease after $maxTries tries"))
+              case None =>
+                if (tries < maxTries) loop(tries + 1)
+                else Future.failed(new LeaseException(s"Unable to create or read lease after $maxTries tries"))
             }
           }
         }
@@ -97,7 +103,7 @@ curl -v -X PUT localhost:8080/apis/akka.io/v1/namespaces/lease/leases/sbr-lease 
 PUTs must contain resourceVersions. Response:
 409: Resource version is out of date
 200 if it is updated
- */
+   */
   /**
    * Update the named resource.
    *
@@ -108,7 +114,11 @@ PUTs must contain resourceVersions. Response:
    *  - Update failed due to version not matching current in the k8s api server. In this case resource is returned so the version can be used for subsequent calls
    *  - Success. Returns the LeaseResource that contains the clientName and new version. The new version should be used for any subsequent calls
    */
-  override def updateLeaseResource(leaseName: String, ownerName: String, version: String, time: Long = System.currentTimeMillis()): Future[Either[LeaseResource, LeaseResource]] = {
+  override def updateLeaseResource(
+      leaseName: String,
+      ownerName: String,
+      version: String,
+      time: Long = System.currentTimeMillis()): Future[Either[LeaseResource, LeaseResource]] = {
     val lcr = LeaseCustomResource(Metadata(leaseName, Some(version)), Spec(ownerName, System.currentTimeMillis()))
     for {
       entity <- Marshal(lcr).to[RequestEntity]
@@ -116,26 +126,36 @@ PUTs must contain resourceVersions. Response:
         log.debug("updating {} to {}", leaseName, lcr)
         makeRequest(
           requestForPath(pathForLease(leaseName), method = HttpMethods.PUT, entity),
-          s"Timed out updating lease [$leaseName] to owner [$ownerName]. It is not known if the update happened")
+          s"Timed out updating lease [$leaseName] to owner [$ownerName]. It is not known if the update happened"
+        )
       }
       result <- response.status match {
         case StatusCodes.OK =>
-          Unmarshal(response.entity).to[LeaseCustomResource].map(updatedLcr => {
-            log.debug("LCR after update: {}", updatedLcr)
-            Right(toLeaseResource(updatedLcr))
-          })
-        case StatusCodes.Conflict => getLeaseResource(leaseName).flatMap {
-          case None => Future.failed(new LeaseException(s"GET after PUT conflict did not return a lease. Lease[${leaseName}-${ownerName}]"))
-          case Some(lr) =>
-            log.debug("LeaseResource read after conflict: {}", lr)
-            Future.successful(Left(lr))
-        }
+          Unmarshal(response.entity)
+            .to[LeaseCustomResource]
+            .map(updatedLcr => {
+              log.debug("LCR after update: {}", updatedLcr)
+              Right(toLeaseResource(updatedLcr))
+            })
+        case StatusCodes.Conflict =>
+          getLeaseResource(leaseName).flatMap {
+            case None =>
+              Future.failed(
+                new LeaseException(s"GET after PUT conflict did not return a lease. Lease[${leaseName}-${ownerName}]"))
+            case Some(lr) =>
+              log.debug("LeaseResource read after conflict: {}", lr)
+              Future.successful(Left(lr))
+          }
         case StatusCodes.Unauthorized =>
           handleUnauthorized(response)
         case unexpected =>
-          Unmarshal(response.entity).to[String].flatMap(body => {
-            Future.failed(new LeaseException(s"PUT for lease $leaseName returned unexpected status code ${unexpected}. Body: ${body}"))
-          })
+          Unmarshal(response.entity)
+            .to[String]
+            .flatMap(body => {
+              Future.failed(
+                new LeaseException(
+                  s"PUT for lease $leaseName returned unexpected status code ${unexpected}. Body: ${body}"))
+            })
       }
     } yield result
   }
@@ -157,9 +177,12 @@ PUTs must contain resourceVersions. Response:
         case StatusCodes.Unauthorized =>
           handleUnauthorized(response)
         case unexpected =>
-          Unmarshal(response.entity).to[String].flatMap(body => {
-            Future.failed(new LeaseException(s"Unexpected status code when deleting lease. Status: $unexpected. Body: $body"))
-          })
+          Unmarshal(response.entity)
+            .to[String]
+            .flatMap(body => {
+              Future.failed(
+                new LeaseException(s"Unexpected status code when deleting lease. Status: $unexpected. Body: $body"))
+            })
       }
     } yield result
   }
@@ -173,9 +196,11 @@ PUTs must contain resourceVersions. Response:
         case StatusCodes.OK =>
           // it exists, parse it
           log.debug("Resource {} exists: {}", name, entity)
-          Unmarshal(entity).to[LeaseCustomResource].map(lcr => {
-            Some(toLeaseResource(lcr))
-          })
+          Unmarshal(entity)
+            .to[LeaseCustomResource]
+            .map(lcr => {
+              Some(toLeaseResource(lcr))
+            })
         case StatusCodes.NotFound =>
           response.discardEntityBytes()
           log.debug("Resource does not exist: {}", name)
@@ -183,42 +208,54 @@ PUTs must contain resourceVersions. Response:
         case StatusCodes.Unauthorized =>
           handleUnauthorized(response)
         case unexpected =>
-          Unmarshal(response.entity).to[String].flatMap(body => {
-            Future.failed(new LeaseException(s"Unexpected response from API server when retrieving lease StatusCode: ${unexpected}. Body: ${body}"))
-          })
+          Unmarshal(response.entity)
+            .to[String]
+            .flatMap(body => {
+              Future.failed(new LeaseException(
+                s"Unexpected response from API server when retrieving lease StatusCode: ${unexpected}. Body: ${body}"))
+            })
       }
     } yield lr
   }
 
   private def handleUnauthorized(response: HttpResponse) = {
-    Unmarshal(response.entity).to[String].flatMap(body => {
-      Future.failed(new LeaseException(s"Unauthorized to communicate with Kubernetes API server. See https://doc.akka.io/docs/akka-enhancements/current/kubernetes-lease.html#role-based-access-control for setting up access control. Body: ${body}"))
-    })
+    Unmarshal(response.entity)
+      .to[String]
+      .flatMap(body => {
+        Future.failed(new LeaseException(
+          s"Unauthorized to communicate with Kubernetes API server. See https://doc.akka.io/docs/akka-enhancements/current/kubernetes-lease.html#role-based-access-control for setting up access control. Body: ${body}"))
+      })
   }
 
   private def pathForLease(name: String): Uri.Path =
     Uri.Path.Empty / "apis" / "akka.io" / "v1" / "namespaces" / namespace / "leases" / name
 
-  private def requestForPath(path: Uri.Path, method: HttpMethod = HttpMethods.GET, entity: RequestEntity = HttpEntity.Empty) = {
+  private def requestForPath(
+      path: Uri.Path,
+      method: HttpMethod = HttpMethods.GET,
+      entity: RequestEntity = HttpEntity.Empty) = {
     val uri = Uri.from(scheme = scheme, host = settings.apiServerHost, port = settings.apiServerPort).withPath(path)
     HttpRequest(uri = uri, headers = headers, method = method, entity = entity)
   }
 
   private def makeRequest(request: HttpRequest, timeoutMsg: String): Future[HttpResponse] = {
-    val httpRequest = if (settings.secure)
-      http.singleRequest(request, httpsContext)
-    else
-      http.singleRequest(request)
+    val httpRequest =
+      if (settings.secure)
+        http.singleRequest(request, httpsContext)
+      else
+        http.singleRequest(request)
 
-    val timeout = after(settings.apiServerRequestTimeout, using = system.scheduler)(Future.failed(
-      new LeaseTimeoutException(s"$timeoutMsg. Is the API server up?")))
+    val timeout = after(settings.apiServerRequestTimeout, using = system.scheduler)(
+      Future.failed(new LeaseTimeoutException(s"$timeoutMsg. Is the API server up?")))
 
     Future.firstCompletedOf(Seq(httpRequest, timeout))
   }
 
   private def toLeaseResource(lcr: LeaseCustomResource) = {
     log.debug("Converting {}", lcr)
-    require(lcr.metadata.resourceVersion.isDefined, s"LeaseCustomResource returned from Kubernetes without a resourceVersion: $lcr")
+    require(
+      lcr.metadata.resourceVersion.isDefined,
+      s"LeaseCustomResource returned from Kubernetes without a resourceVersion: $lcr")
     val owner = lcr.spec.owner match {
       case null | "" => None
       case other     => Some(other)
@@ -230,7 +267,9 @@ PUTs must contain resourceVersions. Response:
     val lcr = LeaseCustomResource(Metadata(name, None), Spec("", System.currentTimeMillis()))
     for {
       entity <- Marshal(lcr).to[RequestEntity]
-      response <- makeRequest(requestForPath(pathForLease(name), HttpMethods.POST, entity = entity), s"Timed out creating lease $name")
+      response <- makeRequest(
+        requestForPath(pathForLease(name), HttpMethods.POST, entity = entity),
+        s"Timed out creating lease $name")
       responseEntity <- response.entity.toStrict(settings.bodyReadTimeout)
       lr <- response.status match {
         case StatusCodes.Created =>
@@ -244,9 +283,14 @@ PUTs must contain resourceVersions. Response:
         case StatusCodes.Unauthorized =>
           handleUnauthorized(response)
         case unexpected =>
-          responseEntity.toStrict(settings.bodyReadTimeout).flatMap(e => Unmarshal(e).to[String]).flatMap(body => {
-            Future.failed(new LeaseException(s"Unexpected response from API server when creating Lease StatusCode: ${unexpected}. Body: ${body}"))
-          })
+          responseEntity
+            .toStrict(settings.bodyReadTimeout)
+            .flatMap(e => Unmarshal(e).to[String])
+            .flatMap(body => {
+              Future.failed(
+                new LeaseException(
+                  s"Unexpected response from API server when creating Lease StatusCode: ${unexpected}. Body: ${body}"))
+            })
       }
     } yield lr
   }

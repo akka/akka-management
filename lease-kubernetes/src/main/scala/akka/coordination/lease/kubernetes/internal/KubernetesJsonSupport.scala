@@ -12,12 +12,18 @@ import spray.json.{ DefaultJsonProtocol, JsonFormat, RootJsonFormat }
  * INTERNAL API
  */
 @InternalApi
-case class LeaseCustomResource(metadata: Metadata, spec: Spec, kind: String = "Lease", apiVersion: String = "akka.io/v1")
+case class LeaseCustomResource(
+    metadata: Metadata,
+    spec: Spec,
+    kind: String = "Lease",
+    apiVersion: String = "akka.io/v1")
+
 /**
  * INTERNAL API
  */
 @InternalApi
 case class Metadata(name: String, resourceVersion: Option[String])
+
 /**
  * INTERNAL API
  */

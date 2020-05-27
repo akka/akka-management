@@ -7,22 +7,19 @@ package akka.coordination.lease.kubernetes
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.Status.Failure
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ ActorRef, ActorSystem }
 import akka.coordination.lease.kubernetes.LeaseActor._
-import akka.coordination.lease.{LeaseException, LeaseSettings, TimeoutSettings}
+import akka.coordination.lease.{ LeaseException, LeaseSettings, TimeoutSettings }
 import akka.pattern.ask
-import akka.testkit.{TestKit, TestProbe}
-import akka.util.{ConstantFun, Timeout}
+import akka.testkit.{ TestKit, TestProbe }
+import akka.util.{ ConstantFun, Timeout }
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class MockKubernetesApi(
-  system:       ActorSystem,
-  currentLease: ActorRef,
-  updateLease:  ActorRef) extends KubernetesApi {
+class MockKubernetesApi(system: ActorSystem, currentLease: ActorRef, updateLease: ActorRef) extends KubernetesApi {
 
   implicit val timeout: Timeout = Timeout(10.seconds)
 
@@ -30,19 +27,29 @@ class MockKubernetesApi(
     currentLease.ask(name).mapTo[LeaseResource]
   }
 
-  override def updateLeaseResource(leaseName: String, clientName: String, version: String, time: Long): Future[Either[LeaseResource, LeaseResource]] = {
+  override def updateLeaseResource(
+      leaseName: String,
+      clientName: String,
+      version: String,
+      time: Long): Future[Either[LeaseResource, LeaseResource]] = {
     updateLease.ask((clientName, version)).mapTo[Either[LeaseResource, LeaseResource]]
   }
 }
 
-class LeaseActorSpec extends TestKit(ActorSystem("LeaseActorSpec", ConfigFactory.parseString(
-  """
+class LeaseActorSpec
+    extends TestKit(
+      ActorSystem(
+        "LeaseActorSpec",
+        ConfigFactory.parseString("""
     akka.loggers = []
     akka.loglevel = DEBUG
     akka.stdout-loglevel = DEBUG
     akka.actor.debug.fsm = true
-  """))) with WordSpecLike with Matchers with BeforeAndAfterAll {
-
+  """)
+      ))
+    with WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll {
 
   override protected def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
@@ -302,7 +309,11 @@ class LeaseActorSpec extends TestKit(ActorSystem("LeaseActorSpec", ConfigFactory
       underTest ! LeaseActor.Acquire()
       leaseProbe.expectMsg(leaseName)
       // lease is now older than the timeout, ahhhh
-      leaseProbe.reply(LeaseResource(Some(crashedClient), currentVersion, System.currentTimeMillis() - (leaseSettings.timeoutSettings.heartbeatTimeout.toMillis * 2)))
+      leaseProbe.reply(
+        LeaseResource(
+          Some(crashedClient),
+          currentVersion,
+          System.currentTimeMillis() - (leaseSettings.timeoutSettings.heartbeatTimeout.toMillis * 2)))
       // try and get the lease
       updateProbe.expectMsg((ownerName, currentVersion))
       incrementVersion()
@@ -317,7 +328,11 @@ class LeaseActorSpec extends TestKit(ActorSystem("LeaseActorSpec", ConfigFactory
       underTest ! LeaseActor.Acquire()
       leaseProbe.expectMsg(leaseName)
       // lease is now older than the timeout, ahhhh
-      leaseProbe.reply(LeaseResource(Some(crashedClient), currentVersion, System.currentTimeMillis() - (leaseSettings.timeoutSettings.heartbeatTimeout.toMillis * 2)))
+      leaseProbe.reply(
+        LeaseResource(
+          Some(crashedClient),
+          currentVersion,
+          System.currentTimeMillis() - (leaseSettings.timeoutSettings.heartbeatTimeout.toMillis * 2)))
       // try and get the lease
       updateProbe.expectMsg((ownerName, currentVersion))
       incrementVersion()
@@ -341,7 +356,11 @@ class LeaseActorSpec extends TestKit(ActorSystem("LeaseActorSpec", ConfigFactory
     "renew time if lease is owned by client on initial acquire" in new Test {
       underTest.tell(LeaseActor.Acquire(), senderProbe.ref)
       leaseProbe.expectMsg(leaseName)
-      leaseProbe.reply(LeaseResource(Some(ownerName), currentVersion, System.currentTimeMillis() - (leaseSettings.timeoutSettings.heartbeatTimeout.toMillis * 2)))
+      leaseProbe.reply(
+        LeaseResource(
+          Some(ownerName),
+          currentVersion,
+          System.currentTimeMillis() - (leaseSettings.timeoutSettings.heartbeatTimeout.toMillis * 2)))
       senderProbe.expectNoMessage(leaseSettings.timeoutSettings.heartbeatTimeout / 3) // not grated yet
       updateProbe.expectMsg((ownerName, currentVersion)) // update time
       incrementVersion()
@@ -356,10 +375,8 @@ class LeaseActorSpec extends TestKit(ActorSystem("LeaseActorSpec", ConfigFactory
     val ownerName = "owner1"
     val leaseSettings: LeaseSettings = new LeaseSettings(
       leaseName,
-      ownerName, new TimeoutSettings(
-      25.millis,
-      250.millis,
-      1.second),
+      ownerName,
+      new TimeoutSettings(25.millis, 250.millis, 1.second),
       ConfigFactory.empty())
 
     var currentVersionCount = 1
