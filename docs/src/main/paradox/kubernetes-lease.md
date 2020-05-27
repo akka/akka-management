@@ -14,21 +14,21 @@ that have been used to build a distributed lease/lock.
 
 A lease can be used for:
 
-* @extref[Split Brain Resolver](akka:split-brin-resolver.html). An additional safety measure so that only one SBR instance can make the decision to remain up.
-* @extref:[Cluster Singleton](akka:cluster-singleton.html#lease). A singleton manager can be configured to acquire a lease before creating the singleton.
-* @extref:[Cluster Sharding](akka:cluster-sharding.html#lease). Each `Shard` can be configured to acquire a lease before creating entity actors.
+* @extref[Split Brain Resolver](akka:split-brain-resolver.html). An additional safety measure so that only one SBR instance can make the decision to remain up.
+* @extref:[Cluster Singleton](akka:typed/cluster-singleton.html#lease). A singleton manager can be configured to acquire a lease before creating the singleton.
+* @extref:[Cluster Sharding](akka:typed/cluster-sharding.html#lease). Each `Shard` can be configured to acquire a lease before creating entity actors.
 
 In all cases the use of the lease increases the consistency of the feature. However, as the Kubernetes API server 
 and its backing `etcd` cluster can also be subject to failure and network issues any use of this lease can reduce availability. 
 
 ### Lease Instances
 
-* With @extref[Split Brain Resolver](akka:split-brin-resolver.html) there will be one lease per Akka Cluster
+* With @extref[Split Brain Resolver](akka:split-brain-resolver.html) there will be one lease per Akka Cluster
 * With multiple Akka Clusters using SBRs in the same namespace, e.g. multiple Lagom 
 applications, you must ensure different `ActorSystem` names because they all need a separate lease. 
 * With Cluster Sharding and Cluster Singleton there will be more leases 
-    - For @extref:[Cluster Singleton](akka:cluster-singleton.html#lease) there will be one per singleton.
-    - For @extref:[Cluster Sharding](akka:cluster-sharding.html#lease), there will be one per shard per type.
+    - For @extref:[Cluster Singleton](akka:typed/cluster-singleton.html#lease) there will be one per singleton.
+    - For @extref:[Cluster Sharding](akka:typed/cluster-sharding.html#lease), there will be one per shard per type.
 
 ### Configuring
 

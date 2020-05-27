@@ -26,6 +26,8 @@ lazy val `akka-management-root` = project
     `integration-test-marathon-api-docker`,
     `cluster-http`,
     `cluster-bootstrap`,
+    `lease-kubernetes`,
+    `lease-kubernetes-int-test`,
     docs
   )
   .settings(
@@ -298,8 +300,8 @@ lazy val docs = project
         "scala.binary.version" -> scalaBinaryVersion.value,
         "akka.version" -> Dependencies.AkkaVersion,
         "akka.version26" -> Dependencies.Akka26Version,
-        "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.AkkaBinaryVersion}/%s",
-        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.AkkaBinaryVersion}/",
+        "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/current/%s",
+        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/current/",
         "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpBinaryVersion}/%s",
         "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.AkkaHttpBinaryVersion}/",
         "extref.akka-grpc.base_url" -> s"https://doc.akka.io/docs/akka-grpc/current/%s",
