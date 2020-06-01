@@ -18,10 +18,9 @@ Akka Management consists of multiple modules:
  * @ref[Marathon API](discovery/marathon.md)
  * @ref[AWS](discovery/aws.md)
 
-You don't have to use all the modules but if you do here's how these modules work together:
+Various parts of Akka management can be used together for deploying Akka Cluster applications to Kubernetes.
 
-![project structure](images/structure.png)
-
+ * @ref[Deploying Akka Cluster to Kubernetes](kubernetes-deployment/index.md)
 
 @@@ index
 
@@ -33,4 +32,5 @@ You don't have to use all the modules but if you do here's how these modules wor
   - [Akka Cluster Management (HTTP)](cluster-http-management.md)
   - [Akka Cluster Management (JMX)](cluster-jmx-management.md)
   - [Dynamic Log Levels](loglevels.md)
+  - [Deploy guide for Kubernetes](kubernetes-deployment/index.md)
 @@@
