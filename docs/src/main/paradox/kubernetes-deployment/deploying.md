@@ -13,7 +13,7 @@ If you haven't been creating the files as you go for the guide, but rather are r
 files distributed with the sample app, make sure you have performed the following easy to miss steps:
 
 * The $spec.path$ `RoleBinding` spec @ref[needs to have the namespace updated](forming-a-cluster.md#role-based-access-control) for the user 
-  name if you are not using the `mynamespace` namespace.
+  name if you are not using the `appka-1` namespace.
 @@@
 
 Immediately after running this, you should see the three shopping cart pods when you run `oc get pods`:

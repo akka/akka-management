@@ -136,20 +136,20 @@ metadata:
   name: read-pods
 subjects:
 - kind: User
-  name: system:serviceaccount:mynamespace:default
+  name: system:serviceaccount:appka-1:default
 roleRef:
   kind: Role
   name: pod-reader
   apiGroup: rbac.authorization.k8s.io
 ```
 
-Note the service account name, `system:serviceaccount:mynamespace:default`, contains the `mynamespace` namespace in it. 
+Note the service account name, `system:serviceaccount:appka-1:default`, contains the `appka-1` namespace in it. 
 You'll need to update it accordingly.
 
 #### A note on secrets with RBAC
 
 One thing to be aware of when using role based access control, the `pod-reader` role is going to grant access to read all pods in the 
-`mynamespace` namespace, not just the pods for your application. This includes the deployment specs, which includes the environment 
+`appka-1` namespace, not just the pods for your application. This includes the deployment specs, which includes the environment 
 variables that are hard coded in the deployment specs. If you pass secrets through those environment variables, rather than using 
 the Kubernetes secrets API, then your application, and every other app that uses the default service account, will be able to 
 see these secrets. This is a good reason why you should never pass secrets directly in deployment specs, rather, you should 
