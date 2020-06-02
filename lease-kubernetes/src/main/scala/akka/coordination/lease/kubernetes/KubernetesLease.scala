@@ -4,16 +4,16 @@
 
 package akka.coordination.lease.kubernetes
 
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
 
 import akka.actor.ExtendedActorSystem
-import akka.coordination.lease.{LeaseException, LeaseSettings, LeaseTimeoutException}
+import akka.coordination.lease.{ LeaseException, LeaseSettings, LeaseTimeoutException }
 import akka.coordination.lease.scaladsl.Lease
 import akka.coordination.lease.kubernetes.LeaseActor._
 import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.dispatch.ExecutionContexts
 import akka.pattern.AskTimeoutException
-import akka.util.{ConstantFun, Timeout}
+import akka.util.{ ConstantFun, Timeout }
 
 import scala.concurrent.Future
 
