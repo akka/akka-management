@@ -16,7 +16,7 @@ files distributed with the sample app, make sure you have performed the followin
   name if you are not using the `appka-1` namespace.
 @@@
 
-Immediately after running this, you should see the three shopping cart pods when you run `oc get pods`:
+Immediately after running this, you should see the three pods when you run `kubectl get pods`:
 
 @@@vars
 ```
@@ -51,56 +51,64 @@ make the logs quieter, but for now it will help us to understand what is happeni
 
 @@@vars
 ```
-1  [info] Remoting started; listening on addresses :[akka.tcp://apppka@172.17.0.12:2552]
-   [info] Cluster Node [akka.tcp://apppka@172.17.0.12:2552] - Started up successfully
-   [info] Bootstrap using `akka.discovery` method: kubernetes-api
-2  [info] Binding Akka Management (HTTP) endpoint to: 172.17.0.12:8558
-   [info] Using self contact point address: http://172.17.0.12:8558
-3  [info] Looking up [Lookup(shopping-cart,Some(management),Some(tcp))]
-4  [info] Querying for pods with label selector: [app=shopping-cart]. Namespace: [myproject]. Port: [management]
-5  [info] Located service members based on: [Lookup(shopping-cart,Some(management),Some(tcp))]:
-     [ResolvedTarget(172-17-0-12.myproject.pod.cluster.local,Some(8558),Some(/172.17.0.12)),
-      ResolvedTarget(172-17-0-11.myproject.pod.cluster.local,Some(8558),Some(/172.17.0.11)),
-      ResolvedTarget(172-17-0-13.myproject.pod.cluster.local,Some(8558),Some(/172.17.0.13))]
-6  [info] Discovered [3] contact points, confirmed [0], which is less than the required [3], retrying
-7  [info] Contact point [akka.tcp://apppka@172.17.0.13:2552] returned [0] seed-nodes []
-8  [info] Bootstrap request from 172.17.0.12:47312: Contact Point returning 0 seed-nodes ([TreeSet()])
-9  [info] Exceeded stable margins without locating seed-nodes, however this node 172.17.0.12:8558
-     is NOT the lowest address out of the discovered endpoints in this deployment, thus NOT joining
-     self. Expecting node [ResolvedTarget(172-17-0-11.myproject.pod.cluster.local,Some(8558),Some(/172.17.0.11))]
-     to perform the self-join and initiate the cluster.
-10 [info] Contact point [akka.tcp://apppka@172.17.0.11:2552] returned [1] seed-nodes
-     [akka.tcp://apppka@172.17.0.11:2552]
-11 [info] Joining [akka.tcp://apppka@172.17.0.12:2552] to existing cluster
-     [akka.tcp://apppka@172.17.0.11:2552]
-12 [info] Cluster Node [akka.tcp://apppka@172.17.0.12:2552] - Welcome from [akka.tcp://apppka@172.17.0.11:2552]
+
+1  [INFO] [akka.remote.artery.tcp.ArteryTcpTransport]  - Remoting started with transport [Artery tcp]; listening on address [akka://Appka@172.17.0.6:25520] with UID [4609278524397890522] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=main, akkaSource=ArteryTcpTransport(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:51.188UTC}
+   [INFO] [akka.cluster.Cluster] [] [Appka-akka.actor.default-dispatcher-3] - Cluster Node [akka://Appka@172.17.0.6:25520] - Starting up, Akka version [2.6.5] ... MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=main, akkaSource=Cluster(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:51.240UTC}
+   [INFO] [akka.cluster.Cluster] [] [Appka-akka.actor.default-dispatcher-6] - Cluster Node [akka://Appka@172.17.0.6:25520] - No seed-nodes configured, manual cluster join required, see https://doc.akka.io/docs/akka/current/typed/cluster.html#joining MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.internal-dispatcher-5, akkaSource=Cluster(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:51.619UTC}
+   [INFO] [akka.cluster.bootstrap.demo.DemoApp] [] [Appka-akka.actor.default-dispatcher-6] - Started [akka://Appka], cluster.selfAddress = akka://Appka@172.17.0.6:25520) MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, akkaSource=akka://Appka/user, sourceActorSystem=Appka}
+
+2a [INFO] [akka.management.internal.HealthChecksImpl] [] [Appka-akka.actor.default-dispatcher-3] - Loading readiness checks [(cluster-membership,akka.management.cluster.scaladsl.ClusterMembershipCheck), (example-ready,akka.cluster.bootstrap.demo.DemoHealthCheck)] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-6, akkaSource=HealthChecksImpl(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.510UTC}
+   [INFO] [akka.management.internal.HealthChecksImpl] [] [Appka-akka.actor.default-dispatcher-3] - Loading liveness checks [] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-6, akkaSource=HealthChecksImpl(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.510UTC}
+   [INFO] [akka.management.scaladsl.AkkaManagement] [] [Appka-akka.actor.default-dispatcher-13] - Binding Akka Management (HTTP) endpoint to: 172.17.0.6:8558 MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-6, akkaSource=AkkaManagement(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.534UTC}
+
+2b [INFO] [akka.management.scaladsl.AkkaManagement] [] [Appka-akka.actor.default-dispatcher-3] - Including HTTP management routes for ClusterHttpManagementRouteProvider MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-6, akkaSource=AkkaManagement(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.546UTC}
+   [INFO] [akka.management.scaladsl.AkkaManagement] [] [Appka-akka.actor.default-dispatcher-3] - Including HTTP management routes for ClusterBootstrap MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-6, akkaSource=AkkaManagement(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.620UTC}
+   [INFO] [akka.management.cluster.bootstrap.ClusterBootstrap] [] [Appka-akka.actor.default-dispatcher-3] - Using self contact point address: http://172.17.0.6:8558 MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-6, akkaSource=ClusterBootstrap(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.624UTC}
+   [INFO] [akka.management.scaladsl.AkkaManagement] [] [Appka-akka.actor.default-dispatcher-3] - Including HTTP management routes for HealthCheckRoutes MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-6, akkaSource=AkkaManagement(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.651UTC}
+   [INFO] [akka.management.scaladsl.AkkaManagement] [akkaManagementBound] [Appka-akka.actor.default-dispatcher-3] - Bound Akka Management (HTTP) endpoint to: 172.17.0.6:8558 MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, akkaHttpAddress=172.17.0.6:8558, sourceThread=Appka-akka.actor.default-dispatcher-13, akkaSource=AkkaManagement(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.692UTC}
+
+3  [INFO] [akka.management.cluster.bootstrap.ClusterBootstrap] [] [Appka-akka.actor.default-dispatcher-3] - Initiating bootstrap procedure using kubernetes-api method... MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-6, akkaSource=ClusterBootstrap(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.671UTC}
+   [INFO] [akka.management.cluster.bootstrap.ClusterBootstrap] [] [Appka-akka.actor.default-dispatcher-3] - Bootstrap using `akka.discovery` method: kubernetes-api MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-6, akkaSource=ClusterBootstrap(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.673UTC}
+
+4  [INFO] [akka.management.cluster.bootstrap.internal.BootstrapCoordinator] [akkaBootstrapInit] [Appka-akka.actor.default-dispatcher-3] - Locating service members. Using discovery [akka.discovery.kubernetes.KubernetesApiServiceDiscovery], join decider [akka.management.cluster.bootstrap.LowestAddressJoinDecider], scheme [http] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-13, akkaSource=akka://Appka/system/bootstrapCoordinator, sourceActorSystem=Appka, akkaTimestamp=10:04:53.843UTC}
+   [INFO] [akka.management.cluster.bootstrap.internal.BootstrapCoordinator] [] [Appka-akka.actor.default-dispatcher-3] - Looking up [Lookup(appka,None,Some(tcp))] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-13, akkaSource=akka://Appka/system/bootstrapCoordinator, sourceActorSystem=Appka, akkaTimestamp=10:04:53.844UTC}
+   [INFO] [akka.discovery.kubernetes.KubernetesApiServiceDiscovery] [] [Appka-akka.actor.default-dispatcher-3] - Querying for pods with label selector: [app=appka]. Namespace: [appka-1]. Port: [None] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-13, akkaSource=KubernetesApiServiceDiscovery(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.844UTC}
+
+5  [INFO] [akka.management.cluster.bootstrap.internal.BootstrapCoordinator] [akkaBootstrapResolved] [Appka-akka.actor.default-dispatcher-3] - Located service members based on: [Lookup(appka,None,Some(tcp))]: [ResolvedTarget(172-17-0-6.appka-1.pod.cluster.local,None,Some(/172.17.0.6)), ResolvedTarget(172-17-0-7.appka-1.pod.cluster.local,None,Some(/172.17.0.7)), ResolvedTarget(172-17-0-5.appka-1.pod.cluster.local,None,Some(/172.17.0.5))], filtered to [172-17-0-5.appka-1.pod.cluster.local:0, 172-17-0-6.appka-1.pod.cluster.local:0, 172-17-0-7.appka-1.pod.cluster.local:0] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, akkaContactPoints=172-17-0-5.appka-1.pod.cluster.local:0, 172-17-0-6.appka-1.pod.cluster.local:0, 172-17-0-7.appka-1.pod.cluster.local:0, sourceThread=Appka-akka.actor.default-dispatcher-13, akkaSource=akka://Appka/system/bootstrapCoordinator, sourceActorSystem=Appka, akkaTimestamp=10:04:54.919UTC}
+
+6  [INFO] [akka.management.cluster.bootstrap.internal.BootstrapCoordinator] [akkaBootstrapSeedNodes] [Appka-akka.actor.default-dispatcher-20] - Contact point [akka://Appka@172.17.0.5:25520] returned [1] seed-nodes [akka://Appka@172.17.0.5:25520] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-11, akkaSource=akka://Appka/system/bootstrapCoordinator, sourceActorSystem=Appka, akkaTimestamp=10:05:01.306UTC, akkaSeedNodes=akka://Appka@172.17.0.5:25520}
+   [INFO] [akka.management.cluster.bootstrap.internal.BootstrapCoordinator] [akkaBootstrapJoin] [Appka-akka.actor.default-dispatcher-20] - Joining [akka://Appka@172.17.0.6:25520] to existing cluster [akka://Appka@172.17.0.5:25520] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-11, akkaSource=akka://Appka/system/bootstrapCoordinator, sourceActorSystem=Appka, akkaTimestamp=10:05:01.309UTC, akkaSeedNodes=akka://Appka@172.17.0.5:25520}
+
+7  [INFO] [akka.cluster.Cluster] [] [Appka-akka.actor.default-dispatcher-11] - Cluster Node [akka://Appka@172.17.0.6:25520] - Welcome from [akka://Appka@172.17.0.5:25520] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.internal-dispatcher-2, akkaSource=Cluster(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:05:01.918UTC}
+   [INFO] [akka.cluster.bootstrap.demo.DemoApp] [] [Appka-akka.actor.default-dispatcher-19] - MemberEvent: MemberUp(Member(address = akka://Appka@172.17.0.5:25520, status = Up)) MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, akkaSource=akka://Appka/user, sourceActorSystem=Appka}
+   [INFO] [akka.cluster.bootstrap.demo.DemoApp] [] [Appka-akka.actor.default-dispatcher-19] - MemberEvent: MemberJoined(Member(address = akka://Appka@172.17.0.6:25520, status = Joining)) MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, akkaSource=akka://Appka/user, sourceActorSystem=Appka}
+   [INFO] [akka.cluster.bootstrap.demo.DemoApp] [] [Appka-akka.actor.default-dispatcher-19] - MemberEvent: MemberJoined(Member(address = akka://Appka@172.17.0.7:25520, status = Joining)) MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, akkaSource=akka://Appka/user, sourceActorSystem=Appka}
+   [INFO] [akka.cluster.bootstrap.demo.DemoApp] [] [Appka-akka.actor.default-dispatcher-19] - MemberEvent: MemberUp(Member(address = akka://Appka@172.17.0.6:25520, status = Up)) MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, akkaSource=akka://Appka/user, sourceActorSystem=Appka}
+   [INFO] [akka.cluster.bootstrap.demo.DemoApp] [] [Appka-akka.actor.default-dispatcher-19] - MemberEvent: MemberUp(Member(address = akka://Appka@172.17.0.7:25520, status = Up)) MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, akkaSource=akka://Appka/user, sourceActorSystem=Appka}
 ```
 @@@
 
 An explanation of these messages is as follows.
 
-1. These are init messages, showing that remoting has started on port 2552. The IP address should be the pods IP address from which other pods can access it, while the port number should match the configured remoting number, defaulting to 2552.
+1. These are init messages, showing that remoting has started on port 25520. The IP address should be the pods IP address from which other pods can access it, while the port number should match the configured remoting number, defaulting to 25520.
 2. Init messages for Akka management, once again, the IP address should be the pods IP address, while the port number should be the port number you've configured for Akka management to use, defaulting to 8558.
-3. Now the cluster bootstrap process is starting. The service name should match your configured service name in cluster bootstrap, and the port should match your configured port name. This and subsequent messages will be repeated many times as cluster bootstrap polls Kubernetes and the other pods to determine what pods have been started, and whether and where a cluster has been formed.
-4. This log message comes from the Kubernetes API implementation of Akka discovery, the label selector should be one that will return your pods, and the namespace should match your applications namespace.
+   Akka management is also hosting the readiness and liveness checks.
+3. Now the cluster bootstrap process is starting. The service name should match your Akka system name or configured service name in cluster bootstrap, and the port should match your configured port name. In this guide we kept these as the default values.
+   This and subsequent messages will be repeated many times as cluster bootstrap polls Kubernetes and the other pods to determine what pods have been started, and whether and where a cluster has been formed.
+4. This is the docivery process. The bootstarp coordinator uses the Kubernetes discovery mechanism. The label selector should be one that will return your pods, and the namespace should match your applications namespace. The namespace is picked up automatically.
 5. Here the Kubernetes API has returned three services, including ourselves.
-6. This log message shows what cluster bootstrap has decided to do with the three services. It has found three, but so far it has not confirmed whether any of them have joined a cluster yet, hence, it will continue retrying looking them up, and attempting to contact them, until it has found that a cluster has been, or can be started.
-7. This message will appear many times, it's the result of probing one of the contact points to find out if it has formed a cluster.
-8. This message will also appear many times, it's the result of this pod being probed by another pod to find out if it has formed a cluster.
-9. This message may or may not appear, depending on how fast your pods are able to start given the amount of resources. It's simply informing you that the pod hasn't located a seed node yet, but it's not going to try and form a cluster since it's not the pod with the lowest IP address.
-10. Eventually, this message will change to report that one of the pods has formed a cluster.
-11. The pod has decided to join an existing cluster.
-12. The pod has joined the cluster.
+6. The pod has decided to join an existing cluster. On one node the pod will decide to form the initial cluster.
+7. The node has joined and has member up events for all other nodes.
 
 Following these messages, you may still some messages warning that messages can't be routed, it still may take some time for cluster singletons and other cluster features to decide which pod to start up on, but before long, the logs should go quiet as the cluster is started up.
 
-The logs above show those of a pod that wasn't the pod to start the cluster. As mentioned earlier, the default strategy that Akka Cluster Bootstrap uses when it starts and finds that there is no existing cluster is to get the pod with the lowest IP address to start the cluster. In the example above, that pod has an IP address of `172.17.0.11`, and you can see at 10 that it eventually returns itself as a seed node, which results in this pod joining it.
+The logs above show those of a pod that wasn't the pod to start the cluster. As mentioned earlier, the default strategy that Akka Cluster Bootstrap uses when it starts and finds that there is no existing cluster is to get the pod with the lowest IP address to start the cluster. In the example above, that pod has an IP address of `172.17.0.6`, 
+and ends up joining a pod with IP `172.17.0.5` as it has a lower IP.
 
 If you look in the logs of that pod, you'll see a message like this:
 
 ```
-[info] Initiating new cluster, self-joining [akka.tcp://application@172.17.0.11:2552].
-   Other nodes are expected to locate this cluster via continued contact-point probing.
+[INFO] [akka.management.cluster.bootstrap.internal.BootstrapCoordinator] [akkaBootstrapJoinSelf] [Appka-akka.actor.default-dispatcher-19] - Initiating new cluster, self-joining [akka://Appka@172.17.0.5:25520]. Other nodes are expected to locate this cluster via continued contact-point probing. MDC: {akkaAddress=akka://Appka@172.17.0.5:25520, sourceThread=Appka-akka.actor.default-dispatcher-11, akkaSource=akka://Appka/system/bootstrapCoordinator, sourceActorSystem=Appka, akkaTimestamp=10:05:00.873UTC}
 ```
 
 This message will appear after a timeout called the stable margin, which defaults to 5 seconds, at that point, the pod has seen that there have been no changes to the number of pods deployed for 5 seconds, and so given that it has the lowest IP address, it considers it safe for it to start a new cluster.

@@ -101,7 +101,7 @@ Scala
 Java
 :  @@snip [CompileOnly.java](/cluster-bootstrap/src/test/java/jdoc/akka/management/cluster/bootstrap/ClusterBootstrapCompileOnly.java) { #start }
 
-### Role-Based Access Control
+## Role-Based Access Control
 
 By default, pods are unable to use the Kubernetes API because they are not authenticated to do so. 
 In order to allow the applications pods to form an Akka CLuster using the Kubernetes API, we need to define some Role-Based Access Control (RBAC) roles and bindings.
@@ -146,7 +146,7 @@ roleRef:
 Note the service account name, `system:serviceaccount:appka-1:default`, contains the `appka-1` namespace in it. 
 You'll need to update it accordingly.
 
-#### A note on secrets with RBAC
+### A note on secrets with RBAC
 
 One thing to be aware of when using role based access control, the `pod-reader` role is going to grant access to read all pods in the 
 `appka-1` namespace, not just the pods for your application. This includes the deployment specs, which includes the environment 
@@ -158,7 +158,7 @@ pass them through the Kubernetes secrets API.
 If this is a concern, one solution might be to create a separate namespace for each application you wish to deploy. You may find 
 the configuration overhead of doing this very high though, it's not what Kubernetes namespaces are intended to be used for.
 
-### Health Checks
+## Health Checks
 
 Akka management HTTP includes [health check routes](https://developer.lightbend.com/docs/akka-management/current/healthchecks.html) that will expose liveness and readiness health checks on `/alive` and `/ready` respectively. 
 
