@@ -120,7 +120,6 @@ lazy val `lease-kubernetes` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-lease-kubernetes",
-    organization := "com.lightbend.akka.coordination",
     Dependencies.LeaseKubernetes
   )
   .settings(
@@ -136,7 +135,6 @@ lazy val `lease-kubernetes-int-test` = project
   .disablePlugins(BintrayPlugin)
   .settings(
     name := "akka-lease-kubernetes-int-test",
-    organization := "com.lightbend.akka.coordination",
     skip in publish := true,
     whitesourceIgnore := true,
     Dependencies.LeaseKubernetesTest,
