@@ -50,7 +50,7 @@ Kubernetes:
 kubectl apply -f lease.yml
 ```
 
-Open shift
+OpenShift
 
 ```
 oc apply -f lease.yml

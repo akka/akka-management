@@ -4,15 +4,16 @@
 
 package akka.coordination.lease.kubernetes
 
-import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 import akka.actor.ExtendedActorSystem
-import akka.coordination.lease.{ LeaseException, LeaseSettings, LeaseTimeoutException }
+import akka.coordination.lease.{LeaseException, LeaseSettings, LeaseTimeoutException}
 import akka.coordination.lease.scaladsl.Lease
 import akka.coordination.lease.kubernetes.LeaseActor._
 import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
+import akka.dispatch.ExecutionContexts
 import akka.pattern.AskTimeoutException
-import akka.util.{ ConstantFun, Timeout }
+import akka.util.{ConstantFun, Timeout}
 
 import scala.concurrent.Future
 
@@ -41,14 +42,13 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
 
   override def checkLease(): Boolean = leaseTaken.get()
 
-  // TODO (followup) make release idempotent so client can retry?
   override def release(): Future[Boolean] = {
     // replace with transform once 2.11 dropped
     (leaseActor ? Release())
       .flatMap {
         case LeaseReleased       => Future.successful(true)
         case InvalidRequest(msg) => Future.failed(new LeaseException(msg))
-      }
+      }(ExecutionContexts.sameThreadExecutionContext)
       .recoverWith {
         case _: AskTimeoutException =>
           Future.failed(new LeaseTimeoutException(
@@ -72,6 +72,6 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
         case _: AskTimeoutException =>
           Future.failed[Boolean](new LeaseTimeoutException(
             s"Timed out trying to acquire lease [${settings.leaseName}, ${settings.ownerName}]. It may still be taken."))
-      }
+      }(ExecutionContexts.sameThreadExecutionContext)
   }
 }

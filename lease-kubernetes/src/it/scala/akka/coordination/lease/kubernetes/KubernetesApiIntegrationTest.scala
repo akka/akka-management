@@ -17,7 +17,8 @@ import scala.concurrent.duration._
   *
   * `kubectl proxy --port=8080`
   *
-  * TODO run a minikube in CI and run kubectl proxy or run inside a container in open shift
+  * Test in CI:
+  * https://github.com/akka/akka-management/issues/679
   */
 class KubernetesApiIntegrationTest extends TestKit(ActorSystem("KubernetesApiIntegrationSpec", ConfigFactory.parseString(
   """

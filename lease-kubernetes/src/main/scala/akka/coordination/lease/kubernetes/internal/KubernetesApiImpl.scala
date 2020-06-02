@@ -26,9 +26,8 @@ import scala.collection.immutable
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-// TODO Extension so a singleton + limit the number of concurrent requests to the API server
-// we don't want to be caught killing the Kubernetes master now do we
 /**
+ * Could be shared between leases: https://github.com/akka/akka-management/issues/680
  * INTERNAL API
  */
 @InternalApi private[akka] class KubernetesApiImpl(system: ActorSystem, settings: KubernetesSettings)

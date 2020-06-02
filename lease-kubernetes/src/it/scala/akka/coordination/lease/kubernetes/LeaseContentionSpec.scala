@@ -20,9 +20,8 @@ import scala.concurrent.{ExecutionContext, Future}
  * One way of doing this is to have a kubectl proxy open:
  *
  * `kubectl proxy --port=8080`
- *
- * TODO run a minikube in CI and run kubectl proxy
- * TODO package as part of a container and run inside kubernetes or in a container inside open shift
+ * Test in CI:
+ * https://github.com/akka/akka-management/issues/679
  */
 class LeaseContentionSpec extends TestKit(ActorSystem("LeaseContentionSpec", ConfigFactory.parseString(
   """
