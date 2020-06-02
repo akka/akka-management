@@ -52,8 +52,7 @@ addSbtPlugin("com.dwijnand" % "sbt-dynver" % "$sbt.dynver.version$")
 For the plugin to work, you need to ensure that you *don't* specify a `version` in your sbt build, since this will overwrite the version that `sbt-dynver` generates. Additionally, `sbt-dynver` generates versions with a `+` character in them (the `+` is used to indicate how many commits have been added since the last tag, so `1.0+4` indicates this is the 1.0 tag plus 4 commits). To replace this with a `-` character, add the following to `build.sbt`:
 
 ```scala
-version in ThisBuild ~= (_.replace('+', '-'))
-dynver in ThisBuild ~= (_.replace('+', '-'))
+ThisBuild / dynverSeparator := "-"
 ```
 
 You may also want to configure the sbt native packager to tag your image as the `latest` image, this will be necessary if you're using the `latest` tag in your deployment spec. To do this, enable `dockerUpdateLatest` in `build.sbt`:
