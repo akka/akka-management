@@ -1,3 +1,5 @@
+import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+
 ThisBuild / resolvers += Resolver.jcenterRepo
 
 // root
@@ -24,6 +26,8 @@ lazy val `akka-management-root` = project
     `integration-test-marathon-api-docker`,
     `cluster-http`,
     `cluster-bootstrap`,
+    `lease-kubernetes`,
+    `lease-kubernetes-int-test`,
     docs
   )
   .settings(
@@ -111,6 +115,43 @@ lazy val `cluster-bootstrap` = project
   )
   .dependsOn(`akka-management`)
 
+lazy val `lease-kubernetes` = project
+  .in(file("lease-kubernetes"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-lease-kubernetes",
+    Dependencies.LeaseKubernetes
+  )
+  .settings(
+    Defaults.itSettings
+  )
+  .configs(IntegrationTest)
+
+lazy val `lease-kubernetes-int-test` = project
+  .in(file("lease-kubernetes-int-test"))
+  .enablePlugins(JavaAppPackaging, DockerPlugin)
+  .dependsOn(`lease-kubernetes`)
+  .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(BintrayPlugin)
+  .settings(
+    name := "akka-lease-kubernetes-int-test",
+    skip in publish := true,
+    whitesourceIgnore := true,
+    Dependencies.LeaseKubernetesTest,
+    version ~= (_.replace('+', '-')),
+    dockerBaseImage := "openjdk:8-jre-alpine",
+    dockerUpdateLatest := true,
+    dockerCommands := dockerCommands.value.flatMap {
+      case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
+      case v => Seq(v)
+    },
+    dockerCommands ++= Seq(
+      Cmd("USER", "root"),
+      Cmd("RUN", "chgrp -R 0 . && chmod -R g=u ."),
+      Cmd("RUN", "/sbin/apk", "add", "--no-cache", "bash", "bind-tools", "busybox-extras", "curl", "strace"),
+      Cmd("RUN", "chmod +x /opt/docker/bin/akka-lease-kubernetes-int-test")
+    ),
+  )
 lazy val `integration-test-kubernetes-api` = project
   .in(file("integration-test/kubernetes-api"))
   .disablePlugins(BintrayPlugin)
@@ -259,8 +300,8 @@ lazy val docs = project
         "scala.binary.version" -> scalaBinaryVersion.value,
         "akka.version" -> Dependencies.AkkaVersion,
         "akka.version26" -> Dependencies.Akka26Version,
-        "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.AkkaBinaryVersion}/%s",
-        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.AkkaBinaryVersion}/",
+        "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/current/%s",
+        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/current/",
         "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpBinaryVersion}/%s",
         "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.AkkaHttpBinaryVersion}/",
         "extref.akka-grpc.base_url" -> s"https://doc.akka.io/docs/akka-grpc/current/%s",
