@@ -5,16 +5,16 @@
 package akka.management
 
 import akka.actor.ActorSystem
-import akka.cluster.{Cluster, MemberStatus}
+import akka.cluster.{ Cluster, MemberStatus }
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, StatusCode, StatusCodes}
+import akka.http.scaladsl.model.{ HttpRequest, StatusCode, StatusCodes }
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
 import akka.testkit.SocketUtil
 import com.typesafe.config.ConfigFactory
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.{ Matchers, WordSpec }
 
 object LocalBootstrapTest {
   val managementPorts = SocketUtil.temporaryServerAddresses(3, "127.0.0.1").map(_.getPort)
