@@ -37,6 +37,12 @@ We recommend using the AdoptOpenJDK base image:
 dockerBaseImage := "adoptopenjdk/openjdk8"
 ```
 
+If you're a RedHat customer, you will likely prefer to use the RedHat certified OpenJDK base images,
+which use a RedHat certified OpenJDK build on RHEL, which is also certified by Lightbend for running our products:
+
+```scala
+dockerBaseImage := "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"
+```
 ### Git hash based version numbers
 
 This step is optional, but we recommend basing the version number of your application on the current git hash, since this ensures that you will always be able to map what is deployed to production back to the exact version of your application being used.
@@ -49,7 +55,10 @@ addSbtPlugin("com.dwijnand" % "sbt-dynver" % "$sbt.dynver.version$")
 ```
 @@@
 
-For the plugin to work, you need to ensure that you *don't* specify a `version` in your sbt build, since this will overwrite the version that `sbt-dynver` generates. Additionally, `sbt-dynver` generates versions with a `+` character in them (the `+` is used to indicate how many commits have been added since the last tag, so `1.0+4` indicates this is the 1.0 tag plus 4 commits). To replace this with a `-` character, add the following to `build.sbt`:
+For the plugin to work, you need to ensure that you *don't* specify a `version` in your sbt build, since this will overwrite the version that `sbt-dynver` generates.
+`sbt-dynver` generates versions with a `+` character in them (the `+` is used to indicate how many commits have been added since the last tag, so `1.0+4` indicates this is the 1.0 tag plus 4 commits) and
+this is invalid for docker versions. 
+To replace this with a `-` character, add the following to `build.sbt`:
 
 ```scala
 ThisBuild / dynverSeparator := "-"
@@ -71,6 +80,7 @@ dockerRepository := sys.props.get("docker.registry")
 ```
 
 In this case, we're reading both variables from system properties, which ensures that the build is not tied to any particular docker username or registry. We'll supply these system properties when we invoke sbt.
+The repository can be [DockerHub](https://hub.docker.com/) or your private repository.
 
 ## Building the docker image
 

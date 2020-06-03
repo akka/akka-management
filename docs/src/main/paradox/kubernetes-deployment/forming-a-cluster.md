@@ -2,8 +2,8 @@
 
 Services that use Akka Cluster have additional requirements over stateless applications.
 To form a cluster, each pod needs to know which other pods have been deployed as part of that service, 
-so that they can connect to each other. Akka provides a cluster bootstrap library that allows Akka applications in Kubernetes to 
-discover this automatically using the Kubernetes API. The bootstrap process is roughly as follows:
+so that they can connect to each other. Akka provides a Cluster Bootstrap library that allows Akka applications in Kubernetes to 
+discover this automatically using the Kubernetes API. The process is roughly as follows:
 
 1. When the application starts, the application polls the Kubernetes API to find what pods are deployed, 
    until a configured minimum number of pods have been discovered.
@@ -36,15 +36,15 @@ Add the following dependencies to your application:
   version3="$project.version$"
 }
 
-## Configuring cluster bootstrap
+## Configuring Cluster Bootstrap
 
-There are three components that need to be configured for cluster bootstrap to work, Akka Cluster, Akka Management HTTP, and Akka Cluster Bootstrap.
+There are three components that need to be configured: Akka Cluster, Akka Management HTTP, and Akka Cluster Bootstrap.
 
 ### Akka Cluster
 
 Set three things for Akka Cluster:
 
-* Set the actor provider to cluster .
+* Set the actor provider to `cluster`.
 * Shutdown if cluster formation doesn't work. This will cause Kubernetes to re-create the pod.
 * Exit the JVM on ActorSystem termination to allow Kubernetes to re-create it.
 
@@ -60,21 +60,21 @@ akka {
     coordinated-shutdown.exit-jvm = on
 }
 ```
-### Akka management HTTP
+### Akka Management HTTP
 
 The default configuration for Akka management HTTP is suitable for use in Kubernetes, it will bind to a default port of 8558 on the pods external IP address.
 
-### Cluster bootstrap
+### Akk Cluster Bootstrap
 
-To configure cluster bootstrap, we need to tell it which discovery method will be used to discover the other nodes in the cluster. 
-This uses Akka discovery to find nodes, however, the discovery method and configuration used in cluster bootstrap will often be different 
-to the method used for looking up other services. The reason for this is that during cluster bootstrap, we are interested in discovering 
+To configure Cluster Bootstrap, we need to tell it which discovery method will be used to discover the other nodes in the cluster. 
+This uses Akka Discovery to find nodes, however, the discovery method and configuration used in Cluster Bootstrap will often be different 
+to the method used for looking up other services. The reason for this is that during Cluster Bootstrap, we are interested in discovering 
 nodes even when they aren't ready to handle requests yet, for example, because they too are trying to form a cluster. If we were to use a 
 method such as DNS to lookup other services, the Kubernetes DNS server, by default, will only return services that are ready to serve requests, 
 indicated by their readiness check passing. Hence, when forming a new cluster, there is a chicken or egg problem, Kubernetes won't tell us which 
 nodes are running that we can form a cluster with until those nodes are ready, and those nodes won't pass their readiness check until they've formed a cluster.
 
-Hence, we need to use a different discovery method for cluster bootstrap, and for Kubernetes, the simplest method is to 
+Hence, we need to use a different discovery method for Cluster Bootstrap, and for Kubernetes, the simplest method is to 
 use the Kubernetes API, which will return all nodes regardless of their readiness state. 
 
 ```
@@ -92,7 +92,7 @@ You can optionally specify a `service-name` otherwise the name of the AkkaSystem
 
 ## Starting
 
-To ensure that cluster bootstrap is started, both the cluster bootstrap and the Akka Management extensions must be started. 
+To ensure that Cluster Bootstrap is started, both the Cluster Bootstrap and the Akka Management extensions must be started. 
 This can be done by invoking the `start` method on both the `ClusterBoostrap` and `AkkaManagement` extensions when your application starts up.
 
 Scala
@@ -104,7 +104,7 @@ Java
 ## Role-Based Access Control
 
 By default, pods are unable to use the Kubernetes API because they are not authenticated to do so. 
-In order to allow the applications pods to form an Akka CLuster using the Kubernetes API, we need to define some Role-Based Access Control (RBAC) roles and bindings.
+In order to allow the applications pods to form an Akka Cluster using the Kubernetes API, we need to define some Role-Based Access Control (RBAC) roles and bindings.
 
 RBAC allows the configuration of access control using two key concepts, roles, and role bindings. A role is a set of permissions to access something 
 in the Kubernetes API. For example, a `pod-reader` role may have permission to perform the `list`, `get` and `watch` operations on the `pods` resource in a particular namespace, by default the same namespace that the role is configured in. In fact, that's exactly what we are going to configure, as this is the permission that our pods need. Here's the spec for the `pod-reader` role:
@@ -160,7 +160,7 @@ the configuration overhead of doing this very high though, it's not what Kuberne
 
 ## Health Checks
 
-Akka management HTTP includes [health check routes](https://developer.lightbend.com/docs/akka-management/current/healthchecks.html) that will expose liveness and readiness health checks on `/alive` and `/ready` respectively. 
+Akka management HTTP includes @ref[health check routes](../healthchecks.md) that will expose liveness and readiness health checks on `/alive` and `/ready` respectively. 
 
 In Kubernetes, if an application is live, it means it is running - it hasn't crashed. But it may not necessarily be ready to serve requests, for example, it might not yet have managed to connect to a database, or, in our case, it may not have formed a cluster yet. 
 

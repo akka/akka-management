@@ -95,12 +95,12 @@ An explanation of these messages is as follows.
    Akka management is also hosting the readiness and liveness checks.
 3. Now the cluster bootstrap process is starting. The service name should match your Akka system name or configured service name in cluster bootstrap, and the port should match your configured port name. In this guide we kept these as the default values.
    This and subsequent messages will be repeated many times as cluster bootstrap polls Kubernetes and the other pods to determine what pods have been started, and whether and where a cluster has been formed.
-4. This is the docivery process. The bootstarp coordinator uses the Kubernetes discovery mechanism. The label selector should be one that will return your pods, and the namespace should match your applications namespace. The namespace is picked up automatically.
+4. This is the disocvery process. The bootstarp coordinator uses the Kubernetes discovery mechanism. The label selector should be one that will return your pods, and the namespace should match your applications namespace. The namespace is picked up automatically.
 5. Here the Kubernetes API has returned three services, including ourselves.
 6. The pod has decided to join an existing cluster. On one node the pod will decide to form the initial cluster.
 7. The node has joined and has member up events for all other nodes.
 
-Following these messages, you may still some messages warning that messages can't be routed, it still may take some time for cluster singletons and other cluster features to decide which pod to start up on, but before long, the logs should go quiet as the cluster is started up.
+Following these messages, you may still see some messages warning that messages can't be routed, it still may take some time for cluster singletons and other cluster features to decide which pod to start up on, but before long, the logs should go quiet as the cluster is started up.
 
 The logs above show those of a pod that wasn't the pod to start the cluster. As mentioned earlier, the default strategy that Akka Cluster Bootstrap uses when it starts and finds that there is no existing cluster is to get the pod with the lowest IP address to start the cluster. In the example above, that pod has an IP address of `172.17.0.6`, 
 and ends up joining a pod with IP `172.17.0.5` as it has a lower IP.
@@ -121,4 +121,29 @@ If your cluster is failing to form, carefully check over the logs for the follow
 * Ensure that the required contact point number matches your configuration and the number of replicas you have deployed.
 * Ensure that pods are successfully polling each other, looking for messages such as `Contact point [...] returned...` for outgoing polls and `Bootstrap request from ...` for incoming polls from other pods.
 
+## Deploying to minikube
+
+To deploy the samples to minikube:
+
+* Setup your local docker environment to point to minikube: `eval $(minikube -p minikube docker-env)`
+* Deploy the image: `sbt docker:publishLocal`
+* The deployment specs in the samples contain `imagePullPolicy: Never` to prevent Kubernetes trying to download the image from an external registry
+* Create the namespace and deployment:
+
+```
+kubectl apply -f kubernetes/namespace.json
+kubectl config set-context --current --namespace=appka-1
+kubectl apply -f kubernetes/akka-cluster.yml
+```
+   
+Finally, create a service so that you can then test [http://127.0.0.1:8080](http://127.0.0.1:8080)
+for 'hello world':
+
+
+
+    kubectl expose deployment appka --type=LoadBalancer --name=appka-service
+
+You can inspect the Akka Cluster membership status with the [Cluster HTTP Management](https://doc.akka.io/docs/akka-management/current/cluster-http-management.html).
+
+    curl http://127.0.0.1:8558/cluster/members/
 

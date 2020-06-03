@@ -24,6 +24,7 @@ Various parts of Akka management can be used together for deploying Akka Cluster
 
 @@@ index
 
+  - [Deploy guide for Kubernetes](kubernetes-deployment/index.md)
   - [Akka Management](akka-management.md)
   - [Migrating from older versions](migration.md)
   - [Health Checks](healthchecks.md)
@@ -32,5 +33,4 @@ Various parts of Akka management can be used together for deploying Akka Cluster
   - [Akka Cluster Management (HTTP)](cluster-http-management.md)
   - [Akka Cluster Management (JMX)](cluster-jmx-management.md)
   - [Dynamic Log Levels](loglevels.md)
-  - [Deploy guide for Kubernetes](kubernetes-deployment/index.md)
 @@@
