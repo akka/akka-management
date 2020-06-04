@@ -55,7 +55,7 @@ The version number will only change when you create a new git commit. If you are
             <image>
                 <name>%a</name>
                 <build>
-                    <from>adoptopenjdk/openjdk8</from>
+                    <from>adoptopenjdk:11-jre-hotspot</from>
                     <tags>
                         <tag>latest</tag>
                         <tag>${version.number}</tag>
@@ -84,14 +84,7 @@ The version number will only change when you create a new git commit. If you are
 
 There are two things to pay careful attention to here. 
 
-* The base image we're using is `adoptopenjdk/openjdk8`. You can use any Docker image that provides a JRE, this is the one we recommend for open source users of Kubernetes.
-If you're a RedHat customer, you will likely prefer to use the RedHat certified OpenJDK base images,
-which use a RedHat certified OpenJDK build on RHEL, which is also certified by Lightbend for running our products:
-
-```xml
-<from>registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift</from>
-```
-
+* The base image we're using is `adoptopenjdk:11-jre-hotspot`. You can use any Docker image that provides a JRE, this is the one we recommend for open source users of Kubernetes.
 * `docker:build` is added to the `package` phase do that the Docker image is built when running `mvn package`
 * Versions `latest` and `${version.number}` are tagged
 * Artifact with dependencies is set for the assembly. Meaning your application and its dependencies are added to `/maven` in the Docker image
