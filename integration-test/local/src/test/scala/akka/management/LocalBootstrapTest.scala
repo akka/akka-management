@@ -13,7 +13,7 @@ import akka.management.scaladsl.AkkaManagement
 import akka.testkit.SocketUtil
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
-import org.scalatest.time.{ Seconds, Span }
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.{ Matchers, WordSpec }
 
 object LocalBootstrapTest {
@@ -60,8 +60,8 @@ class LocalBootstrapTest extends WordSpec with ScalaFutures with Matchers with E
 
   implicit override val patienceConfig: PatienceConfig =
     PatienceConfig(
-      timeout = scaled(Span(10, Seconds)),
-      interval = scaled(Span(1, Seconds))
+      timeout = scaled(Span(20, Seconds)),
+      interval = scaled(Span(500, Millis))
     )
 
   def newSystem(managementPort: Int): ActorSystem = {
