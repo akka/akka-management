@@ -29,20 +29,14 @@ mainClass in Compile := Some("akka.sample.cluster.kubernetes.DemoApp")
 ### Selecting a JDK
 
 By default, sbt native packager uses the `openjdk` latest Docker image from DockerHub. At time of writing, this will give you OpenJDK 11, which is not certified by Lightbend, and it also gives you the Debian OpenJDK build, 
-which is not certified by Lightbend either. For a full list of Lightbend certified JDK builds and versions, see [here](https://developer.lightbend.com/docs/reactive-platform/2.0/supported-java-versions/index.html).
+which is not certified by Lightbend either. For a full list of Lightbend certified JDK builds and versions, see [here](https://developer.lightbend.com/docs/introduction/getting-help/java-versions.html).
 
 We recommend using the AdoptOpenJDK base image:
 
 ```scala
-dockerBaseImage := "adoptopenjdk/openjdk8"
+dockerBaseImage := "adoptopenjdk:11-jre-hotspot"
 ```
 
-If you're a RedHat customer, you will likely prefer to use the RedHat certified OpenJDK base images,
-which use a RedHat certified OpenJDK build on RHEL, which is also certified by Lightbend for running our products:
-
-```scala
-dockerBaseImage := "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"
-```
 ### Git hash based version numbers
 
 This step is optional, but we recommend basing the version number of your application on the current git hash, since this ensures that you will always be able to map what is deployed to production back to the exact version of your application being used.
