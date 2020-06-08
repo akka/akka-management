@@ -89,7 +89,7 @@ stages:
   - name: whitesource
     if: repo = akka/akka-management AND ( ( branch = master AND type = push ) OR tag =~ ^v )
   - name: publish
-    if: repo = akka/akka-management AND tag =~ ^v
+    if: repo = akka/akka-management AND ( ( branch = master AND type = push ) OR tag =~ ^v )
 
 notifications:
   email:
