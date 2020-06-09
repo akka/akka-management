@@ -7,17 +7,18 @@ package akka.management.cluster.bootstrap
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.AkkaVersion
-
-import scala.concurrent.{ Future, Promise, TimeoutException }
+import scala.concurrent.{Future, Promise, TimeoutException}
 import scala.concurrent.duration._
+
 import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.actor.ExtendedActorSystem
 import akka.actor.Extension
 import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.{ Discovery, ServiceDiscovery }
+import akka.discovery.{Discovery, ServiceDiscovery}
 import akka.event.Logging
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
@@ -126,6 +127,8 @@ object ClusterBootstrap extends ExtensionId[ClusterBootstrap] with ExtensionIdPr
   override def lookup: ClusterBootstrap.type = ClusterBootstrap
 
   override def get(system: ActorSystem): ClusterBootstrap = super.get(system)
+
+  override def get(system: ClassicActorSystemProvider): ClusterBootstrap = super.get(system)
 
   override def createExtension(system: ExtendedActorSystem): ClusterBootstrap = new ClusterBootstrap()(system)
 

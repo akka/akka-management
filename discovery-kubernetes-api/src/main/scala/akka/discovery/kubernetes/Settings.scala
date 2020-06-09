@@ -67,6 +67,8 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
 object Settings extends ExtensionId[Settings] with ExtensionIdProvider {
   override def get(system: ActorSystem): Settings = super.get(system)
 
+  override def get(system: ClassicActorSystemProvider): Settings = super.get(system)
+
   override def lookup: Settings.type = Settings
 
   override def createExtension(system: ExtendedActorSystem): Settings = new Settings(system)

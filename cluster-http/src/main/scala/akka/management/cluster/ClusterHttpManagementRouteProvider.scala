@@ -4,7 +4,8 @@
 
 package akka.management.cluster
 
-import akka.actor.{ ActorSystem, ExtendedActorSystem, ExtensionId, ExtensionIdProvider }
+import akka.actor.ClassicActorSystemProvider
+import akka.actor.{ActorSystem, ExtendedActorSystem, ExtensionId, ExtensionIdProvider}
 import akka.cluster.Cluster
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.scaladsl.ClusterHttpManagementRoutes
@@ -17,6 +18,8 @@ object ClusterHttpManagementRouteProvider
   override def lookup: ClusterHttpManagementRouteProvider.type = ClusterHttpManagementRouteProvider
 
   override def get(system: ActorSystem): ClusterHttpManagementRouteProvider = super.get(system)
+
+  override def get(system: ClassicActorSystemProvider): ClusterHttpManagementRouteProvider = super.get(system)
 
   override def createExtension(system: ExtendedActorSystem): ClusterHttpManagementRouteProvider =
     new ClusterHttpManagementRouteProvider(system)

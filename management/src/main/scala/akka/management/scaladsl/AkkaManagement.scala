@@ -18,6 +18,7 @@ import scala.util.control.NonFatal
 
 import akka.Done
 import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.actor.ExtendedActorSystem
 import akka.actor.Extension
 import akka.actor.ExtensionId
@@ -47,6 +48,8 @@ object AkkaManagement extends ExtensionId[AkkaManagement] with ExtensionIdProvid
   override def lookup: AkkaManagement.type = AkkaManagement
 
   override def get(system: ActorSystem): AkkaManagement = super.get(system)
+
+  override def get(system: ClassicActorSystemProvider): AkkaManagement = super.get(system)
 
   override def createExtension(system: ExtendedActorSystem): AkkaManagement =
     new AkkaManagement()(system)
