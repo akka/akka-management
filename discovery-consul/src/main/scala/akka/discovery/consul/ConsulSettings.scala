@@ -5,7 +5,7 @@
 package akka.discovery.consul
 
 import akka.actor.ClassicActorSystemProvider
-import akka.actor.{ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider}
+import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
 import akka.annotation.ApiMayChange
 
 @ApiMayChange

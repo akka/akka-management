@@ -5,7 +5,7 @@
 package akka.management.cluster
 
 import akka.actor.ClassicActorSystemProvider
-import akka.actor.{ActorSystem, ExtendedActorSystem, ExtensionId, ExtensionIdProvider}
+import akka.actor.{ ActorSystem, ExtendedActorSystem, ExtensionId, ExtensionIdProvider }
 import akka.cluster.Cluster
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.scaladsl.ClusterHttpManagementRoutes

@@ -7,7 +7,7 @@ package akka.management.cluster.bootstrap
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.AkkaVersion
-import scala.concurrent.{Future, Promise, TimeoutException}
+import scala.concurrent.{ Future, Promise, TimeoutException }
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
@@ -18,7 +18,7 @@ import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.{Discovery, ServiceDiscovery}
+import akka.discovery.{ Discovery, ServiceDiscovery }
 import akka.event.Logging
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
