@@ -67,6 +67,8 @@ jobs:
 
   - script:
       - ./scripts/setup-minikube-for-linux.sh
+      - kubectl create namespace lease
+      - kubectl apply -f ./lease-kubernetes/lease.yml
       - kubectl proxy --port=8080 &
       - sbt ";lease-kubernetes / it:test "
       - ./lease-kubernetes-int-test/minikube-test.sh
