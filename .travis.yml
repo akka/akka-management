@@ -38,32 +38,35 @@ before_script:
 
 jobs:
   include:
-  - stage: test
-    script:
-    - jabba use "adopt@1.8-0"
-    - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
-    - sbt -jvm-opts .jvmopts-travis ";scalafmtCheckAll;+test:compile;docs/paradox"
-    name: "Compile on all Scala versions, check code style (fixed with `sbt Test/compile`)"
+#  - stage: test
+#    script:
+#    - jabba use "adopt@1.8-0"
+#    - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
+#    - sbt -jvm-opts .jvmopts-travis ";scalafmtCheckAll;+test:compile;docs/paradox"
+#    name: "Compile on all Scala versions, check code style (fixed with `sbt Test/compile`)"
 
-  - env: CMD="+test"
-    name: "Run tests on AdoptOpenJDK 8 (all Scala versions)"
+#  - env: CMD="+test"
+#    name: "Run tests on AdoptOpenJDK 8 (all Scala versions)"
 
-  - env:
-    - JDK="adopt@1.11-0"
-    - CMD="+test"
-    name: "Run tests on AdoptOpenJDK 11 (all Scala versions)"
+#  - env:
+#    - JDK="adopt@1.11-0"
+#    - CMD="+test"
+#    name: "Run tests on AdoptOpenJDK 11 (all Scala versions)"
 
   - stage: integration
-    script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api/test.sh
-    env: K8S_API
+#    script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api/test.sh
+#    name: "Integration test for Kubernetes API"
 
-  - script:
-    - ./scripts/setup-minikube-for-linux.sh
-    - ./integration-test/kubernetes-dns/test.sh
-    env: K8S_DNS
+#  - script:
+#    - ./scripts/setup-minikube-for-linux.sh
+#    - ./integration-test/kubernetes-dns/test.sh
+#    name: "Integration test for Kubernetes DNS"
 
-  - script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api-java/test.sh
-    env: K8S_API_MAVEN
+#  - script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api-java/test.sh
+#    name: "Integration test for Kubernetes API with maven"
+
+  - script: ./scripts/setup-minikube-for-linux.sh && ./lease-kubernetes-int-test/minikube-test.sh
+    name: "Kubernetes Lease Integration tests"
 
   - stage: whitesource
     script:
