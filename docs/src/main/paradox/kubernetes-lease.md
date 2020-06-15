@@ -36,7 +36,7 @@ applications, you must ensure different `ActorSystem` names because they all nee
 
 @@dependency[sbt,Maven,Gradle] {
   group="com.lightbend.akka.management"
-  artifact="akka-lease-kubernetes_$scala.binaryVersion$"
+  artifact="akka-lease-kubernetes_$scala.binary.version$"
   version="$version$"
 }
 

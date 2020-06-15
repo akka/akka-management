@@ -64,7 +64,7 @@ akka {
 
 The default configuration for Akka management HTTP is suitable for use in Kubernetes, it will bind to a default port of 8558 on the pods external IP address.
 
-### Akk Cluster Bootstrap
+### Akka Cluster Bootstrap
 
 To configure Cluster Bootstrap, we need to tell it which discovery method will be used to discover the other nodes in the cluster. 
 This uses Akka Discovery to find nodes, however, the discovery method and configuration used in Cluster Bootstrap will often be different 
