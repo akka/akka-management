@@ -78,7 +78,8 @@ final class SeedNodesObservation(
     val observedAt: LocalDateTime,
     val contactPoint: ResolvedTarget,
     val sourceAddress: Address,
-    val seedNodes: Set[Address]) {
+    val seedNodes: Set[Address],
+    val eligible: Boolean) {
 
   /** Java API */
   def getSeedNodes: java.util.Set[Address] =

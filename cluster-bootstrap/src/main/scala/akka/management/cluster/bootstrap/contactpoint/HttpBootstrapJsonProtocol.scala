@@ -21,7 +21,7 @@ trait HttpBootstrapJsonProtocol extends SprayJsonSupport with DefaultJsonProtoco
   }
   implicit val SeedNodeFormat: RootJsonFormat[SeedNode] = jsonFormat1(SeedNode)
   implicit val ClusterMemberFormat: RootJsonFormat[ClusterMember] = jsonFormat4(ClusterMember)
-  implicit val ClusterMembersFormat: RootJsonFormat[SeedNodes] = jsonFormat2(SeedNodes)
+  implicit val ClusterMembersFormat: RootJsonFormat[SeedNodes] = jsonFormat3(SeedNodes)
 }
 
 object HttpBootstrapJsonProtocol extends DefaultJsonProtocol {
@@ -32,6 +32,6 @@ object HttpBootstrapJsonProtocol extends DefaultJsonProtocol {
   final case class ClusterMember(node: Address, nodeUid: Long, status: String, roles: Set[String])
   implicit val clusterMemberOrdering: Ordering[ClusterMember] = Ordering.by(_.node)
 
-  final case class SeedNodes(selfNode: Address, seedNodes: Set[ClusterMember])
+  final case class SeedNodes(selfNode: Address, seedNodes: Set[ClusterMember], eligible: Boolean)
 
 }

@@ -52,7 +52,8 @@ private[akka] object BootstrapCoordinator {
         observedAt: LocalDateTime,
         contactPoint: ResolvedTarget,
         seedNodesSourceAddress: Address,
-        observedSeedNodes: Set[Address]
+        observedSeedNodes: Set[Address],
+        eligible: Boolean
     ) extends DeadLetterSuppression
 
     final case class ProbingFailed(contactPoint: ResolvedTarget, cause: Throwable) extends DeadLetterSuppression
@@ -241,7 +242,7 @@ private[akka] class BootstrapCoordinator(
       backoffDiscoveryInterval()
       startSingleDiscoveryTimer()
 
-    case ObtainedHttpSeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes) =>
+    case ObtainedHttpSeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes, eligible) =>
       lastContactsObservation.foreach { contacts =>
         if (contacts.observedContactPoints.contains(contactPoint)) {
           log.info(
@@ -254,7 +255,7 @@ private[akka] class BootstrapCoordinator(
 
           seedNodesObservations = seedNodesObservations.updated(
             contactPoint,
-            new SeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes)
+            new SeedNodesObservation(observedAt, contactPoint, infoFromAddress, observedSeedNodes, eligible)
           )
         }
 
@@ -394,7 +395,12 @@ private[akka] class BootstrapCoordinator(
             .between(obs.observedAt, currentTime)
             .toMillis > settings.contactPoint.probingFailureTimeout.toMillis
 
-        val seedObservations = seedNodesObservations.valuesIterator.filterNot(isObsolete).toSet
+        // filter out ineligible observations - those that don't have formNewCluster enabled
+        // @TODO this should be configurable
+        def isIneligible(obs: SeedNodesObservation): Boolean =
+          !obs.eligible
+
+        val seedObservations = seedNodesObservations.valuesIterator.filterNot(isObsolete).filterNot(isIneligible).toSet
         val info =
           new SeedNodesInformation(currentTime, contacts.observedAt, contacts.observedContactPoints, seedObservations)
 
