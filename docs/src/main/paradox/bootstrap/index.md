@@ -100,7 +100,7 @@ The following configuration is required, more details for each and additional co
 * Each node exposes an HTTP endpoint `/bootstrap/seed-nodes`. This is provided by `akka-management-cluster-bootstrap` and
   exposed automatically by starting Akka management.
 * During bootstrap each node queries service discovery repeatedly to get the initial contact points until at least the
-  number of contact points as defined in `contact-point-discovery.required-contact-point-nr` has been found.
+  number of contact points ([and recommended exactly equal](#exact_contact_point)) as defined in `contact-point-discovery.required-contact-point-nr` has been found. 
 * Each node then probes the found contact points' `/bootstrap/seed-nodes` endpoint to see if a cluster has already
   been formed
     * If there is an existing cluster, it joins the cluster and bootstrapping is finished.
@@ -145,7 +145,7 @@ This can be used to provide additional safety during restarts and redeploys whil
 there is a network partition present. Without new cluster formation disabled an isolated set of nodes could form a new
 cluster if all are restarted. 
 
-For complete safety of the Initial Bootstrap it is recommended to set the `contact-point-discovery.required-contact-point-nr`
+<a name="exact_contact_point"/>For complete safety of the Initial Bootstrap it is recommended to set the `contact-point-discovery.required-contact-point-nr`
 setting to the exact number of nodes the initial startup of the cluster will be done. For example, if starting a cluster with
 4 nodes initially, and later scaling it out to many more nodes, be sure to set this setting to `4` for additional safety of
 the initial joining, even in face of an flaky discovery mechanism!
