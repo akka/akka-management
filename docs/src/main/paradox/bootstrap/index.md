@@ -198,9 +198,9 @@ for Kubernetes deployments. Cluster Sharding uses a singleton internally so this
 
 Nodes can crash causing cluster members to become unreachable. This is a tricky problem as it is not
 possible to distinguish between a network partition and a node failure. To rectify this in an automated manner,
-Lightbend provides @extref:[Split Brain Resolver](akka-enhancements:split-brain-resolver.html)
-as a feature of the Lightbend Subscription. This module has a number of strategies that can ensure that the cluster
-continues to function during network partitions and node failures.
+make sure you enable the @extref:[Split Brain Resolver](akka:split-brain-resolver.html)
+This module has a number of strategies that can ensure that the cluster continues to function
+during network partitions and node failures.
 
 ## Bootstrap Recipes
 

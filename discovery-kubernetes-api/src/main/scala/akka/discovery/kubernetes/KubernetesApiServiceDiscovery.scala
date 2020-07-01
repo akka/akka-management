@@ -24,7 +24,6 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 import JsonFormat._
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.kubernetes.PodList.Container
 
 import scala.util.control.{ NoStackTrace, NonFatal }
 import akka.event.Logging
