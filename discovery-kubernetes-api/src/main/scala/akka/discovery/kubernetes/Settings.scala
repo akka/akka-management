@@ -10,7 +10,6 @@ import akka.actor._
 import com.typesafe.config.Config
 
 import scala.compat.java8.OptionConverters._
-import scala.util.Try
 
 final class Settings(system: ExtendedActorSystem) extends Extension {
 
