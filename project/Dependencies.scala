@@ -17,7 +17,7 @@ object Dependencies {
   val ScalaTestVersion = "3.0.8"
   val SprayJsonVersion = "1.3.5"
 
-  val AwsSdkVersion = "1.11.761"
+  val AwsSdkVersion = "1.11.819"
   val JacksonDatabindVersion = "2.10.4"
 
 
