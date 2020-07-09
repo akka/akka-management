@@ -88,7 +88,7 @@ object Dependencies {
         "com.pszymczyk.consul" % "embedded-consul" % "1.0.2" % "test",
         // Specifying guava dependency because older transitive dependency has security vulnerability
         //License: Apache 2.0
-        "com.google.guava" % "guava" % "27.0.1-jre"
+        "com.google.guava" % "guava" % "27.1-jre"
       ) ++ JacksonDatabind // consul depends on insecure version of jackson
 
     val AwsJavaSdkEc2Ecs = Seq(
