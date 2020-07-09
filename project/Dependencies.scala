@@ -13,8 +13,6 @@ object Dependencies {
   val AkkaHttpVersion = "10.1.11"
   val AkkaHttpBinaryVersion = "10.1"
 
-  // JUnit, ScalaTest and ScalaTestPlus JUnit must stick together
-  val JUnitVersion = "4.12"
   val ScalaTestVersion = "3.1.1"
   val ScalaTestPlusJUnitVersion = "3.1.1.0"
 
@@ -72,7 +70,6 @@ object Dependencies {
 
     val AkkaTesting = Seq(
       TestDeps.akkaTestKit % "test",
-      "junit" % "junit" % JUnitVersion % "test",
       "org.mockito" % "mockito-all" % "1.10.19" % "test" // Common Public License 1.0
     )
 
