@@ -85,7 +85,7 @@ object Dependencies {
         //License: Apache 2.0
         "com.orbitz.consul" % "consul-client" % "1.1.2",
         //License: Apache 2.0
-        "com.pszymczyk.consul" % "embedded-consul" % "1.0.2" % "test",
+        "com.pszymczyk.consul" % "embedded-consul" % "1.1.1" % "test",
         // Specifying guava dependency because older transitive dependency has security vulnerability
         //License: Apache 2.0
         "com.google.guava" % "guava" % "27.0.1-jre"
