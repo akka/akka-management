@@ -29,7 +29,7 @@ object Dependencies {
   val SprayJsonVersion = "1.3.5"
 
   val AwsSdkVersion = "1.11.837"
-  val JacksonDatabindVersion = "2.10.5"
+  val JacksonVersion = "2.10.5"
 
   object TestDeps {
     val scalaTest = Seq(
@@ -88,18 +88,22 @@ object Dependencies {
 
     // often called-in transitively with insecure versions of databind / core
     val JacksonDatabind = Seq(
-      "com.fasterxml.jackson.core" % "jackson-databind" % JacksonDatabindVersion
+      "com.fasterxml.jackson.core" % "jackson-databind" % JacksonVersion
+    )
+    val JacksonDatatype = Seq(
+      "com.fasterxml.jackson.datatype" % "jackson-datatype-guava" % JacksonVersion,
+      "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % JacksonVersion,
+      // Specifying guava dependency because older transitive dependency has security vulnerability
+      //License: Apache 2.0
+      "com.google.guava" % "guava" % "27.1-jre"
     )
 
     val ConsulClient = Seq(
         //License: Apache 2.0
-        "com.orbitz.consul" % "consul-client" % "1.1.2",
+        "com.orbitz.consul" % "consul-client" % "1.4.2",
         //License: Apache 2.0
         "com.pszymczyk.consul" % "embedded-consul" % "2.1.4" % "test",
-        // Specifying guava dependency because older transitive dependency has security vulnerability
-        //License: Apache 2.0
-        "com.google.guava" % "guava" % "27.0.1-jre"
-      ) ++ JacksonDatabind // consul depends on insecure version of jackson
+      ) ++ JacksonDatabind ++ JacksonDatatype // consul depends on insecure version of jackson
 
     val AwsJavaSdkEc2Ecs = Seq(
         "com.amazonaws" % "aws-java-sdk-ec2" % AwsSdkVersion,
