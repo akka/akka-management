@@ -17,11 +17,13 @@ import com.orbitz.consul.model.health.ImmutableService
 import com.pszymczyk.consul.{ ConsulProcess, ConsulStarterBuilder }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Seconds, Span }
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ConsulDiscoverySpec extends WordSpecLike with Matchers with BeforeAndAfterAll with TestKitBase with ScalaFutures {
+class ConsulDiscoverySpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll with TestKitBase with ScalaFutures {
 
   private val consul: ConsulProcess = ConsulStarterBuilder.consulStarter().withHttpPort(8500).build().start()
 

@@ -13,8 +13,11 @@ object Dependencies {
   val AkkaHttpVersion = "10.1.11"
   val AkkaHttpBinaryVersion = "10.1"
 
-  val JUnitVersion = "4.13"
-  val ScalaTestVersion = "3.0.8"
+  // JUnit, ScalaTest and ScalaTestPlus JUnit must stick together
+  val JUnitVersion = "4.12"
+  val ScalaTestVersion = "3.1.1"
+  val ScalaTestPlusJUnitVersion = "3.1.1.0"
+
   val SprayJsonVersion = "1.3.5"
 
   val AwsSdkVersion = "1.11.761"
@@ -22,14 +25,15 @@ object Dependencies {
 
 
   object TestDeps {
-    val scalaTest = "org.scalatest"     %% "scalatest"     % ScalaTestVersion
+    val scalaTest = Seq(
+      "org.scalatest"     %% "scalatest"     % ScalaTestVersion,
+      "org.scalatestplus" %% "junit-4-12" % ScalaTestPlusJUnitVersion
+    )
     val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % AkkaVersion
   }
 
   val Common = Seq(
-    libraryDependencies ++= Seq(
-      TestDeps.scalaTest % Test // ApacheV2
-    )
+    libraryDependencies ++= TestDeps.scalaTest.map(_ % Test)
   )
   private object DependencyGroups {
     val AkkaActor = Seq(
@@ -191,15 +195,15 @@ object Dependencies {
       DependencyGroups.AkkaHttp ++
       DependencyGroups.AkkaCoordination ++
       DependencyGroups.WireMock ++
+      TestDeps.scalaTest.map(_ % "it,test") ++
       Seq(
-        TestDeps.scalaTest % "it,test",
         TestDeps.akkaTestKit % "it,test"
       )
   )
 
   val LeaseKubernetesTest = Seq(
     libraryDependencies ++=
-      Seq(TestDeps.scalaTest)
+      TestDeps.scalaTest
   )
 
   val BootstrapDemos = Seq(

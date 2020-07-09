@@ -14,7 +14,8 @@ import akka.testkit.SocketUtil
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.time.{ Millis, Seconds, Span }
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 object LocalBootstrapTest {
   val managementPorts = SocketUtil.temporaryServerAddresses(3, "127.0.0.1").map(_.getPort)
@@ -55,7 +56,7 @@ object LocalBootstrapTest {
     """).withFallback(ConfigFactory.load())
 }
 
-class LocalBootstrapTest extends WordSpec with ScalaFutures with Matchers with Eventually {
+class LocalBootstrapTest extends AnyWordSpec with ScalaFutures with Matchers with Eventually {
   import LocalBootstrapTest._
 
   implicit override val patienceConfig: PatienceConfig =

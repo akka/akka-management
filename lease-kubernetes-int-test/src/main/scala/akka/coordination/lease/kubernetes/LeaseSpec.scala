@@ -10,12 +10,14 @@ import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.coordination.lease.scaladsl.LeaseProvider
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.time.{ Milliseconds, Seconds, Span }
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 /**
  * This spec is for running inside a k8s cluster.
  */
-abstract class LeaseSpec() extends WordSpec with ScalaFutures with BeforeAndAfterAll with Matchers with Eventually {
+abstract class LeaseSpec() extends AnyWordSpec with ScalaFutures with BeforeAndAfterAll with Matchers with Eventually {
 
   def system: ActorSystem
 

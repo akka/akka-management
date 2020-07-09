@@ -4,7 +4,9 @@
 
 package akka.management.cluster.bootstrap
 
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-abstract class AbstractBootstrapSpec extends WordSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll
+abstract class AbstractBootstrapSpec extends AnyWordSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll

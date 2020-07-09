@@ -10,12 +10,12 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.management.scaladsl.ManagementRouteProviderSettings
-import org.scalatest.Matchers
-import org.scalatest.WordSpec
 import org.slf4j.LoggerFactory
 import akka.event.{ Logging => ClassicLogging }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class LogLevelRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest {
+class LogLevelRoutesSpec extends AnyWordSpec with Matchers with ScalatestRouteTest {
 
   override def testConfigSource: String =
     """

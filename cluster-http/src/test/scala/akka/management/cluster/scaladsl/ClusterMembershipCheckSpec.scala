@@ -8,11 +8,12 @@ import akka.actor.ActorSystem
 import akka.cluster.MemberStatus
 import akka.testkit.TestKit
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ Matchers, WordSpecLike }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 class ClusterMembershipCheckSpec
     extends TestKit(ActorSystem("ClusterHealthCheck"))
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with ScalaFutures {
 

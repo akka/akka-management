@@ -14,17 +14,18 @@ import akka.discovery.{ Lookup, MockDiscovery }
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ Matchers, WordSpecLike }
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import akka.management.scaladsl.AkkaManagement
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 /**
  * This test ensures that the client and server both respect the base-path setting and thus that the boostrapping
  * process works correctly when this setting is specified.
  */
-class ClusterBootstrapBasePathIntegrationSpec extends WordSpecLike with Matchers {
+class ClusterBootstrapBasePathIntegrationSpec extends AnyWordSpecLike with Matchers {
 
   "Cluster Bootstrap" should {
     val Vector(managementPort, remotingPort) =

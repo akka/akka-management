@@ -14,10 +14,12 @@ import akka.pattern.ask
 import akka.testkit.{ TestKit, TestProbe }
 import akka.util.{ ConstantFun, Timeout }
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 class MockKubernetesApi(system: ActorSystem, currentLease: ActorRef, updateLease: ActorRef) extends KubernetesApi {
 
@@ -47,7 +49,7 @@ class LeaseActorSpec
     akka.actor.debug.fsm = true
   """)
       ))
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll {
 

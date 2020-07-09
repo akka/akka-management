@@ -5,9 +5,10 @@
 package akka.management.cluster.scaladsl
 
 import akka.cluster.MemberStatus
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ClusterMembershipCheckSettingsSpec extends WordSpec with Matchers {
+class ClusterMembershipCheckSettingsSpec extends AnyWordSpec with Matchers {
 
   "Member status parsing" must {
     "be case insensitive" in {

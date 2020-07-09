@@ -4,13 +4,14 @@
 
 package akka.discovery.kubernetes
 
-import org.scalatest.{ Matchers, WordSpec }
 import spray.json._
 import scala.io.Source
 
 import PodList._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class JsonFormatSpec extends WordSpec with Matchers {
+class JsonFormatSpec extends AnyWordSpec with Matchers {
   "JsonFormat" should {
     val data = resourceAsString("pods.json")
 

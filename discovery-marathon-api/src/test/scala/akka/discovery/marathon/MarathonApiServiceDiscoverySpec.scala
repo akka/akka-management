@@ -7,11 +7,12 @@ package akka.discovery.marathon
 import java.net.InetAddress
 
 import akka.discovery.ServiceDiscovery.ResolvedTarget
-import org.scalatest.{ Matchers, WordSpec }
 import spray.json._
 import scala.io.Source
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class MarathonApiServiceDiscoverySpec extends WordSpec with Matchers {
+class MarathonApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
   "targets" should {
     "calculate the correct list of resolved targets" in {
       val data = resourceAsString("apps.json")

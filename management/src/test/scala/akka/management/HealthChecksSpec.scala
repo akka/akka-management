@@ -7,7 +7,7 @@ package akka.management
 import akka.actor.{ ActorSystem, ExtendedActorSystem }
 import akka.testkit.TestKit
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+import org.scalatest.BeforeAndAfterAll
 import HealthChecksSpec._
 import akka.management.internal.CheckTimeoutException
 import akka.management.scaladsl.HealthChecks
@@ -21,6 +21,8 @@ import akka.actor.setup.ActorSystemSetup
 import akka.management.scaladsl.LivenessCheckSetup
 import akka.management.scaladsl.ReadinessCheckSetup
 import com.typesafe.config.ConfigFactory
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 object HealthChecksSpec {
   val failedCause = new TE()
@@ -83,7 +85,7 @@ class CtrException(system: ActorSystem) extends (() => Future[Boolean]) {
 
 class HealthChecksSpec
     extends TestKit(ActorSystem("HealthChecksSpec"))
-    with WordSpecLike
+    with AnyWordSpecLike
     with BeforeAndAfterAll
     with ScalaFutures
     with Matchers {
