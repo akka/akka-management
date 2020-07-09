@@ -106,7 +106,7 @@ object Dependencies {
     )
 
     val WireMock = Seq(
-      "com.github.tomakehurst" % "wiremock-jre8" % "2.21.0" % "test" // ApacheV2
+      "com.github.tomakehurst" % "wiremock-jre8" % "2.27.1" % "test" // ApacheV2
     )
   }
 
