@@ -83,7 +83,7 @@ object Dependencies {
 
     val ConsulClient = Seq(
         //License: Apache 2.0
-        "com.orbitz.consul" % "consul-client" % "1.1.2",
+        "com.orbitz.consul" % "consul-client" % "1.4.2",
         //License: Apache 2.0
         "com.pszymczyk.consul" % "embedded-consul" % "1.0.2" % "test",
         // Specifying guava dependency because older transitive dependency has security vulnerability
