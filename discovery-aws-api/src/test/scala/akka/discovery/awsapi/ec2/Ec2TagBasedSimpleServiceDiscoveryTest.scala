@@ -6,9 +6,10 @@ package akka.discovery.awsapi.ec2
 
 import akka.discovery.awsapi.ec2.Ec2TagBasedServiceDiscovery.parseFiltersString
 import com.amazonaws.services.ec2.model.Filter
-import org.scalatest.{ FunSuite, Matchers }
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class FiltersParsingTest extends FunSuite with Matchers {
+class FiltersParsingTest extends AnyFunSuite with Matchers {
 
   import scala.collection.JavaConverters._
 

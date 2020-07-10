@@ -17,11 +17,12 @@ import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
 import com.typesafe.config.{ Config, ConfigFactory }
-import org.scalatest.{ Matchers, WordSpecLike }
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends WordSpecLike with Matchers {
+class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends AnyWordSpecLike with Matchers {
 
   "Cluster Bootstrap" should {
 

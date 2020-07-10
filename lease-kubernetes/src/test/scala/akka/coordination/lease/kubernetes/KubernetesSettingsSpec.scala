@@ -6,10 +6,11 @@ package akka.coordination.lease.kubernetes
 
 import akka.coordination.lease.TimeoutSettings
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ Matchers, WordSpec }
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class KubernetesSettingsSpec extends WordSpec with Matchers {
+class KubernetesSettingsSpec extends AnyWordSpec with Matchers {
 
   private def conf(overrides: String): KubernetesSettings = {
     val c = ConfigFactory

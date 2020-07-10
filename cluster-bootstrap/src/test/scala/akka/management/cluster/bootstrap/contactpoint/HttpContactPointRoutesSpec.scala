@@ -11,10 +11,11 @@ import akka.management.cluster.bootstrap.ClusterBootstrapSettings
 import akka.testkit.{ SocketUtil, TestProbe }
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{ Millis, Seconds, Span }
-import org.scalatest.{ Matchers, WordSpecLike }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 class HttpContactPointRoutesSpec
-    extends WordSpecLike
+    extends AnyWordSpecLike
     with Matchers
     with ScalatestRouteTest
     with HttpBootstrapJsonProtocol

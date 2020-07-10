@@ -4,9 +4,10 @@
 
 package akka.management
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class HealthCheckSettingsSpec extends WordSpec with Matchers {
+class HealthCheckSettingsSpec extends AnyWordSpec with Matchers {
 
   "Health Check Settings" should {
     "filter out blank fqcn" in {

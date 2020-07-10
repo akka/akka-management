@@ -33,8 +33,8 @@ import com.typesafe.config.ConfigFactory
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
-import org.scalatest.Matchers
-import org.scalatest.WordSpecLike
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 class HttpManagementEndpointSpecRoutesScaladsl extends ManagementRouteProvider with Directives {
   override def routes(settings: ManagementRouteProviderSettings): Route =
@@ -56,7 +56,7 @@ class HttpManagementEndpointSpecRoutesJavadsl extends javadsl.ManagementRoutePro
     }
 }
 
-class AkkaManagementHttpEndpointSpec extends WordSpecLike with Matchers {
+class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
 
   val config = ConfigFactory.parseString(
     """

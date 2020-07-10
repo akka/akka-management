@@ -10,9 +10,10 @@ import akka.actor.Address
 import akka.cluster.MemberStatus._
 import akka.cluster.{ Member, UniqueAddress }
 import akka.management.cluster.ClusterHttpManagementHelper
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ClusterHttpManagementHelperSpec extends WordSpec with Matchers {
+class ClusterHttpManagementHelperSpec extends AnyWordSpec with Matchers {
 
   "Oldest nodes per role" must {
     "work" in {

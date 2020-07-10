@@ -9,11 +9,12 @@ import akka.http.scaladsl.model.{ StatusCodes, Uri }
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.management.scaladsl.{ HealthChecks, ManagementRouteProviderSettings }
-import org.scalatest.{ Matchers, WordSpec }
 
 import scala.concurrent.Future
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class HealthCheckRoutesSpec extends WordSpec with Matchers with ScalatestRouteTest {
+class HealthCheckRoutesSpec extends AnyWordSpec with Matchers with ScalatestRouteTest {
 
   private val eas = system.asInstanceOf[ExtendedActorSystem]
 

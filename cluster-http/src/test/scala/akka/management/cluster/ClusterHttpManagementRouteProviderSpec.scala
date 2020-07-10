@@ -9,11 +9,12 @@ import akka.cluster.Cluster
 import akka.http.scaladsl.model.{ StatusCodes, Uri }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.management.scaladsl.ManagementRouteProviderSettings
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 object ClusterHttpManagementRouteProviderSpec {}
 
-class ClusterHttpManagementRouteProviderSpec extends WordSpec with ScalatestRouteTest with Matchers {
+class ClusterHttpManagementRouteProviderSpec extends AnyWordSpec with ScalatestRouteTest with Matchers {
 
   val cluster = Cluster(system)
 

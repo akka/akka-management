@@ -6,13 +6,14 @@ package akka.discovery.kubernetes
 
 import java.net.InetAddress
 
-import org.scalatest.{ Matchers, WordSpec }
 import PodList.{ Pod, _ }
 import akka.actor.ActorSystem
 import akka.discovery.Discovery
 import akka.discovery.ServiceDiscovery.ResolvedTarget
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class KubernetesApiServiceDiscoverySpec extends WordSpec with Matchers {
+class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
   "targets" should {
     "calculate the correct list of resolved targets" in {
       val podList =
