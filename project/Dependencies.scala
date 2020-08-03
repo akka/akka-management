@@ -3,15 +3,20 @@ import Keys._
 
 object Dependencies {
 
+  val CronBuild = sys.env.get("TRAVIS_EVENT_TYPE").contains("cron")
+
   val Scala211 = "2.11.12"
   val Scala212 = "2.12.10"
   val Scala213 = "2.13.0"
 
-  val AkkaVersion = "2.5.31"
+  val Akka25Version = "2.5.31"
   val Akka26Version = "2.6.5"
-  val AkkaBinaryVersion = "2.5"
-  val AkkaHttpVersion = "10.1.11"
-  val AkkaHttpBinaryVersion = "10.1"
+  val AkkaVersion = if (CronBuild) Akka26Version else Akka25Version
+  val AkkaBinaryVersion = if (CronBuild) "2.6" else "2.5"
+  val AkkaHttp101 = "10.1.11"
+  val AkkaHttp102 = "10.2.0-RC1"
+  val AkkaHttpVersion = if (CronBuild) AkkaHttp102 else AkkaHttp101
+  val AkkaHttpBinaryVersion = if (CronBuild) "10.2" else "10.1"
 
   val ScalaTestVersion = "3.1.1"
   val ScalaTestPlusJUnitVersion = "3.1.1.0"
