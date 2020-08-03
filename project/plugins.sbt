@@ -1,4 +1,4 @@
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.25")
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.7.4")
 
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.6.0")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.3.4")
