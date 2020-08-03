@@ -14,7 +14,7 @@ object Dependencies {
   val AkkaVersion = if (CronBuild) Akka26Version else Akka25Version
   val AkkaBinaryVersion = if (CronBuild) "2.6" else "2.5"
   val AkkaHttp101 = "10.1.11"
-  val AkkaHttp102 = "10.2.0-RC1"
+  val AkkaHttp102 = "10.2.0-RC2"
   val AkkaHttpVersion = if (CronBuild) AkkaHttp102 else AkkaHttp101
   val AkkaHttpBinaryVersion = if (CronBuild) "10.2" else "10.1"
 
