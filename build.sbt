@@ -1,4 +1,4 @@
-import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import com.typesafe.sbt.packager.docker.{ Cmd, ExecCmd }
 
 ThisBuild / resolvers += Resolver.jcenterRepo
 
@@ -95,7 +95,8 @@ lazy val `loglevels-logback` = project
   .settings(
     name := "akka-management-loglevels-logback",
     Dependencies.LoglevelsLogback
-  ).dependsOn(`akka-management`)
+  )
+  .dependsOn(`akka-management`)
 
 lazy val `cluster-http` = project
   .in(file("cluster-http"))
@@ -142,15 +143,15 @@ lazy val `lease-kubernetes-int-test` = project
     dockerBaseImage := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
     dockerCommands := dockerCommands.value.flatMap {
-      case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
-      case v => Seq(v)
-    },
+        case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
+        case v                                => Seq(v)
+      },
     dockerCommands ++= Seq(
-      Cmd("USER", "root"),
-      Cmd("RUN", "chgrp -R 0 . && chmod -R g=u ."),
-      Cmd("RUN", "/sbin/apk", "add", "--no-cache", "bash", "bind-tools", "busybox-extras", "curl", "strace"),
-      Cmd("RUN", "chmod +x /opt/docker/bin/akka-lease-kubernetes-int-test")
-    ),
+        Cmd("USER", "root"),
+        Cmd("RUN", "chgrp -R 0 . && chmod -R g=u ."),
+        Cmd("RUN", "/sbin/apk", "add", "--no-cache", "bash", "bind-tools", "busybox-extras", "curl", "strace"),
+        Cmd("RUN", "chmod +x /opt/docker/bin/akka-lease-kubernetes-int-test")
+      )
   )
 lazy val `integration-test-kubernetes-api` = project
   .in(file("integration-test/kubernetes-api"))

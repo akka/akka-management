@@ -8,6 +8,9 @@ object Dependencies {
   val Scala211 = "2.11.12"
   val Scala212 = "2.12.10"
   val Scala213 = "2.13.0"
+  val CrossScalaVersions =
+    if (CronBuild) Seq(Dependencies.Scala212, Dependencies.Scala213)
+    else Seq(Dependencies.Scala211, Dependencies.Scala212, Dependencies.Scala213)
 
   val Akka25Version = "2.5.31"
   val Akka26Version = "2.6.5"
@@ -26,10 +29,9 @@ object Dependencies {
   val AwsSdkVersion = "1.11.761"
   val JacksonDatabindVersion = "2.10.4"
 
-
   object TestDeps {
     val scalaTest = Seq(
-      "org.scalatest"     %% "scalatest"     % ScalaTestVersion,
+      "org.scalatest" %% "scalatest" % ScalaTestVersion,
       "org.scalatestplus" %% "junit-4-12" % ScalaTestPlusJUnitVersion
     )
     val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % AkkaVersion
