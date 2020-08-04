@@ -6,8 +6,8 @@ object Dependencies {
   val CronBuild = sys.env.get("TRAVIS_EVENT_TYPE").contains("cron")
 
   val Scala211 = "2.11.12"
-  val Scala212 = "2.12.10"
-  val Scala213 = "2.13.0"
+  val Scala212 = "2.12.11"
+  val Scala213 = "2.13.3"
 
   val Akka25Version = "2.5.31"
   val Akka26Version = "2.6.5"
