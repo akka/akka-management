@@ -4,7 +4,7 @@
 
 package akka.management.cluster.bootstrap.contactpoint
 
-import akka.actor.{ActorSystem, Address}
+import akka.actor.{ ActorSystem, Address }
 import akka.cluster.Cluster
 import akka.discovery.MockDiscovery
 import akka.event.Logging
@@ -13,7 +13,7 @@ import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.remote.RARP
 import akka.stream.ActorMaterializer
-import akka.testkit.{SocketUtil, TestKit}
+import akka.testkit.{ SocketUtil, TestKit }
 import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
 
