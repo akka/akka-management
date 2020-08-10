@@ -15,11 +15,11 @@ object Dependencies {
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val Akka25Version = "2.5.31"
   val Akka26Version = "2.6.5"
-  val AkkaVersion = /*if (CronBuild) Akka26Version else */Akka25Version // FIXME: need to fix tests wrt artery
-  val AkkaBinaryVersion = /*if (CronBuild) "2.6" else */"2.5"
+  val AkkaVersion = if (CronBuild) Akka26Version else Akka25Version
+  val AkkaBinaryVersion = if (CronBuild) "2.6" else "2.5"
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val AkkaHttp101 = "10.1.11"
-  val AkkaHttp102 = "10.2.0-RC2"
+  val AkkaHttp102 = "10.2.0"
   val AkkaHttpVersion = if (CronBuild) AkkaHttp102 else AkkaHttp101
   val AkkaHttpBinaryVersion = if (CronBuild) "10.2" else "10.1"
 

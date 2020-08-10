@@ -336,7 +336,8 @@ class ClusterHttpManagementRoutesSpec
             |akka.actor.provider = "cluster"
             |akka.remote.log-remote-lifecycle-events = off
             |akka.remote.netty.tcp.port = 0
-          """.stripMargin
+            |akka.remote.artery.canonical.port = 0
+           """.stripMargin
         )
         val configClusterHttpManager = ConfigFactory.parseString(
           """
@@ -380,8 +381,8 @@ class ClusterHttpManagementRoutesSpec
             HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/ThisShardRegionDoesNotExist")
           )
           .futureValue
-        responseInvalidGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
         responseInvalidGetShardDetails.status shouldEqual StatusCodes.NotFound
+        responseInvalidGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
 
         binding.unbind().futureValue
         system.terminate()
