@@ -107,7 +107,7 @@ object Dependencies {
       ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
     val Aws2Ecs = Seq(
-        "software.amazon.awssdk" % "ecs" % "2.13.53"
+        "software.amazon.awssdk" % "ecs" % "2.13.71"
       ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
     val Logging = Seq(
