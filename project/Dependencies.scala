@@ -6,15 +6,15 @@ object Dependencies {
   val CronBuild = sys.env.get("TRAVIS_EVENT_TYPE").contains("cron")
 
   val Scala211 = "2.11.12"
-  val Scala212 = "2.12.10"
-  val Scala213 = "2.13.0"
+  val Scala212 = "2.12.11"
+  val Scala213 = "2.13.3"
   val CrossScalaVersions =
     if (CronBuild) Seq(Dependencies.Scala212, Dependencies.Scala213)
     else Seq(Dependencies.Scala211, Dependencies.Scala212, Dependencies.Scala213)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val Akka25Version = "2.5.31"
-  val Akka26Version = "2.6.5"
+  val Akka26Version = "2.6.8"
   val AkkaVersion = if (CronBuild) Akka26Version else Akka25Version
   val AkkaBinaryVersion = if (CronBuild) "2.6" else "2.5"
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
