@@ -24,12 +24,12 @@ object Dependencies {
   val AkkaHttpBinaryVersion = if (CronBuild) "10.2" else "10.1"
 
   val ScalaTestVersion = "3.1.1"
-  val ScalaTestPlusJUnitVersion = "3.1.1.0"
+  val ScalaTestPlusJUnitVersion = "3.1.2.0"
 
   val SprayJsonVersion = "1.3.5"
 
-  val AwsSdkVersion = "1.11.761"
-  val JacksonDatabindVersion = "2.10.5"
+  val AwsSdkVersion = "1.11.837"
+  val JacksonDatabindVersion = "2.10.4"
 
   object TestDeps {
     val scalaTest = Seq(
@@ -107,7 +107,7 @@ object Dependencies {
       ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
     val Aws2Ecs = Seq(
-        "software.amazon.awssdk" % "ecs" % "2.13.53"
+        "software.amazon.awssdk" % "ecs" % "2.13.71"
       ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
     val Logging = Seq(
