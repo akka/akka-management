@@ -128,7 +128,9 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
             case _: AskTimeoutException =>
               StatusCodes.NotFound -> ClusterHttpManagementMessage(
                 s"Shard Region $shardRegionName not responding, may have been terminated")
-            case _: IllegalArgumentException =>
+            case _: IllegalArgumentException => // Akka 2.5
+              StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
+            case _: IllegalStateException => // Akka 2.6
               StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
           }
         }

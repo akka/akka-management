@@ -30,7 +30,11 @@ class HttpContactPointRoutesSpec
       remote {
         netty.tcp {
           hostname = "127.0.0.1"
-          port = ${SocketUtil.temporaryServerAddress("127.0.0.1").getPort}
+          port = 0
+        }
+        artery.canonical {
+          hostname = "127.0.0.1"
+          port = 0
         }
       }
     }

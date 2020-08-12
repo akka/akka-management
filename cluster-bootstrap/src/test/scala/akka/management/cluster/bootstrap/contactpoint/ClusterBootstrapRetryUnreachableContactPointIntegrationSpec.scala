@@ -51,11 +51,13 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends AnyWor
           # this can be referred to in tests to use the mock discovery implementation
           discovery.mock-dns.class = "akka.discovery.MockDiscovery"
 
-          cluster.http.management.port = $managementPort
           remote.netty.tcp.port = $remotingPort
+          remote.artery.canonical.port = $remotingPort
+          remote.artery.canonical.hostname = "127.0.0.1"
 
           management {
-
+            http.management.port = $managementPort
+            http.management.hostname = "127.0.0.1"
             cluster.bootstrap {
               contact-point-discovery {
                 discovery-method = mock-dns

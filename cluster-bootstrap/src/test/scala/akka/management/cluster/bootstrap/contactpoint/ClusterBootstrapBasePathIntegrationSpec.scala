@@ -40,6 +40,7 @@ class ClusterBootstrapBasePathIntegrationSpec extends AnyWordSpecLike with Match
 
           cluster.http.management.port = $managementPort
           remote.netty.tcp.port = $remotingPort
+          remote.artery.canonical.port = $remotingPort
 
           discovery.mock-dns.class = "akka.discovery.MockDiscovery"
 

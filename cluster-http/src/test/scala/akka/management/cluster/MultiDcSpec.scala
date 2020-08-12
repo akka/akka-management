@@ -30,7 +30,8 @@ class MultiDcSpec
     """
       |akka.actor.provider = "cluster"
       |akka.remote.log-remote-lifecycle-events = off
-      |akka.remote.netty.tcp.hostname = "127.0.0.1"
+      |akka.remote.artery.canonical.hostname = "127.0.0.1"
+      |akka.remote.artery.enabled = true
       |#akka.loglevel = DEBUG
     """.stripMargin
   )
@@ -42,17 +43,18 @@ class MultiDcSpec
         s"""
            |akka.management.http.hostname = "127.0.0.1"
            |akka.management.http.port = $httpPortA
-           |akka.cluster.seed-nodes = ["akka.tcp://MultiDcSystem@127.0.0.1:$portA"]
+           |akka.cluster.seed-nodes = ["akka://MultiDcSystem@127.0.0.1:$portA"]
            |akka.cluster.multi-data-center.self-data-center = "DC-A"
-           |akka.remote.netty.tcp.port = $portA
-          """.stripMargin
+           |akka.remote.artery.canonical.port = $portA
+           |akka.remote.artery.canonical.port = $portA
+           |          """.stripMargin
       )
       val dcB = ConfigFactory.parseString(
         s"""
-           |akka.cluster.seed-nodes = ["akka.tcp://MultiDcSystem@127.0.0.1:$portA"]
+           |akka.cluster.seed-nodes = ["akka://MultiDcSystem@127.0.0.1:$portA"]
            |akka.cluster.multi-data-center.self-data-center = "DC-B"
-           |akka.remote.netty.tcp.port = $portB
-          """.stripMargin
+           |akka.remote.artery.canonical.port = $portB
+           |          """.stripMargin
       )
 
       implicit val dcASystem = ActorSystem("MultiDcSystem", config.withFallback(dcA))

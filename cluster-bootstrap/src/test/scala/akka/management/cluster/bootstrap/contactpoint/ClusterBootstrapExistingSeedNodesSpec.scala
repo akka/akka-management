@@ -11,6 +11,7 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
+import akka.remote.RARP
 import akka.stream.ActorMaterializer
 import akka.testkit.{ SocketUtil, TestKit }
 import com.typesafe.config.ConfigFactory
@@ -42,13 +43,17 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
     val Vector(managementPort, remotingPort) =
       SocketUtil.temporaryServerAddresses(2, "127.0.0.1").map(_.getPort)
 
-    info(s"System [$id]:   remoting port: $remotingPort")
+    info(s"System [$id]: remoting port: $remotingPort")
 
     contactPointPorts = contactPointPorts.updated(id, managementPort)
     remotingPorts = remotingPorts.updated(id, remotingPort)
 
+    val protocol =
+      if (RARP(system).provider.remoteSettings.Artery.Enabled) "akka"
+      else "akka.tcp"
+
     val seeds = (seedNodes match {
-      case JoinYourself => List(s"akka.tcp://${systemName}@127.0.0.1:${remotingPort}")
+      case JoinYourself => List(s"${protocol}://${systemName}@127.0.0.1:${remotingPort}")
       case _            => seedNodes.map(_.toString)
     }).mkString("""["""", """", """", """"] """)
 
@@ -62,6 +67,7 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
 
           cluster.http.management.port = $managementPort
           remote.netty.tcp.port = $remotingPort
+          remote.artery.canonical.port = $remotingPort
 
           # this can be referred to in tests to use the mock discovery implementation
           discovery.mock-dns.class = "akka.discovery.MockDiscovery"
