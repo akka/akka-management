@@ -17,8 +17,8 @@ mkdir -p $HOME/.kube
 touch $HOME/.kube/config
 
 export KUBECONFIG=$HOME/.kube/config
-sudo -E minikube start --driver=docker
-sudo -E minikube addons enable ingress
+minikube start --driver=docker
+minikube addons enable ingress
 #sudo -E chmod a+r ~/.minikube/client.key
 
 # this for loop waits until kubectl can access the api server that Minikube has created
