@@ -1,4 +1,7 @@
+eval $(minikube -p minikube docker-env)
 sbt $PROJECT_NAME/docker:publishLocal
+
+docker images | head
 
 kubectl create namespace akka-bootstrap-demo-ns || true
 kubectl -n $NAMESPACE apply -f $DEPLOYMENT

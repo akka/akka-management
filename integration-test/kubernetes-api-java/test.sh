@@ -6,6 +6,7 @@ VERSION=`sbt publishM2 | grep akka-management-cluster-bootstrap_2.12 | tail -1 |
 
 cd integration-test/kubernetes-api-java
 
+eval $(minikube -p minikube docker-env)
 mvn -Dakka-management.version=$VERSION clean package docker:build
 
 export NAMESPACE=akka-bootstrap-demo-ns
