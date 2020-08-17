@@ -87,7 +87,7 @@ akka.management {
 }
 ```
 
-You can optionally specify a `service-name` otherwise the name of the AkkaSystem is used that much match your label in the deployment spec.
+You can optionally specify a `service-name` otherwise the name of the AkkaSystem is used that matches your label in the deployment spec.
 
 
 ## Starting
