@@ -5,12 +5,11 @@
 package akka.management.javadsl
 
 import java.util.concurrent.CompletionStage
-import java.util.function.{ Function => JFunction }
+import java.util.function.{Function => JFunction}
 
 import scala.compat.java8.FutureConverters._
-
 import akka.Done
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, ClassicActorSystemProvider}
 import akka.http.javadsl.model.Uri
 import akka.http.javadsl.server.directives.RouteAdapter
 import akka.management.AkkaManagementSettings
@@ -19,6 +18,9 @@ import akka.management.scaladsl
 object AkkaManagement {
   def get(system: ActorSystem): AkkaManagement =
     new AkkaManagement(scaladsl.AkkaManagement(system))
+
+  def get(classicActorSystemProvider: ClassicActorSystemProvider): AkkaManagement =
+    new AkkaManagement(scaladsl.AkkaManagement(classicActorSystemProvider))
 }
 
 final class AkkaManagement(delegate: scaladsl.AkkaManagement) {
