@@ -5,11 +5,11 @@
 package akka.management.javadsl
 
 import java.util.concurrent.CompletionStage
-import java.util.function.{Function => JFunction}
+import java.util.function.{ Function => JFunction }
 
 import scala.compat.java8.FutureConverters._
 import akka.Done
-import akka.actor.{ActorSystem, ClassicActorSystemProvider}
+import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
 import akka.http.javadsl.model.Uri
 import akka.http.javadsl.server.directives.RouteAdapter
 import akka.management.AkkaManagementSettings
