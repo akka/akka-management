@@ -10,6 +10,7 @@ import scala.concurrent.Future
 import akka.actor.ActorSystem
 import akka.actor.Address
 import akka.discovery.ServiceDiscovery.ResolvedTarget
+import akka.util.unused
 
 /**
  * The decision of joining "self" is made by deterministically sorting the discovered services
@@ -139,8 +140,8 @@ class LowestAddressJoinDecider(system: ActorSystem, settings: ClusterBootstrapSe
    * contact points have not been confirmed (unreachable or not running).
    * `hasEnoughContactPoints` and `isPastStableMargin` must still be fulfilled.
    */
-  protected def isConfirmedCommunicationWithAllContactPointsRequired(info: SeedNodesInformation): Boolean =
-    true
+  protected def isConfirmedCommunicationWithAllContactPointsRequired(@unused info: SeedNodesInformation): Boolean =
+    settings.contactPointDiscovery.contactWithAllContactPoints
 
   /**
    * Contact point with the "lowest" contact point address,
