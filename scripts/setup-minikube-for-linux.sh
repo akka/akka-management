@@ -17,8 +17,8 @@ mkdir -p $HOME/.kube
 touch $HOME/.kube/config
 
 export KUBECONFIG=$HOME/.kube/config
-sudo -E minikube start --vm-driver=none
-sudo -E minikube addons enable ingress
+minikube start --driver=docker
+minikube addons enable ingress
 #sudo -E chmod a+r ~/.minikube/client.key
 
 # this for loop waits until kubectl can access the api server that Minikube has created
@@ -32,6 +32,9 @@ for i in {1..150}; do # timeout for 5 minutes
 done
 
 # kubectl commands are now able to interact with Minikube cluster
+
 minikube version
 minikube addons list
+
+eval $(minikube -p minikube docker-env)
 kubectl -n kube-system get deploy | grep dns
