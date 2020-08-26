@@ -278,6 +278,8 @@ private[akka] class BootstrapCoordinator(
 
             val seedNodesList = (seedNodes - cluster.selfAddress).toList // order doesn't matter
             cluster.joinSeedNodes(seedNodesList)
+
+            // once we issued a join bootstrapping is completed
             context.stop(self)
           }
         case JoinSelf =>
@@ -289,6 +291,8 @@ private[akka] class BootstrapCoordinator(
           )
 
           cluster.join(cluster.selfAddress)
+
+          // once we issued a join bootstrapping is completed
           context.stop(self)
       }
 
