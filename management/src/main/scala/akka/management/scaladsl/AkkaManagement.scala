@@ -145,11 +145,12 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
         val combinedRoutes = prepareCombinedRoutes(effectiveProviderSettings)
 
+        val http = Http.get(system)
         val connectionContext =
-          effectiveProviderSettings.httpsConnectionContext.getOrElse(Http().defaultServerHttpContext)
+          effectiveProviderSettings.httpsConnectionContext.getOrElse(http.defaultServerHttpContext)
 
         val serverFutureBinding =
-          Http().bindAndHandle(
+          http.bindAndHandle(
             RouteResult.route2HandlerFlow(combinedRoutes),
             effectiveBindHostname,
             effectiveBindPort,
