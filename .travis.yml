@@ -67,7 +67,7 @@ jobs:
     name: "Integration test for Kubernetes API with maven"
     # The cron build compiles against Akka 2.6 and Akka HTTP 10.2, but the Maven example uses 2.5 and 10.1
     # see https://github.com/akka/akka-management/issues/744
-    if: $TRAVIS_EVENT_TYPE != "cron"
+    if: env(TRAVIS_EVENT_TYPE) != "cron"
 
   - script:
       - ./scripts/setup-minikube-for-linux.sh
