@@ -107,9 +107,10 @@ By default, pods are unable to use the Kubernetes API because they are not authe
 In order to allow the applications pods to form an Akka Cluster using the Kubernetes API, we need to define some Role-Based Access Control (RBAC) roles and bindings.
 
 RBAC allows the configuration of access control using two key concepts, roles, and role bindings. A role is a set of permissions to access something 
-in the Kubernetes API. For example, a `pod-reader` role may have permission to perform the `list`, `get` and `watch` operations on the `pods` resource in a particular namespace, by default the same namespace that the role is configured in. In fact, that's exactly what we are going to configure, as this is the permission that our pods need. Here's the spec for the `pod-reader` role:
+in the Kubernetes API. For example, a `pod-reader` role may have permission to perform the `list`, `get` and `watch` operations on the `pods` resource in a particular namespace, by default the same namespace that the role is configured in. In fact, that's exactly what we are going to configure, as this is the permission that our pods need. Here's the spec for the `pod-reader` role to be added in `kubernetes/akka-cluster.yaml`:
 
 ```yaml
+---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -127,9 +128,10 @@ service account, otherwise, you can define your own service accounts. Kubernetes
 that pods filesystem, allowing the pod to use them to make authenticated requests on the Kubernetes API.
 
 Since we are just using the default service account, we need to bind our role to the default service account so that our pod will be able to 
-access the Kubernetes API as a `pod-reader`:
+access the Kubernetes API as a `pod-reader`. In `kubernetes/akka-cluster.yaml`:
 
 ```yaml
+---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -169,6 +171,8 @@ By separating [liveness and readiness](https://kubernetes.io/docs/concepts/workl
 These routes expose information which is the result of multiple internal checks. For example, by depending on `akka-management-cluster-http` the health checks will take cluster membership status into consideration and will be a check to ensure that a cluster has been formed.
 
 Finally, we need to configure the health checks. As mentioned earlier, Akka Management HTTP provides health check endpoints for us, both for readiness and liveness. Kubernetes just needs to be told about this. The first thing we do is configure a name for the management port, while not strictly necessary, this allows us to refer to it by name in the probes, rather than repeating the port number each time. We'll configure some of the numbers around here, we're going to tell Kubernetes to wait 20 seconds before attempting to probe anything, this gives our cluster a chance to start before Kubernetes starts trying to ask us if it's ready, and since in some scenarios, particularly if you haven't assigned a lot of CPU to your pods, it can take a long time for the cluster to start, so we'll give it a high failure threshold of 10.
+
+Health check probes can be adjusted in `kubernetes/akka-cluster.yaml`:
 
 ```yaml
 ports:

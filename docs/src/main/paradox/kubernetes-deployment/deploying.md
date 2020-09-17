@@ -1,5 +1,12 @@
 # Deploying
 
+Create the namespace with:
+
+```
+kubectl apply -f kubernetes/namespace.json
+kubectl config set-context --current --namespace=appka-1
+```
+
 Having configured a DeploymentSpec, Role, and RoleBinding they can be created with:
 
 ```

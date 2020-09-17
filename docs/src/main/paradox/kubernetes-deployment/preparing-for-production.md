@@ -13,7 +13,7 @@ In this guide we will show snippets. Locations of the samples:
 
 ## Deployment Spec
 
-Create a deployment spec. The following configuration uses:
+Create a deployment spec in `kubernetes/akka-cluster.yaml`. The following configuration uses:
 
 * Application name / Actor system name: `appka`
 * Namespace: `appka-1`

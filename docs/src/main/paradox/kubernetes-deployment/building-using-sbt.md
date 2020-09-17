@@ -23,7 +23,7 @@ enablePlugins(JavaAppPackaging, DockerPlugin)
 Here we're telling native packager to package our application as a Java application that can be run from the command line. This will package up all the applications dependencies (jar files), and generate a start script to start the application. To generate this start script, native packager needs to know what the applications main class is. When the application only has one main class in its source folder, sbt will detect this automatically, but in case there are multiple, or the main class comes from a dependency, it can be set in `build.sbt` like so:
 
 ```scala
-mainClass in Compile := Some("akka.sample.cluster.kubernetes.DemoApp")
+Compile / mainClass := Some("akka.sample.cluster.kubernetes.DemoApp")
 ```
 
 ### Selecting a JDK
