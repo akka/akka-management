@@ -6,13 +6,15 @@ package akka.management.cluster.scaladsl
 import akka.actor.AddressFromURIString
 import akka.cluster.sharding.{ ClusterSharding, ShardRegion }
 import akka.cluster.{ Cluster, Member, MemberStatus }
-import akka.http.scaladsl.model.{ HttpMethod, HttpMethods, StatusCodes }
+import akka.http.scaladsl.model.{ HttpMethod, HttpMethods, StatusCodes, Uri }
+import Uri.Path
 import akka.http.scaladsl.server.Route
 import akka.management.cluster._
 import akka.pattern.ask
 import akka.pattern.AskTimeoutException
 import akka.util.Timeout
 
+import scala.annotation.tailrec
 import scala.concurrent.duration._
 
 object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
@@ -95,7 +97,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       if (readOnly && method != HttpMethods.GET) {
         complete(StatusCodes.MethodNotAllowed)
       } else {
-        path(Remaining) { memberAddress =>
+        path(RemainingDecoded) { memberAddress =>
           findMember(cluster, memberAddress) match {
             case Some(member) =>
               routeGetMember(cluster, member) ~ routeDeleteMember(cluster, member) ~ routePutMember(cluster, member)
@@ -170,5 +172,21 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         routeGetShardInfo(cluster, shardRegionName)
       }
     )
+  }
+
+  /**
+   *  A special version of Remaining that returns the remaining decoded (while Remaining uses path.toString which encodes
+   *  where necessary.
+   */
+  private lazy val RemainingDecoded = RemainingPath.map { path =>
+    @tailrec
+    def decoded(path: Uri.Path, current: StringBuilder): String =
+      path match {
+        case Path.Slash(next) => decoded(next, current += '/')
+        case Path.Segment(head, tail) => decoded(tail, current ++= head)
+        case Path.Empty => current.result()
+      }
+
+    decoded(path, new StringBuilder)
   }
 }

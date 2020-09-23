@@ -79,6 +79,7 @@ class ClusterHttpManagementRoutesSpec
         when(mockedReachability.observersGroupedByUnreachable).thenReturn(unreachable)
 
         Get("/cluster/members") ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+          status shouldEqual StatusCodes.OK
           val clusterUnreachableMember = ClusterUnreachableMember(
             "akka://Main@hostname3.com:3311",
             Seq("akka://Main@hostname.com:3311", "akka://Main@hostname2.com:3311"))
@@ -104,7 +105,6 @@ class ClusterHttpManagementRoutesSpec
           members.selfNode shouldEqual expected.selfNode
           members.unreachable shouldEqual expected.unreachable
           members shouldEqual expected
-          status == StatusCodes.OK
         }
       }
     }
@@ -118,16 +118,15 @@ class ClusterHttpManagementRoutesSpec
         doNothing().when(mockedCluster).join(any[Address])
 
         Post("/cluster/members/", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+          status shouldEqual StatusCodes.OK
           responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(s"Joining $address")
-          status == StatusCodes.OK
         }
       }
     }
 
     "return information of a member" when {
-      "calling GET /cluster/members/akka://Main@hostname.com:3311" in {
-        val address1 = Address("akka", "Main", "hostname.com", 3311)
-
+      def getMember(address1: Address, uri: String) =
+      s"calling GET $uri for member $address1" in {
         val uniqueAddress1 = UniqueAddress(address1, 1L)
 
         val clusterMember1 = Member(uniqueAddress1, Set())
@@ -140,13 +139,17 @@ class ClusterHttpManagementRoutesSpec
         when(mockedClusterReadView.members).thenReturn(members)
         doNothing().when(mockedCluster).leave(any[Address])
 
-        Seq("akka://Main@hostname.com:3311", "Main@hostname.com:3311").foreach(address => {
-          Get(s"/cluster/members/$address") ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
-            responseAs[ClusterMember] shouldEqual ClusterMember("akka://Main@hostname.com:3311", "1", "Joining", Set())
-            status == StatusCodes.OK
-          }
-        })
+        Get(uri) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+          status shouldEqual StatusCodes.OK
+          responseAs[ClusterMember] shouldEqual ClusterMember(address1.toString, "1", "Joining", Set())
+        }
       }
+
+      getMember(Address("akka", "Main", "hostname.com", 3311), "/cluster/members/akka://Main@hostname.com:3311")
+      getMember(Address("akka", "Main", "hostname.com", 3311), "/cluster/members/Main@hostname.com:3311")
+
+      getMember(Address("akka", "Main", "[::1]", 3311), "/cluster/members/Main@[::1]:3311")
+      getMember(Address("akka", "Main", "[::1]", 3311), "/cluster/members/akka://Main@[::1]:3311")
     }
 
     "execute leave on a member" when {
@@ -171,8 +174,8 @@ class ClusterHttpManagementRoutesSpec
 
         Seq("akka://Main@hostname.com:3311", "Main@hostname.com:3311").foreach(address => {
           Delete(s"/cluster/members/$address") ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+            status shouldEqual StatusCodes.OK
             responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(s"Leaving $address1")
-            status == StatusCodes.OK
           }
         })
       }
@@ -200,8 +203,8 @@ class ClusterHttpManagementRoutesSpec
 
         Seq("akka://Main@hostname.com:3311", "Main@hostname.com:3311").foreach(address => {
           Put(s"/cluster/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+            status shouldEqual StatusCodes.OK
             responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(s"Leaving $address1")
-            status == StatusCodes.OK
           }
         })
       }
@@ -225,9 +228,9 @@ class ClusterHttpManagementRoutesSpec
         doNothing().when(mockedCluster).down(any[Address])
 
         Put(s"/cluster/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+          status shouldEqual StatusCodes.OK
           responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(
             s"Member [$address] not found")
-          status == StatusCodes.NotFound
         }
       }
     }
@@ -256,8 +259,8 @@ class ClusterHttpManagementRoutesSpec
 
         Seq("akka://Main@hostname.com:3311", "Main@hostname.com:3311").foreach(address => {
           Put(s"/cluster/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+            status shouldEqual StatusCodes.OK
             responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(s"Downing $address1")
-            status == StatusCodes.OK
           }
         })
       }
@@ -282,9 +285,9 @@ class ClusterHttpManagementRoutesSpec
 
         Seq("akka://Main2@hostname.com:3311", "Main2@hostname.com:3311").foreach(address => {
           Put(s"/cluster/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+            status shouldEqual StatusCodes.OK
             responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(
               s"Member [$address] not found")
-            status == StatusCodes.NotFound
           }
         })
       }
@@ -311,8 +314,8 @@ class ClusterHttpManagementRoutesSpec
 
         Seq("akka://Main@hostname.com:3311", "Main@hostname.com:3311").foreach(address => {
           Put(s"/cluster/members/$address", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+            status shouldEqual StatusCodes.OK
             responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage("Operation not supported")
-            status == StatusCodes.NotFound
           }
         })
       }
