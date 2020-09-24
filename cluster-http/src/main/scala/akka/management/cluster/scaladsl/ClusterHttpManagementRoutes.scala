@@ -182,9 +182,9 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
     @tailrec
     def decoded(path: Uri.Path, current: StringBuilder): String =
       path match {
-        case Path.Slash(next) => decoded(next, current += '/')
+        case Path.Slash(next)         => decoded(next, current += '/')
         case Path.Segment(head, tail) => decoded(tail, current ++= head)
-        case Path.Empty => current.result()
+        case Path.Empty               => current.result()
       }
 
     decoded(path, new StringBuilder)
