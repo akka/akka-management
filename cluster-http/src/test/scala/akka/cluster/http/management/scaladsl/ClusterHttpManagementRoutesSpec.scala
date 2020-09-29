@@ -126,24 +126,24 @@ class ClusterHttpManagementRoutesSpec
 
     "return information of a member" when {
       def getMember(address1: Address, uri: String) =
-      s"calling GET $uri for member $address1" in {
-        val uniqueAddress1 = UniqueAddress(address1, 1L)
+        s"calling GET $uri for member $address1" in {
+          val uniqueAddress1 = UniqueAddress(address1, 1L)
 
-        val clusterMember1 = Member(uniqueAddress1, Set())
+          val clusterMember1 = Member(uniqueAddress1, Set())
 
-        val members = SortedSet(clusterMember1)
+          val members = SortedSet(clusterMember1)
 
-        val mockedCluster = mock(classOf[Cluster])
-        val mockedClusterReadView = mock(classOf[ClusterReadView])
-        when(mockedCluster.readView).thenReturn(mockedClusterReadView)
-        when(mockedClusterReadView.members).thenReturn(members)
-        doNothing().when(mockedCluster).leave(any[Address])
+          val mockedCluster = mock(classOf[Cluster])
+          val mockedClusterReadView = mock(classOf[ClusterReadView])
+          when(mockedCluster.readView).thenReturn(mockedClusterReadView)
+          when(mockedClusterReadView.members).thenReturn(members)
+          doNothing().when(mockedCluster).leave(any[Address])
 
-        Get(uri) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
-          status shouldEqual StatusCodes.OK
-          responseAs[ClusterMember] shouldEqual ClusterMember(address1.toString, "1", "Joining", Set())
+          Get(uri) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+            status shouldEqual StatusCodes.OK
+            responseAs[ClusterMember] shouldEqual ClusterMember(address1.toString, "1", "Joining", Set())
+          }
         }
-      }
 
       getMember(Address("akka", "Main", "hostname.com", 3311), "/cluster/members/akka://Main@hostname.com:3311")
       getMember(Address("akka", "Main", "hostname.com", 3311), "/cluster/members/Main@hostname.com:3311")
