@@ -23,8 +23,8 @@ object Dependencies {
   val AkkaHttpVersion = if (CronBuild) AkkaHttp102 else AkkaHttp101
   val AkkaHttpBinaryVersion = if (CronBuild) "10.2" else "10.1"
 
-  val ScalaTestVersion = "3.1.1"
-  val ScalaTestPlusJUnitVersion = "3.1.2.0"
+  val ScalaTestVersion = "3.1.4"
+  val ScalaTestPlusJUnitVersion = "3.1.4.0"
 
   val SprayJsonVersion = "1.3.5"
 
@@ -34,7 +34,7 @@ object Dependencies {
   object TestDeps {
     val scalaTest = Seq(
       "org.scalatest" %% "scalatest" % ScalaTestVersion,
-      "org.scalatestplus" %% "junit-4-12" % ScalaTestPlusJUnitVersion
+      "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion
     )
     val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % AkkaVersion
   }
