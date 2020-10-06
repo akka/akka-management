@@ -16,9 +16,12 @@ import scala.concurrent.duration.FiniteDuration
 
 @InternalApi
 object MockDiscovery {
-  private val data = new AtomicReference[Map[Lookup, () => Future[Resolved]]](Map.empty)
+  private val data = new AtomicReference[Map[Lookup, ActorSystem => Future[Resolved]]](Map.empty)
 
-  def set(name: Lookup, to: () => Future[Resolved]): Unit = {
+  def set(name: Lookup, to: () => Future[Resolved]): Unit =
+    set(name, _ => to())
+
+  def set(name: Lookup, to: ActorSystem => Future[Resolved]): Unit = {
     val d = data.get()
     if (data.compareAndSet(d, d.updated(name, to))) ()
     else set(name, to) // retry
@@ -39,7 +42,7 @@ final class MockDiscovery(system: ActorSystem) extends ServiceDiscovery {
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     MockDiscovery.data.get().get(query) match {
       case Some(res) =>
-        val items = res()
+        val items = res(system)
         log.info("Mock-resolved [{}] to [{}:{}]", query, items, items.value)
         items
       case None =>
