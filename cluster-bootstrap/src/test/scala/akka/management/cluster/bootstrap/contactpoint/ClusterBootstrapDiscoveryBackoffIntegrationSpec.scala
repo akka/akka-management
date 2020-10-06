@@ -112,7 +112,7 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
 
     MockDiscovery.set(
       Lookup(name).withProtocol("tcp").withPortName("management"), { system =>
-        val stats = perSystemStats.compute(system, {(system, stats) =>
+        val stats = perSystemStats.compute(system, {(system: ActorSystem, stats: SystemStats) =>
 
           if (stats.called == 1)
             stats.copy(called = 2, call2Timestamp = System.nanoTime())
