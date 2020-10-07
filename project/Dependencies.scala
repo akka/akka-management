@@ -24,7 +24,7 @@ object Dependencies {
   val AkkaHttpBinaryVersion = if (CronBuild) "10.2" else "10.1"
 
   val ScalaTestVersion = "3.1.4"
-  val ScalaTestPlusJUnitVersion = "3.1.4.0"
+  val ScalaTestPlusJUnitVersion = "3.2.2.0"
 
   val SprayJsonVersion = "1.3.5"
 
