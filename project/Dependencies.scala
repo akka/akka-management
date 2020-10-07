@@ -102,7 +102,7 @@ object Dependencies {
         //License: Apache 2.0
         "com.orbitz.consul" % "consul-client" % "1.4.2",
         //License: Apache 2.0
-        "com.pszymczyk.consul" % "embedded-consul" % "2.1.4" % "test",
+        "com.pszymczyk.consul" % "embedded-consul" % "2.2.0" % Test
       ) ++ JacksonDatabind ++ JacksonDatatype // consul depends on insecure version of jackson
 
     val AwsJavaSdkEc2Ecs = Seq(
