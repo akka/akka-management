@@ -29,7 +29,7 @@ object Dependencies {
   val SprayJsonVersion = "1.3.5"
 
   val AwsSdkVersion = "1.11.837"
-  val JacksonDatabindVersion = "2.10.5"
+  val JacksonDatabindVersion = "2.11.3"
 
   object TestDeps {
     val scalaTest = Seq(
