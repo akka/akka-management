@@ -156,7 +156,7 @@ private[akka] class BootstrapCoordinator(
 
   private var decisionInProgress = false
   def startPeriodicDecisionTimer(): Unit =
-    timers.startPeriodicTimer(DecideTimerKey, DecideTick, settings.contactPoint.probeInterval)
+    timers.startTimerWithFixedDelay(DecideTimerKey, DecideTick, settings.contactPoint.probeInterval)
 
   private var discoveryFailedBackoffCounter = 0
   def resetDiscoveryInterval(): Unit =

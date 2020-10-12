@@ -186,7 +186,7 @@ private[akka] class LeaseActor(
         resource.owner.contains(ownerName),
         "response from API server has different owner for success: " + resource)
       log.debug("Heartbeat: lease time updated: Version {}", resource.version)
-      setTimer("heartbeat", Heartbeat, settings.timeoutSettings.heartbeatInterval, repeat = false)
+      startSingleTimer("heartbeat", Heartbeat, settings.timeoutSettings.heartbeatInterval)
       stay.using(gv.copy(version = resource.version))
     case Event(WriteResponse(Left(lr @ _)), GrantedVersion(_, leaseLost)) =>
       log.warning("Conflict during heartbeat to lease {}. Lease assumed to be released.", lr)
@@ -266,7 +266,7 @@ private[akka] class LeaseActor(
 
   onTransition {
     case _ -> Granted =>
-      setTimer("heartbeat", Heartbeat, settings.timeoutSettings.heartbeatInterval, repeat = false)
+      startSingleTimer("heartbeat", Heartbeat, settings.timeoutSettings.heartbeatInterval)
     case Granted -> _ =>
       cancelTimer("heartbeat")
       granted.set(false)

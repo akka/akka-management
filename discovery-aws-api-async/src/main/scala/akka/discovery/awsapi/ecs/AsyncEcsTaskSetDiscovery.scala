@@ -24,7 +24,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.{ Http, HttpExt }
 import akka.pattern.after
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryPolicy
 import software.amazon.awssdk.services.ecs._
@@ -50,7 +50,6 @@ class AsyncEcsTaskSetDiscovery(system: ActorSystem) extends ServiceDiscovery {
   }
 
   private implicit val actorSystem: ActorSystem = system
-  private implicit val materializer: ActorMaterializer = ActorMaterializer()
   private implicit val ec: ExecutionContext = system.dispatcher
 
   private val httpClient: HttpExt = Http()
@@ -91,7 +90,7 @@ object AsyncEcsTaskSetDiscovery {
   private def resolveTasks(ecsClient: EcsAsyncClient, cluster: String, httpClient: HttpExt)(
       implicit
       ec: ExecutionContext,
-      mat: ActorMaterializer
+      mat: Materializer
   ): Future[Seq[Task]] =
     for {
       taskArn <- resolveTaskMetadata(httpClient).map(_.map(_.TaskARN))
@@ -110,7 +109,7 @@ object AsyncEcsTaskSetDiscovery {
   private[this] def resolveTaskMetadata(httpClient: HttpExt)(
       implicit
       ec: ExecutionContext,
-      mat: ActorMaterializer
+      mat: Materializer
   ): Future[Option[TaskMetadata]] = {
     val ecsContainerMetadataUri = sys.env.get(ECS_CONTAINER_METADATA_URI_PATH) match {
       case Some(uri) => uri

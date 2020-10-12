@@ -12,7 +12,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.remote.RARP
-import akka.stream.ActorMaterializer
 import akka.testkit.{ SocketUtil, TestKit }
 import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
@@ -109,8 +108,7 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
     "start listening with the http contact-points on all systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {
         import system.dispatcher
-        implicit val sys = system
-        implicit val mat = ActorMaterializer()(system)
+        implicit val sys: ActorSystem = system
 
         val bootstrap = ClusterBootstrap(system)
         val routes = new HttpClusterBootstrapRoutes(bootstrap.settings).routes

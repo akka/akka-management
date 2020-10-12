@@ -9,7 +9,6 @@ import akka.cluster.{ Cluster, ClusterEvent }
 import akka.http.scaladsl.Http
 import akka.management.scaladsl.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import com.typesafe.config.ConfigFactory
@@ -20,7 +19,6 @@ object DemoApp extends App {
 
   import system.log
   import system.dispatcher
-  implicit val mat = ActorMaterializer()
   val cluster = Cluster(system)
 
   log.info("Started [{}], cluster.selfAddress = {}", system, cluster.selfAddress)

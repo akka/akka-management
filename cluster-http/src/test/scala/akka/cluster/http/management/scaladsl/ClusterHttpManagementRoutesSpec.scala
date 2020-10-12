@@ -33,11 +33,12 @@ import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.stream.scaladsl.Sink
 import akka.util.ByteString
 import akka.util.Timeout
+import akka.util.Version
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.concurrent.PatienceConfiguration.{ Timeout => ScalatestTimeout }
+import org.scalatest.concurrent.PatienceConfiguration.{Timeout => ScalatestTimeout}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Millis
@@ -55,6 +56,8 @@ class ClusterHttpManagementRoutesSpec
 
   override implicit def patienceConfig: PatienceConfig =
     PatienceConfig(timeout = Span(3, Seconds), interval = Span(50, Millis))
+
+  val version = new Version("1.42")
 
   "Http Cluster Management Routes" should {
     "prepare cluster for shutdown" when {
@@ -78,8 +81,8 @@ class ClusterHttpManagementRoutesSpec
         val uniqueAddress1 = UniqueAddress(address1, 1L)
         val uniqueAddress2 = UniqueAddress(address2, 2L)
 
-        val clusterMember1 = new Member(uniqueAddress1, 1, Up, Set(s"dc-$dcName"))
-        val clusterMember2 = new Member(uniqueAddress2, 2, Joining, Set(s"dc-$dcName"))
+        val clusterMember1 = new Member(uniqueAddress1, 1, Up, Set(s"dc-$dcName"), version)
+        val clusterMember2 = new Member(uniqueAddress2, 2, Joining, Set(s"dc-$dcName"), version)
         val currentClusterState =
           CurrentClusterState(SortedSet(clusterMember1, clusterMember2), leader = Some(address1))
 
@@ -153,7 +156,7 @@ class ClusterHttpManagementRoutesSpec
         s"calling GET $uri for member $address1" in {
           val uniqueAddress1 = UniqueAddress(address1, 1L)
 
-          val clusterMember1 = Member(uniqueAddress1, Set())
+          val clusterMember1 = Member(uniqueAddress1, Set(), version)
 
           val members = SortedSet(clusterMember1)
 
@@ -185,8 +188,8 @@ class ClusterHttpManagementRoutesSpec
         val uniqueAddress1 = UniqueAddress(address1, 1L)
         val uniqueAddress2 = UniqueAddress(address2, 2L)
 
-        val clusterMember1 = Member(uniqueAddress1, Set())
-        val clusterMember2 = Member(uniqueAddress2, Set())
+        val clusterMember1 = Member(uniqueAddress1, Set(), version)
+        val clusterMember2 = Member(uniqueAddress2, Set(), version)
 
         val members = SortedSet(clusterMember1, clusterMember2)
 
@@ -214,8 +217,8 @@ class ClusterHttpManagementRoutesSpec
         val uniqueAddress1 = UniqueAddress(address1, 1L)
         val uniqueAddress2 = UniqueAddress(address2, 2L)
 
-        val clusterMember1 = Member(uniqueAddress1, Set())
-        val clusterMember2 = Member(uniqueAddress2, Set())
+        val clusterMember1 = Member(uniqueAddress1, Set(), version)
+        val clusterMember2 = Member(uniqueAddress2, Set(), version)
 
         val members = SortedSet(clusterMember1, clusterMember2)
 
@@ -241,7 +244,7 @@ class ClusterHttpManagementRoutesSpec
 
         val uniqueAddress1 = UniqueAddress(address1, 1L)
 
-        val clusterMember1 = Member(uniqueAddress1, Set())
+        val clusterMember1 = Member(uniqueAddress1, Set(), version)
 
         val members = SortedSet(clusterMember1)
 
@@ -270,8 +273,8 @@ class ClusterHttpManagementRoutesSpec
         val uniqueAddress1 = UniqueAddress(address1, 1L)
         val uniqueAddress2 = UniqueAddress(address2, 2L)
 
-        val clusterMember1 = Member(uniqueAddress1, Set())
-        val clusterMember2 = Member(uniqueAddress2, Set())
+        val clusterMember1 = Member(uniqueAddress1, Set(), version)
+        val clusterMember2 = Member(uniqueAddress2, Set(), version)
 
         val members = SortedSet(clusterMember1, clusterMember2)
 
@@ -297,7 +300,7 @@ class ClusterHttpManagementRoutesSpec
 
         val uniqueAddress1 = UniqueAddress(address1, 1L)
 
-        val clusterMember1 = Member(uniqueAddress1, Set())
+        val clusterMember1 = Member(uniqueAddress1, Set(), version)
 
         val members = SortedSet(clusterMember1)
 
@@ -326,7 +329,7 @@ class ClusterHttpManagementRoutesSpec
 
         val uniqueAddress1 = UniqueAddress(address1, 1L)
 
-        val clusterMember1 = Member(uniqueAddress1, Set())
+        val clusterMember1 = Member(uniqueAddress1, Set(), version)
 
         val members = SortedSet(clusterMember1)
 

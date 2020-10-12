@@ -27,7 +27,6 @@ import akka.http.scaladsl.server.directives.Credentials
 import akka.management.scaladsl.AkkaManagement
 import akka.management.scaladsl.ManagementRouteProvider
 import akka.management.scaladsl.ManagementRouteProviderSettings
-import akka.stream.ActorMaterializer
 import akka.testkit.SocketUtil
 import com.typesafe.config.ConfigFactory
 import javax.net.ssl.KeyManagerFactory
@@ -86,7 +85,6 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
         )
 
         implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
-        implicit val mat = ActorMaterializer() // needed for toStrict
 
         val management = AkkaManagement(system)
         management.settings.Http.RouteProviders should contain(

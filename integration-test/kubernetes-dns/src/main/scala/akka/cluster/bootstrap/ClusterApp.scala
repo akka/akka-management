@@ -13,14 +13,12 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
-import akka.stream.ActorMaterializer
 
 object ClusterApp {
 
   def main(args: Array[String]): Unit = {
 
     implicit val system = ActorSystem()
-    implicit val materializer = ActorMaterializer()
     implicit val executionContext = system.dispatcher
     val cluster = Cluster(system)
 

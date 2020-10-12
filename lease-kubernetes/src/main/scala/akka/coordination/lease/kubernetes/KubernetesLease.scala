@@ -4,20 +4,25 @@
 
 package akka.coordination.lease.kubernetes
 
-import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
+import java.text.Normalizer
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+
+import scala.concurrent.Future
+
 import akka.actor.ExtendedActorSystem
 import akka.coordination.lease.kubernetes.KubernetesLease.makeDNS1039Compatible
-import akka.coordination.lease.{ LeaseException, LeaseSettings, LeaseTimeoutException }
-import akka.coordination.lease.scaladsl.Lease
 import akka.coordination.lease.kubernetes.LeaseActor._
 import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
+import akka.coordination.lease.scaladsl.Lease
+import akka.coordination.lease.LeaseException
+import akka.coordination.lease.LeaseSettings
+import akka.coordination.lease.LeaseTimeoutException
 import akka.dispatch.ExecutionContexts
 import akka.pattern.AskTimeoutException
-import akka.util.{ ConstantFun, Timeout }
+import akka.util.ConstantFun
+import akka.util.Timeout
 import org.slf4j.LoggerFactory
-
-import java.text.Normalizer
-import scala.concurrent.Future
 
 object KubernetesLease {
   val configPath = "akka.coordination.lease.kubernetes"
@@ -84,7 +89,7 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
       .flatMap {
         case LeaseReleased       => Future.successful(true)
         case InvalidRequest(msg) => Future.failed(new LeaseException(msg))
-      }(ExecutionContexts.sameThreadExecutionContext)
+      }(ExecutionContexts.parasitic)
       .recoverWith {
         case _: AskTimeoutException =>
           Future.failed(
@@ -109,6 +114,6 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
         case _: AskTimeoutException =>
           Future.failed[Boolean](new LeaseTimeoutException(
             s"Timed out trying to acquire lease [${leaseName}, ${settings.ownerName}]. It may still be taken."))
-      }(ExecutionContexts.sameThreadExecutionContext)
+      }(ExecutionContexts.parasitic)
   }
 }
