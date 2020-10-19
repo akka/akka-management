@@ -38,10 +38,6 @@ spec:
             port: management
         #health
         ports:
-        # akka remoting
-        - name: remoting
-          containerPort: 2552
-          protocol: TCP
         # akka-management bootstrap
         - containerPort: 8558
           protocol: TCP
