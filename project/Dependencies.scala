@@ -26,15 +26,8 @@ object Dependencies {
   val ScalaTestVersion = "3.1.4"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
-  val SprayJsonVersion = "1.3.5"
-
   val AwsSdkVersion = "1.11.837"
   val JacksonVersion = "2.10.5"
-
-  private val ScalaTest = Seq(
-    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
-    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
-  )
 
   // often called-in transitively with insecure versions of databind / core
   private val JacksonDatabind = Seq(
@@ -54,11 +47,11 @@ object Dependencies {
         "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
         "com.orbitz.consul" % "consul-client" % "1.4.2",
         "com.pszymczyk.consul" % "embedded-consul" % "2.2.0" % Test,
+        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
         "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
         "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion % Test,
         "ch.qos.logback" % "logback-classic" % "1.2.3" % Test
-      ) ++ ScalaTest ++
-      JacksonDatabind ++ JacksonDatatype // consul depends on insecure version of jackson
+      ) ++ JacksonDatabind ++ JacksonDatatype // consul depends on insecure version of jackson
   )
 
   val DiscoveryKubernetesApi = Seq(
@@ -68,8 +61,8 @@ object Dependencies {
         "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
         "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
         "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-        "io.spray" %% "spray-json" % SprayJsonVersion // ApacheV2
-      ) ++ ScalaTest
+        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+      )
   )
 
   val DiscoveryMarathonApi = Seq(
@@ -79,8 +72,8 @@ object Dependencies {
         "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
         "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
         "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-        "io.spray" %% "spray-json" % SprayJsonVersion // ApacheV2
-      ) ++ ScalaTest
+        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+      )
   )
 
   val DiscoveryAwsApi = Seq(
@@ -88,9 +81,9 @@ object Dependencies {
         "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
         "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
         "com.amazonaws" % "aws-java-sdk-ec2" % AwsSdkVersion,
-        "com.amazonaws" % "aws-java-sdk-ecs" % AwsSdkVersion
-      ) ++ ScalaTest ++
-      JacksonDatabind // aws-java-sdk depends on insecure version of jackson
+        "com.amazonaws" % "aws-java-sdk-ecs" % AwsSdkVersion,
+        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+      ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
   )
 
   val DiscoveryAwsApiAsync = Seq(
@@ -100,10 +93,9 @@ object Dependencies {
         "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
         "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
         "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-        "io.spray" %% "spray-json" % SprayJsonVersion,
-        "software.amazon.awssdk" % "ecs" % "2.13.76"
-      ) ++ ScalaTest ++
-      JacksonDatabind // aws-java-sdk depends on insecure version of jackson
+        "software.amazon.awssdk" % "ecs" % "2.13.76",
+        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+      ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
   )
 
   val ManagementHttp = Seq(
@@ -112,11 +104,12 @@ object Dependencies {
         "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
         "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
         "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-        "io.spray" %% "spray-json" % SprayJsonVersion,
         "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
         "com.typesafe.akka" %% "akka-cluster" % AkkaVersion % Test,
-        "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test
-      ) ++ ScalaTest
+        "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
+        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+        "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
+      )
   )
 
   val LoglevelsLogback = Seq(
@@ -127,10 +120,10 @@ object Dependencies {
         "ch.qos.logback" % "logback-classic" % "1.2.3",
         "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
         "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-        "io.spray" %% "spray-json" % SprayJsonVersion,
+        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
         "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
         "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test
-      ) ++ ScalaTest
+      )
   )
 
   val ClusterHttp = Seq(
@@ -139,12 +132,13 @@ object Dependencies {
         "com.typesafe.akka" %% "akka-cluster-sharding" % AkkaVersion,
         "com.typesafe.akka" %% "akka-http-core" % AkkaHttpVersion,
         "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-        "io.spray" %% "spray-json" % SprayJsonVersion,
         "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
         "org.mockito" % "mockito-all" % "1.10.19" % Test,
         "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
-        "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Test
-      ) ++ ScalaTest
+        "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Test,
+        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+        "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
+      )
   )
 
   val ClusterBootstrap = Seq(
@@ -153,11 +147,12 @@ object Dependencies {
         "com.typesafe.akka" %% "akka-cluster" % AkkaVersion,
         "com.typesafe.akka" %% "akka-http-core" % AkkaHttpVersion,
         "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-        "io.spray" %% "spray-json" % SprayJsonVersion,
         "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
         "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
-        "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Test
-      ) ++ ScalaTest
+        "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Test,
+        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+        "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
+      )
   )
 
   val LeaseKubernetes = Seq(
@@ -167,7 +162,6 @@ object Dependencies {
         "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
         "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
         "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-        "io.spray" %% "spray-json" % SprayJsonVersion, // ApacheV2
         "com.github.tomakehurst" % "wiremock-jre8" % "2.27.2" % Test,
         "org.scalatest" %% "scalatest" % ScalaTestVersion % "it,test",
         "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "it,test",
@@ -177,8 +171,7 @@ object Dependencies {
 
   val LeaseKubernetesTest = Seq(
     libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % ScalaTestVersion,
-        "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion
+        "org.scalatest" %% "scalatest" % ScalaTestVersion
       )
   )
 
@@ -187,8 +180,9 @@ object Dependencies {
         "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
         "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
         "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
-        "ch.qos.logback" % "logback-classic" % "1.2.3"
-      ) ++ ScalaTest
+        "ch.qos.logback" % "logback-classic" % "1.2.3",
+        "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+      )
   )
 
 }
