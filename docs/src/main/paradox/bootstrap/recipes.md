@@ -62,9 +62,11 @@ Note that the `app` is the same for both services as they both refer to the same
 add the following dependency:
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group=com.lightbend.akka.management
   artifact=akka-management-cluster-http_$scala.binary.version$
-  version=$project.version$
+  version=AkkaManagementVersion
 }
 
 Akka Cluster HTTP Management can be used with Akka $akka.version$ or $akka.version26$ or later.

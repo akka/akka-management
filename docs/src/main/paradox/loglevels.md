@@ -9,12 +9,14 @@ Dynamic Log Levels for Logback hooks into Akka Management and provides a route w
 Requires @ref:[Akka Management](akka-management.md) and that the application uses [Logback](http://logback.qos.ch) as logging backend.
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group=com.lightbend.akka.management
   artifact=akka-management-loglevels-logback_$scala.binary.version$
-  version=$project.version$
+  version=AkkaManagementVersion
   group2=com.lightbend.akka.management
   artifact2=akka-management_$scala.binary.version$
-  version2=$project.version$
+  version2=AkkaManagementVersion
 }
 
 Akka Management and `akka-management-loglevels-logback` can be used with Akka $akka.version$ or $akka.version26$ or later.

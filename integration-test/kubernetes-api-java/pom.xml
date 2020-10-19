@@ -21,23 +21,23 @@
     <akka.version>2.5.31</akka.version>
     <akka.http.version>10.1.11</akka.http.version>
     <akka-management.version>1.0.5</akka-management.version>
-    <scala.compat.version>2.12</scala.compat.version>
+    <scala.binary.version>2.12</scala.binary.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-stream_2.12</artifactId>
+      <artifactId>akka-stream_${scala.binary.version}</artifactId>
       <version>${akka.version}</version>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-cluster_2.12</artifactId>
+      <artifactId>akka-cluster_${scala.binary.version}</artifactId>
       <version>${akka.version}</version>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-slf4j_2.12</artifactId>
+      <artifactId>akka-slf4j_${scala.binary.version}</artifactId>
       <version>${akka.version}</version>
     </dependency>
     <dependency>
@@ -47,27 +47,27 @@
     </dependency>
     <dependency>
       <groupId>com.lightbend.akka.management</groupId>
-      <artifactId>akka-management-cluster-bootstrap_${scala.compat.version}</artifactId>
+      <artifactId>akka-management-cluster-bootstrap_${scala.binary.version}</artifactId>
       <version>${akka-management.version}</version>
     </dependency>
     <dependency>
       <groupId>com.lightbend.akka.discovery</groupId>
-      <artifactId>akka-discovery-kubernetes-api_${scala.compat.version}</artifactId>
+      <artifactId>akka-discovery-kubernetes-api_${scala.binary.version}</artifactId>
       <version>${akka-management.version}</version>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-http-core_2.12</artifactId>
+      <artifactId>akka-http-core_${scala.binary.version}</artifactId>
       <version>${akka.http.version}</version>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-http_2.12</artifactId>
+      <artifactId>akka-http_${scala.binary.version}</artifactId>
       <version>${akka.http.version}</version>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-http-spray-json_2.12</artifactId>
+      <artifactId>akka-http-spray-json_${scala.binary.version}</artifactId>
       <version>${akka.http.version}</version>
     </dependency>
   </dependencies>

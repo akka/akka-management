@@ -26,9 +26,11 @@ is bound to this port.
 This is a separate JAR file:
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-marathon-api_2.12"
-  version="$project.version$"
+  version=AkkaManagementVersion
 }
 
 `akka-discovery-marathon-api` can be used with Akka $akka.version$ or $akka.version26$ or later.

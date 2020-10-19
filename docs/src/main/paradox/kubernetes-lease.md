@@ -35,9 +35,11 @@ applications, you must ensure different `ActorSystem` names because they all nee
 #### Dependency
 
 @@dependency[sbt,Maven,Gradle] {
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group="com.lightbend.akka.management"
   artifact="akka-lease-kubernetes_$scala.binary.version$"
-  version="$version$"
+  version=AkkaManagementVersion
 }
 
 #### Creating the Custom Resource Definition for the lease
