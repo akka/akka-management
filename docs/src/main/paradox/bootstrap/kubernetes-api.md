@@ -13,7 +13,7 @@ An example deployment (used for integration testing):
 
 @@snip [akka-cluster.yml](/integration-test/kubernetes-api/kubernetes/akka-cluster.yml) { #deployment }
 
-An example role and rolebinding to allow the nodes to query the Kubernetes API server:
+An example `Role` and `Rolebinding` to allow the nodes to query the Kubernetes API server:
 
 @@snip [akka-cluster.yml](/integration-test/kubernetes-api/kubernetes/akka-cluster.yml) { #rbac }
 
