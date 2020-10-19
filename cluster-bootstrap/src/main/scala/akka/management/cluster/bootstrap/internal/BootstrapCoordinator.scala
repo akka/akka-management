@@ -45,8 +45,6 @@ private[akka] object BootstrapCoordinator {
 
   object Protocol {
     final case class InitiateBootstrapping(selfContactPoint: Uri)
-    sealed trait BootstrappingCompleted
-    final case object BootstrappingCompleted extends BootstrappingCompleted
 
     final case class ObtainedHttpSeedNodesObservation(
         observedAt: LocalDateTime,
@@ -282,7 +280,6 @@ private[akka] class BootstrapCoordinator(
             cluster.joinSeedNodes(seedNodesList)
 
             // once we issued a join bootstrapping is completed
-            replyTo ! BootstrappingCompleted
             context.stop(self)
           }
         case JoinSelf =>
@@ -296,7 +293,6 @@ private[akka] class BootstrapCoordinator(
           cluster.join(cluster.selfAddress)
 
           // once we issued a join bootstrapping is completed
-          replyTo ! BootstrappingCompleted
           context.stop(self)
       }
 

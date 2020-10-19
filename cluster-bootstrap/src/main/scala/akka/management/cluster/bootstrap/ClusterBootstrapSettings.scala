@@ -77,6 +77,8 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
 
     val requiredContactPointsNr: Int = discoveryConfig.getInt("required-contact-point-nr")
 
+    val contactWithAllContactPoints: Boolean = discoveryConfig.getBoolean("contact-with-all-contact-points")
+
     val resolveTimeout: FiniteDuration = discoveryConfig.getDuration("resolve-timeout", TimeUnit.MILLISECONDS).millis
 
   }
