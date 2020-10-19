@@ -10,7 +10,7 @@ object Common extends AutoPlugin {
   override def requires = plugins.JvmPlugin && HeaderPlugin
 
   override lazy val projectSettings =
-    Dependencies.Common ++ Seq(
+    Seq(
       organization := "com.lightbend.akka.management",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
