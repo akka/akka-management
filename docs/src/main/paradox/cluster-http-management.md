@@ -17,12 +17,14 @@ The Akka Cluster HTTP Management is a separate jar file.
 Make sure to include it along with the core akka-management library in your project:
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1="$project.version$"
   group=com.lightbend.akka.management
   artifact=akka-management_$scala.binary.version$
-  version=$project.version$
+  version=AkkaManagementVersion
   group2=com.lightbend.akka.management
   artifact2=akka-management-cluster-http_$scala.binary.version$
-  version2=$project.version$
+  version2=AkkaManagementVersion
 }
 
 Akka Cluster HTTP Management can be used with Akka $akka.version$ or $akka.version26$ or later.

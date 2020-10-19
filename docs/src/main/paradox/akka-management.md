@@ -15,9 +15,11 @@ or cluster bootstrap). This design choice enables users to include only the mini
 actually want to use (and load) in their project.
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1="$project.version$"
   group="com.lightbend.akka.management"
   artifact="akka-management_$scala.binary.version$"
-  version="$project.version$"
+  version=AkkaManagementVersion
 }
 
 And in addition to that, include all of the dependencies for the features you'd like to use,
@@ -30,9 +32,11 @@ define the Akka version to the one that you are using. Latest patch version of A
 a later version than $akka.version26$ can be used.
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaVersion
+  value1="$akka.version26$"
   group=com.typesafe.akka
   artifact=akka-stream_$scala.binary.version$
-  version="$akka.version26$"
+  version=AkkaVersion
 }
 
 ## Basic Usage

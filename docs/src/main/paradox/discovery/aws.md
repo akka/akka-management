@@ -52,9 +52,11 @@ ensure the "Tag New Instances" option is checked.
 This is a separate JAR file:
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-aws-api_2.12"
-  version="$project.version$"
+  version=AkkaManagementVersion
 }
 
 `akka-discovery-aws-api` can be used with Akka $akka.version$ or $akka.version26$ or later.
@@ -164,9 +166,11 @@ got the mainstream AWS SDK as a dependency you're not now also bringing in the
 preview SDK. The disadvantage is that the mainstream SDK does blocking IO.
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-aws-api_2.12"
-  version="$project.version$"
+  version=AkkaManagementVersion
 }
 
 And in your `application.conf`:
@@ -194,9 +198,11 @@ Once the async AWS SDK is out of preview it is likely that the
 `akka-discovery-aws-api-async`.
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-aws-api-async_2.12"
-  version="$project.version$"
+  version=AkkaManagementVersion
 }
 
 We have 2 approaches in ECS: `aws-api-ecs-async` and `aws-api-ecs-task-set-async`.

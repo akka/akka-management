@@ -17,9 +17,11 @@ If you are using Consul to do the service discovery this would allow you to base
 @@project-info{ projectId="akka-discovery-consul" }
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-consul_2.12"
-  version="$project.version$"
+  version=AkkaManagementVersion
 }
 
 `akka-discovery-consul` can be used with Akka $akka.version$ or $akka.version26$ or later.

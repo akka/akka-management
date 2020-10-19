@@ -13,9 +13,11 @@ The typical way to consume a service in Kubernetes is to discover it through DNS
 First, add the dependency on the component:
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group="com.lightbend.akka.discovery"
   artifact="akka-discovery-kubernetes-api_2.12"
-  version="$project.version$"
+  version=AkkaManagementVersion
 }
 
 `akka-discovery-kubernetes-api` can be used with Akka $akka.version$ or $akka.version26$ or later.

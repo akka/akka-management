@@ -36,12 +36,16 @@ For example, you might choose to use the @extref:[DNS discovery](akka:discovery/
 and bootstrap extensions:
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol=AkkaVersion
+  value=$akka.version$
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group=com.lightbend.akka.management
   artifact=akka-management-cluster-bootstrap_$scala.binary.version$
-  version=$project.version$
+  version=AkkaManagementVersion
   group2=com.typesafe.akka
   artifact2=akka-discovery_$scala.binary.version$
-  version2=$akka.version$
+  version2=AkkaVersion
 }
 
 Akka Cluster Bootstrap can be used with Akka $akka.version$ or $akka.version26$ or later.

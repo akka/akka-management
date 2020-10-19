@@ -25,15 +25,17 @@ Add the following dependencies to your application:
 * @ref[Akka Bootstrap](../bootstrap/index.md): This bootstraps the cluster from nodes discovered via the Kubernetes API
 
 @@dependency[sbt,Gradle,Maven] {
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
   group=com.lightbend.akka.management
   artifact=akka-management-cluster-http_$scala.binary.version$
-  version=$project.version$
+  version=AkkaManagementVersion
   group2=com.lightbend.akka.management
   artifact2=akka-management-cluster-bootstrap_$scala.binary.version$
-  version2=$project.version$
+  version2=AkkaManagementVersion
   group3="com.lightbend.akka.discovery"
   artifact3="akka-discovery-kubernetes-api_2.12"
-  version3="$project.version$"
+  version3=AkkaManagementVersion
 }
 
 ## Configuring Cluster Bootstrap
