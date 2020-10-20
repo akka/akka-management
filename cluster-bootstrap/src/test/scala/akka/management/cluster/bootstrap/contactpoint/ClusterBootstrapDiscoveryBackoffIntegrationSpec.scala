@@ -6,6 +6,7 @@ package akka.management.cluster.bootstrap.contactpoint
 
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.{ BiConsumer, BiFunction }
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
@@ -113,13 +114,16 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
     MockDiscovery.set(
       Lookup(name).withProtocol("tcp").withPortName("management"), { system =>
         val stats = perSystemStats.compute(
-          system, { (system: ActorSystem, stats: SystemStats) =>
-            if (stats.called == 1)
-              stats.copy(called = 2, call2Timestamp = System.nanoTime())
-            else if (stats.called == 2)
-              stats.copy(called = 3, call3Timestamp = System.nanoTime())
-            else
-              stats.copy(called = stats.called + 1)
+          system,
+          new BiFunction[ActorSystem, SystemStats, SystemStats] {
+            override def apply(notUsed: ActorSystem, stats: SystemStats): SystemStats = {
+              if (stats.called == 1)
+                stats.copy(called = 2, call2Timestamp = System.nanoTime())
+              else if (stats.called == 2)
+                stats.copy(called = 3, call3Timestamp = System.nanoTime())
+              else
+                stats.copy(called = stats.called + 1)
+            }
           }
         )
         val res =
@@ -179,12 +183,16 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
       val up1 = pA.expectMsgType[MemberUp](45.seconds)
       info("" + up1)
 
-      perSystemStats.forEach { (system, stats) =>
-        stats.called shouldBe >=(5)
-        val durationBetweenCall2And3 = (stats.call3Timestamp - stats.call2Timestamp).nanos.toMillis
-        info(s"${Cluster(system).selfAddress}: duration between call 2 and 3 ${durationBetweenCall2And3} ms")
-        durationBetweenCall2And3 shouldBe >=(
-          (ClusterBootstrap(system).settings.contactPointDiscovery.interval * 2).toMillis)
+      perSystemStats.forEach {
+        new BiConsumer[ActorSystem, SystemStats] {
+          override def accept(system: ActorSystem, stats: SystemStats): Unit = {
+            stats.called shouldBe >=(5)
+            val durationBetweenCall2And3 = (stats.call3Timestamp - stats.call2Timestamp).nanos.toMillis
+            info(s"${Cluster(system).selfAddress}: duration between call 2 and 3 ${durationBetweenCall2And3} ms")
+            durationBetweenCall2And3 shouldBe >=(
+              (ClusterBootstrap(system).settings.contactPointDiscovery.interval * 2).toMillis)
+          }
+        }
       }
     }
 
