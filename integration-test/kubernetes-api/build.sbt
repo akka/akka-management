@@ -7,7 +7,7 @@ version := "1.3.3.7" // we hard-code the version here, it could be anything real
 dockerCommands :=
   dockerCommands.value.flatMap {
     case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
-    case v => Seq(v)
+    case v                                => Seq(v)
   }
 
 dockerExposedPorts := Seq(8080, 8558, 2552)
@@ -18,4 +18,3 @@ dockerCommands ++= Seq(
   Cmd("RUN", "/sbin/apk", "add", "--no-cache", "bash", "bind-tools", "busybox-extras", "curl", "strace"),
   Cmd("RUN", "chgrp -R 0 . && chmod -R g=u .")
 )
-
