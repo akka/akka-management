@@ -9,15 +9,15 @@ import java.util.concurrent.ConcurrentHashMap
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
-import akka.cluster.ClusterEvent.{CurrentClusterState, MemberUp}
-import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
-import akka.discovery.{Lookup, MockDiscovery}
+import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.{ Lookup, MockDiscovery }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
-import akka.testkit.{SocketUtil, TestKit, TestProbe}
-import com.typesafe.config.{Config, ConfigFactory}
+import akka.testkit.{ SocketUtil, TestKit, TestProbe }
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalactic.Tolerance
 import org.scalatest.concurrent.ScalaFutures
 
@@ -112,16 +112,16 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
 
     MockDiscovery.set(
       Lookup(name).withProtocol("tcp").withPortName("management"), { system =>
-        val stats = perSystemStats.compute(system, {(system: ActorSystem, stats: SystemStats) =>
-
-          if (stats.called == 1)
-            stats.copy(called = 2, call2Timestamp = System.nanoTime())
-          else if (stats.called == 2)
-            stats.copy(called = 3, call3Timestamp = System.nanoTime())
-          else
-            stats.copy(called = stats.called + 1)
-
-        })
+        val stats = perSystemStats.compute(
+          system, { (system: ActorSystem, stats: SystemStats) =>
+            if (stats.called == 1)
+              stats.copy(called = 2, call2Timestamp = System.nanoTime())
+            else if (stats.called == 2)
+              stats.copy(called = 3, call3Timestamp = System.nanoTime())
+            else
+              stats.copy(called = stats.called + 1)
+          }
+        )
         val res =
           if (stats.called < 4)
             Future.failed(new Exception("Boom! Discovery failed, was rate limited for example..."))
@@ -178,7 +178,6 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
       pA.expectMsgType[CurrentClusterState]
       val up1 = pA.expectMsgType[MemberUp](45.seconds)
       info("" + up1)
-
 
       perSystemStats.forEach { (system, stats) =>
         stats.called shouldBe >=(5)
