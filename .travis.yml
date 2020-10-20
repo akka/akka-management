@@ -43,8 +43,8 @@ jobs:
     script:
     - jabba use "adopt@1.8-0"
     - git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH"
-    - sbt -jvm-opts .jvmopts-travis ";scalafmtCheckAll;+test:compile;docs/paradox"
-    name: "Compile on all Scala versions, check code style (fixed with `sbt Test/compile`)"
+    - sbt -jvm-opts .jvmopts-travis ";scalafmtCheckAll;+Test/compile; mimaReportBinaryIssues; docs/paradox"
+    name: "Compile on all Scala versions, check code style (fixed with `sbt Test/compile`), run Mima"
 
   - env: CMD="+test"
     name: "Run tests on AdoptOpenJDK 8 (all Scala versions)"
