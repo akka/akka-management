@@ -8,7 +8,7 @@ import akka.cluster.{ Cluster, ClusterEvent }
 import akka.event.NoLogging
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.management.cluster.bootstrap.ClusterBootstrapSettings
-import akka.testkit.{ SocketUtil, TestProbe }
+import akka.testkit.TestProbe
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.matchers.should.Matchers
