@@ -41,7 +41,7 @@ lazy val `akka-discovery-kubernetes-api` = project
   .settings(
     name := "akka-discovery-kubernetes-api",
     organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryKubernetesApi
+    libraryDependencies := Dependencies.DiscoveryKubernetesApi
   )
 
 lazy val `akka-discovery-marathon-api` = project
@@ -50,7 +50,7 @@ lazy val `akka-discovery-marathon-api` = project
   .settings(
     name := "akka-discovery-marathon-api",
     organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryMarathonApi
+    libraryDependencies := Dependencies.DiscoveryMarathonApi
   )
 
 lazy val `akka-discovery-aws-api` = project
@@ -59,7 +59,7 @@ lazy val `akka-discovery-aws-api` = project
   .settings(
     name := "akka-discovery-aws-api",
     organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryAwsApi
+    libraryDependencies := Dependencies.DiscoveryAwsApi
   )
 
 lazy val `akka-discovery-aws-api-async` = project
@@ -68,7 +68,7 @@ lazy val `akka-discovery-aws-api-async` = project
   .settings(
     name := "akka-discovery-aws-api-async",
     organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryAwsApiAsync
+    libraryDependencies := Dependencies.DiscoveryAwsApiAsync
   )
 
 lazy val `akka-discovery-consul` = project
@@ -77,7 +77,7 @@ lazy val `akka-discovery-consul` = project
   .settings(
     name := "akka-discovery-consul",
     organization := "com.lightbend.akka.discovery",
-    Dependencies.DiscoveryConsul
+    libraryDependencies := Dependencies.DiscoveryConsul
   )
 
 // gathers all enabled routes and serves them (HTTP or otherwise)
@@ -86,7 +86,7 @@ lazy val `akka-management` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management",
-    Dependencies.ManagementHttp
+    libraryDependencies := Dependencies.ManagementHttp
   )
 
 lazy val `loglevels-logback` = project
@@ -94,7 +94,7 @@ lazy val `loglevels-logback` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-loglevels-logback",
-    Dependencies.LoglevelsLogback
+    libraryDependencies := Dependencies.LoglevelsLogback
   )
   .dependsOn(`akka-management`)
 
@@ -103,7 +103,7 @@ lazy val `cluster-http` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-cluster-http",
-    Dependencies.ClusterHttp
+    libraryDependencies := Dependencies.ClusterHttp
   )
   .dependsOn(`akka-management`)
 
@@ -112,7 +112,7 @@ lazy val `cluster-bootstrap` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-cluster-bootstrap",
-    Dependencies.ClusterBootstrap
+    libraryDependencies := Dependencies.ClusterBootstrap
   )
   .dependsOn(`akka-management`)
 
@@ -121,7 +121,7 @@ lazy val `lease-kubernetes` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-lease-kubernetes",
-    Dependencies.LeaseKubernetes
+    libraryDependencies := Dependencies.LeaseKubernetes
   )
   .settings(
     Defaults.itSettings
@@ -138,7 +138,7 @@ lazy val `lease-kubernetes-int-test` = project
     name := "akka-lease-kubernetes-int-test",
     skip in publish := true,
     whitesourceIgnore := true,
-    Dependencies.LeaseKubernetesTest,
+    libraryDependencies := Dependencies.LeaseKubernetesTest,
     version ~= (_.replace('+', '-')),
     dockerBaseImage := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
@@ -153,6 +153,7 @@ lazy val `lease-kubernetes-int-test` = project
         Cmd("RUN", "chmod +x /opt/docker/bin/akka-lease-kubernetes-int-test")
       )
   )
+
 lazy val `integration-test-kubernetes-api` = project
   .in(file("integration-test/kubernetes-api"))
   .disablePlugins(BintrayPlugin)
@@ -161,7 +162,7 @@ lazy val `integration-test-kubernetes-api` = project
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
-    Dependencies.BootstrapDemos
+    libraryDependencies := Dependencies.BootstrapDemos
   )
   .dependsOn(
     `akka-management`,
@@ -178,7 +179,7 @@ lazy val `integration-test-kubernetes-api-java` = project
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
-    Dependencies.BootstrapDemos
+    libraryDependencies := Dependencies.BootstrapDemos
   )
   .dependsOn(
     `akka-management`,
@@ -195,7 +196,7 @@ lazy val `integration-test-kubernetes-dns` = project
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
-    Dependencies.BootstrapDemos
+    libraryDependencies := Dependencies.BootstrapDemos
   )
   .dependsOn(
     `akka-management`,
@@ -269,7 +270,7 @@ lazy val `integration-test-local` = project
     skip in publish := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
-    Dependencies.BootstrapDemos
+    libraryDependencies := Dependencies.BootstrapDemos
   )
   .dependsOn(
     `akka-management`,
