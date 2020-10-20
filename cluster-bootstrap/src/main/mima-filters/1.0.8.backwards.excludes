@@ -1,0 +1,3 @@
+# removed an internal class
+ProblemFilters.exclude[MissingClassProblem]("akka.management.cluster.bootstrap.internal.BootstrapCoordinator$Protocol$BootstrappingCompleted$")
+ProblemFilters.exclude[MissingClassProblem]("akka.management.cluster.bootstrap.internal.BootstrapCoordinator$Protocol$BootstrappingCompleted")

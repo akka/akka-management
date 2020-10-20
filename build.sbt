@@ -6,7 +6,7 @@ ThisBuild / resolvers += Resolver.jcenterRepo
 lazy val `akka-management-root` = project
   .in(file("."))
   .enablePlugins(ScalaUnidocPlugin)
-  .disablePlugins(BintrayPlugin)
+  .disablePlugins(BintrayPlugin, MimaPlugin)
   .aggregate(
     // When this aggregate is updated the list of modules in ManifestInfo.checkSameVersion
     // in AkkaManagement should also be updated
@@ -35,13 +35,20 @@ lazy val `akka-management-root` = project
     publish / skip := true
   )
 
+lazy val mimaPreviousArtifactsSet =
+  mimaPreviousArtifacts := Set(
+      organization.value %% name.value % previousStableVersion.value.getOrElse(
+        throw new Error("Unable to determine previous version"))
+    )
+
 lazy val `akka-discovery-kubernetes-api` = project
   .in(file("discovery-kubernetes-api"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-discovery-kubernetes-api",
     organization := "com.lightbend.akka.discovery",
-    libraryDependencies := Dependencies.DiscoveryKubernetesApi
+    libraryDependencies := Dependencies.DiscoveryKubernetesApi,
+    mimaPreviousArtifactsSet
   )
 
 lazy val `akka-discovery-marathon-api` = project
@@ -50,7 +57,8 @@ lazy val `akka-discovery-marathon-api` = project
   .settings(
     name := "akka-discovery-marathon-api",
     organization := "com.lightbend.akka.discovery",
-    libraryDependencies := Dependencies.DiscoveryMarathonApi
+    libraryDependencies := Dependencies.DiscoveryMarathonApi,
+    mimaPreviousArtifactsSet
   )
 
 lazy val `akka-discovery-aws-api` = project
@@ -59,7 +67,8 @@ lazy val `akka-discovery-aws-api` = project
   .settings(
     name := "akka-discovery-aws-api",
     organization := "com.lightbend.akka.discovery",
-    libraryDependencies := Dependencies.DiscoveryAwsApi
+    libraryDependencies := Dependencies.DiscoveryAwsApi,
+    mimaPreviousArtifactsSet
   )
 
 lazy val `akka-discovery-aws-api-async` = project
@@ -68,7 +77,8 @@ lazy val `akka-discovery-aws-api-async` = project
   .settings(
     name := "akka-discovery-aws-api-async",
     organization := "com.lightbend.akka.discovery",
-    libraryDependencies := Dependencies.DiscoveryAwsApiAsync
+    libraryDependencies := Dependencies.DiscoveryAwsApiAsync,
+    mimaPreviousArtifactsSet
   )
 
 lazy val `akka-discovery-consul` = project
@@ -77,7 +87,8 @@ lazy val `akka-discovery-consul` = project
   .settings(
     name := "akka-discovery-consul",
     organization := "com.lightbend.akka.discovery",
-    libraryDependencies := Dependencies.DiscoveryConsul
+    libraryDependencies := Dependencies.DiscoveryConsul,
+    mimaPreviousArtifactsSet
   )
 
 // gathers all enabled routes and serves them (HTTP or otherwise)
@@ -86,7 +97,8 @@ lazy val `akka-management` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management",
-    libraryDependencies := Dependencies.ManagementHttp
+    libraryDependencies := Dependencies.ManagementHttp,
+    mimaPreviousArtifactsSet
   )
 
 lazy val `loglevels-logback` = project
@@ -94,7 +106,8 @@ lazy val `loglevels-logback` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-loglevels-logback",
-    libraryDependencies := Dependencies.LoglevelsLogback
+    libraryDependencies := Dependencies.LoglevelsLogback,
+    mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management`)
 
@@ -103,7 +116,8 @@ lazy val `cluster-http` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-cluster-http",
-    libraryDependencies := Dependencies.ClusterHttp
+    libraryDependencies := Dependencies.ClusterHttp,
+    mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management`)
 
@@ -112,7 +126,8 @@ lazy val `cluster-bootstrap` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-cluster-bootstrap",
-    libraryDependencies := Dependencies.ClusterBootstrap
+    libraryDependencies := Dependencies.ClusterBootstrap,
+    mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management`)
 
@@ -121,7 +136,8 @@ lazy val `lease-kubernetes` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-lease-kubernetes",
-    libraryDependencies := Dependencies.LeaseKubernetes
+    libraryDependencies := Dependencies.LeaseKubernetes,
+    mimaPreviousArtifactsSet
   )
   .settings(
     Defaults.itSettings
@@ -133,10 +149,10 @@ lazy val `lease-kubernetes-int-test` = project
   .enablePlugins(JavaAppPackaging, DockerPlugin)
   .dependsOn(`lease-kubernetes`)
   .enablePlugins(AutomateHeaderPlugin)
-  .disablePlugins(BintrayPlugin)
+  .disablePlugins(BintrayPlugin, MimaPlugin)
   .settings(
     name := "akka-lease-kubernetes-int-test",
-    skip in publish := true,
+    publish / skip := true,
     whitesourceIgnore := true,
     libraryDependencies := Dependencies.LeaseKubernetesTest,
     version ~= (_.replace('+', '-')),
@@ -156,10 +172,10 @@ lazy val `lease-kubernetes-int-test` = project
 
 lazy val `integration-test-kubernetes-api` = project
   .in(file("integration-test/kubernetes-api"))
-  .disablePlugins(BintrayPlugin)
+  .disablePlugins(BintrayPlugin, MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    skip in publish := true,
+    publish / skip := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
     libraryDependencies := Dependencies.BootstrapDemos
@@ -173,10 +189,10 @@ lazy val `integration-test-kubernetes-api` = project
 
 lazy val `integration-test-kubernetes-api-java` = project
   .in(file("integration-test/kubernetes-api-java"))
-  .disablePlugins(BintrayPlugin)
+  .disablePlugins(BintrayPlugin, MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    skip in publish := true,
+    publish / skip := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
     libraryDependencies := Dependencies.BootstrapDemos
@@ -190,10 +206,10 @@ lazy val `integration-test-kubernetes-api-java` = project
 
 lazy val `integration-test-kubernetes-dns` = project
   .in(file("integration-test/kubernetes-dns"))
-  .disablePlugins(BintrayPlugin)
+  .disablePlugins(BintrayPlugin, MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    skip in publish := true,
+    publish / skip := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
     libraryDependencies := Dependencies.BootstrapDemos
@@ -207,10 +223,10 @@ lazy val `integration-test-kubernetes-dns` = project
 lazy val `integration-test-aws-api-ec2-tag-based` = project
   .in(file("integration-test/aws-api-ec2"))
   .configs(IntegrationTest)
-  .disablePlugins(BintrayPlugin)
+  .disablePlugins(BintrayPlugin, MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    skip in publish := true,
+    publish / skip := true,
     whitesourceIgnore := true,
     sources in doc := Seq.empty,
     Defaults.itSettings
@@ -224,11 +240,11 @@ lazy val `integration-test-aws-api-ec2-tag-based` = project
 
 lazy val `integration-test-marathon-api-docker` = project
   .in(file("integration-test/marathon-api-docker"))
-  .disablePlugins(BintrayPlugin)
+  .disablePlugins(BintrayPlugin, MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "integration-test-marathon-api-docker",
-    skip in publish := true,
+    publish / skip := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
   )
@@ -241,10 +257,10 @@ lazy val `integration-test-marathon-api-docker` = project
 
 lazy val `integration-test-aws-api-ecs` = project
   .in(file("integration-test/aws-api-ecs"))
-  .disablePlugins(BintrayPlugin)
+  .disablePlugins(BintrayPlugin, MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    skip in publish := true,
+    publish / skip := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true
   )
@@ -263,11 +279,11 @@ lazy val `integration-test-aws-api-ecs` = project
 
 lazy val `integration-test-local` = project
   .in(file("integration-test/local"))
-  .disablePlugins(BintrayPlugin)
+  .disablePlugins(BintrayPlugin, MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "integration-test-local",
-    skip in publish := true,
+    publish / skip := true,
     sources in (Compile, doc) := Seq.empty,
     whitesourceIgnore := true,
     libraryDependencies := Dependencies.BootstrapDemos
@@ -282,7 +298,7 @@ lazy val `integration-test-local` = project
 lazy val docs = project
   .in(file("docs"))
   .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
-  .disablePlugins(BintrayPlugin)
+  .disablePlugins(BintrayPlugin, MimaPlugin)
   .settings(
     name := "Akka Management",
     publish / skip := true,
