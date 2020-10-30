@@ -240,3 +240,67 @@ class SelfAwareJoinDeciderSpec extends JoinDeciderSpec {
     }
   }
 }
+
+class SelfAwareJoinDeciderIPv6Spec extends JoinDeciderSpec {
+
+  override val remotingPort = 0
+
+  val disabled =
+    ConfigFactory.parseString("akka.management.cluster.bootstrap.new-cluster-enabled=off")
+
+  override val system = ActorSystem("sys", disabled.withFallback(config))
+
+  val settings = ClusterBootstrapSettings(system.settings.config, NoLogging)
+
+  val contactIPv6A = ResolvedTarget(
+    host = "240b-c0e0-202-5e2b-b424-2-0-450.default.pod.cluster.local",
+    port = None,
+    address = Some(InetAddress.getByName("240b:c0e0:202:5e2b:b424:2:0:450")))
+
+  val contactIPv6B = ResolvedTarget(
+    host = "240b-c0e0-202-5e2b-b424-2-0-cc4.default.pod.cluster.local",
+    port = None,
+    address = Some(InetAddress.getByName("240b:c0e0:202:5e2b:b424:2:0:cc4")))
+
+  val contactIPv6C = ResolvedTarget(
+    host = "240b-c0e0-202-5e2b-b424-2-0-cc5.default.pod.cluster.local",
+    port = None,
+    address = Some(InetAddress.getByName("240b:c0e0:202:5e2b:b424:2:0:cc5")))
+
+  def seedNodesIPv6 = {
+    val now = LocalDateTime.now()
+    new SeedNodesInformation(
+      currentTime = now,
+      contactPointsChangedAt = now.minusSeconds(6),
+      contactPoints = Set(contactIPv6A, contactIPv6B, contactIPv6C),
+      seedNodesObservations = Set(
+        new SeedNodesObservation(now.minusSeconds(1), contactIPv6A, Address("akka", "sys", "[240b:c0e0:202:5e2b:b424:2:0:450]", 2552), Set.empty),
+        new SeedNodesObservation(now.minusSeconds(1), contactIPv6B, Address("akka", "sys", "[240b:c0e0:202:5e2b:b424:2:0:cc4]", 2552), Set.empty),
+        new SeedNodesObservation(now.minusSeconds(1), contactIPv6C, Address("akka", "sys", "c", 2552), Set.empty)
+      ))
+  }
+
+  "SelfAwareJoinDecider (IPv6)" should {
+
+    "return true if a target matches selfContactPoint" in {
+      ClusterBootstrap(system).setSelfContactPoint(s"http://[240b:c0e0:202:5e2b:b424:2:0:450]:$managementPort/test")
+      val decider = new LowestAddressJoinDecider(system, settings)
+      val selfContactPoint = decider.selfContactPoint
+      val info = seedNodesIPv6
+      val target = info.seedNodesObservations.toList.map(_.contactPoint).sorted.headOption
+      target.exists(decider.matchesSelf(_, selfContactPoint)) should ===(true)
+    }
+
+    "be able to join self if all conditions met" in {
+      val decider = new LowestAddressJoinDecider(system, settings)
+      val info = seedNodesIPv6
+      val target = info.seedNodesObservations.toList.map(_.contactPoint).sorted.headOption
+      target.exists(decider.canJoinSelf(_, info)) should ===(true)
+    }
+
+    "not join self if `new-cluster-enabled=off`, even if all conditions met" in {
+      val decider = new LowestAddressJoinDecider(system, settings)
+      decider.decide(seedNodesIPv6).futureValue should ===(KeepProbing)
+    }
+  }
+}
