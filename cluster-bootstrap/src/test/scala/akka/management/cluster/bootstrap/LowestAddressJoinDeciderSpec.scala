@@ -274,8 +274,16 @@ class SelfAwareJoinDeciderIPv6Spec extends JoinDeciderSpec {
       contactPointsChangedAt = now.minusSeconds(6),
       contactPoints = Set(contactIPv6A, contactIPv6B, contactIPv6C),
       seedNodesObservations = Set(
-        new SeedNodesObservation(now.minusSeconds(1), contactIPv6A, Address("akka", "sys", "[240b:c0e0:202:5e2b:b424:2:0:450]", 2552), Set.empty),
-        new SeedNodesObservation(now.minusSeconds(1), contactIPv6B, Address("akka", "sys", "[240b:c0e0:202:5e2b:b424:2:0:cc4]", 2552), Set.empty),
+        new SeedNodesObservation(
+          now.minusSeconds(1),
+          contactIPv6A,
+          Address("akka", "sys", "[240b:c0e0:202:5e2b:b424:2:0:450]", 2552),
+          Set.empty),
+        new SeedNodesObservation(
+          now.minusSeconds(1),
+          contactIPv6B,
+          Address("akka", "sys", "[240b:c0e0:202:5e2b:b424:2:0:cc4]", 2552),
+          Set.empty),
         new SeedNodesObservation(now.minusSeconds(1), contactIPv6C, Address("akka", "sys", "c", 2552), Set.empty)
       ))
   }
