@@ -13,7 +13,7 @@ To use it, add this plugin to the build section of your parent POM:
 <plugin>
     <groupId>pl.project13.maven</groupId>
     <artifactId>git-commit-id-plugin</artifactId>
-    <version>2.2.6</version>
+    <version>4.0.0</version>
     <executions>
         <execution>
             <phase>validate</phase>
@@ -24,7 +24,6 @@ To use it, add this plugin to the build section of your parent POM:
     </executions>
     <configuration>
         <dateFormat>yyyyMMdd-HHmmss</dateFormat>
-        <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
         <generateGitPropertiesFile>false</generateGitPropertiesFile>
     </configuration>
 </plugin>
@@ -35,7 +34,7 @@ is useful because it makes it possible to sort tags chronologically:
 
 ```xml
 <properties>
-   <version.number>${git.commit.time}.${git.commit.id.abbrev}</version.number>
+   <version.number>${git.commit.time}-${git.commit.id.abbrev}</version.number>
 </properties>
 ```
 
@@ -49,7 +48,7 @@ The version number will only change when you create a new git commit. If you are
 <plugin>
     <groupId>io.fabric8</groupId>
     <artifactId>docker-maven-plugin</artifactId>
-    <version>0.26.1</version>
+    <version>0.34.1</version>
     <configuration>
         <images>
             <image>
@@ -61,7 +60,7 @@ The version number will only change when you create a new git commit. If you are
                         <tag>${version.number}</tag>
                     </tags>
                     <entryPoint>
-                       java $JAVA_OPTS -cp '/maven/*' $main.class$
+                       java $JAVA_OPTS -cp '/maven/*' akka.cluster.bootstrap.demo.DemoApp
                     </entryPoint> 
                     <assembly>
                         <descriptorRef>artifact-with-dependencies</descriptorRef>
@@ -88,4 +87,16 @@ There are two things to pay careful attention to here.
 * `docker:build` is added to the `package` phase do that the Docker image is built when running `mvn package`
 * Versions `latest` and `${version.number}` are tagged
 * Artifact with dependencies is set for the assembly. Meaning your application and its dependencies are added to `/maven` in the Docker image
+
+## Building the Docker image
+
+To build and publish the image run the following. The Docker username and registry are taken from system properties.
+
+Note that the registry to push to must include the username, for example `-Ddocker.registry=docker.io/youruser`.
+   
+Security information (i.e. user and password) can be specified in multiple ways as described in section [docker-maven-plugin authentication](http://dmp.fabric8.io/#authentication).
+
+```
+mvn -Ddocker.username=<user> -Ddocker.registry=<registry>/<user> package docker:push
+```
 
