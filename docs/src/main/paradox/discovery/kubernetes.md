@@ -16,7 +16,7 @@ First, add the dependency on the component:
   symbol1=AkkaManagementVersion
   value1=$project.version$
   group="com.lightbend.akka.discovery"
-  artifact="akka-discovery-kubernetes-api_2.12"
+  artifact="akka-discovery-kubernetes-api_$scala.binary.version$"
   version=AkkaManagementVersion
 }
 

@@ -29,7 +29,7 @@ This is a separate JAR file:
   symbol1=AkkaManagementVersion
   value1=$project.version$
   group="com.lightbend.akka.discovery"
-  artifact="akka-discovery-marathon-api_2.12"
+  artifact="akka-discovery-marathon-api_$scala.binary.version$"
   version=AkkaManagementVersion
 }
 

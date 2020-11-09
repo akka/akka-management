@@ -20,7 +20,7 @@ If you are using Consul to do the service discovery this would allow you to base
   symbol1=AkkaManagementVersion
   value1=$project.version$
   group="com.lightbend.akka.discovery"
-  artifact="akka-discovery-consul_2.12"
+  artifact="akka-discovery-consul_$scala.binary.version$"
   version=AkkaManagementVersion
 }
 
