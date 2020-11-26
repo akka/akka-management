@@ -21,8 +21,6 @@ import akka.coordination.lease.{LeaseException, LeaseTimeoutException}
 import akka.stream.ActorMaterializer
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 import com.typesafe.sslconfig.ssl.TrustStoreConfig
-
-import scala.::
 import scala.collection.immutable
 import scala.concurrent.Future
 import scala.util.control.NonFatal
