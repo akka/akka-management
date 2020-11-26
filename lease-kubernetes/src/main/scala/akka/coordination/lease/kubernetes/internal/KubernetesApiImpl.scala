@@ -4,7 +4,7 @@
 
 package akka.coordination.lease.kubernetes.internal
 
-import java.nio.file.{Files, Paths}
+import java.nio.file.{ Files, Paths }
 
 import akka.Done
 import akka.actor.ActorSystem
@@ -13,11 +13,11 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.pattern.after
-import akka.coordination.lease.kubernetes.{KubernetesApi, KubernetesSettings, LeaseResource}
-import akka.coordination.lease.{LeaseException, LeaseTimeoutException}
+import akka.coordination.lease.kubernetes.{ KubernetesApi, KubernetesSettings, LeaseResource }
+import akka.coordination.lease.{ LeaseException, LeaseTimeoutException }
 import akka.stream.ActorMaterializer
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 import com.typesafe.sslconfig.ssl.TrustStoreConfig
@@ -226,7 +226,9 @@ PUTs must contain resourceVersions. Response:
   }
 
   private def pathForLease(name: String): Uri.Path =
-    Uri.Path.Empty / "apis" / "akka.io" / "v1" / "namespaces" / namespace / "leases" / name.replaceAll("[^\\d|\\w|\\-|\\.]", "").toLowerCase
+    Uri.Path.Empty / "apis" / "akka.io" / "v1" / "namespaces" / namespace / "leases" / name
+      .replaceAll("[^\\d|\\w|\\-|\\.]", "")
+      .toLowerCase
 
   private def requestForPath(
       path: Uri.Path,
