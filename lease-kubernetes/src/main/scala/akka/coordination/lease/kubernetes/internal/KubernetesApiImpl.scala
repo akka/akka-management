@@ -227,7 +227,7 @@ PUTs must contain resourceVersions. Response:
 
   private def pathForLease(name: String): Uri.Path =
     Uri.Path.Empty / "apis" / "akka.io" / "v1" / "namespaces" / namespace / "leases" / name
-      .replaceAll("[^\\d|\\w|\\-|\\.]", "")
+      .replaceAll("[^\\d\\w\\-\\.]", "")
       .toLowerCase
 
   private def requestForPath(
