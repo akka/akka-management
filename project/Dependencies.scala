@@ -27,7 +27,7 @@ object Dependencies {
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
   val AwsSdkVersion = "1.11.837"
-  val JacksonVersion = "2.10.5"
+  val JacksonVersion = "2.10.5.1"
 
   // often called-in transitively with insecure versions of databind / core
   private val JacksonDatabind = Seq(
