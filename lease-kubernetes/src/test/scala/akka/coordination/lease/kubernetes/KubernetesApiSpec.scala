@@ -14,7 +14,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import org.scalatest.concurrent.ScalaFutures
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
-import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
 import scala.concurrent.duration._
 import org.scalatest.matchers.should.Matchers
@@ -44,7 +44,10 @@ class KubernetesApiSpec
 
   implicit val patience: PatienceConfig = PatienceConfig(testKitSettings.DefaultTimeout.duration)
 
-  val underTest = new KubernetesApiImpl(system, settings)
+  val underTest = new KubernetesApiImpl(system, settings) {
+    // avoid touching slow CI filesystem
+    override protected def readConfigVarFromFilesystem(path: String, name: String): Option[String] = None
+  }
   val leaseName = "lease-1"
   val client1 = "client-1"
   val client2 = "client-2"
