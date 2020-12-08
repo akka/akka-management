@@ -239,10 +239,10 @@ PUTs must contain resourceVersions. Response:
 
   private def makeRequest(request: HttpRequest, timeoutMsg: String): Future[HttpResponse] = {
     val response =
-      (if (settings.secure)
+      if (settings.secure)
         http.singleRequest(request, httpsContext)
       else
-        http.singleRequest(request))
+        http.singleRequest(request)
 
     // make sure we always consume response body (in case of timeout)
     val strictResponse = response.flatMap(_.toStrict(settings.bodyReadTimeout))
