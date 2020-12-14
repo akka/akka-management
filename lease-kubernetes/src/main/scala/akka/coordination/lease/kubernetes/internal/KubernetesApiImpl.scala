@@ -76,11 +76,10 @@ import scala.util.control.NonFatal
       for {
         olr <- getLeaseResource(name)
         lr <- olr match {
-          case Some(found) => {
+          case Some(found) =>
             log.debug("{} already exists. Returning {}", name, found)
             Future.successful(found)
-          }
-          case None => {
+          case None =>
             log.info("lease {} does not exist, creating", name)
             createLeaseResource(name).flatMap {
               case Some(created) => Future.successful(created)
@@ -88,7 +87,6 @@ import scala.util.control.NonFatal
                 if (tries < maxTries) loop(tries + 1)
                 else Future.failed(new LeaseException(s"Unable to create or read lease after $maxTries tries"))
             }
-          }
         }
       } yield lr
     }
@@ -163,6 +161,7 @@ PUTs must contain resourceVersions. Response:
       response <- makeRequest(
         requestForPath(pathForLease(name), HttpMethods.DELETE),
         s"Timed out removing lease [$name]. It is not known if the remove happened")
+
       result <- response.status match {
         case StatusCodes.OK =>
           log.debug("Lease deleted {}", name)

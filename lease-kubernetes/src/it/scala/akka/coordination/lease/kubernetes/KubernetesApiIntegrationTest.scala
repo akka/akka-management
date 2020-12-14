@@ -5,9 +5,12 @@ import akka.actor.ActorSystem
 import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.{BeforeAndAfterAll, CancelAfterFailure}
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 /**
@@ -17,15 +20,14 @@ import scala.concurrent.duration._
   *
   * `kubectl proxy --port=8080`
   *
-  * Test in CI:
-  * https://github.com/akka/akka-management/issues/679
   */
 class KubernetesApiIntegrationTest extends TestKit(ActorSystem("KubernetesApiIntegrationSpec", ConfigFactory.parseString(
   """
-    |akka.loglevel = DEBUG
-    |""".stripMargin)))
-  with WordSpecLike with Matchers
-  with ScalaFutures with BeforeAndAfterAll {
+    akka.loglevel = DEBUG
+    akka.coordination.lease.kubernetes.lease-operation-timeout = 1.5s
+    """)))
+  with AnyWordSpecLike with Matchers
+  with ScalaFutures with BeforeAndAfterAll with CancelAfterFailure with Eventually {
 
   implicit val patience: PatienceConfig = PatienceConfig(testKitSettings.DefaultTimeout.duration)
 
@@ -51,9 +53,16 @@ class KubernetesApiIntegrationTest extends TestKit(ActorSystem("KubernetesApiInt
     TestKit.shutdownActorSystem(system)
   }
 
+
+  override protected def beforeAll(): Unit = {
+    // do some operation to check the proxy is up
+    eventually {
+      Await.result(underTest.removeLease(leaseName), 2.second) shouldEqual Done
+    }
+  }
+
   "Kubernetes lease resource" should {
     "be able to be created" in {
-      underTest.removeLease(leaseName).futureValue shouldEqual Done
       val leaseRecord = underTest.readOrCreateLeaseResource(leaseName).futureValue
       leaseRecord.owner shouldEqual None
       leaseRecord.version shouldNot equal("")
@@ -120,4 +129,5 @@ class KubernetesApiIntegrationTest extends TestKit(ActorSystem("KubernetesApiInt
       success.owner shouldEqual Some(client2)
     }
   }
+
 }
