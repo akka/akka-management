@@ -30,9 +30,8 @@ class ClusterBootstrapIntegrationSpec extends AnyWordSpecLike with Matchers {
     var contactPointPorts = Map.empty[String, Int]
 
     def config(id: String): Config = {
-      val Vector(managementPort, remotingPort) =
-        SocketUtil.temporaryServerAddresses(2, "127.0.0.1").map(_.getPort)
-
+      val managementPort = contactPointPorts(id)
+      val remotingPort = remotingPorts(id)
       info(s"System [$id]: management port: $managementPort")
       info(s"System [$id]:   remoting port: $remotingPort")
 
@@ -72,6 +71,17 @@ class ClusterBootstrapIntegrationSpec extends AnyWordSpecLike with Matchers {
         }
         """.stripMargin).withFallback(ConfigFactory.load())
     }
+
+    // allocate all ports in one go to avoid clashes
+    val ports = SocketUtil.temporaryServerAddresses(6, "127.0.0.1").map(_.getPort)
+
+    remotingPorts += "A" -> ports(0)
+    remotingPorts += "B" -> ports(1)
+    remotingPorts += "C" -> ports(2)
+
+    contactPointPorts += "A" -> ports(3)
+    contactPointPorts += "B" -> ports(4)
+    contactPointPorts += "C" -> ports(5)
 
     val systemA = ActorSystem("System", config("A"))
     val systemB = ActorSystem("System", config("B"))
@@ -134,16 +144,22 @@ class ClusterBootstrapIntegrationSpec extends AnyWordSpecLike with Matchers {
     "join three DNS discovered nodes by forming new cluster (happy path)" in {
       bootstrapA.discovery.getClass should ===(classOf[MockDiscovery])
 
+      val pA = TestProbe()(systemA)
+      clusterA.subscribe(pA.ref, classOf[MemberUp])
+
       bootstrapA.start()
       bootstrapB.start()
       bootstrapC.start()
 
-      val pA = TestProbe()(systemA)
-      clusterA.subscribe(pA.ref, classOf[MemberUp])
-
-      pA.expectMsgType[CurrentClusterState]
-      val up1 = pA.expectMsgType[MemberUp](30.seconds)
-      info("" + up1)
+      try {
+        pA.expectMsgType[CurrentClusterState]
+        val up1 = pA.expectMsgType[MemberUp](30.seconds)
+        info("" + up1)
+      } catch {
+        case t: AssertionError =>
+          println("Member up not ")
+          throw t
+      }
     }
 
     "terminate all systems" in {
