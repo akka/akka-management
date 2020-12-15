@@ -239,16 +239,19 @@ PUTs must contain resourceVersions. Response:
   }
 
   private def makeRequest(request: HttpRequest, timeoutMsg: String): Future[HttpResponse] = {
-    val httpRequest =
+    val response =
       if (settings.secure)
         http.singleRequest(request, httpsContext)
       else
         http.singleRequest(request)
 
+    // make sure we always consume response body (in case of timeout)
+    val strictResponse = response.flatMap(_.toStrict(settings.bodyReadTimeout))
+
     val timeout = after(settings.apiServerRequestTimeout, using = system.scheduler)(
       Future.failed(new LeaseTimeoutException(s"$timeoutMsg. Is the API server up?")))
 
-    Future.firstCompletedOf(Seq(httpRequest, timeout))
+    Future.firstCompletedOf(Seq(strictResponse, timeout))
   }
 
   private def toLeaseResource(lcr: LeaseCustomResource) = {
@@ -298,7 +301,7 @@ PUTs must contain resourceVersions. Response:
   /**
    * This uses blocking IO, and so should only be used to read configuration at startup.
    */
-  private def readConfigVarFromFilesystem(path: String, name: String): Option[String] = {
+  protected def readConfigVarFromFilesystem(path: String, name: String): Option[String] = {
     val file = Paths.get(path)
     if (Files.exists(file)) {
       try {
