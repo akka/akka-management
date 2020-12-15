@@ -1,3 +1,5 @@
+#!/bin/bash -e
+
 eval $(minikube -p minikube docker-env)
 sbt $PROJECT_NAME/docker:publishLocal
 
