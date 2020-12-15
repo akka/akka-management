@@ -52,30 +52,9 @@ Kubernetes:
 kubectl apply -f lease.yml
 ```
 
-OpenShift
-
-```
-oc apply -f lease.yml
-```
-
 Where lease.yml contains:
 
-```yaml
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: leases.akka.io
-spec:
-  group: akka.io
-  version: v1
-  scope: Namespaced
-  names:
-    plural: leases
-    singular: lease
-    kind: Lease
-    shortNames:
-    - le
-```
+@@snip[lease.yaml](/lease-kubernetes/lease.yml)
 
 #### Role based access control
 
@@ -121,12 +100,6 @@ Kubernetes:
 kubelctl create -f sbr-lease.yml -n <YOUR_NAMESPACE>
 ```
 
-OpenShift (from your project):
-
-```
-oc create -f sbr-lease.yml
-```
-
 Where `sbr-lease.yml` contains:
 
 ```yml
@@ -138,6 +111,12 @@ spec:
   owner: ""
   time: 0
 
+```
+
+To get the current leases the fully qualified name must be uses as Kubernetes has since added a Lease type.
+
+```
+kubectl get leases.akka.io
 ```
 
 #### Enable in SBR
