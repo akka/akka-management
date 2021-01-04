@@ -4,9 +4,9 @@
 
 package akka.management.cluster.scaladsl
 import akka.actor.AddressFromURIString
-import akka.cluster.sharding.{ClusterSharding, ShardRegion}
-import akka.cluster.{Cluster, Member, MemberStatus}
-import akka.http.scaladsl.model.{HttpMethod, HttpMethods, StatusCodes, Uri}
+import akka.cluster.sharding.{ ClusterSharding, ShardRegion }
+import akka.cluster.{ Cluster, Member, MemberStatus }
+import akka.http.scaladsl.model.{ HttpMethod, HttpMethods, StatusCodes, Uri }
 import Uri.Path
 import akka.http.scaladsl.server.Route
 import akka.management.cluster._
@@ -247,27 +247,27 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
    * [[akka.cluster.Cluster]] instance. This version does not provide Basic Authentication.
    */
   def apply(cluster: Cluster): Route =
-      pathPrefix("cluster") {
-        concat(
-          pathEndOrSingleSlash {
-            routePutCluster(cluster)
-          },
-          pathPrefix("members") {
-            concat(
-              pathEndOrSingleSlash {
-                routeGetMembers(cluster) ~ routePostMembers(cluster)
-              },
-              routeFindMember(cluster, readOnly = false)
-            )
-          },
-          pathPrefix"domain-events") {
-            routeGetClusterDomainEvents(cluster)
-          },
-          pathPrefix("shards" / Remaining) { shardRegionName =>
-            routeGetShardInfo(cluster, shardRegionName)
-          }
-        )
-      }
+    pathPrefix("cluster") {
+      concat(
+        pathEndOrSingleSlash {
+          routePutCluster(cluster)
+        },
+        pathPrefix("members") {
+          concat(
+            pathEndOrSingleSlash {
+              routeGetMembers(cluster) ~ routePostMembers(cluster)
+            },
+            routeFindMember(cluster, readOnly = false)
+          )
+        },
+        pathPrefix"domain-events") {
+          routeGetClusterDomainEvents(cluster)
+        },
+        pathPrefix("shards" / Remaining) { shardRegionName =>
+          routeGetShardInfo(cluster, shardRegionName)
+        }
+      )
+    }
 
   private def routePutCluster(cluster: Cluster): Route = {
     put {
@@ -287,8 +287,6 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       }
     }
   }
-
->>>>>>> Endpoint for cluster shutdown
 
   /**
    * Creates an instance of [[ClusterHttpManagementRoutes]] with only the read only routes.

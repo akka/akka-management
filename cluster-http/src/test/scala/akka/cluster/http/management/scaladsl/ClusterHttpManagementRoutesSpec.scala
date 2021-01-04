@@ -51,7 +51,8 @@ class ClusterHttpManagementRoutesSpec
     "prepare cluster for shutdown" when {
       "calling PUT on /cluster/ in an unsupported akka version" in {
         val mockedCluster = mock(classOf[Cluster])
-        Put("/cluster/", FormData("operation" -> "prepare-for-full-shutdown")) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+        Put("/cluster/", FormData("operation" -> "prepare-for-full-shutdown")) ~> ClusterHttpManagementRoutes(
+          mockedCluster) ~> check {
           // at least makes sure the path matching works
           status shouldEqual StatusCodes.BadRequest
         }
