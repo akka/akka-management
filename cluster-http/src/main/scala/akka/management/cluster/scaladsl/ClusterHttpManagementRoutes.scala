@@ -274,6 +274,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       formField('operation) { operation =>
         if (operation.toLowerCase == "prepare-for-full-shutdown") {
           try {
+            // FIXME once we move to Akka 2.6 https://github.com/akka/akka-management/issues/830
             val m = cluster.getClass.getMethod("prepareForFullClusterShutdown")
             m.invoke(cluster)
             complete(ClusterHttpManagementMessage(s"Preparing for full cluster shutdown"))
