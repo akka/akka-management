@@ -28,20 +28,20 @@ final case class ShardRegionInfo(shardId: String, numEntities: Int)
 final case class ShardDetails(regions: immutable.Seq[ShardRegionInfo])
 
 /** INTERNAL API */
-@InternalApi private[akka] sealed trait ClusterHttpManagementOperation
+@InternalApi private[akka] sealed trait ClusterHttpManagementMemberOperation
 
 /** INTERNAL API */
-@InternalApi private[akka] case object Down extends ClusterHttpManagementOperation
+@InternalApi private[akka] case object Down extends ClusterHttpManagementMemberOperation
 
 /** INTERNAL API */
-@InternalApi private[akka] case object Leave extends ClusterHttpManagementOperation
+@InternalApi private[akka] case object Leave extends ClusterHttpManagementMemberOperation
 
 /** INTERNAL API */
-@InternalApi private[akka] case object Join extends ClusterHttpManagementOperation
+@InternalApi private[akka] case object Join extends ClusterHttpManagementMemberOperation
 
 /** INTERNAL API */
-@InternalApi private[akka] object ClusterHttpManagementOperation {
-  def fromString(value: String): Option[ClusterHttpManagementOperation] =
+@InternalApi private[akka] object ClusterHttpManagementMemberOperation {
+  def fromString(value: String): Option[ClusterHttpManagementMemberOperation] =
     Vector(Down, Leave, Join).find(_.toString.equalsIgnoreCase(value))
 }
 

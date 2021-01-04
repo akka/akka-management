@@ -48,6 +48,16 @@ class ClusterHttpManagementRoutesSpec
     with ScalaFutures {
 
   "Http Cluster Management Routes" should {
+    "prepare cluster for shutdown" when {
+      "calling PUT on /cluster/ in an unsupported akka version" in {
+        val mockedCluster = mock(classOf[Cluster])
+        Put("/cluster/", FormData("operation" -> "prepare-for-full-shutdown")) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+          // at least makes sure the path matching works
+          status shouldEqual StatusCodes.BadRequest
+        }
+      }
+    }
+
     "return list of members with cluster leader and oldest" when {
       "calling GET /cluster/members" in {
         val dcName = "one"
