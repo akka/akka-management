@@ -7,7 +7,6 @@ package akka.cluster.http.management.scaladsl
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
 import scala.collection.immutable._
-
 import akka.actor.Actor
 import akka.actor.ActorSystem
 import akka.actor.Address
@@ -29,7 +28,8 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.cluster._
 import akka.management.cluster.scaladsl.ClusterHttpManagementRoutes
 import akka.management.scaladsl.ManagementRouteProviderSettings
-import akka.util.Timeout
+import akka.stream.scaladsl.Sink
+import akka.util.{ ByteString, Timeout }
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -37,6 +37,8 @@ import org.scalatest.concurrent.PatienceConfiguration.{ Timeout => ScalatestTime
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
+
+import scala.concurrent.Promise
 
 class ClusterHttpManagementRoutesSpec
     extends AnyWordSpecLike
@@ -386,6 +388,69 @@ class ClusterHttpManagementRoutesSpec
           .futureValue
         responseInvalidGetShardDetails.status shouldEqual StatusCodes.NotFound
         responseInvalidGetShardDetails.entity.getContentType shouldEqual ContentTypes.`application/json`
+
+        binding.unbind().futureValue
+        system.terminate()
+      }
+    }
+
+    "return cluster domain events" when {
+
+      "calling GET /cluster/domain-events" in {
+
+        import scala.concurrent.duration._
+
+        val config = ConfigFactory.parseString(
+          """
+            |akka.cluster {
+            |  auto-down-unreachable-after = 0s
+            |  periodic-tasks-initial-delay = 120 seconds // turn off scheduled tasks
+            |  publish-stats-interval = 0 s # always, when it happens
+            |  failure-detector.implementation-class = akka.cluster.FailureDetectorPuppet
+            |}
+            |akka.actor.provider = "cluster"
+            |akka.remote.log-remote-lifecycle-events = off
+            |akka.remote.netty.tcp.port = 0
+            |akka.remote.artery.canonical.port = 0
+           """.stripMargin
+        )
+        val configClusterHttpManager = ConfigFactory.parseString(
+          """
+            |akka.management.http.hostname = "127.0.0.1"
+            |akka.management.http.port = 20100
+          """.stripMargin
+        )
+
+        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager))
+        val cluster = Cluster(system)
+        val selfAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
+        cluster.join(selfAddress)
+        cluster.clusterCore ! LeaderActionsTick
+
+        implicit val t = ScalatestTimeout(5.seconds)
+
+        val done = Promise[Unit]
+        cluster.registerOnMemberUp { done.success(()) }
+        val _ = done.future.futureValue
+
+        val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
+        val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
+        val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue
+
+        val responseGetDomainEvents =
+          Http()
+            .singleRequest(HttpRequest(uri = s"http://127.0.0.1:20100/cluster/domain-events?type=MemberUp"))
+            .futureValue(t)
+        responseGetDomainEvents.status shouldEqual StatusCodes.OK
+        val responseGetDomainEventsData = responseGetDomainEvents.entity.dataBytes
+          .takeWithin(100.millis)
+          .fold(ByteString.empty)(_ ++ _)
+          .runWith(Sink.head)
+          .futureValue
+          .utf8String
+          .trim
+
+        responseGetDomainEventsData should include("event:MemberUp")
 
         binding.unbind().futureValue
         system.terminate()

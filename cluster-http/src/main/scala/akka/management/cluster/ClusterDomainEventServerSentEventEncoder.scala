@@ -61,12 +61,12 @@ object ClusterDomainEventServerSentEventEncoder extends SprayJsonSupport with De
         roleLeaderChanged.leader match {
           case Some(address) =>
             sse(
-              "LeaderChanged",
+              "RoleLeaderChanged",
               JsObject("role" -> JsString(roleLeaderChanged.role), "address" -> encode(address))
             )
 
           case None =>
-            sse("LeaderChanged", JsObject("role" -> JsString(roleLeaderChanged.role)))
+            sse("RoleLeaderChanged", JsObject("role" -> JsString(roleLeaderChanged.role)))
         }
 
       case ClusterEvent.ClusterShuttingDown =>

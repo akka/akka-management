@@ -113,7 +113,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
     }
   }
 
-  private def routeGetClusterMembershipEvents(cluster: Cluster) = {
+  private def routeGetClusterDomainEvents(cluster: Cluster) = {
     import akka.actor.ActorRef
     import akka.cluster.ClusterEvent
     import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling._
@@ -122,57 +122,94 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
     import akka.stream.scaladsl.Source
     import scala.concurrent.{ ExecutionContext, Promise }
 
+    val eventClasses: Map[String, Class[_]] = Map(
+      "ClusterDomainEvent" -> classOf[ClusterEvent.ClusterDomainEvent],
+      "MemberEvent" -> classOf[ClusterEvent.MemberEvent],
+      "MemberJoined" -> classOf[ClusterEvent.MemberJoined],
+      "MemberWeaklyUp" -> classOf[ClusterEvent.MemberWeaklyUp],
+      "MemberUp" -> classOf[ClusterEvent.MemberUp],
+      "MemberLeft" -> classOf[ClusterEvent.MemberLeft],
+      "MemberExited" -> classOf[ClusterEvent.MemberExited],
+      "MemberDowned" -> classOf[ClusterEvent.MemberDowned],
+      "MemberRemoved" -> classOf[ClusterEvent.MemberRemoved],
+      "LeaderChanged" -> classOf[ClusterEvent.LeaderChanged],
+      "RoleLeaderChanged" -> classOf[ClusterEvent.RoleLeaderChanged],
+      "ClusterShuttingDown" -> ClusterEvent.ClusterShuttingDown.getClass,
+      "ReachabilityEvent" -> classOf[ClusterEvent.ReachabilityEvent],
+      "UnreachableMember" -> classOf[ClusterEvent.UnreachableMember],
+      "ReachableMember" -> classOf[ClusterEvent.ReachableMember],
+      "DataCenterReachabilityEvent" -> classOf[ClusterEvent.DataCenterReachabilityEvent],
+      "UnreachableDataCenter" -> classOf[ClusterEvent.UnreachableDataCenter],
+      "ReachableDataCenter" -> classOf[ClusterEvent.ReachableDataCenter]
+    )
+
     extractMaterializer { implicit mat: Materializer =>
       implicit val ec: ExecutionContext = mat.executionContext
 
       get {
-        val eventualActorRef = Promise[Option[ActorRef]]
-
-        val clusterEvents = Source
-          .actorRef[ClusterEvent.ClusterDomainEvent](
-            completionMatcher = PartialFunction.empty,
-            failureMatcher = PartialFunction.empty,
-            bufferSize = 128, // @TODO cfg
-            overflowStrategy = OverflowStrategy.fail
-          )
-          .map(ClusterDomainEventServerSentEventEncoder.encode)
-          .collect {
-            case Some(serverSentEvent) => serverSentEvent
-          }
-          .keepAlive(10.seconds, () => ServerSentEvent.heartbeat)
-          .mapMaterializedValue { actorRef =>
-            eventualActorRef.success(Some(actorRef))
-            ()
-          }
-          .watchTermination() {
-            case (_, eventualDone) =>
-              eventualDone.onComplete { _ =>
-                // the stream has terminated, so complete the promise if it isn't already, and
-                // then unsubscribe if previously subscribed
-
-                val _ = eventualActorRef.trySuccess(None)
-
-                eventualActorRef.future.foreach {
-                  case Some(actorRef) =>
-                    cluster.unsubscribe(actorRef)
-
-                  case None =>
-                }
+        parameter("type".as[String].*) { providedEventTypes =>
+          val classes =
+            if (providedEventTypes.nonEmpty)
+              providedEventTypes.foldLeft(List.empty[Class[_]]) {
+                case (accum, eventType) =>
+                  eventClasses.get(eventType).toList ::: accum
               }
+            else
+              List(classOf[ClusterEvent.ClusterDomainEvent])
+
+          val eventualActorRef = Promise[Option[ActorRef]]
+
+          val clusterEvents = Source
+            .actorRef[ClusterEvent.ClusterDomainEvent](
+              completionMatcher = PartialFunction.empty,
+              failureMatcher = PartialFunction.empty,
+              bufferSize = 128,
+              overflowStrategy = OverflowStrategy.fail
+            )
+            .map(ClusterDomainEventServerSentEventEncoder.encode)
+            .collect {
+              case Some(serverSentEvent) => serverSentEvent
+            }
+            .keepAlive(10.seconds, () => ServerSentEvent.heartbeat)
+            .mapMaterializedValue { actorRef =>
+              eventualActorRef.success(Some(actorRef))
+              ()
+            }
+            .watchTermination() {
+              case (_, eventualDone) =>
+                eventualDone.onComplete { _ =>
+                  // the stream has terminated, so complete the promise if it isn't already, and
+                  // then unsubscribe if previously subscribed
+
+                  val _ = eventualActorRef.trySuccess(None)
+
+                  eventualActorRef.future.foreach {
+                    case Some(actorRef) =>
+                      if (classes.nonEmpty) {
+                        cluster.unsubscribe(actorRef)
+                      }
+
+                    case None =>
+                  }
+                }
+            }
+
+          eventualActorRef.future.foreach {
+            case Some(actorRef) =>
+              if (classes.nonEmpty) {
+                cluster.subscribe(
+                  actorRef,
+                  initialStateMode = ClusterEvent.InitialStateAsEvents,
+                  classes: _*
+                )
+              }
+
+            case None =>
           }
 
-        eventualActorRef.future.foreach {
-          case Some(actorRef) =>
-            cluster.subscribe(
-              actorRef,
-              initialStateMode = ClusterEvent.InitialStateAsEvents,
-              classOf[ClusterEvent.ClusterDomainEvent]
-            )
-
-          case None =>
+          complete(clusterEvents)
         }
 
-        complete(clusterEvents)
       }
     }
 
@@ -218,8 +255,8 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
           routeFindMember(cluster, readOnly = false)
         )
       },
-      pathPrefix("cluster" / "membership-events") {
-        routeGetClusterMembershipEvents(cluster)
+      pathPrefix("cluster" / "domain-events") {
+        routeGetClusterDomainEvents(cluster)
       },
       pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
         routeGetShardInfo(cluster, shardRegionName)
@@ -237,8 +274,8 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
           routeGetMembers(cluster)
         }, routeFindMember(cluster, readOnly = true))
       },
-      pathPrefix("cluster" / "membership-events") {
-        routeGetClusterMembershipEvents(cluster)
+      pathPrefix("cluster" / "domain-events") {
+        routeGetClusterDomainEvents(cluster)
       },
       pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
         routeGetShardInfo(cluster, shardRegionName)
