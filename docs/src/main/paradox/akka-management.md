@@ -52,7 +52,7 @@ Java
 This allows users to prepare anything further before exposing routes for 
 the bootstrap joining process and other purposes.
 
-Remember to call `stop` method preferably in @extref:[Coordinated Shutdown](akka:actors.html#coordinated-shutdown).
+Remember to call `stop` method preferably in @extref:[Coordinated Shutdown](akka:coordinated-shutdown.html).
 See [the Lagom example](https://github.com/lagom/lagom/blob/50ecfbf2e0d51fe24fdf6ad71157e1dff97106b9/akka-management/core/src/main/scala/com/lightbend/lagom/internal/akka/management/AkkaManagementTrigger.scala#L73).
 
 
