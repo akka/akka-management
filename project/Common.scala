@@ -9,6 +9,8 @@ object Common extends AutoPlugin {
   override def trigger = allRequirements
   override def requires = plugins.JvmPlugin && HeaderPlugin
 
+  val currentYear = "2021"
+
   override lazy val projectSettings =
     Seq(
       organization := "com.lightbend.akka.management",
@@ -27,7 +29,7 @@ object Common extends AutoPlugin {
         ),
       licenses := Seq(("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0"))),
       description := "Akka Management is a suite of tools for operating Akka Clusters.",
-      headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2017-2020 Lightbend Inc. <https://www.lightbend.com>")),
+      headerLicense := Some(HeaderLicense.Custom(s"Copyright (C) 2017-$currentYear Lightbend Inc. <https://www.lightbend.com>")),
       crossScalaVersions := Dependencies.CrossScalaVersions,
       projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
       crossVersion := CrossVersion.binary,
