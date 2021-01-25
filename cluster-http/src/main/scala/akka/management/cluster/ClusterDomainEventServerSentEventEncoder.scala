@@ -46,6 +46,9 @@ object ClusterDomainEventServerSentEventEncoder extends SprayJsonSupport with De
 
           case ClusterEvent.MemberRemoved(member, previousStatus) =>
             sse("MemberRemoved", JsObject("member" -> encode(member), "previousStatus" -> encode(previousStatus)))
+
+          case _ =>
+            None
         }
 
       case leaderChanged: ClusterEvent.LeaderChanged =>
@@ -90,8 +93,8 @@ object ClusterDomainEventServerSentEventEncoder extends SprayJsonSupport with De
         }
 
       case _ =>
-        // @TODO these are either internal, or added but forgot to update this module
-        // @TODO how should we handle them? maybe leave this as FIXME for now?
+        // these are either internal events we don't want to expose, or new events
+        // that this code is unaware of. either way, let's ignore them
 
         None
     }
@@ -113,6 +116,7 @@ object ClusterDomainEventServerSentEventEncoder extends SprayJsonSupport with De
       case MemberStatus.Exiting  => "Exiting"
       case MemberStatus.Down     => "Down"
       case MemberStatus.Removed  => "Removed"
+      case other                 => other.toString
     }
   )
 
