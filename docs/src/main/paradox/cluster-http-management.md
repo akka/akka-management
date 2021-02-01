@@ -60,6 +60,7 @@ are only enabled if `akka.management.http.route-providers-read-only` is set to `
 
 | Path                         | HTTP method | Required form fields | Description
 | ---------------------------- | ----------- | -------------------- | -----------
+| `/cluster/domain-events`     | GET         | None                 | Returns cluster domain events as they occur, in JSON-encoded SSE format.
 | `/cluster/members/`          | GET         | None                 | Returns the status of the Cluster in JSON format.
 | `/cluster/members/`          | POST        | address: `{address}` | Executes join operation in cluster for the provided `{address}`.
 | `/cluster/members/{address}` | GET         | None                 | Returns the status of `{address}` in the Cluster in JSON format.
@@ -71,6 +72,59 @@ are only enabled if `akka.management.http.route-providers-read-only` is set to `
 The expected format of `address` follows the Cluster URI convention. Example: `akka://Main@myhostname.com:3311`
 
 In the paths `address` is also allowed to be provided without the protocol prefix. Example: `Main@myhostname.com:3311`
+
+### Get /cluster/domain-events request query parameters
+
+| Query Parameter | Description
+| --------------- | -----------
+| type            | Optional. Specify event type(s) to include in response (see table). If not specified, all event types are included.
+
+| Event Type                  | Description
+| --------------------------- | -----------
+| ClusterDomainEvent          | cluster domain event (parent)
+| MemberEvent                 | membership event (parent)
+| MemberJoined                | membership event - joined
+| MemberWeaklyUp              | membership event - transitioned to WeaklyUp
+| MemberUp                    | membership event - transitioned to Up
+| MemberLeft                  | membership event - left
+| MemberExited                | membership event - exited
+| MemberDowned                | membership event - downed
+| MemberRemoved               | membership event - removed
+| LeaderChanged               | cluster's leader has changed
+| RoleLeaderChanged           | cluster's role leader has changed
+| ClusterShuttingDown         | cluster is shutting down
+| ReachabilityEvent           | reachability event (parent)
+| UnreachableMember           | reachability event - member now unreachable
+| ReachableMember             | reachability event - member now reachable
+| DataCenterReachabilityEvent | DC reachability event (parent)
+| UnreachableDataCenter       | DC reachability event - DC now unreachable
+| ReachableDataCenter         | DC reachability event - DC now reachable
+
+Example request:
+
+    GET /cluster/domain-events?type=MemberUp&type=LeaderChanged HTTP/1.1
+    Host: 192.168.1.23:8558
+
+Example response:
+
+    HTTP/1.1 200 OK
+    Server: akka-http/10.2.2
+    Date: Mon, 11 Jan 2021 21:02:37 GMT
+    Transfer-Encoding: chunked
+    Content-Type: text/event-stream
+
+    data:{"member":{"dataCenter":"default","roles":["dc-default"],"status":"Up","uniqueAddress":{"address":"akka://default@127.0.0.1:2551","longUid":-2440990093160003086}},"type":"MemberUp"}
+    event:MemberUp
+
+    data:{"address":"akka://default@127.0.0.1:2551","type":"LeaderChanged"}
+    event:LeaderChanged
+
+### Get /cluster/domain-events responses
+
+| Response code | Description
+| ------------- | -----------
+| 200           | Cluster events in Server-Sent-Event format (JSON)
+| 500           | Something went wrong.
 
 ### Get /cluster/members responses
 
