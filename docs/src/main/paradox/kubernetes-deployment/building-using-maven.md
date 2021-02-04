@@ -60,8 +60,13 @@ The version number will only change when you create a new git commit. If you are
                         <tag>${version.number}</tag>
                     </tags>
                     <entryPoint>
-                       java $JAVA_OPTS -cp '/maven/*' akka.cluster.bootstrap.demo.DemoApp
-                    </entryPoint> 
+                        <exec>
+                            <arg>java</arg>
+                            <arg>-cp</arg>
+                            <arg>/maven/*</arg>
+                            <arg>akka.cluster.bootstrap.demo.DemoApp</arg>
+                        </exec>
+                    </entryPoint>
                     <assembly>
                         <descriptorRef>artifact-with-dependencies</descriptorRef>
                     </assembly>
