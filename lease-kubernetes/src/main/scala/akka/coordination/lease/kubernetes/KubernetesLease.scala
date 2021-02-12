@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2017-2020 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2017-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.coordination.lease.kubernetes
 
-import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
-
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import akka.actor.ExtendedActorSystem
-import akka.coordination.lease.{ LeaseException, LeaseSettings, LeaseTimeoutException }
+import akka.coordination.lease.{LeaseException, LeaseSettings, LeaseTimeoutException}
 import akka.coordination.lease.scaladsl.Lease
 import akka.coordination.lease.kubernetes.LeaseActor._
 import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.dispatch.ExecutionContexts
 import akka.pattern.AskTimeoutException
-import akka.util.{ ConstantFun, Timeout }
+import akka.util.{ConstantFun, Timeout}
+import com.sun.org.slf4j.internal.LoggerFactory
 
 import scala.concurrent.Future
 
@@ -25,12 +25,15 @@ object KubernetesLease {
 class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: AtomicBoolean, settings: LeaseSettings)
     extends Lease(settings) {
 
+  private val logger = LoggerFactory.getLogger(classOf[KubernetesLease])
+
   private val k8sSettings = KubernetesSettings(settings.leaseConfig, settings.timeoutSettings)
   private val k8sApi = new KubernetesApiImpl(system, k8sSettings)
   private val leaseActor = system.systemActorOf(
     LeaseActor.props(k8sApi, settings, leaseTaken),
-    s"kubernetesLease${KubernetesLease.leaseCounter.incrementAndGet}-${settings.leaseName}-${settings.ownerName}"
+    s"kubernetesLease${KubernetesLease.leaseCounter.incrementAndGet}"
   )
+  logger.debug("Starting kubernetes lease actor [{}] for lease [{}], owner [{}]", leaseActor, settings.leaseName, settings.ownerName)
 
   def this(leaseSettings: LeaseSettings, system: ExtendedActorSystem) =
     this(system, new AtomicBoolean(false), leaseSettings)
