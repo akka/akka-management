@@ -13,7 +13,7 @@ import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.dispatch.ExecutionContexts
 import akka.pattern.AskTimeoutException
 import akka.util.{ConstantFun, Timeout}
-import com.sun.org.slf4j.internal.LoggerFactory
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
 
@@ -25,23 +25,23 @@ object KubernetesLease {
 class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: AtomicBoolean, settings: LeaseSettings)
     extends Lease(settings) {
 
+  import akka.pattern.ask
+  import system.dispatcher
+
   private val logger = LoggerFactory.getLogger(classOf[KubernetesLease])
 
   private val k8sSettings = KubernetesSettings(settings.leaseConfig, settings.timeoutSettings)
   private val k8sApi = new KubernetesApiImpl(system, k8sSettings)
+  private implicit val timeout: Timeout = Timeout(settings.timeoutSettings.operationTimeout)
+
+  def this(leaseSettings: LeaseSettings, system: ExtendedActorSystem) =
+    this(system, new AtomicBoolean(false), leaseSettings)
+
   private val leaseActor = system.systemActorOf(
     LeaseActor.props(k8sApi, settings, leaseTaken),
     s"kubernetesLease${KubernetesLease.leaseCounter.incrementAndGet}"
   )
   logger.debug("Starting kubernetes lease actor [{}] for lease [{}], owner [{}]", leaseActor, settings.leaseName, settings.ownerName)
-
-  def this(leaseSettings: LeaseSettings, system: ExtendedActorSystem) =
-    this(system, new AtomicBoolean(false), leaseSettings)
-
-  import akka.pattern.ask
-  import system.dispatcher
-
-  private implicit val timeout: Timeout = Timeout(settings.timeoutSettings.operationTimeout)
 
   override def checkLease(): Boolean = leaseTaken.get()
 

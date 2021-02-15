@@ -142,6 +142,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-coordination" % AkkaVersion,
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+    "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "com.github.tomakehurst" % "wiremock-jre8" % "2.27.2" % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % "it,test",
