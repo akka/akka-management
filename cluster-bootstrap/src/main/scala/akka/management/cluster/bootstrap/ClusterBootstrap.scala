@@ -29,6 +29,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.concurrent.TimeoutException
+import scala.util.control.NonFatal
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
@@ -84,7 +85,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
         AkkaManagement(system).start().failed.foreach(autostartFailed)
         ClusterBootstrap(system).start()
       } catch {
-        case ex: Throwable => autostartFailed(ex)
+        case NonFatal(ex)=> autostartFailed(ex)
       }
     }
   }
