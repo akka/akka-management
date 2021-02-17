@@ -6,6 +6,7 @@ package akka.coordination.lease.kubernetes
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import akka.actor.ExtendedActorSystem
+import akka.coordination.lease.kubernetes.KubernetesLease.makeDNS1039Compatible
 import akka.coordination.lease.{LeaseException, LeaseSettings, LeaseTimeoutException}
 import akka.coordination.lease.scaladsl.Lease
 import akka.coordination.lease.kubernetes.LeaseActor._
@@ -15,11 +16,35 @@ import akka.pattern.AskTimeoutException
 import akka.util.{ConstantFun, Timeout}
 import org.slf4j.LoggerFactory
 
+import java.text.Normalizer
 import scala.concurrent.Future
 
 object KubernetesLease {
   val configPath = "akka.coordination.lease.kubernetes"
   private val leaseCounter = new AtomicInteger(1)
+
+  /**
+   * Limit the length of a name to 63 characters.
+   * Some subsystem of Kubernetes cannot manage longer names.
+   */
+  private def truncateTo63Characters(name: String): String = name.take(63)
+
+  /**
+   * Removes from the leading and trailing positions the specified characters.
+   */
+  private def trim(name: String, characters: List[Char]): String =
+    name.dropWhile(characters.contains(_)).reverse.dropWhile(characters.contains(_)).reverse
+
+  /**
+   * Make a name compatible with DNS 1039 standard: like a single domain name segment.
+   * Regex to follow: [a-z]([-a-z0-9]*[a-z0-9])
+   * Limit the resulting name to 63 characters
+   */
+  private def makeDNS1039Compatible(name: String): String = {
+    val normalized =
+      Normalizer.normalize(name, Normalizer.Form.NFKD).toLowerCase.replaceAll("[_.]", "-").replaceAll("[^-a-z0-9]", "")
+    trim(truncateTo63Characters(normalized), List('-'))
+  }
 }
 
 class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: AtomicBoolean, settings: LeaseSettings)
@@ -37,11 +62,16 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
   def this(leaseSettings: LeaseSettings, system: ExtendedActorSystem) =
     this(system, new AtomicBoolean(false), leaseSettings)
 
+  private val leaseName = makeDNS1039Compatible(settings.leaseName)
   private val leaseActor = system.systemActorOf(
-    LeaseActor.props(k8sApi, settings, leaseTaken),
+    LeaseActor.props(k8sApi, settings, leaseName, leaseTaken),
     s"kubernetesLease${KubernetesLease.leaseCounter.incrementAndGet}"
   )
-  logger.debug("Starting kubernetes lease actor [{}] for lease [{}], owner [{}]", leaseActor, settings.leaseName, settings.ownerName)
+  if (leaseName != settings.leaseName) {
+    logger.info("Original lease name [{}] sanitized for kubernetes: [{}]")
+  }
+  logger.debug("Starting kubernetes lease actor [{}] for lease [{}], owner [{}]", leaseActor, leaseName, settings.ownerName)
+
 
   override def checkLease(): Boolean = leaseTaken.get()
 
@@ -55,7 +85,7 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
       .recoverWith {
         case _: AskTimeoutException =>
           Future.failed(new LeaseTimeoutException(
-            s"Timed out trying to release lease [${settings.leaseName}, ${settings.ownerName}]. It may still be taken."))
+            s"Timed out trying to release lease [${leaseName}, ${settings.ownerName}]. It may still be taken."))
       }
   }
 
@@ -74,7 +104,7 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
       .recoverWith {
         case _: AskTimeoutException =>
           Future.failed[Boolean](new LeaseTimeoutException(
-            s"Timed out trying to acquire lease [${settings.leaseName}, ${settings.ownerName}]. It may still be taken."))
+            s"Timed out trying to acquire lease [${leaseName}, ${settings.ownerName}]. It may still be taken."))
       }(ExecutionContexts.sameThreadExecutionContext)
   }
 }
