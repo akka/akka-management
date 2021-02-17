@@ -78,7 +78,11 @@ private[akka] object LeaseActor {
  * INTERNAL API
  */
 @InternalApi
-private[akka] class LeaseActor(k8sApi: KubernetesApi, settings: LeaseSettings, leaseName: String, granted: AtomicBoolean)
+private[akka] class LeaseActor(
+    k8sApi: KubernetesApi,
+    settings: LeaseSettings,
+    leaseName: String,
+    granted: AtomicBoolean)
     extends LoggingFSM[State, Data] {
 
   import akka.pattern.pipe
