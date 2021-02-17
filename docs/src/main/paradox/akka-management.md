@@ -210,4 +210,5 @@ As a best practice, Management extensions that do something proactively should n
 started automatically, but rather manually by the user. One example of that is Cluster Bootstrap.
 It contributes routes to Akka Management, but the bootstrapping process does not start unless
 `ClusterBootstrap().start()` is invoked. Thus, the user can decide when exactly
-the application is ready to start joining an existing cluster.
+the application is ready to start joining an existing cluster. When cluster bootstrap is autostarted through configuration
+there is no control over this and the extension is started with the actor system.

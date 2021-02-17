@@ -80,7 +80,19 @@ a later version than $akka.version$ can be used.
 
 ## Using
 
-Akka management must be started as well as the bootstrap process:
+Akka management must be started as well as the bootstrap process, this can either be done through config or programmatically.
+
+**Through config**
+
+Listing the `ClusterBootstrap` extension among the autoloaded `akka.extensions` in `application.conf` will also cause it to autostart:
+
+```
+akka.extensions = ["akka.management.cluster.bootstrap.ClusterBootstrap"]
+```
+
+If management or bootstrap configuration is incorrect, the autostart will log an error and terminate the actor system.
+
+**Programmatically**
 
 Scala
 :  @@snip [CompileOnly.scala](/cluster-bootstrap/src/test/scala/doc/akka/management/cluster/bootstrap/ClusterBootstrapCompileOnly.scala) { #start }
@@ -88,8 +100,10 @@ Scala
 Java
 :  @@snip [CompileOnly.java](/cluster-bootstrap/src/test/java/jdoc/akka/management/cluster/bootstrap/ClusterBootstrapCompileOnly.java) { #start }
 
+`AkkaManagment().start()` will return a @Scala[`Future`]@Java[`CompletionStage`] that will fail if management cannot be started. It is 
+a good idea to act on such a failure, for example by logging an error and terminating the actor system.
 
-Ensure that `seed-nodes` is not present in configuration and that `start()` is called on every node.
+Ensure that `seed-nodes` is not present in configuration and that either autoloading through config or `start()` is called on every node.
 
 The following configuration is required, more details for each and additional configuration can be found in [reference.conf](https://github.com/akka/akka-management/blob/master/cluster-bootstrap/src/main/resources/reference.conf):
 
@@ -120,7 +134,7 @@ As Akka Cluster allows nodes to join to a cluster using multiple different metho
 is strictly defined and is as follows:
 
 - If `akka.cluster.seed-nodes` (in your `application.conf`) are non-empty, those nodes will be joined, and bootstrap
-  will NOT execute even if `start()` is called, however a warning will be logged.
+  will NOT execute even if `start()` is called or autostart through configuration is enabled, however a warning will be logged.
 - If an explicit `cluster.join` or `cluster.joinSeedNodes` is invoked before the bootstrap completes, that
   joining would take precedence over the bootstrap (but it's not recommended to do so, see below).
 - The Cluster Bootstrap mechanism takes some time to complete, but eventually issues a `joinSeednodes`.
