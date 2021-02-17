@@ -4,11 +4,7 @@
 
 package akka.management.cluster.bootstrap
 
-import java.util.concurrent.atomic.AtomicReference
 import akka.AkkaVersion
-
-import scala.concurrent.{Future, Promise, TimeoutException}
-import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
 import akka.actor.ExtendedActorSystem
@@ -17,15 +13,22 @@ import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
-import akka.discovery.{Discovery, ServiceDiscovery}
+import akka.discovery.Discovery
+import akka.discovery.ServiceDiscovery
 import akka.event.Logging
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
 import akka.management.cluster.bootstrap.contactpoint.HttpClusterBootstrapRoutes
 import akka.management.cluster.bootstrap.internal.BootstrapCoordinator
 import akka.management.scaladsl.AkkaManagement
-import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.management.scaladsl.ManagementRouteProvider
+import akka.management.scaladsl.ManagementRouteProviderSettings
+
+import java.util.concurrent.atomic.AtomicReference
+import scala.concurrent.duration._
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.concurrent.TimeoutException
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
@@ -65,23 +68,25 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
   private[this] val _selfContactPointUri: Promise[Uri] = Promise()
 
 
-  private val autostart = system.settings.config.getStringList("akka.extensions")
-    .indexOf(classOf[ClusterBootstrap].getName) > -1
+  // autostart if the extension is loaded through the config extension list
+  private val autostart = system.settings.config.getStringList("akka.extensions").contains(classOf[ClusterBootstrap].getName)
 
   if (autostart) {
     log.info("ClusterBootstrap loaded through 'akka.extensions' auto starting management and bootstrap.")
     // Akka Management hosts the HTTP routes used by bootstrap
+    // we can't let it block extension init, so run it in a different thread and let constructor complete
     Future {
-      // we can't let it block extension init
+      def autostartFailed(ex: Throwable): Unit = {
+        log.error(ex, "Failed to autostart cluster bootstrap, terminating system")
+        system.terminate()
+      }
       try {
-        AkkaManagement(system).start()
+        AkkaManagement(system).start().failed.foreach(autostartFailed)
         ClusterBootstrap(system).start()
       } catch {
-        case ex =>
-          log.error("Failed to autostart cluster bootstrap, terminating system", ex)
-          system.terminate()
+        case ex: Throwable => autostartFailed(ex)
       }
-    }(system.dispatcher)
+    }
   }
 
   override def routes(routeProviderSettings: ManagementRouteProviderSettings): Route = {

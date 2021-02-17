@@ -16,6 +16,7 @@ import akka.testkit.TestKit
 import akka.testkit.TestProbe
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
@@ -23,7 +24,7 @@ import java.net.InetAddress
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class ClusterBootstrapAutostartIntegrationSpec extends AnyWordSpecLike with Matchers {
+class ClusterBootstrapAutostartIntegrationSpec extends AnyWordSpecLike with Matchers with ScalaFutures {
   "Cluster Bootstrap" should {
 
     var remotingPorts = Map.empty[String, Int]
@@ -128,6 +129,16 @@ class ClusterBootstrapAutostartIntegrationSpec extends AnyWordSpecLike with Matc
         clusterA.state.members should have size(3)
         clusterA.state.members.count(_.status == MemberStatus.Up) should === (3)
       }, 20.seconds)
+    }
+
+    "terminate a system when autostart fails" in {
+      // failing because we re-use the same port for management here (but not for remoting
+      // as that itself terminates the system on start)
+      val systemA = ActorSystem("System", ConfigFactory.parseString("""
+        akka.remote.netty.tcp.port = 0
+        akka.remote.artery.canonical.port = 0
+      """).withFallback(config("A")))
+      systemA.whenTerminated.futureValue
     }
 
     "terminate all systems" in {
