@@ -24,12 +24,10 @@ spec:
                  type: integer
   scope: Namespaced
   names:
-    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
-    plural: leases
-    # singular name to be used as an alias on the CLI and for display
-    singular: lease
     # kind is normally the CamelCased singular type. Your resource manifests use this.
     kind: Lease
-    # shortNames allow shorter string to match your resource on the CLI
-    shortNames:
-    - le
+    listKind: LeaseList
+    # singular name to be used as an alias on the CLI and for display
+    singular: lease
+    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: leases
