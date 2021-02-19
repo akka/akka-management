@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2020 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2017-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.coordination.lease.kubernetes
@@ -68,8 +68,8 @@ private[akka] object LeaseActor {
   case object LeaseReleased extends Response with DeadLetterSuppression
   case class InvalidRequest(reason: String) extends Response with DeadLetterSuppression
 
-  def props(k8sApi: KubernetesApi, settings: LeaseSettings, granted: AtomicBoolean): Props = {
-    Props(new LeaseActor(k8sApi, settings, granted))
+  def props(k8sApi: KubernetesApi, settings: LeaseSettings, leaseName: String, granted: AtomicBoolean): Props = {
+    Props(new LeaseActor(k8sApi, settings, leaseName, granted))
   }
 
 }
@@ -78,12 +78,17 @@ private[akka] object LeaseActor {
  * INTERNAL API
  */
 @InternalApi
-private[akka] class LeaseActor(k8sApi: KubernetesApi, settings: LeaseSettings, granted: AtomicBoolean)
+private[akka] class LeaseActor(
+    k8sApi: KubernetesApi,
+    settings: LeaseSettings,
+    leaseName: String,
+    granted: AtomicBoolean)
     extends LoggingFSM[State, Data] {
 
   import akka.pattern.pipe
-  import settings._
   import context.dispatcher
+
+  private val ownerName = settings.ownerName
 
   startWith(Idle, ReadRequired)
 

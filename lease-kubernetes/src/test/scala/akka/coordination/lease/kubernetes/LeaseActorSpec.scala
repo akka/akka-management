@@ -388,7 +388,7 @@ class LeaseActorSpec
     val updateProbe = TestProbe()
     val mockKubernetesApi = new MockKubernetesApi(system, leaseProbe.ref, updateProbe.ref)
     val granted = new AtomicBoolean(false)
-    val underTest = system.actorOf(LeaseActor.props(mockKubernetesApi, leaseSettings, granted))
+    val underTest = system.actorOf(LeaseActor.props(mockKubernetesApi, leaseSettings, leaseSettings.leaseName, granted))
     val senderProbe = TestProbe()
     implicit val sender: ActorRef = senderProbe.ref
 
