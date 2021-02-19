@@ -68,9 +68,9 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
 
   private[this] val _selfContactPointUri: Promise[Uri] = Promise()
 
-
   // autostart if the extension is loaded through the config extension list
-  private val autostart = system.settings.config.getStringList("akka.extensions").contains(classOf[ClusterBootstrap].getName)
+  private val autostart =
+    system.settings.config.getStringList("akka.extensions").contains(classOf[ClusterBootstrap].getName)
 
   if (autostart) {
     log.info("ClusterBootstrap loaded through 'akka.extensions' auto starting management and bootstrap.")
@@ -85,7 +85,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
         AkkaManagement(system).start().failed.foreach(autostartFailed)
         ClusterBootstrap(system).start()
       } catch {
-        case NonFatal(ex)=> autostartFailed(ex)
+        case NonFatal(ex) => autostartFailed(ex)
       }
     }
   }

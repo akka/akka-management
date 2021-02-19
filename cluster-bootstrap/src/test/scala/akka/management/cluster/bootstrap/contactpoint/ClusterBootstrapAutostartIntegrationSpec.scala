@@ -126,18 +126,21 @@ class ClusterBootstrapAutostartIntegrationSpec extends AnyWordSpecLike with Matc
     "join three DNS discovered nodes by forming new cluster (happy path)" in {
       val pA = TestProbe()(systemA)
       pA.awaitAssert({
-        clusterA.state.members should have size(3)
-        clusterA.state.members.count(_.status == MemberStatus.Up) should === (3)
+        clusterA.state.members should have size (3)
+        clusterA.state.members.count(_.status == MemberStatus.Up) should ===(3)
       }, 20.seconds)
     }
 
     "terminate a system when autostart fails" in {
       // failing because we re-use the same port for management here (but not for remoting
       // as that itself terminates the system on start)
-      val systemA = ActorSystem("System", ConfigFactory.parseString("""
+      val systemA = ActorSystem(
+        "System",
+        ConfigFactory.parseString("""
         akka.remote.netty.tcp.port = 0
         akka.remote.artery.canonical.port = 0
-      """).withFallback(config("A")))
+      """).withFallback(config("A"))
+      )
       systemA.whenTerminated.futureValue
     }
 
