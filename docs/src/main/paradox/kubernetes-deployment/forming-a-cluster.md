@@ -34,7 +34,7 @@ Add the following dependencies to your application:
   artifact2=akka-management-cluster-bootstrap_$scala.binary.version$
   version2=AkkaManagementVersion
   group3="com.lightbend.akka.discovery"
-  artifact3="akka-discovery-kubernetes-api_2.12"
+  artifact3="akka-discovery-kubernetes-api_$scala.binary.version$"
   version3=AkkaManagementVersion
 }
 

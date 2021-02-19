@@ -55,7 +55,7 @@ This is a separate JAR file:
   symbol1=AkkaManagementVersion
   value1=$project.version$
   group="com.lightbend.akka.discovery"
-  artifact="akka-discovery-aws-api_2.12"
+  artifact="akka-discovery-aws-api_$scala.binary.version$"
   version=AkkaManagementVersion
 }
 
@@ -169,7 +169,7 @@ preview SDK. The disadvantage is that the mainstream SDK does blocking IO.
   symbol1=AkkaManagementVersion
   value1=$project.version$
   group="com.lightbend.akka.discovery"
-  artifact="akka-discovery-aws-api_2.12"
+  artifact="akka-discovery-aws-api_$scala.binary.version$"
   version=AkkaManagementVersion
 }
 
@@ -201,7 +201,7 @@ Once the async AWS SDK is out of preview it is likely that the
   symbol1=AkkaManagementVersion
   value1=$project.version$
   group="com.lightbend.akka.discovery"
-  artifact="akka-discovery-aws-api-async_2.12"
+  artifact="akka-discovery-aws-api-async_$scala.binary.version$"
   version=AkkaManagementVersion
 }
 
