@@ -6,8 +6,8 @@ object Dependencies {
   val CronBuild = sys.env.get("TRAVIS_EVENT_TYPE").contains("cron")
 
   val Scala211 = "2.11.12"
-  val Scala212 = "2.12.11"
-  val Scala213 = "2.13.3"
+  val Scala212 = "2.12.13"
+  val Scala213 = "2.13.5"
   val CrossScalaVersions =
     if (CronBuild) Seq(Dependencies.Scala212, Dependencies.Scala213)
     else Seq(Dependencies.Scala211, Dependencies.Scala212, Dependencies.Scala213)
