@@ -449,7 +449,7 @@ class ClusterHttpManagementRoutesSpec
             .futureValue(t)
         responseGetDomainEvents.status shouldEqual StatusCodes.OK
         val responseGetDomainEventsData = responseGetDomainEvents.entity.dataBytes
-          .takeWithin(100.millis)
+          .takeWithin(500.millis)
           .fold(ByteString.empty)(_ ++ _)
           .runWith(Sink.head)
           .futureValue
