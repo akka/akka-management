@@ -128,8 +128,7 @@ lazy val `cluster-bootstrap` = project
   .settings(
     name := "akka-management-cluster-bootstrap",
     libraryDependencies := Dependencies.ClusterBootstrap,
-    mimaPreviousArtifactsSet,
-    parallelExecution in GlobalScope := false,
+    mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management`)
 
