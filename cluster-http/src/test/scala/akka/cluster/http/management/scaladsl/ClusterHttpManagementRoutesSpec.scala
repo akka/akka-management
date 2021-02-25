@@ -7,6 +7,7 @@ package akka.cluster.http.management.scaladsl
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
 import scala.collection.immutable._
+
 import akka.actor.Actor
 import akka.actor.ActorSystem
 import akka.actor.Address
@@ -29,16 +30,19 @@ import akka.management.cluster._
 import akka.management.cluster.scaladsl.ClusterHttpManagementRoutes
 import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.stream.scaladsl.Sink
-import akka.util.{ ByteString, Timeout }
+import akka.util.{ByteString, Timeout}
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.concurrent.PatienceConfiguration.{ Timeout => ScalatestTimeout }
+import org.scalatest.concurrent.PatienceConfiguration.{Timeout => ScalatestTimeout}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-
 import scala.concurrent.Promise
+
+import org.scalatest.time.Millis
+import org.scalatest.time.Seconds
+import org.scalatest.time.Span
 
 class ClusterHttpManagementRoutesSpec
     extends AnyWordSpecLike
@@ -399,6 +403,8 @@ class ClusterHttpManagementRoutesSpec
       "calling GET /cluster/domain-events" in {
 
         import scala.concurrent.duration._
+
+        implicit val patience: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds), interval = Span(50, Millis))
 
         val config = ConfigFactory.parseString(
           """
