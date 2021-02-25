@@ -86,9 +86,9 @@ class ClusterBootstrapAutostartIntegrationSpec extends AnyWordSpecLike with Matc
     contactPointPorts += "B" -> ports(4)
     contactPointPorts += "C" -> ports(5)
 
-    val systemA = ActorSystem("System", config("A"))
-    val systemB = ActorSystem("System", config("B"))
-    val systemC = ActorSystem("System", config("C"))
+    val systemA = ActorSystem("ClusterBootstrapAutostartIntegrationSpec", config("A"))
+    val systemB = ActorSystem("ClusterBootstrapAutostartIntegrationSpec", config("B"))
+    val systemC = ActorSystem("ClusterBootstrapAutostartIntegrationSpec", config("C"))
 
     val clusterA = Cluster(systemA)
     val clusterB = Cluster(systemB)

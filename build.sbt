@@ -1,4 +1,5 @@
 import com.typesafe.sbt.packager.docker.{ Cmd, ExecCmd }
+import sbt.Keys.parallelExecution
 
 ThisBuild / resolvers += Resolver.jcenterRepo
 
@@ -127,7 +128,8 @@ lazy val `cluster-bootstrap` = project
   .settings(
     name := "akka-management-cluster-bootstrap",
     libraryDependencies := Dependencies.ClusterBootstrap,
-    mimaPreviousArtifactsSet
+    mimaPreviousArtifactsSet,
+    parallelExecution in GlobalScope := false,
   )
   .dependsOn(`akka-management`)
 
