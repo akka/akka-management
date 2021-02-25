@@ -7,6 +7,7 @@ package akka.cluster.http.management.scaladsl
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
 import scala.collection.immutable._
+import scala.concurrent.Promise
 
 import akka.actor.Actor
 import akka.actor.ActorSystem
@@ -30,19 +31,18 @@ import akka.management.cluster._
 import akka.management.cluster.scaladsl.ClusterHttpManagementRoutes
 import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.stream.scaladsl.Sink
-import akka.util.{ByteString, Timeout}
+import akka.util.ByteString
+import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.concurrent.PatienceConfiguration.{Timeout => ScalatestTimeout}
+import org.scalatest.concurrent.PatienceConfiguration.{ Timeout => ScalatestTimeout }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpecLike
-import scala.concurrent.Promise
-
 import org.scalatest.time.Millis
 import org.scalatest.time.Seconds
 import org.scalatest.time.Span
+import org.scalatest.wordspec.AnyWordSpecLike
 
 class ClusterHttpManagementRoutesSpec
     extends AnyWordSpecLike
@@ -50,6 +50,9 @@ class ClusterHttpManagementRoutesSpec
     with ScalatestRouteTest
     with ClusterHttpManagementJsonProtocol
     with ScalaFutures {
+
+  override implicit def patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = Span(3, Seconds), interval = Span(50, Millis))
 
   "Http Cluster Management Routes" should {
     "return list of members with cluster leader and oldest" when {
@@ -331,6 +334,7 @@ class ClusterHttpManagementRoutesSpec
 
       "calling GET /cluster/shard_regions/{name}" in {
         import scala.concurrent.duration._
+
         import akka.pattern.ask
 
         val config = ConfigFactory.parseString(
@@ -404,8 +408,6 @@ class ClusterHttpManagementRoutesSpec
 
         import scala.concurrent.duration._
 
-        implicit val patience: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds), interval = Span(50, Millis))
-
         val config = ConfigFactory.parseString(
           """
             |akka.cluster {
@@ -458,6 +460,9 @@ class ClusterHttpManagementRoutesSpec
 
         responseGetDomainEventsData should include("event:MemberUp")
 
+        // TODO: prefer Coordinated shutdown to prevent ubinding the server before the client is
+        //  shut down which causes:
+        //  java.lang.IllegalStateException: Pool shutdown unexpectedly
         binding.unbind().futureValue
         system.terminate()
       }
