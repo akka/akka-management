@@ -36,6 +36,7 @@ import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
+import org.scalatest.concurrent.Eventually
 import org.scalatest.concurrent.PatienceConfiguration.{ Timeout => ScalatestTimeout }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -49,7 +50,8 @@ class ClusterHttpManagementRoutesSpec
     with Matchers
     with ScalatestRouteTest
     with ClusterHttpManagementJsonProtocol
-    with ScalaFutures {
+    with ScalaFutures
+    with Eventually {
 
   override implicit def patienceConfig: PatienceConfig =
     PatienceConfig(timeout = Span(3, Seconds), interval = Span(50, Millis))
@@ -126,9 +128,11 @@ class ClusterHttpManagementRoutesSpec
         val mockedCluster = mock(classOf[Cluster])
         doNothing().when(mockedCluster).join(any[Address])
 
-        Post("/cluster/members/", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
-          status shouldEqual StatusCodes.OK
-          responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(s"Joining $address")
+        eventually {
+          Post("/cluster/members/", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+            status shouldEqual StatusCodes.OK
+            responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(s"Joining $address")
+          }
         }
       }
     }
