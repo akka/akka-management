@@ -7,6 +7,7 @@ package akka.management.cluster.scaladsl
 import akka.actor.ActorSystem
 import akka.cluster.MemberStatus
 import akka.testkit.TestKit
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
@@ -15,7 +16,12 @@ class ClusterMembershipCheckSpec
     extends TestKit(ActorSystem("ClusterHealthCheck"))
     with AnyWordSpecLike
     with Matchers
-    with ScalaFutures {
+    with ScalaFutures
+    with BeforeAndAfterAll {
+
+  override def afterAll(): Unit = {
+    shutdown(system)
+  }
 
   "Cluster Health" should {
     "be unhealthy if current state not one of healthy states" in {
@@ -25,7 +31,6 @@ class ClusterMembershipCheckSpec
         new ClusterMembershipCheckSettings(Set(MemberStatus.Up)))
 
       chc().futureValue shouldEqual false
-      system.terminate()
     }
     "be unhealthy if current state is one of healthy states" in {
       val chc =
