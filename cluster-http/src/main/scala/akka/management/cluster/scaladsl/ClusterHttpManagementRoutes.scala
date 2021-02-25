@@ -260,7 +260,7 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
             routeFindMember(cluster, readOnly = false)
           )
         },
-        pathPrefix"domain-events") {
+        pathPrefix("domain-events") {
           routeGetClusterDomainEvents(cluster)
         },
         pathPrefix("shards" / Remaining) { shardRegionName =>
