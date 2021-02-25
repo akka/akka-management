@@ -19,12 +19,17 @@ import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-
 import java.net.InetAddress
+
+import org.scalatest.time.{ Milliseconds, Seconds, Span }
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class ClusterBootstrapAutostartIntegrationSpec extends AnyWordSpecLike with Matchers with ScalaFutures {
+
+  implicit val patience = PatienceConfig(Span(3, Seconds), Span(500, Milliseconds))
+
   "Cluster Bootstrap" should {
 
     var remotingPorts = Map.empty[String, Int]
@@ -86,9 +91,9 @@ class ClusterBootstrapAutostartIntegrationSpec extends AnyWordSpecLike with Matc
     contactPointPorts += "B" -> ports(4)
     contactPointPorts += "C" -> ports(5)
 
-    val systemA = ActorSystem("System", config("A"))
-    val systemB = ActorSystem("System", config("B"))
-    val systemC = ActorSystem("System", config("C"))
+    val systemA = ActorSystem("ClusterBootstrapAutostartIntegrationSpec", config("A"))
+    val systemB = ActorSystem("ClusterBootstrapAutostartIntegrationSpec", config("B"))
+    val systemC = ActorSystem("ClusterBootstrapAutostartIntegrationSpec", config("C"))
 
     val clusterA = Cluster(systemA)
     val clusterB = Cluster(systemB)

@@ -83,9 +83,9 @@ class ClusterBootstrapIntegrationSpec extends AnyWordSpecLike with Matchers {
     contactPointPorts += "B" -> ports(4)
     contactPointPorts += "C" -> ports(5)
 
-    val systemA = ActorSystem("System", config("A"))
-    val systemB = ActorSystem("System", config("B"))
-    val systemC = ActorSystem("System", config("C"))
+    val systemA = ActorSystem("ClusterBootstrapIntegrationSpec", config("A"))
+    val systemB = ActorSystem("ClusterBootstrapIntegrationSpec", config("B"))
+    val systemC = ActorSystem("ClusterBootstrapIntegrationSpec", config("C"))
 
     val clusterA = Cluster(systemA)
     val clusterB = Cluster(systemB)
