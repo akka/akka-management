@@ -21,7 +21,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import java.net.InetAddress
 
-import org.scalatest.time.{Milliseconds, Seconds, Span}
+import org.scalatest.time.{ Milliseconds, Seconds, Span }
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
