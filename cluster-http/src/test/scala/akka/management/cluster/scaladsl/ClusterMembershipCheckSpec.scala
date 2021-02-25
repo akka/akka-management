@@ -25,6 +25,7 @@ class ClusterMembershipCheckSpec
         new ClusterMembershipCheckSettings(Set(MemberStatus.Up)))
 
       chc().futureValue shouldEqual false
+      system.terminate()
     }
     "be unhealthy if current state is one of healthy states" in {
       val chc =
