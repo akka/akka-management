@@ -29,7 +29,7 @@ Variables to be expanded in this template:
 ### Cutting the release
 
 - [ ] Wait until [master build finished](https://travis-ci.org/akka/akka-management/builds/) after the last merge
-- [ ] Create a [new release](https://github.com/akka/akka-management/releases/new) with notes from the [milestone](https://github.com/akka/akka-management/milestones/$VERSION$) and [`sbt-authors`](https://github.com/2m/authors) (eg. `sbt "authors v0.22 HEAD"`)
+- [ ] Create a [new release](https://github.com/akka/akka-management/releases/new) with notes from the [milestone](https://github.com/akka/akka-management/milestones/$VERSION$) and [`sbt-authors`](https://github.com/2m/authors) (eg. `./scripts/authors.scala v1.0.9 HEAD`)
 - [ ] Check that Travis CI release build has executed successfully (Travis will start a [CI build](https://travis-ci.org/akka/akka-management/builds) for the new tag and publish artifacts to Bintray and documentation to Gustav)
 - [ ] Go to [Bintray](https://bintray.com/akka/maven/akka-management/$VERSION$), go to the Maven Central tab, check the *Close and release repository when done* checkbox and sync with Sonatype (using your Sonatype TOKEN key and password)
 
