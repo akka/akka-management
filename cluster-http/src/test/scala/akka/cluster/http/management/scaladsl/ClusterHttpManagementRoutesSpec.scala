@@ -7,6 +7,8 @@ package akka.cluster.http.management.scaladsl
 // TODO has to be in akka.cluster because it touches Reachability which is private[akka.cluster]
 
 import scala.collection.immutable._
+import scala.concurrent.Promise
+
 import akka.actor.Actor
 import akka.actor.ActorSystem
 import akka.actor.Address
@@ -29,23 +31,30 @@ import akka.management.cluster._
 import akka.management.cluster.scaladsl.ClusterHttpManagementRoutes
 import akka.management.scaladsl.ManagementRouteProviderSettings
 import akka.stream.scaladsl.Sink
-import akka.util.{ ByteString, Timeout }
+import akka.util.ByteString
+import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
+import org.scalatest.concurrent.Eventually
 import org.scalatest.concurrent.PatienceConfiguration.{ Timeout => ScalatestTimeout }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.Millis
+import org.scalatest.time.Seconds
+import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpecLike
-
-import scala.concurrent.Promise
 
 class ClusterHttpManagementRoutesSpec
     extends AnyWordSpecLike
     with Matchers
     with ScalatestRouteTest
     with ClusterHttpManagementJsonProtocol
-    with ScalaFutures {
+    with ScalaFutures
+    with Eventually {
+
+  override implicit def patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = Span(3, Seconds), interval = Span(50, Millis))
 
   "Http Cluster Management Routes" should {
     "return list of members with cluster leader and oldest" when {
@@ -119,9 +128,11 @@ class ClusterHttpManagementRoutesSpec
         val mockedCluster = mock(classOf[Cluster])
         doNothing().when(mockedCluster).join(any[Address])
 
-        Post("/cluster/members/", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
-          status shouldEqual StatusCodes.OK
-          responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(s"Joining $address")
+        eventually {
+          Post("/cluster/members/", urlEncodedForm) ~> ClusterHttpManagementRoutes(mockedCluster) ~> check {
+            status shouldEqual StatusCodes.OK
+            responseAs[ClusterHttpManagementMessage] shouldEqual ClusterHttpManagementMessage(s"Joining $address")
+          }
         }
       }
     }
@@ -327,6 +338,7 @@ class ClusterHttpManagementRoutesSpec
 
       "calling GET /cluster/shard_regions/{name}" in {
         import scala.concurrent.duration._
+
         import akka.pattern.ask
 
         val config = ConfigFactory.parseString(
@@ -443,7 +455,7 @@ class ClusterHttpManagementRoutesSpec
             .futureValue(t)
         responseGetDomainEvents.status shouldEqual StatusCodes.OK
         val responseGetDomainEventsData = responseGetDomainEvents.entity.dataBytes
-          .takeWithin(100.millis)
+          .takeWithin(500.millis)
           .fold(ByteString.empty)(_ ++ _)
           .runWith(Sink.head)
           .futureValue
@@ -452,6 +464,9 @@ class ClusterHttpManagementRoutesSpec
 
         responseGetDomainEventsData should include("event:MemberUp")
 
+        // TODO: prefer Coordinated shutdown to prevent ubinding the server before the client is
+        //  shut down which causes:
+        //  java.lang.IllegalStateException: Pool shutdown unexpectedly
         binding.unbind().futureValue
         system.terminate()
       }
