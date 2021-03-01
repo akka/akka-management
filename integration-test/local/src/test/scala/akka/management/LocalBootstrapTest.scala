@@ -83,9 +83,10 @@ class LocalBootstrapTest extends AnyWordSpec with ScalaFutures with Matchers wit
       ConfigFactory.parseString(s"""
       akka.management.http.port = $managementPort
       akka.coordinated-shutdown.exit-jvm = off
-       """.stripMargin).withFallback(config))
+       """.stripMargin).withFallback(config)
+    )
 
-   override def afterAll(): Unit = {
+  override def afterAll(): Unit = {
     // TODO: shutdown Akka HTTP connection pools. Requires Akka HTTP 10.2
     systems.reverse.foreach { sys =>
       TestKit.shutdownActorSystem(sys, 3.seconds)
