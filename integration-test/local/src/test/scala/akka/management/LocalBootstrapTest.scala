@@ -4,17 +4,27 @@
 
 package akka.management
 
+import scala.concurrent.duration._
+
 import akka.actor.ActorSystem
-import akka.cluster.{ Cluster, MemberStatus }
+import akka.cluster.Cluster
+import akka.cluster.MemberStatus
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ HttpRequest, StatusCode, StatusCodes }
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.StatusCode
+import akka.http.scaladsl.model.StatusCodes
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
 import akka.testkit.SocketUtil
+import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
-import org.scalatest.concurrent.{ Eventually, ScalaFutures }
-import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.concurrent.Eventually
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.Millis
+import org.scalatest.time.Seconds
+import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
 
 object LocalBootstrapTest {
@@ -56,7 +66,7 @@ object LocalBootstrapTest {
     """).withFallback(ConfigFactory.load())
 }
 
-class LocalBootstrapTest extends AnyWordSpec with ScalaFutures with Matchers with Eventually {
+class LocalBootstrapTest extends AnyWordSpec with ScalaFutures with Matchers with Eventually with BeforeAndAfterAll {
   import LocalBootstrapTest._
 
   implicit override val patienceConfig: PatienceConfig =
@@ -65,12 +75,22 @@ class LocalBootstrapTest extends AnyWordSpec with ScalaFutures with Matchers wit
       interval = scaled(Span(500, Millis))
     )
 
-  def newSystem(managementPort: Int): ActorSystem = {
+  private var systems = Seq.empty[ActorSystem]
+
+  def newSystem(managementPort: Int): ActorSystem =
     ActorSystem(
       "local-cluster",
       ConfigFactory.parseString(s"""
       akka.management.http.port = $managementPort
+      akka.coordinated-shutdown.exit-jvm = off
        """.stripMargin).withFallback(config))
+
+   override def afterAll(): Unit = {
+    // TODO: shutdown Akka HTTP connection pools. Requires Akka HTTP 10.2
+    systems.reverse.foreach { sys =>
+      TestKit.shutdownActorSystem(sys, 3.seconds)
+    }
+    super.afterAll()
   }
 
   def readyStatusCode(port: Int)(implicit system: ActorSystem): StatusCode =
@@ -85,7 +105,7 @@ class LocalBootstrapTest extends AnyWordSpec with ScalaFutures with Matchers wit
   }
 
   "Cluster bootstrap with health checks" should {
-    val systems = managementPorts.map(newSystem)
+    systems = managementPorts.map(newSystem)
     val clusters = systems.map(Cluster.apply)
     systems.foreach(AkkaManagement(_).start())
     // for http client
