@@ -12,10 +12,14 @@ import akka.util.Version
 
 package akka.cluster.management {
 
-
   // `Member`'s constructor is private[cluster], hence this
   object TestHelpers {
-    def newMember(uniqueAddress: UniqueAddress, upNumber: Int, status: MemberStatus, roles: Set[String], appVersion: Version): Member =
+    def newMember(
+        uniqueAddress: UniqueAddress,
+        upNumber: Int,
+        status: MemberStatus,
+        roles: Set[String],
+        appVersion: Version): Member =
       new Member(uniqueAddress, upNumber, status, roles, appVersion)
   }
 }
@@ -33,7 +37,8 @@ package akka.management.cluster {
         val appVersion = Version("2.3.4")
 
         ClusterDomainEventServerSentEventEncoder.encode(
-          ClusterEvent.MemberJoined(newMember(uniqueAddress1, 1, MemberStatus.Joining, Set("one", "two", dc), appVersion))
+          ClusterEvent.MemberJoined(
+            newMember(uniqueAddress1, 1, MemberStatus.Joining, Set("one", "two", dc), appVersion))
         ) shouldEqual Some(
           ServerSentEvent(
             """{"member":{"dataCenter":"one","roles":["one","two","dc-one"],"status":"Joining","uniqueAddress":{"address":"akka://Main@hostname.com:3311","longUid":1}},"type":"MemberJoined"}""",
@@ -42,7 +47,8 @@ package akka.management.cluster {
         )
 
         ClusterDomainEventServerSentEventEncoder.encode(
-          ClusterEvent.MemberWeaklyUp(newMember(uniqueAddress1, 1, MemberStatus.WeaklyUp, Set("one", "two", dc), appVersion))
+          ClusterEvent.MemberWeaklyUp(
+            newMember(uniqueAddress1, 1, MemberStatus.WeaklyUp, Set("one", "two", dc), appVersion))
         ) shouldEqual Some(
           ServerSentEvent(
             """{"member":{"dataCenter":"one","roles":["one","two","dc-one"],"status":"WeaklyUp","uniqueAddress":{"address":"akka://Main@hostname.com:3311","longUid":1}},"type":"MemberWeaklyUp"}""",
@@ -69,7 +75,8 @@ package akka.management.cluster {
         )
 
         ClusterDomainEventServerSentEventEncoder.encode(
-          ClusterEvent.MemberExited(newMember(uniqueAddress1, 1, MemberStatus.Exiting, Set("one", "two", dc), appVersion))
+          ClusterEvent.MemberExited(
+            newMember(uniqueAddress1, 1, MemberStatus.Exiting, Set("one", "two", dc), appVersion))
         ) shouldEqual Some(
           ServerSentEvent(
             """{"member":{"dataCenter":"one","roles":["one","two","dc-one"],"status":"Exiting","uniqueAddress":{"address":"akka://Main@hostname.com:3311","longUid":1}},"type":"MemberExited"}""",
@@ -87,8 +94,9 @@ package akka.management.cluster {
         )
 
         ClusterDomainEventServerSentEventEncoder.encode(
-          ClusterEvent
-            .MemberRemoved(newMember(uniqueAddress1, 1, MemberStatus.Removed, Set("one", "two", dc), appVersion), MemberStatus.Down)
+          ClusterEvent.MemberRemoved(
+            newMember(uniqueAddress1, 1, MemberStatus.Removed, Set("one", "two", dc), appVersion),
+            MemberStatus.Down)
         ) shouldEqual Some(
           ServerSentEvent(
             """{"member":{"dataCenter":"one","roles":["one","two","dc-one"],"status":"Removed","uniqueAddress":{"address":"akka://Main@hostname.com:3311","longUid":1}},"previousStatus":"Down","type":"MemberRemoved"}""",
@@ -124,7 +132,8 @@ package akka.management.cluster {
         )
 
         ClusterDomainEventServerSentEventEncoder.encode(
-          ClusterEvent.UnreachableMember(newMember(uniqueAddress1, 1, MemberStatus.Up, Set("one", "two", dc), appVersion))
+          ClusterEvent.UnreachableMember(
+            newMember(uniqueAddress1, 1, MemberStatus.Up, Set("one", "two", dc), appVersion))
         ) shouldEqual Some(
           ServerSentEvent(
             """{"member":{"dataCenter":"one","roles":["one","two","dc-one"],"status":"Up","uniqueAddress":{"address":"akka://Main@hostname.com:3311","longUid":1}},"type":"UnreachableMember"}""",
