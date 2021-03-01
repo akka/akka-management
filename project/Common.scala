@@ -1,8 +1,8 @@
-import sbt._, Keys._
-
-import de.heikoseeberger.sbtheader._
-import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys._
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
+import de.heikoseeberger.sbtheader._
+import sbt.Keys._
+import sbt._
 
 object Common extends AutoPlugin {
 
@@ -60,24 +60,14 @@ object Common extends AutoPlugin {
           "-skip-packages",
           "akka.pattern" // for some reason Scaladoc creates this
         ),
-      Compile / doc / scalacOptions ++= (scalaVersion.value match {
-          case Dependencies.Scala211 =>
-            Seq(
-              "-doc-source-url", {
-                val branch = if (isSnapshot.value) "master" else s"v${version.value}"
-                s"https://github.com/akka/akka-management/tree/${branch}€{FILE_PATH}.scala#L1"
-              }
-            )
-          case _ =>
-            Seq(
-              "-doc-source-url", {
-                val branch = if (isSnapshot.value) "master" else s"v${version.value}"
-                s"https://github.com/akka/akka-management/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
-              },
-              "-doc-canonical-base-url",
-              "https://doc.akka.io/api/akka-management/current/"
-            )
-        }),
+      Compile / doc / scalacOptions ++= Seq(
+        "-doc-source-url", {
+          val branch = if (isSnapshot.value) "master" else s"v${version.value}"
+          s"https://github.com/akka/akka-management/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
+        },
+        "-doc-canonical-base-url",
+        "https://doc.akka.io/api/akka-management/current/"
+      ),
       autoAPIMappings := true,
       // show full stack traces and test case durations
       testOptions in Test += Tests.Argument("-oDF"),
