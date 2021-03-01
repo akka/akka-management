@@ -8,7 +8,7 @@ package akka.cluster.management
 
 import akka.actor.Address
 import akka.cluster.MemberStatus._
-import akka.cluster.{Member, UniqueAddress}
+import akka.cluster.{ Member, UniqueAddress }
 import akka.management.cluster.ClusterHttpManagementHelper
 import akka.util.Version
 import org.scalatest.matchers.should.Matchers
