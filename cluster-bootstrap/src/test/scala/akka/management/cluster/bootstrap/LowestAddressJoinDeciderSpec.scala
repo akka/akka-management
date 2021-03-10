@@ -67,7 +67,7 @@ abstract class JoinDeciderSpec extends AbstractBootstrapSpec {
     port = None,
     address = Some(InetAddress.getByName("10.0.0.4")))
 
-  val system = ActorSystem("sys", config)
+  lazy val system = ActorSystem("join-decider-spec-system", config)
 
   override def afterAll(): Unit = TestKit.shutdownActorSystem(system, 5.seconds)
 }
@@ -119,10 +119,11 @@ class LowestAddressJoinDeciderSpec extends JoinDeciderSpec {
           new SeedNodesObservation(
             now.minusSeconds(1),
             contactA,
-            Address("akka", "sys", "10.0.0.2", 2552),
-            Set(Address("akka", "sys", "10.0.0.2", 2552))))
+            Address("akka", "join-decider-spec-system", "10.0.0.2", 2552),
+            Set(Address("akka", "join-decider-spec-system", "10.0.0.2", 2552))))
       )
-      decider.decide(info).futureValue should ===(JoinOtherSeedNodes(Set(Address("akka", "sys", "10.0.0.2", 2552))))
+      decider.decide(info).futureValue should ===(
+        JoinOtherSeedNodes(Set(Address("akka", "join-decider-spec-system", "10.0.0.2", 2552))))
     }
 
     "keep probing when contact points changed within stable-margin" in {
@@ -133,9 +134,21 @@ class LowestAddressJoinDeciderSpec extends JoinDeciderSpec {
         contactPointsChangedAt = now.minusSeconds(2), // << 2 < stable-margin
         contactPoints = Set(contactA, contactB, contactC),
         seedNodesObservations = Set(
-          new SeedNodesObservation(now.minusSeconds(1), contactA, Address("akka", "sys", "10.0.0.2", 2552), Set.empty),
-          new SeedNodesObservation(now.minusSeconds(1), contactB, Address("akka", "sys", "b", 2552), Set.empty),
-          new SeedNodesObservation(now.minusSeconds(1), contactC, Address("akka", "sys", "c", 2552), Set.empty)
+          new SeedNodesObservation(
+            now.minusSeconds(1),
+            contactA,
+            Address("akka", "join-decider-spec-system", "10.0.0.2", 2552),
+            Set.empty),
+          new SeedNodesObservation(
+            now.minusSeconds(1),
+            contactB,
+            Address("akka", "join-decider-spec-system", "b", 2552),
+            Set.empty),
+          new SeedNodesObservation(
+            now.minusSeconds(1),
+            contactC,
+            Address("akka", "join-decider-spec-system", "c", 2552),
+            Set.empty)
         )
       )
       decider.decide(info).futureValue should ===(KeepProbing)
@@ -149,8 +162,16 @@ class LowestAddressJoinDeciderSpec extends JoinDeciderSpec {
         contactPointsChangedAt = now.minusSeconds(2),
         contactPoints = Set(contactA, contactB), // << 2 < required-contact-point-nr
         seedNodesObservations = Set(
-          new SeedNodesObservation(now.minusSeconds(1), contactA, Address("akka", "sys", "10.0.0.2", 2552), Set.empty),
-          new SeedNodesObservation(now.minusSeconds(1), contactB, Address("akka", "sys", "b", 2552), Set.empty)
+          new SeedNodesObservation(
+            now.minusSeconds(1),
+            contactA,
+            Address("akka", "join-decider-spec-system", "10.0.0.2", 2552),
+            Set.empty),
+          new SeedNodesObservation(
+            now.minusSeconds(1),
+            contactB,
+            Address("akka", "join-decider-spec-system", "b", 2552),
+            Set.empty)
         )
       )
       decider.decide(info).futureValue should ===(KeepProbing)
@@ -164,8 +185,16 @@ class LowestAddressJoinDeciderSpec extends JoinDeciderSpec {
         contactPointsChangedAt = now.minusSeconds(2),
         contactPoints = Set(contactA, contactB, contactC),
         seedNodesObservations = Set(
-          new SeedNodesObservation(now.minusSeconds(1), contactA, Address("akka", "sys", "10.0.0.2", 2552), Set.empty),
-          new SeedNodesObservation(now.minusSeconds(1), contactB, Address("akka", "sys", "b", 2552), Set.empty)
+          new SeedNodesObservation(
+            now.minusSeconds(1),
+            contactA,
+            Address("akka", "join-decider-spec-system", "10.0.0.2", 2552),
+            Set.empty),
+          new SeedNodesObservation(
+            now.minusSeconds(1),
+            contactB,
+            Address("akka", "join-decider-spec-system", "b", 2552),
+            Set.empty)
         )
         // << 2 < required-contact-point-nr
       )
@@ -182,9 +211,21 @@ class LowestAddressJoinDeciderSpec extends JoinDeciderSpec {
         contactPointsChangedAt = now.minusSeconds(6),
         contactPoints = Set(contactA, contactB, contactC),
         seedNodesObservations = Set(
-          new SeedNodesObservation(now.minusSeconds(1), contactA, Address("akka", "sys", "10.0.0.2", 2552), Set.empty),
-          new SeedNodesObservation(now.minusSeconds(1), contactB, Address("akka", "sys", "b", 2552), Set.empty),
-          new SeedNodesObservation(now.minusSeconds(1), contactC, Address("akka", "sys", "c", 2552), Set.empty)
+          new SeedNodesObservation(
+            now.minusSeconds(1),
+            contactA,
+            Address("akka", "join-decider-spec-system", "10.0.0.2", 2552),
+            Set.empty),
+          new SeedNodesObservation(
+            now.minusSeconds(1),
+            contactB,
+            Address("akka", "join-decider-spec-system", "b", 2552),
+            Set.empty),
+          new SeedNodesObservation(
+            now.minusSeconds(1),
+            contactC,
+            Address("akka", "join-decider-spec-system", "c", 2552),
+            Set.empty)
         )
       )
       decider.decide(info).futureValue should ===(JoinSelf)
@@ -199,7 +240,7 @@ class SelfAwareJoinDeciderSpec extends JoinDeciderSpec {
   val disabled =
     ConfigFactory.parseString("akka.management.cluster.bootstrap.new-cluster-enabled=off")
 
-  override val system = ActorSystem("sys", disabled.withFallback(config))
+  override lazy val system = ActorSystem("join-decider-spec-system-selfaware", disabled.withFallback(config))
 
   val settings = ClusterBootstrapSettings(system.settings.config, NoLogging)
 
@@ -210,9 +251,21 @@ class SelfAwareJoinDeciderSpec extends JoinDeciderSpec {
       contactPointsChangedAt = now.minusSeconds(6),
       contactPoints = Set(contactA, contactB, contactC),
       seedNodesObservations = Set(
-        new SeedNodesObservation(now.minusSeconds(1), contactA, Address("akka", "sys", "10.0.0.2", 2552), Set.empty),
-        new SeedNodesObservation(now.minusSeconds(1), contactB, Address("akka", "sys", "b", 2552), Set.empty),
-        new SeedNodesObservation(now.minusSeconds(1), contactC, Address("akka", "sys", "c", 2552), Set.empty)
+        new SeedNodesObservation(
+          now.minusSeconds(1),
+          contactA,
+          Address("akka", "join-decider-spec-system-selfaware", "10.0.0.2", 2552),
+          Set.empty),
+        new SeedNodesObservation(
+          now.minusSeconds(1),
+          contactB,
+          Address("akka", "join-decider-spec-system-selfaware", "b", 2552),
+          Set.empty),
+        new SeedNodesObservation(
+          now.minusSeconds(1),
+          contactC,
+          Address("akka", "join-decider-spec-system-selfaware", "c", 2552),
+          Set.empty)
       ))
   }
 
@@ -248,7 +301,7 @@ class SelfAwareJoinDeciderIPv6Spec extends JoinDeciderSpec {
   val disabled =
     ConfigFactory.parseString("akka.management.cluster.bootstrap.new-cluster-enabled=off")
 
-  override val system = ActorSystem("sys", disabled.withFallback(config))
+  override lazy val system = ActorSystem("join-decider-spec-system-selfaware-ipv6", disabled.withFallback(config))
 
   val settings = ClusterBootstrapSettings(system.settings.config, NoLogging)
 
@@ -277,14 +330,18 @@ class SelfAwareJoinDeciderIPv6Spec extends JoinDeciderSpec {
         new SeedNodesObservation(
           now.minusSeconds(1),
           contactIPv6A,
-          Address("akka", "sys", "[240b:c0e0:202:5e2b:b424:2:0:450]", 2552),
+          Address("akka", "join-decider-spec-system-selfaware-ipv6", "[240b:c0e0:202:5e2b:b424:2:0:450]", 2552),
           Set.empty),
         new SeedNodesObservation(
           now.minusSeconds(1),
           contactIPv6B,
-          Address("akka", "sys", "[240b:c0e0:202:5e2b:b424:2:0:cc4]", 2552),
+          Address("akka", "join-decider-spec-system-selfaware-ipv6", "[240b:c0e0:202:5e2b:b424:2:0:cc4]", 2552),
           Set.empty),
-        new SeedNodesObservation(now.minusSeconds(1), contactIPv6C, Address("akka", "sys", "c", 2552), Set.empty)
+        new SeedNodesObservation(
+          now.minusSeconds(1),
+          contactIPv6C,
+          Address("akka", "join-decider-spec-system-selfaware-ipv6", "c", 2552),
+          Set.empty)
       ))
   }
 
