@@ -26,14 +26,14 @@ And in addition to that, include all of the dependencies for the features you'd 
 like `akka-management-bootstrap` etc. Refer to each extensions documentation page to learn about how
 to configure and use it.
 
-Akka Management can be used with Akka $akka.version$ or $akka.version26$ or later.
+Akka Management can be used with Akka $akka.version$ or later.
 You have to override the following Akka dependencies by defining them explicitly in your build and
 define the Akka version to the one that you are using. Latest patch version of Akka is recommended and
-a later version than $akka.version26$ can be used.
+a later version than $akka.version$ can be used.
 
 @@dependency[sbt,Gradle,Maven] {
   symbol1=AkkaVersion
-  value1="$akka.version26$"
+  value1="$akka.version$"
   group=com.typesafe.akka
   artifact=akka-stream_$scala.binary.version$
   version=AkkaVersion

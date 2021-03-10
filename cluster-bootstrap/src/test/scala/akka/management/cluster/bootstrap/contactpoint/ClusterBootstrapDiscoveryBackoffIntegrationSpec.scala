@@ -16,7 +16,6 @@ import akka.discovery.{ Lookup, MockDiscovery }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
-import akka.stream.ActorMaterializer
 import akka.testkit.{ SocketUtil, TestKit, TestProbe }
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalactic.Tolerance
@@ -157,7 +156,6 @@ class ClusterBootstrapDiscoveryBackoffIntegrationSpec
       def start(system: ActorSystem, contactPointPort: Int) = {
         import system.dispatcher
         implicit val sys = system
-        implicit val mat = ActorMaterializer()(system)
 
         val bootstrap: ClusterBootstrap = ClusterBootstrap(system)
         val routes = new HttpClusterBootstrapRoutes(bootstrap.settings).routes

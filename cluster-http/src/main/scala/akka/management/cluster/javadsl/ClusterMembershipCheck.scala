@@ -18,6 +18,6 @@ class ClusterMembershipCheck(system: ActorSystem)
   private val delegate = new ScalaClusterReadinessCheck(system)
 
   override def get(): CompletionStage[java.lang.Boolean] = {
-    delegate.apply().map(Boolean.box)(ExecutionContexts.sameThreadExecutionContext).toJava
+    delegate.apply().map(Boolean.box)(ExecutionContexts.parasitic).toJava
   }
 }

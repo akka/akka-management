@@ -10,6 +10,7 @@ import akka.actor.Address
 import akka.cluster.MemberStatus._
 import akka.cluster.{ Member, UniqueAddress }
 import akka.management.cluster.ClusterHttpManagementHelper
+import akka.util.Version
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -28,10 +29,11 @@ class ClusterHttpManagementHelperSpec extends AnyWordSpec with Matchers {
       val uniqueAddress3 = UniqueAddress(address3, 3L)
       val uniqueAddress4 = UniqueAddress(address4, 4L)
 
-      val clusterMember1 = new Member(uniqueAddress1, 1, Up, Set("one", "two", dc))
-      val clusterMember2 = new Member(uniqueAddress2, 2, Joining, Set("one", "two", dc))
-      val clusterMember3 = new Member(uniqueAddress3, 3, Joining, Set("three", dc))
-      val clusterMember4 = new Member(uniqueAddress4, 4, Joining, Set(dc))
+      val version = new Version("1.42")
+      val clusterMember1 = new Member(uniqueAddress1, 1, Up, Set("one", "two", dc), version)
+      val clusterMember2 = new Member(uniqueAddress2, 2, Joining, Set("one", "two", dc), version)
+      val clusterMember3 = new Member(uniqueAddress3, 3, Joining, Set("three", dc), version)
+      val clusterMember4 = new Member(uniqueAddress4, 4, Joining, Set(dc), version)
 
       val members = Seq(clusterMember1, clusterMember2, clusterMember3, clusterMember4)
 

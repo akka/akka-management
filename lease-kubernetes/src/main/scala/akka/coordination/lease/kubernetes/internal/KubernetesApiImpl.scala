@@ -18,7 +18,6 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.pattern.after
 import akka.coordination.lease.kubernetes.{ KubernetesApi, KubernetesSettings, LeaseResource }
 import akka.coordination.lease.{ LeaseException, LeaseTimeoutException }
-import akka.stream.ActorMaterializer
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 import com.typesafe.sslconfig.ssl.TrustStoreConfig
 import scala.collection.immutable
@@ -35,7 +34,7 @@ import scala.util.control.NonFatal
 
   import system.dispatcher
 
-  private implicit val materializer: ActorMaterializer = ActorMaterializer()(system)
+  private implicit val sys = system
   private val log = Logging(system, getClass)
   private val http = Http()(system)
   private val httpsTrustStoreConfig =

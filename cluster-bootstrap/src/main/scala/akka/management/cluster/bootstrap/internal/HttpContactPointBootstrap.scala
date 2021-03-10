@@ -32,7 +32,6 @@ import akka.management.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol
 import akka.management.cluster.bootstrap.contactpoint.HttpBootstrapJsonProtocol.SeedNodes
 import akka.pattern.after
 import akka.pattern.pipe
-import akka.stream.ActorMaterializer
 
 @InternalApi
 private[bootstrap] object HttpContactPointBootstrap {
@@ -81,8 +80,8 @@ private[bootstrap] class HttpContactPointBootstrap(
     )
   }
 
-  private implicit val mat = ActorMaterializer()(context.system)
-  private val http = Http()(context.system)
+  private implicit val sys = context.system
+  private val http = Http()
   private val connectionPoolWithoutRetries = ConnectionPoolSettings(context.system).withMaxRetries(0)
   import context.dispatcher
 

@@ -24,14 +24,14 @@ If you are using Consul to do the service discovery this would allow you to base
   version=AkkaManagementVersion
 }
 
-`akka-discovery-consul` can be used with Akka $akka.version$ or $akka.version26$ or later.
+`akka-discovery-consul` can be used with Akka $akka.version$ or later.
 You have to override the following Akka dependencies by defining them explicitly in your build and
 define the Akka version to the one that you are using. Latest patch version of Akka is recommended and
-a later version than $akka.version26$ can be used.
+a later version than $akka.version$ can be used.
 
 @@dependency[sbt,Gradle,Maven] {
   symbol=AkkaVersion
-  value=$akka.version26$
+  value=$akka.version$
   group=com.typesafe.akka
   artifact=akka-cluster_$scala.binary.version$
   version=AkkaVersion

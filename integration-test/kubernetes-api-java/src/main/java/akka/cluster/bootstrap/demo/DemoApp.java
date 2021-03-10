@@ -16,7 +16,6 @@ import akka.management.javadsl.AkkaManagement;
 
 //#start-akka-management
 import akka.management.cluster.bootstrap.ClusterBootstrap;
-import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 
 public class DemoApp extends AllDirectives {
@@ -24,7 +23,7 @@ public class DemoApp extends AllDirectives {
   DemoApp() {
     ActorSystem system = ActorSystem.create("Appka");
 
-    Materializer mat = ActorMaterializer.create(system);
+    Materializer mat = Materializer.createMaterializer(system);
     Cluster cluster = Cluster.get(system);
 
     system.log().info("Started [" + system + "], cluster.selfAddress = " + cluster.selfAddress() + ")");

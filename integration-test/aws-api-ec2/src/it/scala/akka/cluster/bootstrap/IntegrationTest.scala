@@ -8,7 +8,6 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
 import akka.management.cluster.{ClusterHttpManagementJsonProtocol, ClusterMembers}
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import akka.util.ByteString
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
 import com.amazonaws.services.cloudformation.model._
@@ -17,7 +16,9 @@ import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter, Reser
 import org.scalatest.concurrent.PatienceConfiguration.{Interval, Timeout}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.time.{Seconds, Span, SpanSugar}
-import org.scalatest.{BeforeAndAfterAll, FunSuite, Matchers}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import spray.json._
 
 import scala.concurrent.{Await, Future}
@@ -27,13 +28,11 @@ trait HttpClient {
 
   implicit val system: ActorSystem = ActorSystem("simple")
 
-  implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
-
   import system.dispatcher
 
   import scala.concurrent.duration._
 
-  val http = Http(system)
+  val http = Http()
 
   def httpGetRequest(url: String): Future[(Int, String)] = {
     http.singleRequest(HttpRequest(uri = url))
@@ -45,7 +44,7 @@ trait HttpClient {
 }
 
 class IntegrationTest
-  extends FunSuite
+  extends AnyFunSuite
     with Eventually
     with BeforeAndAfterAll
     with ScalaFutures

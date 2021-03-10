@@ -41,7 +41,7 @@ import akka.management.AkkaManagementSettings
 import akka.management.ManagementLogMarker
 import akka.management.NamedRouteProvider
 import akka.management.javadsl
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.util.ManifestInfo
 
 object AkkaManagement extends ExtensionId[AkkaManagement] with ExtensionIdProvider {
@@ -75,7 +75,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
   private val log = Logging.withMarker(system, getClass)
   val settings: AkkaManagementSettings = new AkkaManagementSettings(system.settings.config)
 
-  @volatile private var materializer: Option[ActorMaterializer] = None
+  @volatile private var materializer: Option[Materializer] = None
   import system.dispatcher
 
   private val routeProviders: immutable.Seq[ManagementRouteProvider] = loadRouteProviders()
@@ -132,8 +132,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
         val effectiveBindPort = settings.Http.EffectiveBindPort
         val effectiveProviderSettings = transformSettings(providerSettings)
 
-        implicit val mat: ActorMaterializer = ActorMaterializer()
-        materializer = Some(mat)
+        materializer = Some(implicitly[Materializer])
 
         // TODO instead of binding to hardcoded things here, discovery could also be used for this binding!
         // Basically: "give me the SRV host/port for the port called `akka-bootstrap`"

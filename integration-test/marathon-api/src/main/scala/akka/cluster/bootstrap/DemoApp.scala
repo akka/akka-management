@@ -11,11 +11,9 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.management.scaladsl.AkkaManagement
 import akka.management.cluster.bootstrap.ClusterBootstrap
-import akka.stream.ActorMaterializer
 
 object DemoApp extends App {
   implicit val system = ActorSystem("my-system")
-  implicit val materializer = ActorMaterializer()
 
   val cluster = Cluster(system)
 

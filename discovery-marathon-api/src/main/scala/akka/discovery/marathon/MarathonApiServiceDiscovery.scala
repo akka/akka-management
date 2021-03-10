@@ -11,7 +11,6 @@ import akka.discovery._
 import akka.http.scaladsl._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
@@ -75,17 +74,15 @@ object MarathonApiServiceDiscovery {
  * Service discovery that uses the Marathon API.
  */
 @ApiMayChange
-class MarathonApiServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
+class MarathonApiServiceDiscovery(implicit system: ActorSystem) extends ServiceDiscovery {
   import MarathonApiServiceDiscovery._
   import system.dispatcher
 
   private val log = Logging(system, getClass)
 
-  private val http = Http()(system)
+  private val http = Http()
 
   private val settings = Settings(system)
-
-  private implicit val mat: ActorMaterializer = ActorMaterializer()(system)
 
   override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     val uri =

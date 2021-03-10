@@ -15,14 +15,12 @@ import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
 
 //#start-akka-management
-import akka.stream.ActorMaterializer
 
 object DemoApp extends App {
 
   implicit val system = ActorSystem("Appka")
 
   import system.log
-  implicit val mat = ActorMaterializer()
   val cluster = Cluster(system)
 
   log.info(s"Started [$system], cluster.selfAddress = ${cluster.selfAddress}")

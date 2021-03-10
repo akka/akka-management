@@ -9,7 +9,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, StatusCodes }
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.management.scaladsl.ManagementRouteProviderSettings
-import akka.stream.ActorMaterializer
 import akka.testkit.SocketUtil
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
@@ -59,7 +58,6 @@ class MultiDcSpec
 
       implicit val dcASystem = ActorSystem("MultiDcSystem", config.withFallback(dcA))
       val dcBSystem = ActorSystem("MultiDcSystem", config.withFallback(dcB))
-      implicit val materializer = ActorMaterializer()
 
       val routeSettings =
         ManagementRouteProviderSettings(selfBaseUri = s"http://127.0.0.1:$httpPortA", readOnly = false)

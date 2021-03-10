@@ -14,7 +14,6 @@ import akka.http.scaladsl._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 import com.typesafe.sslconfig.ssl.TrustStoreConfig
 
@@ -79,16 +78,14 @@ object KubernetesApiServiceDiscovery {
  * An alternative implementation that uses the Kubernetes API. The main advantage of this method is that it allows
  * you to define readiness/health checks that don't affect the bootstrap mechanism.
  */
-class KubernetesApiServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
+class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends ServiceDiscovery {
 
   import akka.discovery.kubernetes.KubernetesApiServiceDiscovery._
   import system.dispatcher
 
-  private val http = Http()(system)
+  private val http = Http()
 
   private val settings = Settings(system)
-
-  private implicit val mat: ActorMaterializer = ActorMaterializer()(system)
 
   private val log = Logging(system, getClass)
 
