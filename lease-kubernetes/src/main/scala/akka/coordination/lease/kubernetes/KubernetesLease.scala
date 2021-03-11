@@ -73,7 +73,9 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
     s"kubernetesLease${KubernetesLease.leaseCounter.incrementAndGet}"
   )
   if (leaseName != settings.leaseName) {
-    logger.info("Original lease name [{}] sanitized for kubernetes: [{}]")
+    logger.info(
+      "Original lease name [{}] sanitized for kubernetes: [{}]",
+      Array[Object](settings.leaseName, leaseName): _*)
   }
   logger.debug(
     "Starting kubernetes lease actor [{}] for lease [{}], owner [{}]",
