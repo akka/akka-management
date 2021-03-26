@@ -2,6 +2,7 @@ credentials.sh
 .DS_Store
 
 target/
+.bsp
 
 *.iml
 *.ipr
