@@ -40,7 +40,7 @@ object Dependencies {
   val DiscoveryConsul = Seq(
       "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
       "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
-      "com.orbitz.consul" % "consul-client" % "1.4.2",
+      "com.orbitz.consul" % "consul-client" % "1.5.1",
       "com.pszymczyk.consul" % "embedded-consul" % "2.1.4" % Test,
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
       "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
