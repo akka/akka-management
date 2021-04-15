@@ -85,8 +85,11 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
   private def providerSettings: ManagementRouteProviderSettings = {
     // port is on purpose never inferred from protocol, because this HTTP endpoint is not the "main" one for the app
     val protocol = "http" // changed to "https" if ManagementRouteProviderSettings.withHttpsConnectionContext is used
+    val host = settings.Http.Hostname
+    val port = settings.Http.Port
+    val path = settings.Http.BasePath.fold("")("/" + _)
     val selfBaseUri =
-      Uri(s"$protocol://${settings.Http.Hostname}:${settings.Http.Port}${settings.Http.BasePath.fold("")("/" + _)}")
+      Uri.from(scheme = protocol, host = host, port = port, path = path)
     ManagementRouteProviderSettings(selfBaseUri, settings.Http.RouteProvidersReadOnly)
   }
 
