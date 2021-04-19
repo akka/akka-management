@@ -7,6 +7,8 @@ on:
       - master
       - release-*
     tags-ignore: [ v.* ]
+  schedule:
+    - cron: '0 2 * * *'  # every day 2am
 
 jobs:
    integration-test:
