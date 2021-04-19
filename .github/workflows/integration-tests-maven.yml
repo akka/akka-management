@@ -1,0 +1,47 @@
+name: Integration test for Kubernetes API with Maven
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - release-*
+    tags-ignore: [ v.* ]
+    # Different than its sibilings, we don't configure this workflow to run as a cron job.
+    # The cron build compiles against Akka 2.6 and Akka HTTP 10.2, but the Maven example uses 2.5 and 10.1
+    # see https://github.com/akka/akka-management/issues/744
+
+jobs:
+   integration-test:
+    name: Integration Tests for Kubernetes API with Maven
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Checkout GitHub merge
+        if: github.event.pull_request
+        run: |-
+          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
+          git checkout scratch
+
+      - name: Set up JDK adopt@1.11.0-9
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.11.0-9
+
+      - name: Cache Coursier cache
+        uses: coursier/cache-action@v5
+
+      - name: Start docker
+        run: |-
+          ./scripts/setup-minikube-for-linux.sh 
+          ./integration-test/kubernetes-api-java/test.sh
+
+      - name: Print logs on failure
+        if: ${{ failure() }}
+        run: find . -name "*.log" -exec ./scripts/cat-log.sh {} \;
