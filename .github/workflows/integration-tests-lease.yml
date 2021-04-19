@@ -1,4 +1,4 @@
-name: Integration test for Kubernetes API
+name: Integration test for Kubernetes Lease
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
 
 jobs:
    integration-test:
-    name: Integration Tests for Kubernetes API
+    name: Integration test for Kubernetes Lease
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false    
