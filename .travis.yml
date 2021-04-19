@@ -41,14 +41,6 @@ before_script:
 jobs:
   include:
 
-  - stage: integration
-    script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api/test.sh
-    name: "Integration test for Kubernetes API"
-
-  - script:
-    - ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-dns/test.sh
-    name: "Integration test for Kubernetes DNS"
-
   - script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api-java/test.sh
     name: "Integration test for Kubernetes API with maven"
     # The cron build compiles against Akka 2.6 and Akka HTTP 10.2, but the Maven example uses 2.5 and 10.1
