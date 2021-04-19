@@ -40,14 +40,6 @@ before_script:
 
 jobs:
   include:
-  - stage: test
-    env: CMD="+test"
-    name: "Run tests on AdoptOpenJDK 8 (all Scala versions)"
-
-  - env:
-    - JDK="adopt@1.11-0"
-    - CMD="+test"
-    name: "Run tests on AdoptOpenJDK 11 (all Scala versions)"
 
   - stage: integration
     script: ./scripts/setup-minikube-for-linux.sh && ./integration-test/kubernetes-api/test.sh
@@ -73,8 +65,6 @@ jobs:
     name: "Kubernetes Lease Integration tests"
 
 stages:
-  - name: test
-    if: NOT tag =~ ^v
   - name: integration
     if: NOT tag =~ ^v
   
