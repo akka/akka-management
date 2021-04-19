@@ -33,7 +33,7 @@ jobs:
         uses: coursier/cache-action@v5
 
       - name: Code style check, compilation and binary-compatibility check
-        run: sbt "scalafmtCheckAll;+IntegrationTest/compile;mimaReportBinaryIssues"
+        run: sbt "scalafmtCheckAll;headerCheckAll;+IntegrationTest/compile;mimaReportBinaryIssues"
 
   check-docs:
     name: Check Docs
