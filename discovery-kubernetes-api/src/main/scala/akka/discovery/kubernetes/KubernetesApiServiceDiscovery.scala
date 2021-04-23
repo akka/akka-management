@@ -41,13 +41,17 @@ object KubernetesApiServiceDiscovery {
       portName: Option[String],
       podNamespace: String,
       podDomain: String,
-      rawIp: Boolean): Seq[ResolvedTarget] =
+      rawIp: Boolean,
+      containerName: Option[String]): Seq[ResolvedTarget] =
     for {
       item <- podList.items
       if item.metadata.flatMap(_.deletionTimestamp).isEmpty
       itemSpec <- item.spec.toSeq
       itemStatus <- item.status.toSeq
       if itemStatus.phase.contains("Running")
+      if containerName.forall(name =>
+        itemStatus.containerStatuses.filter(_.name == name).exists(!_.state.contains("waiting"))
+      )
       ip <- itemStatus.podIP.toSeq
       // Maybe port is an Option of a port, and will be None if no portName was requested
       maybePort <- portName match {
@@ -156,7 +160,7 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
       }
 
     } yield {
-      val addresses = targets(podList, query.portName, podNamespace, settings.podDomain, settings.rawIp)
+      val addresses = targets(podList, query.portName, podNamespace, settings.podDomain, settings.rawIp, settings.containerName)
       if (addresses.isEmpty && podList.items.nonEmpty) {
         if (log.isInfoEnabled) {
           val containerPortNames = podList.items.flatMap(_.spec).flatMap(_.containers).flatMap(_.ports).flatten.toSet

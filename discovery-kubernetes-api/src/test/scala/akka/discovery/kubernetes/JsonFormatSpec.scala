@@ -26,7 +26,10 @@ class JsonFormatSpec extends AnyWordSpec with Matchers {
                 ContainerPort(Some("management"), 10001),
                 ContainerPort(Some("http"), 10002)))
             )))),
-            Some(PodStatus(Some("172.17.0.4"), Some("Running"))),
+            Some(
+              PodStatus(Some("172.17.0.4"),
+              List(ContainerStatus("akka-cluster-tooling-example", Map(("running", ())))),
+              Some("Running"))),
             Some(Metadata(deletionTimestamp = None))
           ),
           Pod(
@@ -37,7 +40,10 @@ class JsonFormatSpec extends AnyWordSpec with Matchers {
                 ContainerPort(Some("management"), 10001),
                 ContainerPort(Some("http"), 10002)))
             )))),
-            Some(PodStatus(Some("172.17.0.6"), Some("Running"))),
+            Some(PodStatus(
+              Some("172.17.0.6"),
+              List(ContainerStatus("akka-cluster-tooling-example", Map(("running", ())))),
+              Some("Running"))),
             Some(Metadata(deletionTimestamp = None))
           ),
           Pod(
@@ -48,13 +54,19 @@ class JsonFormatSpec extends AnyWordSpec with Matchers {
                 ContainerPort(Some("management"), 10001),
                 ContainerPort(Some("http"), 10002)))
             )))),
-            Some(PodStatus(Some("172.17.0.7"), Some("Running"))),
+            Some(PodStatus(
+              Some("172.17.0.7"),
+              List(ContainerStatus("akka-cluster-tooling-example", Map(("running", ())))),
+              Some("Running"))),
             Some(Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z")))
           ),
           Pod(
             Some(PodSpec(
               List(Container("akka-cluster-tooling-example", Some(List(ContainerPort(Some("management"), 10001))))))),
-            Some(PodStatus(Some("172.17.0.47"), Some("Succeeded"))),
+            Some(PodStatus(
+              Some("172.17.0.47"),
+              List(ContainerStatus("akka-cluster-tooling-example", Map(("terminated", ())))),
+              Some("Succeeded"))),
             Some(Metadata(deletionTimestamp = None))
           )
         ))

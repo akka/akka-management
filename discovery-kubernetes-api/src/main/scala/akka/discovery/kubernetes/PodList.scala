@@ -19,7 +19,9 @@ import akka.annotation.InternalApi
 
   final case class PodSpec(containers: immutable.Seq[Container])
 
-  final case class PodStatus(podIP: Option[String], phase: Option[String])
+  final case class ContainerStatus(name: String, state: Map[String, Unit])
+
+  final case class PodStatus(podIP: Option[String], containerStatuses: immutable.Seq[ContainerStatus], phase: Option[String])
 
   final case class Pod(spec: Option[PodSpec], status: Option[PodStatus], metadata: Option[Metadata])
 }
