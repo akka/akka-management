@@ -5,7 +5,7 @@ on:
     branches:
       - master
       - release-*
-    tags: [ v.* ]
+    tags: ["*"]
 
 jobs:
   release:
