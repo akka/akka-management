@@ -130,7 +130,6 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
     }
 
     "ignore non-running pods" in {
-      val containerName = "cloudstate-sidecar"
       val podList =
         PodList(
           List(Pod(

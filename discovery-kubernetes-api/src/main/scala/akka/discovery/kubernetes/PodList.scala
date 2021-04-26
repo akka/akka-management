@@ -10,7 +10,7 @@ import akka.annotation.InternalApi
 /**
  * INTERNAL API
  */
-@InternalApi private[akka] object PodList {
+@InternalApi private[kubernetes] object PodList {
   final case class Metadata(deletionTimestamp: Option[String])
 
   final case class ContainerPort(name: Option[String], containerPort: Int)
@@ -29,4 +29,7 @@ import akka.annotation.InternalApi
   final case class Pod(spec: Option[PodSpec], status: Option[PodStatus], metadata: Option[Metadata])
 }
 
-final case class PodList(items: immutable.Seq[PodList.Pod])
+/**
+ * INTERNAL API
+ */
+@InternalApi private[kubernetes] final case class PodList(items: immutable.Seq[PodList.Pod])
