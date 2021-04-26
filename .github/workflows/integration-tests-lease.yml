@@ -41,9 +41,11 @@ jobs:
         run: |-
           echo 'Starting minikube'
           ./scripts/setup-minikube-for-linux.sh  
-          echo 'Starting k8s resources'
+          echo 'Creating namespace'
           kubectl create namespace lease
+          echo 'Creating resources'
           kubectl apply -f ./lease-kubernetes/lease.yml
+          echo 'Adding proxy port'
           kubectl proxy --port=8080 
           echo 'Running tests'
           sbt ";lease-kubernetes/it:test"
