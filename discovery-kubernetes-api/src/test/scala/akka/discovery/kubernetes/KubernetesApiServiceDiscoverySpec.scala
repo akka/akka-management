@@ -5,7 +5,7 @@
 package akka.discovery.kubernetes
 
 import java.net.InetAddress
-import PodList.{Pod, _}
+import PodList.{ Pod, _ }
 import akka.actor.ActorSystem
 import akka.discovery.Discovery
 import akka.discovery.ServiceDiscovery.ResolvedTarget
@@ -155,10 +155,25 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
         JsonFormat.podListFormat.read(data.parseJson)
       }
 
-      KubernetesApiServiceDiscovery.targets(podList, None, "b58dbc88-3651-4fb4-8408-60c375592d1d", "cluster.local", false, Some("container-sidecar")) shouldBe List.empty
+      KubernetesApiServiceDiscovery.targets(
+        podList,
+        None,
+        "b58dbc88-3651-4fb4-8408-60c375592d1d",
+        "cluster.local",
+        false,
+        Some("container-sidecar")) shouldBe List.empty
       // Nonsense for this example data, but to check we do find the other containers:
-      KubernetesApiServiceDiscovery.targets(podList, None, "b58dbc88-3651-4fb4-8408-60c375592d1d", "cluster.local", false, Some("user-function")) shouldBe List(
-        ResolvedTarget("10-8-7-9.b58dbc88-3651-4fb4-8408-60c375592d1d.pod.cluster.local",None,Some(InetAddress.getByName("10.8.7.9")))
+      KubernetesApiServiceDiscovery.targets(
+        podList,
+        None,
+        "b58dbc88-3651-4fb4-8408-60c375592d1d",
+        "cluster.local",
+        false,
+        Some("user-function")) shouldBe List(
+        ResolvedTarget(
+          "10-8-7-9.b58dbc88-3651-4fb4-8408-60c375592d1d.pod.cluster.local",
+          None,
+          Some(InetAddress.getByName("10.8.7.9")))
       )
     }
 
