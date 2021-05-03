@@ -144,17 +144,14 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
         val combinedRoutes = prepareCombinedRoutes(effectiveProviderSettings)
 
-        val connectionContext =
-          effectiveProviderSettings.httpsConnectionContext.getOrElse(Http().defaultServerHttpContext)
+        val baseBuilder = Http().newServerAt(effectiveBindHostname, effectiveBindPort)
+          .withSettings(ServerSettings(system).withRemoteAddressHeader(true))
 
-        val serverFutureBinding =
-          Http().bindAndHandle(
-            RouteResult.route2HandlerFlow(combinedRoutes),
-            effectiveBindHostname,
-            effectiveBindPort,
-            connectionContext = connectionContext,
-            settings = ServerSettings(system).withRemoteAddressHeader(true)
-          )
+        val securedBuilder = effectiveProviderSettings.httpsConnectionContext match {
+          case Some(httpsContext) => baseBuilder.enableHttps(httpsContext)
+          case None => baseBuilder
+        }
+        val serverFutureBinding = securedBuilder.bindFlow(RouteResult.routeToFlow(combinedRoutes))
 
         serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { binding =>
           val boundPort = binding.localAddress.getPort

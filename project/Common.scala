@@ -44,6 +44,7 @@ object Common extends AutoPlugin {
           "-deprecation",
           "-Xlint",
           "-Ywarn-dead-code",
+          "-Xfatal-warnings",
           "-Xfuture",
           "-target:jvm-1.8"
         ),

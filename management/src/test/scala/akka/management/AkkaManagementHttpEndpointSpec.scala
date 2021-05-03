@@ -188,7 +188,7 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
         //#start-akka-management-with-https-context
         val management = AkkaManagement(system)
 
-        val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
+        val https: HttpsConnectionContext = ConnectionContext.httpsServer(sslContext)
         val started = management.start(_.withHttpsConnectionContext(https))
         //#start-akka-management-with-https-context
 

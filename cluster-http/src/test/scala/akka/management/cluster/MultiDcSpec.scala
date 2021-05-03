@@ -64,7 +64,8 @@ class MultiDcSpec
 
       try {
         Http()
-          .bindAndHandle(ClusterHttpManagementRouteProvider(dcASystem).routes(routeSettings), "127.0.0.1", httpPortA)
+          .newServerAt("127.0.0.1", httpPortA)
+          .bind(ClusterHttpManagementRouteProvider(dcASystem).routes(routeSettings))
           .futureValue
 
         eventually {

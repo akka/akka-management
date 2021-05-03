@@ -19,7 +19,6 @@ object ClusterApp {
   def main(args: Array[String]): Unit = {
 
     implicit val system = ActorSystem()
-    implicit val executionContext = system.dispatcher
     val cluster = Cluster(system)
 
     system.log.info("Starting Akka Management")
@@ -49,7 +48,7 @@ object ClusterApp {
         }
       }
 
-    Http().bindAndHandle(routes, "0.0.0.0", 8080)
+    Http().newServerAt("0.0.0.0", 8080).bind(routes)
 
     system.log.info(
       s"Server online at http://localhost:8080/\nPress RETURN to stop..."

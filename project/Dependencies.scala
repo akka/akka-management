@@ -3,8 +3,6 @@ import Keys._
 
 object Dependencies {
 
-  val CronBuild = sys.env.get("TRAVIS_EVENT_TYPE").contains("cron")
-
   val Scala212 = "2.12.13"
   val Scala213 = "2.13.5"
   val CrossScalaVersions = Seq(Dependencies.Scala212, Dependencies.Scala213)
@@ -13,10 +11,9 @@ object Dependencies {
   val AkkaVersion = "2.6.14"
   val AkkaBinaryVersion = "2.6"
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaHttp101 = "10.1.11"
   val AkkaHttp102 = "10.2.0"
-  val AkkaHttpVersion = if (CronBuild) AkkaHttp102 else AkkaHttp101
-  val AkkaHttpBinaryVersion = if (CronBuild) "10.2" else "10.1"
+  val AkkaHttpVersion = AkkaHttp102
+  val AkkaHttpBinaryVersion = "10.2"
 
   val ScalaTestVersion = "3.1.4"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
@@ -92,6 +89,12 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
     "com.typesafe.akka" %% "akka-cluster" % AkkaVersion % Test,
     "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
+  )
+
+  val ManagementPki = Seq(
+    "com.typesafe.akka" %% "akka-pki" % AkkaVersion,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
     "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
   )

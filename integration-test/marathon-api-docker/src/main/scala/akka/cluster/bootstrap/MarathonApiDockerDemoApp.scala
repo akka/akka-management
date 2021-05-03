@@ -37,8 +37,7 @@ object MarathonApiDockerDemoApp extends App {
   AkkaManagement(system).start()
   ClusterBootstrap(system).start()
 
-  Http().bindAndHandle(
-    route,
-    sys.env.get("HOST").getOrElse("127.0.0.1"),
-    sys.env.get("PORT_HTTP").map(_.toInt).getOrElse(8080))
+  private val host: String = sys.env.get("HOST").getOrElse("127.0.0.1")
+  private val port: Int = sys.env.get("PORT_HTTP").map(_.toInt).getOrElse(8080)
+  Http().newServerAt(host, port).bind(route)
 }

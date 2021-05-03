@@ -4,7 +4,10 @@
 
 package akka.management.cluster.bootstrap.contactpoint
 
-import akka.actor.{ ActorSystem, Address }
+import scala.concurrent.duration._
+
+import akka.actor.ActorSystem
+import akka.actor.Address
 import akka.cluster.Cluster
 import akka.discovery.MockDiscovery
 import akka.event.Logging
@@ -12,11 +15,10 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.remote.RARP
-import akka.testkit.{ SocketUtil, TestKit }
+import akka.testkit.SocketUtil
+import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
-
-import scala.concurrent.duration._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
@@ -107,13 +109,12 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
 
     "start listening with the http contact-points on all systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {
-        import system.dispatcher
         implicit val sys: ActorSystem = system
 
         val bootstrap = ClusterBootstrap(system)
         val routes = new HttpClusterBootstrapRoutes(bootstrap.settings).routes
         bootstrap.setSelfContactPoint(s"http://127.0.0.1:$contactPointPort")
-        Http().bindAndHandle(RouteResult.route2HandlerFlow(routes), "127.0.0.1", contactPointPort)
+        Http().newServerAt("127.0.0.1", contactPointPort).bindFlow(RouteResult.routeToFlow(routes))
       }
 
       start(systemA, contactPointPorts("A"))
