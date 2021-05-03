@@ -6,6 +6,7 @@ package akka.coordination.lease.kubernetes.internal
 
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.security.KeyStore
 import java.security.SecureRandom
 
 import scala.collection.immutable
@@ -15,11 +16,11 @@ import scala.util.control.NonFatal
 import akka.Done
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
+import akka.coordination.lease.LeaseException
+import akka.coordination.lease.LeaseTimeoutException
 import akka.coordination.lease.kubernetes.KubernetesApi
 import akka.coordination.lease.kubernetes.KubernetesSettings
 import akka.coordination.lease.kubernetes.LeaseResource
-import akka.coordination.lease.LeaseException
-import akka.coordination.lease.LeaseTimeoutException
 import akka.event.Logging
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
@@ -51,14 +52,20 @@ import javax.net.ssl.TrustManager
   private val http = Http()(system)
 
   private val sslContext = {
-    val km: Array[KeyManager] = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm).getKeyManagers
+    val certificate = PemManagersProvider.loadCertificate(settings.apiCaPath)
+    val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+    val keyStore = KeyStore.getInstance("PKCS12")
+    keyStore.load(null)
+    factory.init(keyStore, Array.empty)
+    val km: Array[KeyManager] = factory.getKeyManagers
     val tm: Array[TrustManager] =
-      PemManagersProvider.buildTrustManagers(PemManagersProvider.loadCertificate(settings.apiCaPath))
+      PemManagersProvider.buildTrustManagers(certificate)
     val random: SecureRandom = new SecureRandom
-    val default = SSLContext.getDefault
-    default.init(km, tm, random)
-    default
+    val sslContext = SSLContext.getInstance("TLSv1.2")
+    sslContext.init(km, tm, random)
+    sslContext
   }
+
   private val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
 
   private val namespace =

@@ -7,6 +7,7 @@ package akka.discovery.kubernetes
 import java.net.InetAddress
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.security.KeyStore
 import java.security.SecureRandom
 
 import scala.collection.immutable.Seq
@@ -101,14 +102,21 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
   private val log = Logging(system, getClass)
 
   private val sslContext = {
-    val km: Array[KeyManager] = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm).getKeyManagers
+    val certificate = PemManagersProvider.loadCertificate(settings.apiCaPath)
+
+    val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+    val keyStore = KeyStore.getInstance("PKCS12")
+    keyStore.load(null)
+    factory.init(keyStore, Array.empty)
+    val km: Array[KeyManager] = factory.getKeyManagers
     val tm: Array[TrustManager] =
-      PemManagersProvider.buildTrustManagers(PemManagersProvider.loadCertificate(settings.apiCaPath))
+      PemManagersProvider.buildTrustManagers(certificate)
     val random: SecureRandom = new SecureRandom
-    val default = SSLContext.getDefault
-    default.init(km, tm, random)
-    default
+    val sslContext = SSLContext.getInstance("TLSv1.2")
+    sslContext.init(km, tm, random)
+    sslContext
   }
+
   private val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
 
   log.debug("Settings {}", settings)

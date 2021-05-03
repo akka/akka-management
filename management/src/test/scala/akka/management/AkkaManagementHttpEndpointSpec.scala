@@ -177,25 +177,43 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
         require(keystore != null, "Keystore required!")
         ks.load(keystore, password)
 
-        val keyManagerFactory: KeyManagerFactory = KeyManagerFactory.getInstance("SunX509")
+        val keyManagerFactory: KeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
         keyManagerFactory.init(ks, password)
 
-        val tmf: TrustManagerFactory = TrustManagerFactory.getInstance("SunX509")
+        val tmf: TrustManagerFactory = TrustManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
         tmf.init(ks)
 
         val sslContext: SSLContext = SSLContext.getInstance("TLS")
         sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
+
+        // A custom httpsClient for tests (without endpoint verification)
+        val httpsClient: HttpsConnectionContext = ConnectionContext.httpsClient(
+          (host, port) =>{
+            val engine = sslContext.createSSLEngine(host, port)
+            engine.setUseClientMode(true)
+            // disable endpoint verification for tests
+            engine.setSSLParameters({
+              val params = engine.getSSLParameters
+              params.setEndpointIdentificationAlgorithm(null)
+              params
+            })
+
+            engine
+          }
+        )
+
         //#start-akka-management-with-https-context
         val management = AkkaManagement(system)
 
-        val https: HttpsConnectionContext = ConnectionContext.httpsServer(sslContext)
-        val started = management.start(_.withHttpsConnectionContext(https))
+        val httpsServer: HttpsConnectionContext = ConnectionContext.httpsServer(sslContext)
+
+        val started = management.start(_.withHttpsConnectionContext(httpsServer))
         //#start-akka-management-with-https-context
 
         Await.result(started, 10.seconds)
 
         val httpRequest = HttpRequest(uri = s"https://127.0.0.1:$httpPort/scaladsl")
-        val responseGetMembersFuture = Http().singleRequest(httpRequest, connectionContext = https)
+        val responseGetMembersFuture = Http().singleRequest(httpRequest, connectionContext = httpsClient)
         val responseGetMembers = Await.result(responseGetMembersFuture, 5.seconds)
         responseGetMembers.status shouldEqual StatusCodes.OK
 
