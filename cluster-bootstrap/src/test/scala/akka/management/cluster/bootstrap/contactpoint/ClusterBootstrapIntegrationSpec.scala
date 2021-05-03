@@ -18,7 +18,6 @@ import akka.discovery.MockDiscovery
 import akka.discovery.ServiceDiscovery.Resolved
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.testkit.SocketUtil
 import akka.testkit.TestKit

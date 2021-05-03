@@ -12,7 +12,6 @@ import akka.cluster.Cluster
 import akka.discovery.MockDiscovery
 import akka.event.Logging
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.RouteResult
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.remote.RARP
 import akka.testkit.SocketUtil
