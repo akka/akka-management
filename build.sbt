@@ -109,9 +109,9 @@ lazy val `akka-management-pki` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-pki",
-    libraryDependencies := Dependencies.ManagementPki
+    libraryDependencies := Dependencies.ManagementPki,
     // Don't enable mima until 1.1.1
-    //    mimaPreviousArtifactsSet
+    mimaPreviousArtifacts := Set.empty
   )
 
 lazy val `loglevels-logback` = project
