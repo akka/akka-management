@@ -10,9 +10,7 @@ object Dependencies {
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val AkkaVersion = "2.6.14"
   val AkkaBinaryVersion = "2.6"
-  // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaHttp102 = "10.2.0"
-  val AkkaHttpVersion = AkkaHttp102
+  val AkkaHttpVersion = "10.2.0"
   val AkkaHttpBinaryVersion = "10.2"
 
   val ScalaTestVersion = "3.1.4"
