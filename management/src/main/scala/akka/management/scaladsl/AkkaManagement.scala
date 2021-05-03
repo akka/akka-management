@@ -95,7 +95,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
    *
-   * @throws IllegalArgumentException if routes not configured for akka management
+   * @throws java.lang.IllegalArgumentException if routes not configured for akka management
    */
   def routes: Route = prepareCombinedRoutes(providerSettings)
 
@@ -106,7 +106,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
    *
-   * @throws IllegalArgumentException if routes not configured for akka management
+   * @throws java.lang.IllegalArgumentException if routes not configured for akka management
    */
   def routes(transformSettings: ManagementRouteProviderSettings => ManagementRouteProviderSettings): Route =
     prepareCombinedRoutes(transformSettings(providerSettings))
