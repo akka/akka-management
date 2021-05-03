@@ -121,9 +121,11 @@ PUTs must contain resourceVersions. Response:
    * Must [[readOrCreateLeaseResource]] to first to get a resource version.
    *
    * Can return one of three things:
-   *  - Failure, e.g. timed out waiting for k8s api server to respond
-   *  - Update failed due to version not matching current in the k8s api server. In this case resource is returned so the version can be used for subsequent calls
-   *  - Success. Returns the LeaseResource that contains the clientName and new version. The new version should be used for any subsequent calls
+   *  - Future.Failure, e.g. timed out waiting for k8s api server to respond
+   *  - Future.sucess[Left(resource)]: the update failed due to version not matching current in the k8s api server.
+   *    In this case the current resource is returned so the version can be used for subsequent calls
+   *  - Future.sucess[Right(resource)]: Returns the LeaseResource that contains the clientName and new version.
+   *    The new version should be used for any subsequent calls
    */
   override def updateLeaseResource(
       leaseName: String,
