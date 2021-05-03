@@ -12,16 +12,12 @@ import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.cert.Certificate
 import java.security.cert.CertificateFactory
-import java.security.cert.X509Certificate
 
 import scala.concurrent.blocking
 
-import akka.annotation.ApiMayChange
 import akka.annotation.InternalApi
 import akka.pki.pem.DERPrivateKeyLoader
 import akka.pki.pem.PEMDecoder
-import javax.net.ssl.KeyManager
-import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
 

@@ -34,7 +34,6 @@ import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.server.Directives.rawPathPrefix
 import akka.http.scaladsl.server.PathMatchers
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.settings.ServerSettings
 import akka.management.AkkaManagementSettings
