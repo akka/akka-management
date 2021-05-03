@@ -109,7 +109,7 @@ lazy val `akka-management-pki` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     name := "akka-management-pki",
-    libraryDependencies := Dependencies.ManagementPki,
+    libraryDependencies := Dependencies.ManagementPki
     // Don't enable mima until 1.1.1
     //    mimaPreviousArtifactsSet
   )
@@ -194,11 +194,7 @@ lazy val `integration-test-kubernetes-api` = project
     whitesourceIgnore := true,
     libraryDependencies := Dependencies.BootstrapDemos
   )
-  .dependsOn(
-    `akka-management`,
-    `cluster-http`,
-    `cluster-bootstrap`,
-    `akka-discovery-kubernetes-api`)
+  .dependsOn(`akka-management`, `cluster-http`, `cluster-bootstrap`, `akka-discovery-kubernetes-api`)
 
 lazy val `integration-test-kubernetes-api-java` = project
   .in(file("integration-test/kubernetes-api-java"))
