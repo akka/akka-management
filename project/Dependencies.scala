@@ -10,7 +10,7 @@ object Dependencies {
   val CrossScalaVersions = Seq(Dependencies.Scala212, Dependencies.Scala213)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaVersion = "2.6.10"
+  val AkkaVersion = "2.6.14"
   val AkkaBinaryVersion = "2.6"
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val AkkaHttp101 = "10.1.11"
