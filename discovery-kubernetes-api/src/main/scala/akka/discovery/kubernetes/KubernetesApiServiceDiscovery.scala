@@ -101,14 +101,15 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
   private val log = Logging(system, getClass)
 
   private val sslContext = {
-  val km: Array[KeyManager] = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm).getKeyManagers
-  val tm: Array[TrustManager] = PemManagersProvider.buildTrustManagers(PemManagersProvider.loadCertificate(settings.apiCaPath))
-  val random: SecureRandom = new SecureRandom
+    val km: Array[KeyManager] = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm).getKeyManagers
+    val tm: Array[TrustManager] =
+      PemManagersProvider.buildTrustManagers(PemManagersProvider.loadCertificate(settings.apiCaPath))
+    val random: SecureRandom = new SecureRandom
     val default = SSLContext.getDefault
     default.init(km, tm, random)
     default
   }
-  private val clientSslContext:HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
+  private val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
 
   log.debug("Settings {}", settings)
 

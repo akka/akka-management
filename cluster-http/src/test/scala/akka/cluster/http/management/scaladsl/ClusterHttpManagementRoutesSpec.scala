@@ -38,7 +38,7 @@ import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.concurrent.PatienceConfiguration.{Timeout => ScalatestTimeout}
+import org.scalatest.concurrent.PatienceConfiguration.{ Timeout => ScalatestTimeout }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Millis

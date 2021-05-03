@@ -52,13 +52,14 @@ import javax.net.ssl.TrustManager
 
   private val sslContext = {
     val km: Array[KeyManager] = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm).getKeyManagers
-    val tm: Array[TrustManager] = PemManagersProvider.buildTrustManagers(PemManagersProvider.loadCertificate(settings.apiCaPath))
+    val tm: Array[TrustManager] =
+      PemManagersProvider.buildTrustManagers(PemManagersProvider.loadCertificate(settings.apiCaPath))
     val random: SecureRandom = new SecureRandom
     val default = SSLContext.getDefault
     default.init(km, tm, random)
     default
   }
-  private val clientSslContext:HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
+  private val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
 
   private val namespace =
     settings.namespace.orElse(readConfigVarFromFilesystem(settings.namespacePath, "namespace")).getOrElse("default")
