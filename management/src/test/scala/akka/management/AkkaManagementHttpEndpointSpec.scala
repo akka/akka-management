@@ -187,20 +187,18 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
         sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
 
         // A custom httpsClient for tests (without endpoint verification)
-        val httpsClient: HttpsConnectionContext = ConnectionContext.httpsClient(
-          (host, port) =>{
-            val engine = sslContext.createSSLEngine(host, port)
-            engine.setUseClientMode(true)
-            // disable endpoint verification for tests
-            engine.setSSLParameters({
-              val params = engine.getSSLParameters
-              params.setEndpointIdentificationAlgorithm(null)
-              params
-            })
+        val httpsClient: HttpsConnectionContext = ConnectionContext.httpsClient((host, port) => {
+          val engine = sslContext.createSSLEngine(host, port)
+          engine.setUseClientMode(true)
+          // disable endpoint verification for tests
+          engine.setSSLParameters({
+            val params = engine.getSSLParameters
+            params.setEndpointIdentificationAlgorithm(null)
+            params
+          })
 
-            engine
-          }
-        )
+          engine
+        })
 
         //#start-akka-management-with-https-context
         val management = AkkaManagement(system)
