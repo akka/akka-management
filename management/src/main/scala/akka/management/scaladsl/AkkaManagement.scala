@@ -151,7 +151,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
           case Some(httpsContext) => baseBuilder.enableHttps(httpsContext)
           case None => baseBuilder
         }
-        val serverFutureBinding = securedBuilder.bindFlow(RouteResult.routeToFlow(combinedRoutes))
+        val serverFutureBinding = securedBuilder.bind(combinedRoutes)
 
         serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { binding =>
           val boundPort = binding.localAddress.getPort

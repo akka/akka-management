@@ -145,7 +145,7 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends AnyWor
         val bootstrap = ClusterBootstrap(system)
         val routes = new HttpClusterBootstrapRoutes(bootstrap.settings).routes
         bootstrap.setSelfContactPoint(s"http://127.0.0.1:$contactPointPort")
-        Http().newServerAt("127.0.0.1", contactPointPort).bindFlow(RouteResult.routeToFlow(routes))
+        Http().newServerAt("127.0.0.1", contactPointPort).bind(routes)
       }
 
       start(systemA, contactPointPorts("A"))
