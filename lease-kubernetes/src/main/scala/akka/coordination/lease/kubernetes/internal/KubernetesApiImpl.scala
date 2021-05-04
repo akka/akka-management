@@ -51,7 +51,7 @@ import javax.net.ssl.TrustManager
   private val log = Logging(system, getClass)
   private val http = Http()(system)
 
-  private val sslContext = {
+  private lazy val sslContext = {
     val certificate = PemManagersProvider.loadCertificate(settings.apiCaPath)
     val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
     val keyStore = KeyStore.getInstance("PKCS12")
@@ -66,7 +66,7 @@ import javax.net.ssl.TrustManager
     sslContext
   }
 
-  private val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
+  private lazy val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
 
   private val namespace =
     settings.namespace.orElse(readConfigVarFromFilesystem(settings.namespacePath, "namespace")).getOrElse("default")
