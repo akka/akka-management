@@ -2,6 +2,10 @@ package akka.coordination.lease.kubernetes
 
 import java.util.concurrent.Executors
 
+import scala.collection.immutable
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import akka.actor.ActorSystem
 import akka.coordination.lease.TimeoutSettings
 import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
@@ -9,10 +13,9 @@ import akka.coordination.lease.scaladsl.LeaseProvider
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-
-import scala.collection.immutable
-import scala.concurrent.{ExecutionContext, Future}
+import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
 
 /**
  * This test requires an API server available on localhost:8080 with a namespace called lease
@@ -35,7 +38,7 @@ class LeaseContentionSpec extends TestKit(ActorSystem("LeaseContentionSpec", Con
     }
 
   """
-))) with WordSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll {
+))) with AnyWordSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll {
 
   implicit val patience: PatienceConfig = PatienceConfig(testKitSettings.DefaultTimeout.duration)
 

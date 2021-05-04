@@ -34,7 +34,6 @@ import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.server.Directives.rawPathPrefix
 import akka.http.scaladsl.server.PathMatchers
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.settings.ServerSettings
 import akka.management.AkkaManagementSettings
@@ -96,7 +95,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
    *
-   * @throws IllegalArgumentException if routes not configured for akka management
+   * @throws java.lang.IllegalArgumentException if routes not configured for akka management
    */
   def routes: Route = prepareCombinedRoutes(providerSettings)
 
@@ -107,7 +106,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
    *
-   * @throws IllegalArgumentException if routes not configured for akka management
+   * @throws java.lang.IllegalArgumentException if routes not configured for akka management
    */
   def routes(transformSettings: ManagementRouteProviderSettings => ManagementRouteProviderSettings): Route =
     prepareCombinedRoutes(transformSettings(providerSettings))
@@ -144,17 +143,15 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
         val combinedRoutes = prepareCombinedRoutes(effectiveProviderSettings)
 
-        val connectionContext =
-          effectiveProviderSettings.httpsConnectionContext.getOrElse(Http().defaultServerHttpContext)
+        val baseBuilder = Http()
+          .newServerAt(effectiveBindHostname, effectiveBindPort)
+          .withSettings(ServerSettings(system).withRemoteAddressHeader(true))
 
-        val serverFutureBinding =
-          Http().bindAndHandle(
-            RouteResult.route2HandlerFlow(combinedRoutes),
-            effectiveBindHostname,
-            effectiveBindPort,
-            connectionContext = connectionContext,
-            settings = ServerSettings(system).withRemoteAddressHeader(true)
-          )
+        val securedBuilder = effectiveProviderSettings.httpsConnectionContext match {
+          case Some(httpsContext) => baseBuilder.enableHttps(httpsContext)
+          case None               => baseBuilder
+        }
+        val serverFutureBinding = securedBuilder.bind(combinedRoutes)
 
         serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { binding =>
           val boundPort = binding.localAddress.getPort

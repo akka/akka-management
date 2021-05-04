@@ -5,27 +5,36 @@
 package akka.discovery.kubernetes
 
 import java.net.InetAddress
-import java.nio.file.{ Files, Paths }
-
-import akka.actor.ActorSystem
-import akka.annotation.InternalApi
-import akka.discovery._
-import akka.http.scaladsl._
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import com.typesafe.sslconfig.akka.AkkaSSLConfig
-import com.typesafe.sslconfig.ssl.TrustStoreConfig
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.security.KeyStore
+import java.security.SecureRandom
 
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
-import JsonFormat._
-import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import scala.util.control.NoStackTrace
+import scala.util.control.NonFatal
 
-import scala.util.control.{ NoStackTrace, NonFatal }
+import akka.actor.ActorSystem
+import akka.annotation.InternalApi
+import akka.discovery.ServiceDiscovery.Resolved
+import akka.discovery.ServiceDiscovery.ResolvedTarget
+import akka.discovery._
+import akka.discovery.kubernetes.JsonFormat._
 import akka.event.Logging
+import akka.http.scaladsl.HttpsConnectionContext
+import akka.http.scaladsl._
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.Authorization
+import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.pki.kubernetes.PemManagersProvider
+import javax.net.ssl.KeyManager
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
 
 object KubernetesApiServiceDiscovery {
 
@@ -92,14 +101,23 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
 
   private val log = Logging(system, getClass)
 
-  private val httpsTrustStoreConfig =
-    TrustStoreConfig(data = None, filePath = Some(settings.apiCaPath)).withStoreType("PEM")
+  private val sslContext = {
+    val certificate = PemManagersProvider.loadCertificate(settings.apiCaPath)
 
-  private val httpsConfig =
-    AkkaSSLConfig()(system).mapSettings(s =>
-      s.withTrustManagerConfig(s.trustManagerConfig.withTrustStoreConfigs(Seq(httpsTrustStoreConfig))))
+    val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+    val keyStore = KeyStore.getInstance("PKCS12")
+    keyStore.load(null)
+    factory.init(keyStore, Array.empty)
+    val km: Array[KeyManager] = factory.getKeyManagers
+    val tm: Array[TrustManager] =
+      PemManagersProvider.buildTrustManagers(certificate)
+    val random: SecureRandom = new SecureRandom
+    val sslContext = SSLContext.getInstance("TLSv1.2")
+    sslContext.init(km, tm, random)
+    sslContext
+  }
 
-  private val httpsContext = http.createClientHttpsContext(httpsConfig)
+  private val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
 
   log.debug("Settings {}", settings)
 
@@ -118,7 +136,7 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
         s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})"
       )
 
-      response <- http.singleRequest(request, httpsContext)
+      response <- http.singleRequest(request, clientSslContext)
 
       entity <- response.entity.toStrict(resolveTimeout)
 

@@ -48,7 +48,7 @@ object DemoApp extends App {
         )
       }
     }
-  Http().bindAndHandle(routes, "0.0.0.0", 8080)
+  Http().newServerAt("0.0.0.0", 8080).bind(routes)
 
   Cluster(system).registerOnMemberUp({
     log.info("Cluster member is up!")

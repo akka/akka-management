@@ -4,25 +4,38 @@
 
 package akka.coordination.lease.kubernetes.internal
 
-import java.nio.file.{ Files, Paths }
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.security.KeyStore
+import java.security.SecureRandom
+
+import scala.collection.immutable
+import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 import akka.Done
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
+import akka.coordination.lease.LeaseException
+import akka.coordination.lease.LeaseTimeoutException
+import akka.coordination.lease.kubernetes.KubernetesApi
+import akka.coordination.lease.kubernetes.KubernetesSettings
+import akka.coordination.lease.kubernetes.LeaseResource
 import akka.event.Logging
+import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.HttpsConnectionContext
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
+import akka.http.scaladsl.model.headers.Authorization
+import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.pattern.after
-import akka.coordination.lease.kubernetes.{ KubernetesApi, KubernetesSettings, LeaseResource }
-import akka.coordination.lease.{ LeaseException, LeaseTimeoutException }
-import com.typesafe.sslconfig.akka.AkkaSSLConfig
-import com.typesafe.sslconfig.ssl.TrustStoreConfig
-import scala.collection.immutable
-import scala.concurrent.Future
-import scala.util.control.NonFatal
+import akka.pki.kubernetes.PemManagersProvider
+import javax.net.ssl.KeyManager
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
 
 /**
  * Could be shared between leases: https://github.com/akka/akka-management/issues/680
@@ -37,13 +50,23 @@ import scala.util.control.NonFatal
   private implicit val sys = system
   private val log = Logging(system, getClass)
   private val http = Http()(system)
-  private val httpsTrustStoreConfig =
-    TrustStoreConfig(data = None, filePath = Some(settings.apiCaPath)).withStoreType("PEM")
 
-  private lazy val httpsConfig =
-    AkkaSSLConfig()(system).mapSettings(s =>
-      s.withTrustManagerConfig(s.trustManagerConfig.withTrustStoreConfigs(immutable.Seq(httpsTrustStoreConfig))))
-  private lazy val httpsContext = http.createClientHttpsContext(httpsConfig)
+  private lazy val sslContext = {
+    val certificate = PemManagersProvider.loadCertificate(settings.apiCaPath)
+    val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+    val keyStore = KeyStore.getInstance("PKCS12")
+    keyStore.load(null)
+    factory.init(keyStore, Array.empty)
+    val km: Array[KeyManager] = factory.getKeyManagers
+    val tm: Array[TrustManager] =
+      PemManagersProvider.buildTrustManagers(certificate)
+    val random: SecureRandom = new SecureRandom
+    val sslContext = SSLContext.getInstance("TLSv1.2")
+    sslContext.init(km, tm, random)
+    sslContext
+  }
+
+  private lazy val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
 
   private val namespace =
     settings.namespace.orElse(readConfigVarFromFilesystem(settings.namespacePath, "namespace")).getOrElse("default")
@@ -105,9 +128,11 @@ PUTs must contain resourceVersions. Response:
    * Must [[readOrCreateLeaseResource]] to first to get a resource version.
    *
    * Can return one of three things:
-   *  - Failure, e.g. timed out waiting for k8s api server to respond
-   *  - Update failed due to version not matching current in the k8s api server. In this case resource is returned so the version can be used for subsequent calls
-   *  - Success. Returns the LeaseResource that contains the clientName and new version. The new version should be used for any subsequent calls
+   *  - Future.Failure, e.g. timed out waiting for k8s api server to respond
+   *  - Future.sucess[Left(resource)]: the update failed due to version not matching current in the k8s api server.
+   *    In this case the current resource is returned so the version can be used for subsequent calls
+   *  - Future.sucess[Right(resource)]: Returns the LeaseResource that contains the clientName and new version.
+   *    The new version should be used for any subsequent calls
    */
   override def updateLeaseResource(
       leaseName: String,
@@ -239,7 +264,7 @@ PUTs must contain resourceVersions. Response:
   private def makeRequest(request: HttpRequest, timeoutMsg: String): Future[HttpResponse] = {
     val response =
       if (settings.secure)
-        http.singleRequest(request, httpsContext)
+        http.singleRequest(request, clientSslContext)
       else
         http.singleRequest(request)
 

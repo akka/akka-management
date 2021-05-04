@@ -31,7 +31,7 @@ final class AkkaManagement(delegate: scaladsl.AkkaManagement) {
    * Get the routes for the HTTP management endpoint.
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
-   * @throws IllegalArgumentException if routes not configured for akka management
+   * @throws java.lang.IllegalArgumentException if routes not configured for akka management
    */
   def getRoutes: akka.http.javadsl.server.Route =
     RouteAdapter(delegate.routes)
@@ -42,7 +42,7 @@ final class AkkaManagement(delegate: scaladsl.AkkaManagement) {
    * Use this when adding authentication and HTTPS.
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
-   * @throws IllegalArgumentException if routes not configured for akka management
+   * @throws java.lang.IllegalArgumentException if routes not configured for akka management
    */
   def getRoutes(transformSettings: JFunction[ManagementRouteProviderSettings, ManagementRouteProviderSettings])
       : akka.http.javadsl.server.Route =

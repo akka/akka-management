@@ -66,7 +66,7 @@ object ReadinessCheckSetup {
 }
 
 /**
- * Setup for readiness checks, constructor is *Internal API*, use factories in [[ReadinessCheckSetup()]]
+ * Setup for readiness checks, constructor is *Internal API*, use factories in [[ReadinessCheckSetup]]
  */
 final class ReadinessCheckSetup private (
     val createHealthChecks: JFunction[ActorSystem, JList[Supplier[CompletionStage[java.lang.Boolean]]]]
@@ -85,7 +85,7 @@ object LivenessCheckSetup {
 }
 
 /**
- * Setup for liveness checks, constructor is *Internal API*, use factories in [[LivenessCheckSetup()]]
+ * Setup for liveness checks, constructor is *Internal API*, use factories in [[LivenessCheckSetup]]
  */
 final class LivenessCheckSetup private (
     val createHealthChecks: JFunction[ActorSystem, JList[Supplier[CompletionStage[java.lang.Boolean]]]]

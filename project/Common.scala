@@ -36,7 +36,8 @@ object Common extends AutoPlugin {
       crossScalaVersions := Dependencies.CrossScalaVersions,
       projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
       crossVersion := CrossVersion.binary,
-      scalacOptions ++= Seq(
+      scalacOptions ++= {
+        var scalacOptionsBase = Seq(
           "-encoding",
           "UTF-8",
           "-feature",
@@ -44,9 +45,13 @@ object Common extends AutoPlugin {
           "-deprecation",
           "-Xlint",
           "-Ywarn-dead-code",
-          "-Xfuture",
           "-target:jvm-1.8"
-        ),
+        )
+        if (scalaVersion.value == Dependencies.Scala212)
+          scalacOptionsBase ++: Seq("-Xfuture", "-Xfatal-warnings")
+        else
+          scalacOptionsBase
+      },
       javacOptions ++= Seq(
           "-Xlint:unchecked"
         ),

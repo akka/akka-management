@@ -17,6 +17,7 @@ lazy val `akka-management-root` = project
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
+    `akka-management-pki`,
     `loglevels-logback`,
     `integration-test-aws-api-ec2-tag-based`,
     `integration-test-local`,
@@ -51,6 +52,7 @@ lazy val `akka-discovery-kubernetes-api` = project
     libraryDependencies := Dependencies.DiscoveryKubernetesApi,
     mimaPreviousArtifactsSet
   )
+  .dependsOn(`akka-management-pki`)
 
 lazy val `akka-discovery-marathon-api` = project
   .in(file("discovery-marathon-api"))
@@ -102,6 +104,16 @@ lazy val `akka-management` = project
     mimaPreviousArtifactsSet
   )
 
+lazy val `akka-management-pki` = project
+  .in(file("management-pki"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-management-pki",
+    libraryDependencies := Dependencies.ManagementPki,
+    // Don't enable mima until 1.1.1
+    mimaPreviousArtifacts := Set.empty
+  )
+
 lazy val `loglevels-logback` = project
   .in(file("loglevels-logback"))
   .enablePlugins(AutomateHeaderPlugin)
@@ -144,6 +156,7 @@ lazy val `lease-kubernetes` = project
     Defaults.itSettings
   )
   .configs(IntegrationTest)
+  .dependsOn(`akka-management-pki`)
 
 lazy val `lease-kubernetes-int-test` = project
   .in(file("lease-kubernetes-int-test"))
@@ -181,12 +194,7 @@ lazy val `integration-test-kubernetes-api` = project
     whitesourceIgnore := true,
     libraryDependencies := Dependencies.BootstrapDemos
   )
-  .dependsOn(
-    `akka-management`,
-    `cluster-http`,
-    `cluster-bootstrap`,
-    `akka-discovery-kubernetes-api`
-  )
+  .dependsOn(`akka-management`, `cluster-http`, `cluster-bootstrap`, `akka-discovery-kubernetes-api`)
 
 lazy val `integration-test-kubernetes-api-java` = project
   .in(file("integration-test/kubernetes-api-java"))

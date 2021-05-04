@@ -387,7 +387,7 @@ class ClusterHttpManagementRoutesSpec
 
         val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
         val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
-        val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue
+        val binding = Http().newServerAt("127.0.0.1", 20100).bind(clusterHttpManagement.routes(settings)).futureValue
 
         val responseGetShardDetails =
           Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")).futureValue(t)
@@ -450,7 +450,7 @@ class ClusterHttpManagementRoutesSpec
 
         val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
         val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
-        val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue
+        val binding = Http().newServerAt("127.0.0.1", 20100).bind(clusterHttpManagement.routes(settings)).futureValue
 
         val responseGetDomainEvents =
           Http()

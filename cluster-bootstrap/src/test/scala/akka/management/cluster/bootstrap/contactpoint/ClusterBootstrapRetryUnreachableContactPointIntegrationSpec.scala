@@ -6,18 +6,24 @@ package akka.management.cluster.bootstrap.contactpoint
 
 import java.net.InetAddress
 
-import akka.actor.ActorSystem
-import akka.cluster.Cluster
-import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
-import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.{ Lookup, MockDiscovery }
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.RouteResult
-import akka.management.cluster.bootstrap.ClusterBootstrap
-import akka.testkit.{ SocketUtil, TestKit, TestProbe }
-import com.typesafe.config.{ Config, ConfigFactory }
 import scala.concurrent.Future
 import scala.concurrent.duration._
+
+import akka.actor.ActorSystem
+import akka.cluster.Cluster
+import akka.cluster.ClusterEvent.CurrentClusterState
+import akka.cluster.ClusterEvent.MemberUp
+import akka.discovery.Lookup
+import akka.discovery.MockDiscovery
+import akka.discovery.ServiceDiscovery.Resolved
+import akka.discovery.ServiceDiscovery.ResolvedTarget
+import akka.http.scaladsl.Http
+import akka.management.cluster.bootstrap.ClusterBootstrap
+import akka.testkit.SocketUtil
+import akka.testkit.TestKit
+import akka.testkit.TestProbe
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
@@ -133,13 +139,12 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends AnyWor
 
     "start listening with the http contact-points on 3 systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {
-        import system.dispatcher
         implicit val sys = system
 
         val bootstrap = ClusterBootstrap(system)
         val routes = new HttpClusterBootstrapRoutes(bootstrap.settings).routes
         bootstrap.setSelfContactPoint(s"http://127.0.0.1:$contactPointPort")
-        Http().bindAndHandle(RouteResult.route2HandlerFlow(routes), "127.0.0.1", contactPointPort)
+        Http().newServerAt("127.0.0.1", contactPointPort).bind(routes)
       }
 
       start(systemA, contactPointPorts("A"))
