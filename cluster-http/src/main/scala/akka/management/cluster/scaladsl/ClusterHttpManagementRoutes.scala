@@ -16,7 +16,6 @@ import akka.util.Timeout
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
-import scala.util.control.NonFatal
 
 object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
   import ClusterHttpManagementHelper._
