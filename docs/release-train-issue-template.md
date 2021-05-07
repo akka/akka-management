@@ -22,16 +22,15 @@ Variables to be expanded in this template:
 
 - For non-patch releases: 
     - [ ] rename the 'akka-management-x.x-stable' reporting projects in [WhiteSource](https://saas.whitesourcesoftware.com/Wss/WSS.html) accordingly (unfortunately this requires permissions that cannot be shared outside of Lightbend)
-    - [ ] Create a news item draft PR on [akka.github.com](https://github.com/akka/akka.github.com), using the milestone
+    - [ ] Create a news item draft PR on [akka.github.com](https://github.com/akka/akka.github.com), based on the [draft release](https://github.com/akka/akka-management/releases) and [`sbt-authors`](https://github.com/2m/authors) (eg. `./scripts/authors.scala v1.0.9 HEAD`).
 - [ ] Move all [unclosed issues](https://github.com/akka/akka-management/issues?q=is%3Aopen+is%3Aissue+milestone%3A$VERSION$) for this milestone to the next milestone
 - [ ] Close the [$VERSION$ milestone](https://github.com/akka/akka-management/milestones?direction=asc&sort=due_date)
 
 ### Cutting the release
 
-- [ ] Wait until [master build finished](https://travis-ci.org/akka/akka-management/builds/) after the last merge
-- [ ] Create a [new release](https://github.com/akka/akka-management/releases/new) with notes from the [milestone](https://github.com/akka/akka-management/milestones/$VERSION$) and [`sbt-authors`](https://github.com/2m/authors) (eg. `./scripts/authors.scala v1.0.9 HEAD`)
-- [ ] Check that Travis CI release build has executed successfully (Travis will start a [CI build](https://travis-ci.org/akka/akka-management/builds) for the new tag and publish artifacts to Bintray and documentation to Gustav)
-- [ ] Go to [Bintray](https://bintray.com/akka/maven/akka-management/$VERSION$), go to the Maven Central tab, check the *Close and release repository when done* checkbox and sync with Sonatype (using your Sonatype TOKEN key and password)
+- [ ] Wait until master build finished on GH Actions after the last merge
+- [ ] `git tag -a v$VERSION$ -m "Release version $VERSION$"; git push --tags`
+- [ ] Check that GitHub Actions release build has executed successfully (it should publish artifacts to Sonatype and documentation to Gustav)
 
 ### Check availability
 
@@ -40,6 +39,7 @@ Variables to be expanded in this template:
 - [ ] Check the release on [Maven central](https://repo1.maven.org/maven2/com/lightbend/akka/management/akka-management_2.12/$VERSION$/)
 
 ### When everything is on maven central
+
   - `ssh akkarepo@gustav.akka.io`
     - [ ] update the `current` links on `repo.akka.io` to point to the latest version
          ```
@@ -55,6 +55,7 @@ Variables to be expanded in this template:
 
 ### Announcements
 
+- [ ] Update the [draft release](https://github.com/akka/akka-management/releases), either with the content from the news item, or by revising and adding the [`sbt-authors`](https://github.com/2m/authors) (eg. `./scripts/authors.scala v1.0.9 HEAD`) to the generated text. Attach to the tag created earlier, and publish.
 - [ ] For non-patch releases: Merge draft news item for [akka.io](https://github.com/akka/akka.github.com)
 - For non-patch releases or for a particularly interesting patch release: 
     - [ ] Send a release notification to [Lightbend discuss](https://discuss.akka.io)
