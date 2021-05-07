@@ -156,13 +156,6 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
             akka.management.http.routes {
               test4 = "akka.management.HttpManagementEndpointSpecRoutesScaladsl"
             }
-
-            akka.ssl-config {
-              loose {
-                disableSNI = true
-                disableHostnameVerification = true
-              }
-            }
           """
         )
 
