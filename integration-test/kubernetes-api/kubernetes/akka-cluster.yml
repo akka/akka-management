@@ -41,6 +41,7 @@ spec:
         # akka-management bootstrap
         - containerPort: 8558
           protocol: TCP
+          name: management
           # when contact-point-discovery.port-name is set for cluster bootstrap,
           # the management port must be named accordingly:
           # name: management
