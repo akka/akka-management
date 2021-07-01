@@ -2,3 +2,4 @@
 ProblemFilters.exclude[FinalClassProblem]("akka.discovery.awsapi.ecs.EcsServiceDiscovery")
 ProblemFilters.exclude[DirectMissingMethodProblem]("akka.discovery.awsapi.ecs.EcsServiceDiscovery.getContainerAddress")
 ProblemFilters.exclude[FinalClassProblem]("akka.discovery.awsapi.ec2.Ec2TagBasedServiceDiscovery")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.discovery.awsapi.ec2.Ec2TagBasedServiceDiscovery.ec2Client")
