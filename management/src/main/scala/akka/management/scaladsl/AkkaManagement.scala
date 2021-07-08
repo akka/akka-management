@@ -40,7 +40,6 @@ import akka.management.AkkaManagementSettings
 import akka.management.ManagementLogMarker
 import akka.management.NamedRouteProvider
 import akka.management.javadsl
-import akka.stream.Materializer
 import akka.util.ManifestInfo
 
 object AkkaManagement extends ExtensionId[AkkaManagement] with ExtensionIdProvider {
@@ -74,7 +73,6 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
   private val log = Logging.withMarker(system, getClass)
   val settings: AkkaManagementSettings = new AkkaManagementSettings(system.settings.config)
 
-  @volatile private var materializer: Option[Materializer] = None
   import system.dispatcher
 
   private val routeProviders: immutable.Seq[ManagementRouteProvider] = loadRouteProviders()
@@ -133,8 +131,6 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
         val effectiveBindHostname = settings.Http.EffectiveBindHostname
         val effectiveBindPort = settings.Http.EffectiveBindPort
         val effectiveProviderSettings = transformSettings(providerSettings)
-
-        materializer = Some(implicitly[Materializer])
 
         // TODO instead of binding to hardcoded things here, discovery could also be used for this binding!
         // Basically: "give me the SRV host/port for the port called `akka-bootstrap`"
@@ -227,13 +223,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
     if (binding == null) {
       Future.successful(Done)
     } else if (bindingFuture.compareAndSet(binding, null)) {
-      val stopFuture = binding.flatMap(_.unbind()).map((_: Any) => Done)
-      stopFuture.onComplete(_ =>
-        materializer.foreach { mat =>
-          mat.shutdown()
-          materializer = None
-        })
-      stopFuture
+      binding.flatMap(_.unbind()).map((_: Any) => Done)
     } else stop() // retry, CAS was not successful, someone else completed the stop()
   }
 
