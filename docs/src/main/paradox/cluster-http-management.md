@@ -207,6 +207,18 @@ Example response:
 
     Downing akka.tcp://test@10.10.10.10:111
 
+### Get /cluster/shard responses
+
+| Response code | Description
+| ------------- | -----------
+| 200           | Shard entity type keys in JSON format
+
+Example response:
+
+{
+  "entityTypeKeys": ["ShoppingCart"]
+}
+
 ### Get /cluster/shards/{name} responses
 
 | Response code | Description
