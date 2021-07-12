@@ -26,8 +26,6 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
-import akka.annotation.ApiMayChange
-
 /** INTERNAL API */
 @InternalApi private[ec2] object Ec2TagBasedServiceDiscovery {
 
@@ -44,8 +42,7 @@ import akka.annotation.ApiMayChange
 
 }
 
-@ApiMayChange
-class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDiscovery {
+final class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDiscovery {
 
   private val log = Logging(system, classOf[Ec2TagBasedServiceDiscovery])
 
@@ -89,7 +86,7 @@ class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDi
       }
   }
 
-  protected val ec2Client: AmazonEC2 = {
+  private val ec2Client: AmazonEC2 = {
     val clientConfiguration = clientConfigFqcn match {
       case Some(fqcn) =>
         getCustomClientConfigurationInstance(fqcn) match {
@@ -120,7 +117,7 @@ class Ec2TagBasedServiceDiscovery(system: ExtendedActorSystem) extends ServiceDi
   }
 
   @tailrec
-  private final def getInstances(
+  private def getInstances(
       client: AmazonEC2,
       filters: List[Filter],
       nextToken: Option[String],

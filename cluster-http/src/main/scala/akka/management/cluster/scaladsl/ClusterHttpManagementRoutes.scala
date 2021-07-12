@@ -215,6 +215,13 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
 
   }
 
+  private def routeGetShardTypeNames(cluster: Cluster) =
+    get {
+      complete {
+        ShardEntityTypeKeys(ClusterSharding(cluster.system).shardTypeNames)
+      }
+    }
+
   private def routeGetShardInfo(cluster: Cluster, shardRegionName: String) =
     get {
       extractExecutionContext { implicit executor =>
@@ -261,6 +268,9 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         },
         pathPrefix("domain-events") {
           routeGetClusterDomainEvents(cluster)
+        },
+        path("shards") {
+          routeGetShardTypeNames(cluster)
         },
         pathPrefix("shards" / Remaining) { shardRegionName =>
           routeGetShardInfo(cluster, shardRegionName)

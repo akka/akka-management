@@ -24,6 +24,7 @@ final case class ClusterMembers(
     oldest: Option[String],
     oldestPerRole: Map[String, String])
 final case class ClusterHttpManagementMessage(message: String)
+final case class ShardEntityTypeKeys(entityTypeKeys: immutable.Set[String])
 final case class ShardRegionInfo(shardId: String, numEntities: Int)
 final case class ShardDetails(regions: immutable.Seq[ShardRegionInfo])
 
@@ -52,6 +53,7 @@ trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJso
   implicit val clusterMembersFormat: RootJsonFormat[ClusterMembers] = jsonFormat6(ClusterMembers)
   implicit val clusterMemberMessageFormat: RootJsonFormat[ClusterHttpManagementMessage] =
     jsonFormat1(ClusterHttpManagementMessage)
+  implicit val shardEntityTypeKeysFormat: RootJsonFormat[ShardEntityTypeKeys] = jsonFormat1(ShardEntityTypeKeys)
   implicit val shardRegionInfoFormat: RootJsonFormat[ShardRegionInfo] = jsonFormat2(ShardRegionInfo)
   implicit val shardDetailsFormat: RootJsonFormat[ShardDetails] = jsonFormat1(ShardDetails)
 }

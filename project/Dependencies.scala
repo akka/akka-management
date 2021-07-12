@@ -36,8 +36,8 @@ object Dependencies {
   val DiscoveryConsul = Seq(
       "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
       "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
-      "com.orbitz.consul" % "consul-client" % "1.4.2",
-      "com.pszymczyk.consul" % "embedded-consul" % "2.2.1" % Test,
+      "com.orbitz.consul" % "consul-client" % "1.5.3",
+      "com.pszymczyk.consul" % "embedded-consul" % "2.1.4" % Test,
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
       "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
       "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion % Test,
@@ -76,7 +76,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
       "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-      "software.amazon.awssdk" % "ecs" % "2.13.76",
+      "software.amazon.awssdk" % "ecs" % "2.16.95",
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
     ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
@@ -142,7 +142,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-    "com.github.tomakehurst" % "wiremock-jre8" % "2.27.2" % Test,
+    "com.github.tomakehurst" % "wiremock-jre8" % "2.29.0" % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % "it,test",
     "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "it,test",
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "it,test"
