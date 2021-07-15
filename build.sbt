@@ -33,7 +33,6 @@ lazy val `akka-management-root` = project
     docs
   )
   .settings(
-    parallelExecution in GlobalScope := false,
     publish / skip := true
   )
 

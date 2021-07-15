@@ -76,6 +76,7 @@ object Common extends AutoPlugin {
           "https://doc.akka.io/api/akka-management/current/"
         ),
       autoAPIMappings := true,
+      Test / parallelExecution := false,
       // show full stack traces and test case durations
       testOptions in Test += Tests.Argument("-oDF"),
       // -v Log "test run started" / "test started" / "test run finished" events on log level "info" instead of "debug".
