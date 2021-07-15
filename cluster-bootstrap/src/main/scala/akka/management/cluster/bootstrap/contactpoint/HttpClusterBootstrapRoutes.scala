@@ -41,7 +41,7 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
         .take(settings.contactPoint.httpMaxSeedNodesToExpose)
         .map(memberToClusterMember)
 
-      val info = SeedNodes(cluster.selfMember.uniqueAddress.address, members)
+      val info = SeedNodes(cluster.selfMember.uniqueAddress.address, members, settings.newClusterEnabled)
       log.info(
         "Bootstrap request from {}: Contact Point returning {} seed-nodes [{}]",
         clientIp,

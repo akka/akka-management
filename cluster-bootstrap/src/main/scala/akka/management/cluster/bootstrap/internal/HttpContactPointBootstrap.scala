@@ -147,7 +147,8 @@ private[bootstrap] class HttpContactPointBootstrap(
       timeNow(),
       contactPoint,
       members.selfNode,
-      seedAddresses
+      seedAddresses,
+      eligible = members.eligible
     )
   }
 
