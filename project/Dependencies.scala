@@ -30,7 +30,7 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-guava" % JacksonVersion,
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % JacksonVersion,
     // Specifying guava dependency because older transitive dependency has security vulnerability
-    "com.google.guava" % "guava" % "27.1-jre"
+    "com.google.guava" % "guava" % "30.1.1-jre"
   )
 
   val DiscoveryConsul = Seq(
