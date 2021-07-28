@@ -183,7 +183,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
         JsonFormat.podListFormat.read(data.parseJson)
       }
 
-      podList.items.flatMap(_.status.map(_.containerStatuses)) shouldBe Seq(None)
+      podList.items.flatMap(_.status.map(_.containerStatuses)) shouldBe List(None)
     }
 
     "use a ip instead of the host if requested" in {
