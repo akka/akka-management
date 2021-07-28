@@ -177,43 +177,13 @@
                 "conditions": [
                     {
                         "lastProbeTime": null,
-                        "lastTransitionTime": "2021-04-23T08:46:00Z",
-                        "status": "True",
-                        "type": "Initialized"
-                    },
-                    {
-                        "lastProbeTime": null,
                         "lastTransitionTime": "2021-04-23T08:45:58Z",
-                        "message": "containers with unready status: [cloudstate-sidecar]",
-                        "reason": "ContainersNotReady",
                         "status": "False",
-                        "type": "Ready"
-                    },
-                    {
-                        "lastProbeTime": null,
-                        "lastTransitionTime": "2021-04-23T08:45:58Z",
-                        "message": "containers with unready status: [cloudstate-sidecar]",
-                        "reason": "ContainersNotReady",
-                        "status": "False",
-                        "type": "ContainersReady"
-                    },
-                    {
-                        "lastProbeTime": null,
-                        "lastTransitionTime": "2021-04-23T08:45:58Z",
-                        "status": "True",
                         "type": "PodScheduled"
                     }
                 ],
-                "hostIP": "10.14.0.85",
                 "phase": "Running",
-                "podIP": "10.8.7.9",
-                "podIPs": [
-                    {
-                        "ip": "10.8.7.9"
-                    }
-                ],
-                "qosClass": "Burstable",
-                "startTime": "2021-04-23T08:45:58Z"
+                "qosClass": "Burstable"
             }
         }
     ]
