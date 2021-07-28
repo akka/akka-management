@@ -176,7 +176,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
       )
     }
 
-    "ignore running pending pods" in {
+    "ignore pending pods" in {
       val podList = {
         val data = resourceAsString("multi-container-pod-pending.json")
         import spray.json._
