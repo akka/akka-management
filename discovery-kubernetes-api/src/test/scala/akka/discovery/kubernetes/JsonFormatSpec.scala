@@ -29,7 +29,7 @@ class JsonFormatSpec extends AnyWordSpec with Matchers {
             Some(
               PodStatus(
                 Some("172.17.0.4"),
-                List(ContainerStatus("akka-cluster-tooling-example", Map(("running", ())))),
+                Some(List(ContainerStatus("akka-cluster-tooling-example", Map(("running", ()))))),
                 Some("Running"))),
             Some(Metadata(deletionTimestamp = None))
           ),
@@ -44,7 +44,7 @@ class JsonFormatSpec extends AnyWordSpec with Matchers {
             Some(
               PodStatus(
                 Some("172.17.0.6"),
-                List(ContainerStatus("akka-cluster-tooling-example", Map(("running", ())))),
+                Some(List(ContainerStatus("akka-cluster-tooling-example", Map(("running", ()))))),
                 Some("Running"))),
             Some(Metadata(deletionTimestamp = None))
           ),
@@ -59,7 +59,7 @@ class JsonFormatSpec extends AnyWordSpec with Matchers {
             Some(
               PodStatus(
                 Some("172.17.0.7"),
-                List(ContainerStatus("akka-cluster-tooling-example", Map(("running", ())))),
+                Some(List(ContainerStatus("akka-cluster-tooling-example", Map(("running", ()))))),
                 Some("Running"))),
             Some(Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z")))
           ),
@@ -69,7 +69,7 @@ class JsonFormatSpec extends AnyWordSpec with Matchers {
             Some(
               PodStatus(
                 Some("172.17.0.47"),
-                List(ContainerStatus("akka-cluster-tooling-example", Map(("terminated", ())))),
+                Some(List(ContainerStatus("akka-cluster-tooling-example", Map(("terminated", ()))))),
                 Some("Succeeded"))),
             Some(Metadata(deletionTimestamp = None))
           )

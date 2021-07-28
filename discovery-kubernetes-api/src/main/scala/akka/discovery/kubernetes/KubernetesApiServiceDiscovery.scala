@@ -59,7 +59,10 @@ object KubernetesApiServiceDiscovery {
       itemStatus <- item.status.toSeq
       if itemStatus.phase.contains("Running")
       if containerName.forall(name =>
-        itemStatus.containerStatuses.filter(_.name == name).exists(!_.state.contains("waiting")))
+        itemStatus.containerStatuses match {
+          case Some(statuses) => statuses.filter(_.name == name).exists(!_.state.contains("waiting"))
+          case None           => false
+        })
       ip <- itemStatus.podIP.toSeq
       // Maybe port is an Option of a port, and will be None if no portName was requested
       maybePort <- portName match {

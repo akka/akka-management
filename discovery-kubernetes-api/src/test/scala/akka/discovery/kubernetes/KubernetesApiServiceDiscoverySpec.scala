@@ -28,7 +28,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                   ContainerPort(Some("management"), 10001),
                   ContainerPort(Some("http"), 10002)))
               )))),
-              Some(PodStatus(Some("172.17.0.4"), Nil, Some("Running"))),
+              Some(PodStatus(Some("172.17.0.4"), Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             ),
             Pod(
@@ -39,7 +39,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                   ContainerPort(Some("management"), 10001),
                   ContainerPort(Some("http"), 10002)))
               )))),
-              Some(PodStatus(None, Nil, Some("Running"))),
+              Some(PodStatus(None, Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             )
           ))
@@ -63,7 +63,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                 ContainerPort(Some("management"), 10001),
                 ContainerPort(Some("http"), 10002)))
             )))),
-            Some(PodStatus(Some("172.17.0.4"), Nil, Some("Running"))),
+            Some(PodStatus(Some("172.17.0.4"), Some(Nil), Some("Running"))),
             Some(Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z")))
           )))
 
@@ -88,13 +88,13 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                   ContainerPort(Some("management"), 10001),
                   ContainerPort(Some("http"), 10002)))
               )))),
-              Some(PodStatus(Some("172.17.0.4"), Nil, Some("Running"))),
+              Some(PodStatus(Some("172.17.0.4"), Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             ),
             // Pod with no ports
             Pod(
               Some(PodSpec(List(Container("akka-cluster-tooling-example", None)))),
-              Some(PodStatus(Some("172.17.0.5"), Nil, Some("Running"))),
+              Some(PodStatus(Some("172.17.0.5"), Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             ),
             // Pod with multiple containers
@@ -105,7 +105,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                   Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("management"), 10001)))),
                 Container("sidecar", Some(List(ContainerPort(Some("http"), 10002))))
               ))),
-              Some(PodStatus(Some("172.17.0.6"), Nil, Some("Running"))),
+              Some(PodStatus(Some("172.17.0.6"), Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             )
           ))
@@ -140,7 +140,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                 ContainerPort(Some("management"), 10001),
                 ContainerPort(Some("http"), 10002)))
             )))),
-            Some(PodStatus(Some("172.17.0.4"), Nil, Some("Succeeded"))),
+            Some(PodStatus(Some("172.17.0.4"), Some(Nil), Some("Succeeded"))),
             Some(Metadata(deletionTimestamp = None))
           )))
 
@@ -176,6 +176,16 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
       )
     }
 
+    "ignore running pending pods" in {
+      val podList = {
+        val data = resourceAsString("multi-container-pod-pending.json")
+        import spray.json._
+        JsonFormat.podListFormat.read(data.parseJson)
+      }
+
+      podList.items.flatMap(_.status.map(_.containerStatuses)) shouldBe Seq(None)
+    }
+
     "use a ip instead of the host if requested" in {
       val podList =
         PodList(
@@ -188,7 +198,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                   ContainerPort(Some("management"), 10001),
                   ContainerPort(Some("http"), 10002)))
               )))),
-              Some(PodStatus(Some("172.17.0.4"), Nil, Some("Running"))),
+              Some(PodStatus(Some("172.17.0.4"), Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             )
           ))
