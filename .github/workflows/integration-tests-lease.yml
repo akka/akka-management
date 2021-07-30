@@ -36,11 +36,17 @@ jobs:
       - name: Cache Coursier cache
         uses: coursier/cache-action@v5
 
-      - name: Start docker
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.2
+        with:
+          minikube version: 'v1.21.0'
+          kubernetes version: 'v1.21.0'
+          driver: docker
+          start args: '--addons=ingress'
+
+      - name: Run Integration Tests
         timeout-minutes: 15
         run: |-
-          echo 'Starting minikube'
-          ./scripts/setup-minikube-for-linux.sh  
           echo 'Creating namespace'
           kubectl create namespace lease
           echo 'Creating resources'
