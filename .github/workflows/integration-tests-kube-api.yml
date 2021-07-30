@@ -1,14 +1,14 @@
 name: Integration test for Kubernetes API
 
 on:
-  pull_request:
+  # pull_request:
   push:
-    branches:
-      - master
-      - release-*
-    tags-ignore: [ v.* ]
-  schedule:
-    - cron: '0 2 * * *'  # every day 2am
+  #   branches:
+  #     - master
+  #     - release-*
+  #   tags-ignore: [ v.* ]
+  # schedule:
+  #   - cron: '0 2 * * *'  # every day 2am
 
 jobs:
    integration-test:
@@ -36,9 +36,17 @@ jobs:
       - name: Cache Coursier cache
         uses: coursier/cache-action@v5
 
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.2
+        with:
+          minikube version: 'v1.21.0'
+          kubernetes version: 'v1.21.0'
+          driver: docker
+          start args: '--addons=ingress'
+
       - name: Start docker
         run: |-
-          ./scripts/setup-minikube-for-linux.sh  
+          # ./scripts/setup-minikube-for-linux.sh  
           ./integration-test/kubernetes-api/test.sh
 
       - name: Print logs on failure
