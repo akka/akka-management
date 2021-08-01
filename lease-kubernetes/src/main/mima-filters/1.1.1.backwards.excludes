@@ -1,0 +1,1 @@
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.discovery.kubernetes.PodList#PodStatus.containerStatuses")
