@@ -18,19 +18,18 @@ object Dependencies {
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
   val AwsSdkVersion = "1.11.837"
-  val JacksonVersion = "2.10.5"
-  val JacksonDatabindVersion = "2.10.5.1"
+  val JacksonVersion = "2.11.4"
 
   // often called-in transitively with insecure versions of databind / core
   private val JacksonDatabind = Seq(
-    "com.fasterxml.jackson.core" % "jackson-databind" % JacksonDatabindVersion
+    "com.fasterxml.jackson.core" % "jackson-databind" % JacksonVersion
   )
 
   private val JacksonDatatype = Seq(
     "com.fasterxml.jackson.datatype" % "jackson-datatype-guava" % JacksonVersion,
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % JacksonVersion,
     // Specifying guava dependency because older transitive dependency has security vulnerability
-    "com.google.guava" % "guava" % "27.1-jre"
+    "com.google.guava" % "guava" % "29.0-jre"
   )
 
   val DiscoveryConsul = Seq(
