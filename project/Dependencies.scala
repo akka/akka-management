@@ -37,7 +37,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
       "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
       "com.orbitz.consul" % "consul-client" % "1.5.3",
-      "com.pszymczyk.consul" % "embedded-consul" % "2.1.4" % Test,
+      "com.pszymczyk.consul" % "embedded-consul" % "2.2.1" % Test,
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
       "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
       "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion % Test,
