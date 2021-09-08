@@ -3,49 +3,44 @@ import Keys._
 
 object Dependencies {
 
-  val CronBuild = sys.env.get("TRAVIS_EVENT_TYPE").contains("cron")
-
   val Scala212 = "2.12.13"
   val Scala213 = "2.13.5"
   val CrossScalaVersions = Seq(Dependencies.Scala212, Dependencies.Scala213)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaVersion = "2.6.10"
+  val AkkaVersion = "2.6.14"
   val AkkaBinaryVersion = "2.6"
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaHttp101 = "10.1.11"
-  val AkkaHttp102 = "10.2.0"
-  val AkkaHttpVersion = if (CronBuild) AkkaHttp102 else AkkaHttp101
-  val AkkaHttpBinaryVersion = if (CronBuild) "10.2" else "10.1"
+  val AkkaHttpVersion = "10.2.0"
+  val AkkaHttpBinaryVersion = "10.2"
 
   val ScalaTestVersion = "3.1.4"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
   val AwsSdkVersion = "1.11.837"
-  val JacksonVersion = "2.10.5"
-  val JacksonDatabindVersion = "2.10.5.1"
+  val JacksonVersion = "2.11.4"
 
   // often called-in transitively with insecure versions of databind / core
   private val JacksonDatabind = Seq(
-    "com.fasterxml.jackson.core" % "jackson-databind" % JacksonDatabindVersion
+    "com.fasterxml.jackson.core" % "jackson-databind" % JacksonVersion
   )
 
   private val JacksonDatatype = Seq(
     "com.fasterxml.jackson.datatype" % "jackson-datatype-guava" % JacksonVersion,
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % JacksonVersion,
     // Specifying guava dependency because older transitive dependency has security vulnerability
-    "com.google.guava" % "guava" % "30.1.1-jre"
+    "com.google.guava" % "guava" % "29.0-jre"
   )
 
   val DiscoveryConsul = Seq(
       "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
       "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
-      "com.orbitz.consul" % "consul-client" % "1.4.2",
-      "com.pszymczyk.consul" % "embedded-consul" % "2.1.4" % Test,
+      "com.orbitz.consul" % "consul-client" % "1.5.3",
+      "com.pszymczyk.consul" % "embedded-consul" % "2.2.1" % Test,
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
       "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
       "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion % Test,
-      "ch.qos.logback" % "logback-classic" % "1.2.3" % Test
+      "ch.qos.logback" % "logback-classic" % "1.2.5" % Test
     ) ++ JacksonDatabind ++ JacksonDatatype // consul depends on insecure version of jackson
 
   val DiscoveryKubernetesApi = Seq(
@@ -80,7 +75,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
       "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-      "software.amazon.awssdk" % "ecs" % "2.13.76",
+      "software.amazon.awssdk" % "ecs" % "2.16.104",
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
     ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
@@ -96,11 +91,17 @@ object Dependencies {
     "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
   )
 
+  val ManagementPki = Seq(
+    "com.typesafe.akka" %% "akka-pki" % AkkaVersion,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
+  )
+
   val LoglevelsLogback = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.3",
+    "ch.qos.logback" % "logback-classic" % "1.2.5",
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
@@ -140,7 +141,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-    "com.github.tomakehurst" % "wiremock-jre8" % "2.27.2" % Test,
+    "com.github.tomakehurst" % "wiremock-jre8" % "2.29.1" % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % "it,test",
     "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "it,test",
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "it,test"
@@ -154,7 +155,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.3",
+    "ch.qos.logback" % "logback-classic" % "1.2.5",
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
   )
 

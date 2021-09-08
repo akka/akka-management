@@ -169,7 +169,7 @@ private[akka] class LeaseActor(
       who ! LeaseAcquired
       // Try again as lock version has moved on but is not taken
       pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(r => WriteResponse(r))).to(self)
-      stay
+      stay()
     case Event(WriteResponse(Left(LeaseResource(Some(_), _, _))), OperationInProgress(who, _, _, _)) =>
       // The audacity, someone else has taken the lease :(
       who ! LeaseTaken
@@ -180,14 +180,14 @@ private[akka] class LeaseActor(
     case Event(Heartbeat, GrantedVersion(version, _)) =>
       log.debug("Heartbeat: updating lease time. Version {}", version)
       pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(WriteResponse)).to(self)
-      stay
+      stay()
     case Event(WriteResponse(Right(resource)), gv: GrantedVersion) =>
       require(
         resource.owner.contains(ownerName),
         "response from API server has different owner for success: " + resource)
       log.debug("Heartbeat: lease time updated: Version {}", resource.version)
       startSingleTimer("heartbeat", Heartbeat, settings.timeoutSettings.heartbeatInterval)
-      stay.using(gv.copy(version = resource.version))
+      stay().using(gv.copy(version = resource.version))
     case Event(WriteResponse(Left(lr @ _)), GrantedVersion(_, leaseLost)) =>
       log.warning("Conflict during heartbeat to lease {}. Lease assumed to be released.", lr)
       granted.set(false)
@@ -204,7 +204,7 @@ private[akka] class LeaseActor(
       goto(Releasing).using(OperationInProgress(sender(), version, leaseLost))
     case Event(Acquire(leaseLostCallback), gv: GrantedVersion) =>
       sender() ! LeaseAcquired
-      stay.using(gv.copy(leaseLostCallback = leaseLostCallback))
+      stay().using(gv.copy(leaseLostCallback = leaseLostCallback))
   }
 
   private def executeLeaseLockCallback(callback: Option[Throwable] => Unit, result: Option[Throwable]): Unit =
@@ -244,7 +244,7 @@ private[akka] class LeaseActor(
         ownerName,
         leaseName,
         stateName)
-      stay.using(data)
+      stay().using(data)
     case Event(Release(), data @ _) =>
       log.info(
         "Release request for owner {} lease {} while previous acquire/release still in progress. Current state: {}",
@@ -252,7 +252,7 @@ private[akka] class LeaseActor(
         leaseName,
         stateName)
       sender() ! InvalidRequest("Tried to release a lease that is not acquired")
-      stay.using(data)
+      stay().using(data)
     case Event(Failure(t), replyRequired: ReplyRequired) =>
       log.warning(
         "Failure communicating with the API server for owner {} lease {}: [{}]. Current state: {}",

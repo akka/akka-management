@@ -34,14 +34,12 @@ import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.server.Directives.rawPathPrefix
 import akka.http.scaladsl.server.PathMatchers
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.settings.ServerSettings
 import akka.management.AkkaManagementSettings
 import akka.management.ManagementLogMarker
 import akka.management.NamedRouteProvider
 import akka.management.javadsl
-import akka.stream.Materializer
 import akka.util.ManifestInfo
 
 object AkkaManagement extends ExtensionId[AkkaManagement] with ExtensionIdProvider {
@@ -75,7 +73,6 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
   private val log = Logging.withMarker(system, getClass)
   val settings: AkkaManagementSettings = new AkkaManagementSettings(system.settings.config)
 
-  @volatile private var materializer: Option[Materializer] = None
   import system.dispatcher
 
   private val routeProviders: immutable.Seq[ManagementRouteProvider] = loadRouteProviders()
@@ -86,8 +83,11 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
   private def providerSettings: ManagementRouteProviderSettings = {
     // port is on purpose never inferred from protocol, because this HTTP endpoint is not the "main" one for the app
     val protocol = "http" // changed to "https" if ManagementRouteProviderSettings.withHttpsConnectionContext is used
+    val host = settings.Http.Hostname
+    val port = settings.Http.Port
+    val path = settings.Http.BasePath.fold("")("/" + _)
     val selfBaseUri =
-      Uri(s"$protocol://${settings.Http.Hostname}:${settings.Http.Port}${settings.Http.BasePath.fold("")("/" + _)}")
+      Uri.from(scheme = protocol, host = host, port = port, path = path)
     ManagementRouteProviderSettings(selfBaseUri, settings.Http.RouteProvidersReadOnly)
   }
 
@@ -96,7 +96,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
    *
-   * @throws IllegalArgumentException if routes not configured for akka management
+   * @throws java.lang.IllegalArgumentException if routes not configured for akka management
    */
   def routes: Route = prepareCombinedRoutes(providerSettings)
 
@@ -107,7 +107,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
    *
    * This method can be used to embed the Akka management routes in an existing Akka HTTP server.
    *
-   * @throws IllegalArgumentException if routes not configured for akka management
+   * @throws java.lang.IllegalArgumentException if routes not configured for akka management
    */
   def routes(transformSettings: ManagementRouteProviderSettings => ManagementRouteProviderSettings): Route =
     prepareCombinedRoutes(transformSettings(providerSettings))
@@ -132,8 +132,6 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
         val effectiveBindPort = settings.Http.EffectiveBindPort
         val effectiveProviderSettings = transformSettings(providerSettings)
 
-        materializer = Some(implicitly[Materializer])
-
         // TODO instead of binding to hardcoded things here, discovery could also be used for this binding!
         // Basically: "give me the SRV host/port for the port called `akka-bootstrap`"
         // discovery.lookup("_akka-bootstrap" + ".effective-name.default").find(myaddress)
@@ -144,17 +142,15 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
         val combinedRoutes = prepareCombinedRoutes(effectiveProviderSettings)
 
-        val connectionContext =
-          effectiveProviderSettings.httpsConnectionContext.getOrElse(Http().defaultServerHttpContext)
+        val baseBuilder = Http()
+          .newServerAt(effectiveBindHostname, effectiveBindPort)
+          .withSettings(ServerSettings(system).withRemoteAddressHeader(true))
 
-        val serverFutureBinding =
-          Http().bindAndHandle(
-            RouteResult.route2HandlerFlow(combinedRoutes),
-            effectiveBindHostname,
-            effectiveBindPort,
-            connectionContext = connectionContext,
-            settings = ServerSettings(system).withRemoteAddressHeader(true)
-          )
+        val securedBuilder = effectiveProviderSettings.httpsConnectionContext match {
+          case Some(httpsContext) => baseBuilder.enableHttps(httpsContext)
+          case None               => baseBuilder
+        }
+        val serverFutureBinding = securedBuilder.bind(combinedRoutes)
 
         serverBindingPromise.completeWith(serverFutureBinding).future.flatMap { binding =>
           val boundPort = binding.localAddress.getPort
@@ -227,13 +223,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
     if (binding == null) {
       Future.successful(Done)
     } else if (bindingFuture.compareAndSet(binding, null)) {
-      val stopFuture = binding.flatMap(_.unbind()).map((_: Any) => Done)
-      stopFuture.onComplete(_ =>
-        materializer.foreach { mat =>
-          mat.shutdown()
-          materializer = None
-        })
-      stopFuture
+      binding.flatMap(_.unbind()).map((_: Any) => Done)
     } else stop() // retry, CAS was not successful, someone else completed the stop()
   }
 

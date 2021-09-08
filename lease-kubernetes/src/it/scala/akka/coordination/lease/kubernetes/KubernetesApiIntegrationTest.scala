@@ -79,6 +79,7 @@ class KubernetesApiIntegrationTest extends TestKit(ActorSystem("KubernetesApiInt
       val leaseRecord = underTest.updateLeaseResource(leaseName, client1, currentVersion).futureValue
       val success: LeaseResource = leaseRecord match {
         case Right(lr) => lr
+        case Left(_) => fail("There shouldn't be anyone else updating the resource.")
       }
       success.version shouldNot equal(currentVersion)
       currentVersion = success.version
@@ -90,6 +91,7 @@ class KubernetesApiIntegrationTest extends TestKit(ActorSystem("KubernetesApiInt
       val leaseRecord = underTest.updateLeaseResource(leaseName, client1, currentVersion, time = timeUpdate).futureValue
       val success: LeaseResource = leaseRecord match {
         case Right(lr) => lr
+        case Left(_) => fail("There shouldn't be anyone else updating the resource.")
       }
       success.version shouldNot equal(currentVersion)
       currentVersion = success.version
@@ -101,6 +103,7 @@ class KubernetesApiIntegrationTest extends TestKit(ActorSystem("KubernetesApiInt
       val timeUpdate = System.currentTimeMillis()
       val leaseRecord = underTest.updateLeaseResource(leaseName, client1, "10", time = timeUpdate).futureValue
       val failure: LeaseResource = leaseRecord match {
+        case Right(_) => fail("Expected update failure (we've used an invalid version!).")
         case Left(lr) => lr
       }
       failure.version shouldEqual currentVersion
@@ -113,6 +116,7 @@ class KubernetesApiIntegrationTest extends TestKit(ActorSystem("KubernetesApiInt
       val leaseRecord = underTest.updateLeaseResource(leaseName, "", currentVersion).futureValue
       val success: LeaseResource = leaseRecord match {
         case Right(lr) => lr
+        case Left(_) => fail("There shouldn't be anyone else updating the resource.")
       }
       success.version shouldNot equal(currentVersion)
       currentVersion = success.version
@@ -123,6 +127,7 @@ class KubernetesApiIntegrationTest extends TestKit(ActorSystem("KubernetesApiInt
       val leaseRecord = underTest.updateLeaseResource(leaseName, client2, currentVersion).futureValue
       val success: LeaseResource = leaseRecord match {
         case Right(lr) => lr
+        case Left(_) => fail("There shouldn't be anyone else updating the resource.")
       }
       success.version shouldNot equal(currentVersion)
       currentVersion = success.version

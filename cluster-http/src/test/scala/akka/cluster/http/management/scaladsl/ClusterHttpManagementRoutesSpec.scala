@@ -60,17 +60,6 @@ class ClusterHttpManagementRoutesSpec
   val version = new Version("1.42")
 
   "Http Cluster Management Routes" should {
-    "prepare cluster for shutdown" when {
-      "calling PUT on /cluster/ in an unsupported akka version" in {
-        val mockedCluster = mock(classOf[Cluster])
-        Put("/cluster/", FormData("operation" -> "prepare-for-full-shutdown")) ~> ClusterHttpManagementRoutes(
-          mockedCluster) ~> check {
-          // at least makes sure the path matching works
-          status shouldEqual StatusCodes.BadRequest
-        }
-      }
-    }
-
     "return list of members with cluster leader and oldest" when {
       "calling GET /cluster/members" in {
         val dcName = "one"
@@ -348,9 +337,8 @@ class ClusterHttpManagementRoutesSpec
       }
     }
 
-    "return shard region details" when {
-
-      "calling GET /cluster/shard_regions/{name}" in {
+    "return shard type names" when {
+      "calling GET /cluster/shards" in {
         import scala.concurrent.duration._
 
         import akka.pattern.ask
@@ -398,7 +386,72 @@ class ClusterHttpManagementRoutesSpec
 
         val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
         val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
-        val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue
+        val binding = Http().newServerAt("127.0.0.1", 20100).bind(clusterHttpManagement.routes(settings)).futureValue
+
+        val responseGetShardEntityTypeKeys =
+          Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards")).futureValue(t)
+        responseGetShardEntityTypeKeys.entity.getContentType shouldEqual ContentTypes.`application/json`
+        responseGetShardEntityTypeKeys.status shouldEqual StatusCodes.OK
+        val unmarshaledGetShardEntityTypeKeys =
+          Unmarshal(responseGetShardEntityTypeKeys.entity).to[ShardEntityTypeKeys].futureValue
+        unmarshaledGetShardEntityTypeKeys shouldEqual ShardEntityTypeKeys(Set(name))
+
+        binding.unbind().futureValue
+        system.terminate()
+      }
+    }
+
+    "return shard region details" when {
+
+      "calling GET /cluster/shards/{name}" in {
+        import scala.concurrent.duration._
+
+        import akka.pattern.ask
+
+        val config = ConfigFactory.parseString(
+          """
+            |akka.cluster {
+            |  auto-down-unreachable-after = 0s
+            |  periodic-tasks-initial-delay = 120 seconds // turn off scheduled tasks
+            |  publish-stats-interval = 0 s # always, when it happens
+            |  failure-detector.implementation-class = akka.cluster.FailureDetectorPuppet
+            |  sharding.state-store-mode = ddata
+            |}
+            |akka.actor.provider = "cluster"
+            |akka.remote.log-remote-lifecycle-events = off
+            |akka.remote.netty.tcp.port = 0
+            |akka.remote.artery.canonical.port = 0
+           """.stripMargin
+        )
+        val configClusterHttpManager = ConfigFactory.parseString(
+          """
+            |akka.management.http.hostname = "127.0.0.1"
+            |akka.management.http.port = 20100
+          """.stripMargin
+        )
+
+        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager))
+        val cluster = Cluster(system)
+        val selfAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
+        cluster.join(selfAddress)
+        cluster.clusterCore ! LeaderActionsTick
+
+        val name = "TestShardRegion"
+        val shardRegion = ClusterSharding(system).start(
+          name,
+          TestShardedActor.props,
+          ClusterShardingSettings(system),
+          TestShardedActor.extractEntityId,
+          TestShardedActor.extractShardId
+        )
+
+        implicit val t = ScalatestTimeout(5.seconds)
+
+        shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String].futureValue(t)
+
+        val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
+        val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
+        val binding = Http().newServerAt("127.0.0.1", 20100).bind(clusterHttpManagement.routes(settings)).futureValue
 
         val responseGetShardDetails =
           Http().singleRequest(HttpRequest(uri = s"http://127.0.0.1:20100/cluster/shards/$name")).futureValue(t)
@@ -461,7 +514,7 @@ class ClusterHttpManagementRoutesSpec
 
         val clusterHttpManagement = ClusterHttpManagementRouteProvider(system)
         val settings = ManagementRouteProviderSettings(selfBaseUri = "http://127.0.0.1:20100", readOnly = false)
-        val binding = Http().bindAndHandle(clusterHttpManagement.routes(settings), "127.0.0.1", 20100).futureValue
+        val binding = Http().newServerAt("127.0.0.1", 20100).bind(clusterHttpManagement.routes(settings)).futureValue
 
         val responseGetDomainEvents =
           Http()

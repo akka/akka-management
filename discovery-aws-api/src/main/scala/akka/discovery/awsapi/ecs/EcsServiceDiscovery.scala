@@ -24,10 +24,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 import scala.util.Try
 
-import akka.annotation.ApiMayChange
-
-@ApiMayChange
-class EcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
+final class EcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private[this] val config = system.settings.config.getConfig("akka.discovery.aws-api-ecs")
   private[this] val cluster = config.getString("cluster")
@@ -73,7 +70,6 @@ class EcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
 }
 
-@ApiMayChange
 object EcsServiceDiscovery {
 
   // InetAddress.getLocalHost.getHostAddress throws an exception when running
@@ -84,7 +80,7 @@ object EcsServiceDiscovery {
   // metadata file does not get set when running on Fargate. So this is our
   // only option for determining what the canonical Akka and akka-management
   // hostname values should be set to.
-  def getContainerAddress: Either[String, InetAddress] =
+  private[awsapi] def getContainerAddress: Either[String, InetAddress] =
     NetworkInterface.getNetworkInterfaces.asScala
       .flatMap(_.getInetAddresses.asScala)
       .filterNot(_.isLoopbackAddress)

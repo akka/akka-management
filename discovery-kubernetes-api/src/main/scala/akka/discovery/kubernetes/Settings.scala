@@ -58,6 +58,8 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
 
   lazy val rawIp: Boolean = kubernetesApi.getBoolean("use-raw-ip")
 
+  val containerName: Option[String] = Some(kubernetesApi.getString("container-name")).filter(_.nonEmpty)
+
   override def toString =
     s"Settings($apiCaPath, $apiTokenPath, $apiServiceHostEnvName, $apiServicePortEnvName, " +
     s"$podNamespacePath, $podNamespace, $podDomain)"

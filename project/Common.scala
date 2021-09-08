@@ -1,13 +1,15 @@
+import com.geirsson.CiReleasePlugin
 import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys._
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import de.heikoseeberger.sbtheader._
 import sbt.Keys._
 import sbt._
+import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object Common extends AutoPlugin {
 
   override def trigger = allRequirements
-  override def requires = plugins.JvmPlugin && HeaderPlugin
+  override def requires = plugins.JvmPlugin && HeaderPlugin && CiReleasePlugin
 
   val currentYear = "2021"
 
@@ -34,7 +36,8 @@ object Common extends AutoPlugin {
       crossScalaVersions := Dependencies.CrossScalaVersions,
       projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
       crossVersion := CrossVersion.binary,
-      scalacOptions ++= Seq(
+      scalacOptions ++= {
+        var scalacOptionsBase = Seq(
           "-encoding",
           "UTF-8",
           "-feature",
@@ -42,9 +45,13 @@ object Common extends AutoPlugin {
           "-deprecation",
           "-Xlint",
           "-Ywarn-dead-code",
-          "-Xfuture",
           "-target:jvm-1.8"
-        ),
+        )
+        if (scalaVersion.value == Dependencies.Scala212)
+          scalacOptionsBase ++: Seq("-Xfuture", "-Xfatal-warnings")
+        else
+          scalacOptionsBase
+      },
       javacOptions ++= Seq(
           "-Xlint:unchecked"
         ),
@@ -61,20 +68,21 @@ object Common extends AutoPlugin {
           "akka.pattern" // for some reason Scaladoc creates this
         ),
       Compile / doc / scalacOptions ++= Seq(
-        "-doc-source-url", {
-          val branch = if (isSnapshot.value) "master" else s"v${version.value}"
-          s"https://github.com/akka/akka-management/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
-        },
-        "-doc-canonical-base-url",
-        "https://doc.akka.io/api/akka-management/current/"
-      ),
+          "-doc-source-url", {
+            val branch = if (isSnapshot.value) "master" else s"v${version.value}"
+            s"https://github.com/akka/akka-management/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
+          },
+          "-doc-canonical-base-url",
+          "https://doc.akka.io/api/akka-management/current/"
+        ),
       autoAPIMappings := true,
       // show full stack traces and test case durations
       testOptions in Test += Tests.Argument("-oDF"),
       // -v Log "test run started" / "test started" / "test run finished" events on log level "info" instead of "debug".
       // -a Show stack traces and exception class name for AssertionErrors.
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
-      scalaVersion := Dependencies.Scala212
+      scalaVersion := Dependencies.Scala212,
+      sonatypeProfileName := "com.lightbend"
     )
 
   private def isJdk8 =

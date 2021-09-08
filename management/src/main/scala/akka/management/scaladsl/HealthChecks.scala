@@ -65,7 +65,7 @@ object ReadinessCheckSetup {
 }
 
 /**
- * Setup for readiness checks, constructor is *Internal API*, use factories in [[ReadinessCheckSetup()]]
+ * Setup for readiness checks, constructor is *Internal API*, use factories in [[ReadinessCheckSetup]]
  */
 final class ReadinessCheckSetup private (
     val createHealthChecks: ActorSystem => immutable.Seq[HealthChecks.HealthCheck]
@@ -83,7 +83,7 @@ object LivenessCheckSetup {
 }
 
 /**
- * Setup for liveness checks, constructor is *Internal API*, use factories in [[LivenessCheckSetup()]]
+ * Setup for liveness checks, constructor is *Internal API*, use factories in [[LivenessCheckSetup]]
  */
 final class LivenessCheckSetup private (
     val createHealthChecks: ActorSystem => immutable.Seq[HealthChecks.HealthCheck]

@@ -11,7 +11,7 @@ import akka.http.scaladsl.model.sse.ServerSentEvent
 import spray.json.{ DefaultJsonProtocol, JsArray, JsNumber, JsObject, JsString, JsValue }
 
 /**
- * Encodes a supplied [[ClusterEvent.ClusterDomainEvent]] into a [[ServerSentEvent]].
+ * Encodes a supplied `ClusterEvent.ClusterDomainEvent` into a `ServerSentEvent`.
  */
 object ClusterDomainEventServerSentEventEncoder extends SprayJsonSupport with DefaultJsonProtocol {
   def encode(event: ClusterEvent.ClusterDomainEvent): Option[ServerSentEvent] = {

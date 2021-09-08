@@ -5,13 +5,14 @@
 package akka.discovery.kubernetes
 
 import java.net.InetAddress
-
 import PodList.{ Pod, _ }
 import akka.actor.ActorSystem
 import akka.discovery.Discovery
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+
+import scala.io.Source
 
 class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
   "targets" should {
@@ -27,7 +28,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                   ContainerPort(Some("management"), 10001),
                   ContainerPort(Some("http"), 10002)))
               )))),
-              Some(PodStatus(Some("172.17.0.4"), Some("Running"))),
+              Some(PodStatus(Some("172.17.0.4"), Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             ),
             Pod(
@@ -38,12 +39,12 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                   ContainerPort(Some("management"), 10001),
                   ContainerPort(Some("http"), 10002)))
               )))),
-              Some(PodStatus(None, Some("Running"))),
+              Some(PodStatus(None, Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             )
           ))
 
-      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local", false) shouldBe List(
+      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local", false, None) shouldBe List(
         ResolvedTarget(
           host = "172-17-0-4.default.pod.cluster.local",
           port = Some(10001),
@@ -62,11 +63,11 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                 ContainerPort(Some("management"), 10001),
                 ContainerPort(Some("http"), 10002)))
             )))),
-            Some(PodStatus(Some("172.17.0.4"), Some("Running"))),
+            Some(PodStatus(Some("172.17.0.4"), Some(Nil), Some("Running"))),
             Some(Metadata(deletionTimestamp = Some("2017-12-06T16:30:22Z")))
           )))
 
-      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local", false) shouldBe List.empty
+      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local", false, None) shouldBe List.empty
     }
 
     // This test allows users to not declare the management port in their container spec,
@@ -87,13 +88,13 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                   ContainerPort(Some("management"), 10001),
                   ContainerPort(Some("http"), 10002)))
               )))),
-              Some(PodStatus(Some("172.17.0.4"), Some("Running"))),
+              Some(PodStatus(Some("172.17.0.4"), Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             ),
             // Pod with no ports
             Pod(
               Some(PodSpec(List(Container("akka-cluster-tooling-example", None)))),
-              Some(PodStatus(Some("172.17.0.5"), Some("Running"))),
+              Some(PodStatus(Some("172.17.0.5"), Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             ),
             // Pod with multiple containers
@@ -104,12 +105,12 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                   Some(List(ContainerPort(Some("akka-remote"), 10000), ContainerPort(Some("management"), 10001)))),
                 Container("sidecar", Some(List(ContainerPort(Some("http"), 10002))))
               ))),
-              Some(PodStatus(Some("172.17.0.6"), Some("Running"))),
+              Some(PodStatus(Some("172.17.0.6"), Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             )
           ))
 
-      KubernetesApiServiceDiscovery.targets(podList, None, "default", "cluster.local", false) shouldBe List(
+      KubernetesApiServiceDiscovery.targets(podList, None, "default", "cluster.local", false, None) shouldBe List(
         ResolvedTarget(
           host = "172-17-0-4.default.pod.cluster.local",
           port = None,
@@ -139,11 +140,50 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                 ContainerPort(Some("management"), 10001),
                 ContainerPort(Some("http"), 10002)))
             )))),
-            Some(PodStatus(Some("172.17.0.4"), Some("Succeeded"))),
+            Some(PodStatus(Some("172.17.0.4"), Some(Nil), Some("Succeeded"))),
             Some(Metadata(deletionTimestamp = None))
           )))
 
-      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local", false) shouldBe List.empty
+      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local", false, None) shouldBe List.empty
+    }
+
+    "ignore running pods where the Akka container is waiting" in {
+      val podList = {
+        val data = resourceAsString("multi-container-pod.json")
+        import spray.json._
+        JsonFormat.podListFormat.read(data.parseJson)
+      }
+
+      KubernetesApiServiceDiscovery.targets(
+        podList,
+        None,
+        "b58dbc88-3651-4fb4-8408-60c375592d1d",
+        "cluster.local",
+        false,
+        Some("container-sidecar")) shouldBe List.empty
+      // Nonsense for this example data, but to check we do find the other containers:
+      KubernetesApiServiceDiscovery.targets(
+        podList,
+        None,
+        "b58dbc88-3651-4fb4-8408-60c375592d1d",
+        "cluster.local",
+        false,
+        Some("user-function")) shouldBe List(
+        ResolvedTarget(
+          "10-8-7-9.b58dbc88-3651-4fb4-8408-60c375592d1d.pod.cluster.local",
+          None,
+          Some(InetAddress.getByName("10.8.7.9")))
+      )
+    }
+
+    "ignore pending pods" in {
+      val podList = {
+        val data = resourceAsString("multi-container-pod-pending.json")
+        import spray.json._
+        JsonFormat.podListFormat.read(data.parseJson)
+      }
+
+      podList.items.flatMap(_.status.map(_.containerStatuses)) shouldBe List(None)
     }
 
     "use a ip instead of the host if requested" in {
@@ -158,12 +198,12 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
                   ContainerPort(Some("management"), 10001),
                   ContainerPort(Some("http"), 10002)))
               )))),
-              Some(PodStatus(Some("172.17.0.4"), Some("Running"))),
+              Some(PodStatus(Some("172.17.0.4"), Some(Nil), Some("Running"))),
               Some(Metadata(deletionTimestamp = None))
             )
           ))
 
-      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local", true) shouldBe List(
+      KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local", true, None) shouldBe List(
         ResolvedTarget(
           host = "172.17.0.4",
           port = Some(10001),
@@ -182,4 +222,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
       system.terminate()
     }
   }
+
+  private def resourceAsString(name: String): String =
+    Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(name)).mkString
 }

@@ -16,7 +16,6 @@ import akka.util.Timeout
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
-import scala.util.control.NonFatal
 
 object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
   import ClusterHttpManagementHelper._
@@ -216,6 +215,13 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
 
   }
 
+  private def routeGetShardTypeNames(cluster: Cluster) =
+    get {
+      complete {
+        ShardEntityTypeKeys(ClusterSharding(cluster.system).shardTypeNames)
+      }
+    }
+
   private def routeGetShardInfo(cluster: Cluster, shardRegionName: String) =
     get {
       extractExecutionContext { implicit executor =>
@@ -263,6 +269,9 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         pathPrefix("domain-events") {
           routeGetClusterDomainEvents(cluster)
         },
+        path("shards") {
+          routeGetShardTypeNames(cluster)
+        },
         pathPrefix("shards" / Remaining) { shardRegionName =>
           routeGetShardInfo(cluster, shardRegionName)
         }
@@ -273,15 +282,8 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
     put {
       formField('operation) { operation =>
         if (operation.toLowerCase == "prepare-for-full-shutdown") {
-          try {
-            // FIXME once we move to Akka 2.6 https://github.com/akka/akka-management/issues/830
-            val m = cluster.getClass.getMethod("prepareForFullClusterShutdown")
-            m.invoke(cluster)
-            complete(ClusterHttpManagementMessage(s"Preparing for full cluster shutdown"))
-          } catch {
-            case NonFatal(_) =>
-              complete(StatusCodes.BadRequest, "prepare-for-full-shutdown not supported in this Akka version")
-          }
+          cluster.prepareForFullClusterShutdown()
+          complete(ClusterHttpManagementMessage(s"Preparing for full cluster shutdown"))
         } else {
           complete(StatusCodes.BadRequest -> ClusterHttpManagementMessage("Operation not supported"))
         }

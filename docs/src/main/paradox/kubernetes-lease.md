@@ -113,11 +113,11 @@ spec:
 
 ```
 
-To get the current leases the fully qualified name must be uses as Kubernetes has since added a Lease type.
+@@@ note
 
-```
-kubectl get leases.akka.io
-```
+The lease gets created only during an actual Split Brain.
+
+@@@
 
 #### Enable in SBR
 

@@ -4,24 +4,32 @@
 
 package akka.coordination.lease.kubernetes
 
+import scala.concurrent.duration._
 import akka.Done
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.StatusCodes
 import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
+import akka.http.scaladsl.model.StatusCodes
 import akka.testkit.TestKit
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import org.scalatest.concurrent.ScalaFutures
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
-import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
-
-import scala.concurrent.duration._
+import com.typesafe.config.ConfigFactory
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
 class KubernetesApiSpec
-    extends TestKit(ActorSystem("KubernetesApiSpec"))
+    extends TestKit(
+      ActorSystem(
+        "KubernetesApiSpec",
+        ConfigFactory.parseString("""akka.coordination.lease.kubernetes {
+        |    lease-operation-timeout = 10s
+        |}
+        |""".stripMargin)
+      ))
     with ScalaFutures
     with AnyWordSpecLike
     with BeforeAndAfterAll
@@ -30,6 +38,7 @@ class KubernetesApiSpec
 
   val wireMockServer = new WireMockServer(wireMockConfig().port(0))
   wireMockServer.start()
+
   val settings = new KubernetesSettings(
     "",
     "",
