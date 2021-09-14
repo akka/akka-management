@@ -33,7 +33,7 @@ lazy val `akka-management-root` = project
     docs
   )
   .settings(
-    parallelExecution in GlobalScope := false,
+    GlobalScope / parallelExecution := false,
     publish / skip := true
   )
 
@@ -167,7 +167,6 @@ lazy val `lease-kubernetes-int-test` = project
   .settings(
     name := "akka-lease-kubernetes-int-test",
     publish / skip := true,
-    whitesourceIgnore := true,
     libraryDependencies := Dependencies.LeaseKubernetesTest,
     version ~= (_.replace('+', '-')),
     dockerBaseImage := "openjdk:8-jre-alpine",
@@ -190,8 +189,7 @@ lazy val `integration-test-kubernetes-api` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     publish / skip := true,
-    sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true,
+    doc / sources := Seq.empty,
     libraryDependencies := Dependencies.BootstrapDemos
   )
   .dependsOn(`akka-management`, `cluster-http`, `cluster-bootstrap`, `akka-discovery-kubernetes-api`)
@@ -202,8 +200,7 @@ lazy val `integration-test-kubernetes-api-java` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     publish / skip := true,
-    sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true,
+    doc / sources := Seq.empty,
     libraryDependencies := Dependencies.BootstrapDemos
   )
   .dependsOn(
@@ -219,8 +216,7 @@ lazy val `integration-test-kubernetes-dns` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     publish / skip := true,
-    sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true,
+    doc / sources := Seq.empty,
     libraryDependencies := Dependencies.BootstrapDemos
   )
   .dependsOn(
@@ -236,8 +232,7 @@ lazy val `integration-test-aws-api-ec2-tag-based` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     publish / skip := true,
-    whitesourceIgnore := true,
-    sources in doc := Seq.empty,
+    doc / sources := Seq.empty,
     Defaults.itSettings
   )
   .dependsOn(
@@ -254,8 +249,7 @@ lazy val `integration-test-marathon-api-docker` = project
   .settings(
     name := "integration-test-marathon-api-docker",
     publish / skip := true,
-    sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true
+    doc / sources := Seq.empty
   )
   .dependsOn(
     `akka-management`,
@@ -270,8 +264,7 @@ lazy val `integration-test-aws-api-ecs` = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     publish / skip := true,
-    sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true
+    doc / sources := Seq.empty
   )
   .dependsOn(
     `akka-management`,
@@ -282,8 +275,8 @@ lazy val `integration-test-aws-api-ecs` = project
   .enablePlugins(JavaAppPackaging, AshScriptPlugin, DockerPlugin)
   .settings(
     dockerBaseImage := "openjdk:10-jre-slim",
-    com.typesafe.sbt.SbtNativePackager.autoImport.packageName in Docker := "ecs-integration-test-app",
-    version in Docker := "1.0"
+    Docker / com.typesafe.sbt.SbtNativePackager.autoImport.packageName := "ecs-integration-test-app",
+    Docker / version := "1.0"
   )
 
 lazy val `integration-test-local` = project
@@ -293,8 +286,7 @@ lazy val `integration-test-local` = project
   .settings(
     name := "integration-test-local",
     publish / skip := true,
-    sources in (Compile, doc) := Seq.empty,
-    whitesourceIgnore := true,
+    doc / sources := Seq.empty,
     libraryDependencies := Dependencies.BootstrapDemos
   )
   .dependsOn(
@@ -311,7 +303,6 @@ lazy val docs = project
   .settings(
     name := "Akka Management",
     publish / skip := true,
-    whitesourceIgnore := true,
     makeSite := makeSite.dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
     Preprocess / siteSubdirName := s"api/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
     Preprocess / sourceDirectory := (LocalRootProject / ScalaUnidoc / unidoc / target).value,

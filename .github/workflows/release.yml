@@ -35,11 +35,6 @@ jobs:
       - name: Cache Coursier cache
         uses: coursier/cache-action@v5
 
-      - name: Whitesource check policies and update
-        env:
-          WHITESOURCE_PASSWORD: ${{ secrets.WHITESOURCE_PASSWORD }}
-        run: sbt ";whitesourceCheckPolicies ;whitesourceUpdate"
-
       - name: Publish artifacts for all Scala versions
         env:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
