@@ -50,7 +50,7 @@ You can also pass the name of a specific pod from the list returned by `kubectl 
 (the actual name is random so you'll need to copy from your output, not use the name in this guide):
 
 ```sh
-kubectl log -f pods/akka-sample-cluster-kubernetes-756894d68d-9sltd
+kubectl logs -f pods/akka-sample-cluster-kubernetes-756894d68d-9sltd
 ```
 
 By default, the logging in the application during startup is reasonably noisy. You may wish to set the logging to a higher threshold (eg warn) if you wish to 
