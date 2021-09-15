@@ -4,6 +4,7 @@
 
 package akka.pki.kubernetes
 
+import collection.JavaConverters._
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.charset.Charset
@@ -12,14 +13,13 @@ import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.cert.Certificate
 import java.security.cert.CertificateFactory
-
 import scala.concurrent.blocking
-
 import akka.annotation.InternalApi
 import akka.pki.pem.DERPrivateKeyLoader
 import akka.pki.pem.PEMDecoder
 import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
+import scala.util.Random
 
 /**
  * INTERNAL API
@@ -34,10 +34,10 @@ private[akka] object PemManagersProvider {
   /**
    * INTERNAL API
    */
-  @InternalApi def buildTrustManagers(cacert: Certificate): Array[TrustManager] = {
+  @InternalApi def buildTrustManagers(cacerts: Iterable[Certificate]): Array[TrustManager] = {
     val trustStore = KeyStore.getInstance("JKS")
     trustStore.load(null)
-    trustStore.setCertificateEntry("cacert", cacert)
+    cacerts.foreach(cert => trustStore.setCertificateEntry("cacert-"+Random.alphanumeric.take(6).mkString(""),cert))
 
     val tmf =
       TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
@@ -59,9 +59,9 @@ private[akka] object PemManagersProvider {
   /**
    * INTERNAL API
    */
-  @InternalApi def loadCertificate(filename: String): Certificate = blocking {
+  @InternalApi def loadCertificates(filename: String): Iterable[Certificate] = blocking {
     val bytes = Files.readAllBytes(new File(filename).toPath)
-    certFactory.generateCertificate(new ByteArrayInputStream(bytes))
+    certFactory.generateCertificates(new ByteArrayInputStream(bytes)).asScala
   }
 
 }
