@@ -110,8 +110,7 @@ lazy val `akka-management-pki` = project
   .settings(
     name := "akka-management-pki",
     libraryDependencies := Dependencies.ManagementPki,
-    // Don't enable mima until 1.1.1
-    mimaPreviousArtifacts := Set.empty
+    mimaPreviousArtifactsSet
   )
 
 lazy val `loglevels-logback` = project
