@@ -37,7 +37,7 @@ private[akka] object PemManagersProvider {
   @InternalApi def buildTrustManagers(cacerts: Iterable[Certificate]): Array[TrustManager] = {
     val trustStore = KeyStore.getInstance("JKS")
     trustStore.load(null)
-    cacerts.foreach(cert => trustStore.setCertificateEntry("cacert-"+Random.alphanumeric.take(6).mkString(""),cert))
+    cacerts.foreach(cert => trustStore.setCertificateEntry("cacert-" + Random.alphanumeric.take(6).mkString(""), cert))
 
     val tmf =
       TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
