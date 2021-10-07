@@ -27,7 +27,7 @@ Make sure to include it along with the core akka-management library in your proj
   version2=AkkaManagementVersion
 }
 
-Akka Cluster HTTP Management can be used with Akka $akka.version26$ or later.
+Akka Cluster HTTP Management can be used with Akka $akka.version$ or later.
 You have to override the following Akka dependencies by defining them explicitly in your build and
 define the Akka version to the one that you are using. Latest patch version of Akka is recommended and
 a later version than $akka.version$ can be used.
