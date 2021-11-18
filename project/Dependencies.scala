@@ -109,6 +109,20 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test
   )
 
+  val LoglevelsLog4j2 = Seq(
+    "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+    "org.apache.logging.log4j" % "log4j-core" % "2.14.1",
+    "org.apache.logging.log4j" % "log4j-api" % "2.14.1",
+    "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.14.1",
+    "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
+    "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test
+  )
+
   val ClusterHttp = Seq(
     "com.typesafe.akka" %% "akka-cluster" % AkkaVersion,
     "com.typesafe.akka" %% "akka-cluster-sharding" % AkkaVersion,

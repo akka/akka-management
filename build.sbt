@@ -19,6 +19,7 @@ lazy val `akka-management-root` = project
     `akka-management`,
     `akka-management-pki`,
     `loglevels-logback`,
+    `loglevels-log4j2`,
     `integration-test-aws-api-ec2-tag-based`,
     `integration-test-local`,
     `integration-test-aws-api-ecs`,
@@ -120,6 +121,16 @@ lazy val `loglevels-logback` = project
   .settings(
     name := "akka-management-loglevels-logback",
     libraryDependencies := Dependencies.LoglevelsLogback,
+    mimaPreviousArtifactsSet
+  )
+  .dependsOn(`akka-management`)
+
+lazy val `loglevels-log4j2` = project
+  .in(file("loglevels-log4j2"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    name := "akka-management-loglevels-log4j2",
+    libraryDependencies := Dependencies.LoglevelsLog4j2,
     mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management`)
