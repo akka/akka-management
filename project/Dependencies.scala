@@ -20,6 +20,8 @@ object Dependencies {
   val AwsSdkVersion = "1.11.837"
   val JacksonVersion = "2.11.4"
 
+  val Log4j2Version = "2.14.1"
+
   // often called-in transitively with insecure versions of databind / core
   private val JacksonDatabind = Seq(
     "com.fasterxml.jackson.core" % "jackson-databind" % JacksonVersion
@@ -113,9 +115,9 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-    "org.apache.logging.log4j" % "log4j-core" % "2.14.1",
-    "org.apache.logging.log4j" % "log4j-api" % "2.14.1",
-    "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.14.1",
+    "org.apache.logging.log4j" % "log4j-core" % Log4j2Version,
+    "org.apache.logging.log4j" % "log4j-api" % Log4j2Version,
+    "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4j2Version,
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,

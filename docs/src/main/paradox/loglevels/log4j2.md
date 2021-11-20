@@ -9,14 +9,14 @@ Dynamic Log Levels for Log4j2 hooks into Akka Management and provides a route wh
 Requires @ref:[Akka Management](../akka-management.md) and that the application uses [Log4j2](https://logging.apache.org/log4j/2.x/) as logging backend.
 
 @@dependency[sbt,Gradle,Maven] {
-symbol1=AkkaManagementVersion
-value1=$project.version$
-group=com.lightbend.akka.management
-artifact=akka-management-loglevels-log4j2_$scala.binary.version$
-version=AkkaManagementVersion
-group2=com.lightbend.akka.management
-artifact2=akka-management_$scala.binary.version$
-version2=AkkaManagementVersion
+  symbol1=AkkaManagementVersion
+  value1=$project.version$
+  group=com.lightbend.akka.management
+  artifact=akka-management-loglevels-log4j2_$scala.binary.version$
+  version=AkkaManagementVersion
+  group2=com.lightbend.akka.management
+  artifact2=akka-management_$scala.binary.version$
+  version2=AkkaManagementVersion
 }
 
 Akka Management and `akka-management-loglevels-log4j2` can be used with Akka $akka.version$ or later.
@@ -25,14 +25,14 @@ define the Akka version to the one that you are using. Latest patch version of A
 a later version than $akka.version$ can be used.
 
 @@dependency[sbt,Gradle,Maven] {
-symbol=AkkaVersion
-value=$akka.version$
-group=com.typesafe.akka
-artifact=akka-stream_$scala.binary.version$
-version=AkkaVersion
-group2=com.typesafe.akka
-artifact2=akka-slf4j_$scala.binary.version$
-version2=AkkaVersion
+  symbol=AkkaVersion
+  value=$akka.version$
+  group=com.typesafe.akka
+  artifact=akka-stream_$scala.binary.version$
+  version=AkkaVersion
+  group2=com.typesafe.akka
+  artifact2=akka-slf4j_$scala.binary.version$
+ version2=AkkaVersion
 }
 
 With Akka Management started and this module on the classpath the module is automatically picked up and provides the following two HTTP routes:
