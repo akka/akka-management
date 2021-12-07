@@ -40,7 +40,7 @@ object Dependencies {
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
       "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
       "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion % Test,
-      "ch.qos.logback" % "logback-classic" % "1.2.5" % Test
+      "ch.qos.logback" % "logback-classic" % "1.2.7" % Test
     ) ++ JacksonDatabind ++ JacksonDatatype // consul depends on insecure version of jackson
 
   val DiscoveryKubernetesApi = Seq(
@@ -101,7 +101,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.5",
+    "ch.qos.logback" % "logback-classic" % "1.2.7",
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
@@ -155,7 +155,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.5",
+    "ch.qos.logback" % "logback-classic" % "1.2.7",
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
   )
 
