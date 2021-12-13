@@ -1,6 +1,6 @@
 enablePlugins(JavaAppPackaging)
 
-packageName in Universal := "app" // should produce app.zip
+Universal / packageName := "app" // should produce app.zip
 
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-cloudformation" % "1.11.1034" % IntegrationTest
 
