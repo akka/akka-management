@@ -22,6 +22,7 @@ import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.pattern.after
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryPolicy
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
 import software.amazon.awssdk.services.ecs._
 import software.amazon.awssdk.services.ecs.model.{ Tag => _, _ }
 
@@ -43,7 +44,8 @@ class AsyncEcsServiceDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
   private[this] lazy val ecsClient = {
     val conf = ClientOverrideConfiguration.builder().retryPolicy(RetryPolicy.none).build()
-    EcsAsyncClient.builder().overrideConfiguration(conf).build()
+    val httpClient = NettyNioAsyncHttpClient.create()
+    EcsAsyncClient.builder().overrideConfiguration(conf).httpClient(httpClient).build()
   }
 
   private[this] implicit val ec: ExecutionContext = system.dispatcher
