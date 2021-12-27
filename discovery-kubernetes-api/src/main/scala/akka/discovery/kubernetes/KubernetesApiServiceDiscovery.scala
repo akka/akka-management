@@ -105,7 +105,7 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
   private val log = Logging(system, getClass)
 
   private val sslContext = {
-    val certificate = PemManagersProvider.loadCertificate(settings.apiCaPath)
+    val certificates = PemManagersProvider.loadCertificates(settings.apiCaPath)
 
     val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
     val keyStore = KeyStore.getInstance("PKCS12")
@@ -113,7 +113,7 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
     factory.init(keyStore, Array.empty)
     val km: Array[KeyManager] = factory.getKeyManagers
     val tm: Array[TrustManager] =
-      PemManagersProvider.buildTrustManagers(certificate)
+      PemManagersProvider.buildTrustManagers(certificates)
     val random: SecureRandom = new SecureRandom
     val sslContext = SSLContext.getInstance("TLSv1.2")
     sslContext.init(km, tm, random)
