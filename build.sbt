@@ -128,10 +128,10 @@ lazy val `loglevels-logback` = project
 lazy val `loglevels-log4j2` = project
   .in(file("loglevels-log4j2"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
   .settings(
     name := "akka-management-loglevels-log4j2",
     libraryDependencies := Dependencies.LoglevelsLog4j2,
-    mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management`)
 
