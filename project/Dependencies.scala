@@ -141,7 +141,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-    "com.github.tomakehurst" % "wiremock-jre8" % "2.31.0" % Test,
+    "com.github.tomakehurst" % "wiremock-jre8" % "2.32.0" % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % "it,test",
     "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "it,test",
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "it,test"
