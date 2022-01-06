@@ -101,7 +101,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.7",
+    "ch.qos.logback" % "logback-classic" % "1.2.9",
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
