@@ -49,7 +49,7 @@ final class LogLevelRoutes private (system: ExtendedActorSystem) extends Extensi
                   complete(StatusCodes.Forbidden)
                 } else {
                   log.info(
-                    s"Log level for [${if (logger.isBlank) "Root" else logger}] set to [$level] through Akka Management loglevel endpoint from [$clientIp]")
+                    s"Log level for [${if (logger.equals(LogManager.ROOT_LOGGER_NAME)) "Root" else logger}] set to [$level] through Akka Management loglevel endpoint from [$clientIp]")
                   val context = LogManager.getContext(false).asInstanceOf[LoggerContext]
                   val config = context.getConfiguration
                   val loggerConfig = config.getLoggerConfig(logger)
