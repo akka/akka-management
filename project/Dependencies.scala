@@ -77,7 +77,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
       "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-      "software.amazon.awssdk" % "ecs" % "2.17.105",
+      "software.amazon.awssdk" % "ecs" % "2.17.124",
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
     ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
