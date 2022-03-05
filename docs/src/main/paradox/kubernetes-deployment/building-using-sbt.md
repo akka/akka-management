@@ -10,7 +10,7 @@ To use this plugin in your sbt application, add the following to your `project/p
 
 @@@vars
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "<latest.version>")
+addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "<latest.version>")
 ```
 @@@
 
