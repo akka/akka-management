@@ -21,14 +21,13 @@ Variables to be expanded in this template:
 ### Preparing release notes in the documentation / announcement
 
 - For non-patch releases: 
-    - [ ] rename the 'akka-management-x.x-stable' reporting projects in [WhiteSource](https://saas.whitesourcesoftware.com/Wss/WSS.html) accordingly (unfortunately this requires permissions that cannot be shared outside of Lightbend)
     - [ ] Create a news item draft PR on [akka.github.com](https://github.com/akka/akka.github.com), based on the [draft release](https://github.com/akka/akka-management/releases) and [`sbt-authors`](https://github.com/2m/authors) (eg. `./scripts/authors.scala v1.0.9 HEAD`).
 - [ ] Move all [unclosed issues](https://github.com/akka/akka-management/issues?q=is%3Aopen+is%3Aissue+milestone%3A$VERSION$) for this milestone to the next milestone
 - [ ] Close the [$VERSION$ milestone](https://github.com/akka/akka-management/milestones?direction=asc&sort=due_date)
 
 ### Cutting the release
 
-- [ ] Wait until master build finished on GH Actions after the last merge
+- [ ] Wait until the build for the `main` branch finished on GH Actions after the last merge
 - [ ] `git tag -a v$VERSION$ -m "Release version $VERSION$"; git push --tags`
 - [ ] Check that GitHub Actions release build has executed successfully (it should publish artifacts to Sonatype and documentation to Gustav)
 
