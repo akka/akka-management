@@ -33,6 +33,6 @@ Various parts of Akka management can be used together for deploying Akka Cluster
   - [Akka Discovery Methods](discovery/index.md)
   - [Akka Cluster Management (HTTP)](cluster-http-management.md)
   - [Akka Cluster Management (JMX)](cluster-jmx-management.md)
-  - [Dynamic Log Levels](loglevels.md)
+  - [Dynamic Log Levels](loglevels/index.md)
   - [Akka Coordination Lease for Kubernetes](kubernetes-lease.md)
 @@@
