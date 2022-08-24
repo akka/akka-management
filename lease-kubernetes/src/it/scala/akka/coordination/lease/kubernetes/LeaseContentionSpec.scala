@@ -26,8 +26,12 @@ import org.scalatest.matchers.should.Matchers
  * Test in CI:
  * https://github.com/akka/akka-management/issues/679
  */
-class LeaseContentionSpec extends TestKit(ActorSystem("LeaseContentionSpec", ConfigFactory.parseString(
-  """
+class LeaseContentionSpec
+    extends TestKit(
+      ActorSystem(
+        "LeaseContentionSpec",
+        ConfigFactory.parseString(
+          """
     akka.loglevel = INFO
     akka.coordination.lease.kubernetes {
       api-service-host = localhost
@@ -38,23 +42,29 @@ class LeaseContentionSpec extends TestKit(ActorSystem("LeaseContentionSpec", Con
     }
 
   """
-))) with AnyWordSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll {
+        )
+      ))
+    with AnyWordSpecLike
+    with Matchers
+    with ScalaFutures
+    with BeforeAndAfterAll {
 
   implicit val patience: PatienceConfig = PatienceConfig(testKitSettings.DefaultTimeout.duration)
 
   // for cleanup
-  val k8sApi = new KubernetesApiImpl(system, KubernetesSettings(system, TimeoutSettings(system.settings.config.getConfig("akka.coordination.lease.kubernetes"))))
+  val k8sApi = new KubernetesApiImpl(
+    system,
+    KubernetesSettings(system, TimeoutSettings(system.settings.config.getConfig("akka.coordination.lease.kubernetes"))))
 
   val lease1 = "contended-lease"
   val lease2 = "contended-lease-2"
-
 
   override protected def beforeAll(): Unit = {
     k8sApi.removeLease(lease1).futureValue
     k8sApi.removeLease(lease2).futureValue
   }
 
-  override protected def afterAll(): Unit ={
+  override protected def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
   }
 
@@ -65,13 +75,15 @@ class LeaseContentionSpec extends TestKit(ActorSystem("LeaseContentionSpec", Con
       val nrClients = 30
       implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(nrClients)) // too many = HTTP request queue of pool fills up
       // could make this more contended with a countdown latch so they all start at the same time
-      val leases: immutable.Seq[(String, Boolean)] = Future.sequence((0 until nrClients).map(i => {
-        val clientName = s"client$i"
-        val lease = underTest.getLease(lease1, KubernetesLease.configPath, clientName)
-        Future {
-          lease.acquire()
-        }.flatMap(identity).map(granted => (clientName, granted))
-      })).futureValue
+      val leases: immutable.Seq[(String, Boolean)] = Future
+        .sequence((0 until nrClients).map(i => {
+          val clientName = s"client$i"
+          val lease = underTest.getLease(lease1, KubernetesLease.configPath, clientName)
+          Future {
+            lease.acquire()
+          }.flatMap(identity).map(granted => (clientName, granted))
+        }))
+        .futureValue
 
       val numberGranted = leases.count { case (_, granted) => granted }
       withClue(s"More than one lease granted $leases") {
