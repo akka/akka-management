@@ -19,6 +19,7 @@ lazy val `akka-management-root` = project
     `akka-management`,
     `akka-management-pki`,
     `loglevels-logback`,
+    `loglevels-log4j2`,
     `integration-test-aws-api-ec2-tag-based`,
     `integration-test-local`,
     `integration-test-aws-api-ecs`,
@@ -110,8 +111,7 @@ lazy val `akka-management-pki` = project
   .settings(
     name := "akka-management-pki",
     libraryDependencies := Dependencies.ManagementPki,
-    // Don't enable mima until 1.1.1
-    mimaPreviousArtifacts := Set.empty
+    mimaPreviousArtifactsSet
   )
 
 lazy val `loglevels-logback` = project
@@ -121,6 +121,16 @@ lazy val `loglevels-logback` = project
     name := "akka-management-loglevels-logback",
     libraryDependencies := Dependencies.LoglevelsLogback,
     mimaPreviousArtifactsSet
+  )
+  .dependsOn(`akka-management`)
+
+lazy val `loglevels-log4j2` = project
+  .in(file("loglevels-log4j2"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+  .settings(
+    name := "akka-management-loglevels-log4j2",
+    libraryDependencies := Dependencies.LoglevelsLog4j2,
   )
   .dependsOn(`akka-management`)
 

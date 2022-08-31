@@ -1,7 +1,5 @@
 # Akka (Cluster) Management
 
- [ ![Download](https://api.bintray.com/packages/akka/maven/akka-management/images/download.svg) ](https://bintray.com/akka/maven/akka-management/_latestVersion) [ ![Travis CI](https://travis-ci.com/akka/akka-management.svg?branch=master) ](https://travis-ci.com/github/akka/akka-management)
-
 This repository contains interfaces to inspect, interact and manage various Parts of Akka, primarily Akka Cluster.
 Future additions may extend these concepts to other parts of Akka.
 

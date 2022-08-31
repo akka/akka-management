@@ -77,7 +77,7 @@ object Common extends AutoPlugin {
         ),
       autoAPIMappings := true,
       // show full stack traces and test case durations
-      testOptions in Test += Tests.Argument("-oDF"),
+      Test / testOptions += Tests.Argument("-oDF"),
       // -v Log "test run started" / "test started" / "test run finished" events on log level "info" instead of "debug".
       // -a Show stack traces and exception class name for AssertionErrors.
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),

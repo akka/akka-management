@@ -39,7 +39,7 @@ a later version than $akka.version$ can be used.
   artifact=akka-cluster-sharding_$scala.binary.version$
   version=AkkaVersion
   group2=com.typesafe.akka
-  artifact2=akka-discovery
+  artifact2=akka-discovery_$scala.binary.version$
   version2=AkkaVersion
 }
 

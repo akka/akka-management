@@ -53,7 +53,7 @@ final class HttpClusterBootstrapRoutes(settings: ClusterBootstrapSettings) exten
 
   /** Scala API */
   val routes: Route =
-    (get & path("bootstrap" / "seed-nodes")) {
+    (path("bootstrap" / "seed-nodes") & get) {
       toStrictEntity(1.second) { // always drain everything
         routeGetSeedNodes
       }
