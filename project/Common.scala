@@ -29,7 +29,7 @@ object Common extends AutoPlugin {
           "https://gitter.im/akka/dev",
           url("https://github.com/akka/akka-management/graphs/contributors")
         ),
-      licenses := Seq(("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0"))),
+      licenses := Seq(("BUSL-1.1", url("https://raw.githubusercontent.com/akka/akka-management/main/LICENSE"))), // FIXME change s/main/v1.2.0/ when released
       description := "Akka Management is a suite of tools for operating Akka Clusters.",
       headerLicense := Some(
           HeaderLicense.Custom(s"Copyright (C) 2017-$currentYear Lightbend Inc. <https://www.lightbend.com>")),

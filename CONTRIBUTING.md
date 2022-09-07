@@ -14,7 +14,7 @@ You may also check out these [other resources](https://akka.io/get-involved/).
 
 This is the process for committing code into master.
 
-1. Make sure you have signed the Lightbend CLA, if not, [sign it online](https://www.lightbend.com/contribute/cla).
+1. Make sure you have signed the Lightbend CLA, if not, [sign it online](https://www.lightbend.com/contribute/cla/akka).
 2. Especially for bigger features it can be good to create or find a ticket for your work in the [issue tracker](https://github.com/akka/akka-management/issues) and discuss your proposed solution there. This is not a requirement, but can avoid disappointment later in the process.
 3. Perform your work according to the [pull request requirements](#pull-request-requirements).
 4. When the feature or fix is completed you should open a [Pull Request](https://help.github.com/articles/using-pull-requests) on [GitHub](https://github.com/akka/akka-management/pulls).
