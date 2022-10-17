@@ -3,28 +3,29 @@ import Keys._
 
 object Dependencies {
 
-  val Scala212 = "2.12.16"
-  val Scala213 = "2.13.8"
+  val Scala212 = "2.12.17"
+  val Scala213 = "2.13.10"
   val CrossScalaVersions = Seq(Dependencies.Scala213, Dependencies.Scala212)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaVersion = "2.7.0-M1"
+  val AkkaVersion = "2.7.0-M5"
   val AkkaBinaryVersion = "2.7"
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaHttpVersion = "10.2.7"
-  val AkkaHttpBinaryVersion = "10.2"
+  val AkkaHttpVersion = "10.4.0-M2"
+  val AkkaHttpBinaryVersion = "10.4"
 
   val ScalaTestVersion = "3.1.4"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
   val AwsSdkVersion = "1.12.297"
   val JacksonVersion = "2.13.4"
+  val JacksonDatabindVersion = "2.13.4.1"
 
   val Log4j2Version = "2.17.2"
 
   // often called-in transitively with insecure versions of databind / core
   private val JacksonDatabind = Seq(
-    "com.fasterxml.jackson.core" % "jackson-databind" % JacksonVersion
+    "com.fasterxml.jackson.core" % "jackson-databind" % JacksonDatabindVersion
   )
 
   private val JacksonDatatype = Seq(
