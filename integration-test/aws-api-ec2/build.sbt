@@ -6,6 +6,6 @@ libraryDependencies += "com.amazonaws" % "aws-java-sdk-cloudformation" % "1.12.2
 
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-autoscaling" % "1.12.297" % IntegrationTest
 
-libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.4" // aws SDK depends on insecure jackson
+libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.4.2" // aws SDK depends on insecure jackson
 
 libraryDependencies += "org.scalatest" %% "scalatest" % Dependencies.ScalaTestVersion % IntegrationTest
