@@ -40,8 +40,8 @@ jobs:
           jvm: temurin:1.11.0
 
       - name: Setup Minikube
-        // https://github.com/manusa/actions-setup-minikube/releases
-        // v2.7.1
+        # https://github.com/manusa/actions-setup-minikube/releases
+        # v2.7.1
         uses: manusa/actions-setup-minikube@4582844dcacbf482729f8d7ef696f515d2141bb9
         with:
           minikube version: 'v1.21.0'
