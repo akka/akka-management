@@ -8,7 +8,6 @@ package akka.cluster.http.management.scaladsl
 
 import scala.collection.immutable._
 import scala.concurrent.Promise
-
 import akka.actor.Actor
 import akka.actor.ActorSystem
 import akka.actor.Address
@@ -35,10 +34,10 @@ import akka.util.ByteString
 import akka.util.Timeout
 import akka.util.Version
 import com.typesafe.config.ConfigFactory
-import org.mockito.Matchers._
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{doNothing, mock, when}
 import org.scalatest.concurrent.Eventually
-import org.scalatest.concurrent.PatienceConfiguration.{ Timeout => ScalatestTimeout }
+import org.scalatest.concurrent.PatienceConfiguration.{Timeout => ScalatestTimeout}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Millis
