@@ -10,6 +10,9 @@ on:
   schedule:
     - cron: '0 2 * * *'  # every day 2am
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Build and Test
@@ -18,11 +21,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { java-version: adopt@1.8,  sbt-opts: '' }
-          - { java-version: adopt@1.11, sbt-opts: '-J-XX:+UnlockExperimentalVMOptions -J-XX:+UseJVMCICompiler' }
+          - { jdkVersion: "1.8.0",  jvmName: "temurin:1.8.0",  extraOpts: '' }
+          - { jdkVersion: "1.11.0", jvmName: "temurin:1.11.0", extraOpts: '-J-XX:+UnlockExperimentalVMOptions -J-XX:+UseJVMCICompiler' }
+          - { jdkVersion: "1.17.0", jvmName: "temurin:1.17.0", extraOpts: '' }
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
 
@@ -32,21 +36,21 @@ jobs:
           git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
           git checkout scratch
 
-      - name: Setup JDK ${{ matrix.java-version }}
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: ${{ matrix.java-version }}
-
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v5
+        uses: coursier/cache-action@v6.4.0
+
+      - name: Set up JDK ${{ matrix.jdkVersion }}
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: ${{ matrix.jvmName }}
 
       # hack to solve "Cannot assign requested address" issue - https://github.community/t/github-action-and-oserror-errno-99-cannot-assign-requested-address/173973/1
       - name: Add the current IP address, long hostname and short hostname record to /etc/hosts file
         run: |
           echo -e "$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)\t$(hostname -f) $(hostname -s)" | sudo tee -a /etc/hosts
 
-      - name: Run tests with default Scala and Java ${{ matrix.java-version }}
-        run: sbt "test" ${{ matrix.sbt-opts }}
+      - name: Run tests with default Scala and Java ${{ matrix.jdkVersion }}
+        run: sbt "test" ${{ matrix.extraOpts }}
 
       - name: Print logs on failure
         if: ${{ failure() }}
