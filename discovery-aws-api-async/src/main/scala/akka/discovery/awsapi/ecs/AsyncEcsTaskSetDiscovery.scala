@@ -6,14 +6,12 @@ package akka.discovery.awsapi.ecs
 
 import java.net.InetAddress
 import java.util.concurrent.TimeoutException
-
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
 import scala.compat.java8.FutureConverters.toScala
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
-
 import akka.actor.ActorSystem
 import akka.annotation.ApiMayChange
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
@@ -37,6 +35,7 @@ import software.amazon.awssdk.services.ecs.model.{
   Tag => _
 }
 import spray.json.DefaultJsonProtocol._
+import spray.json.RootJsonFormat
 
 @ApiMayChange
 class AsyncEcsTaskSetDiscovery(system: ActorSystem) extends ServiceDiscovery {
@@ -83,7 +82,7 @@ object AsyncEcsTaskSetDiscovery {
   private[this] case class TaskMetadata(TaskARN: String)
   private[this] case class TaskSet(value: String) extends AnyVal
 
-  private[this] implicit val orderFormat = jsonFormat1(TaskMetadata)
+  private[this] implicit val orderFormat: RootJsonFormat[TaskMetadata] = jsonFormat1(TaskMetadata.apply)
 
   private val ECS_CONTAINER_METADATA_URI_PATH = "ECS_CONTAINER_METADATA_URI"
 

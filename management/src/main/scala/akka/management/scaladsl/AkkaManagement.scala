@@ -70,7 +70,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
     logWarning = true
   )
 
-  private val log = Logging.withMarker(system, getClass)
+  private val log = Logging.withMarker(system, classOf[AkkaManagement])
   val settings: AkkaManagementSettings = new AkkaManagementSettings(system.settings.config)
 
   import system.dispatcher

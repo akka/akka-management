@@ -102,7 +102,7 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
 
   private val settings = Settings(system)
 
-  private val log = Logging(system, getClass)
+  private val log = Logging(system, classOf[KubernetesApiServiceDiscovery])
 
   private val sslContext = {
     val certificates = PemManagersProvider.loadCertificates(settings.apiCaPath)

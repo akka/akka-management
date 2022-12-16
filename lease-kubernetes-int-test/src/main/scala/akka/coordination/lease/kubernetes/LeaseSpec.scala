@@ -21,7 +21,7 @@ abstract class LeaseSpec() extends AnyWordSpec with ScalaFutures with BeforeAndA
 
   def system: ActorSystem
 
-  implicit val patience = PatienceConfig(Span(3, Seconds), Span(500, Milliseconds))
+  implicit val patience: PatienceConfig = PatienceConfig(Span(3, Seconds), Span(500, Milliseconds))
 
   lazy val underTest = LeaseProvider(system)
   // for cleanup

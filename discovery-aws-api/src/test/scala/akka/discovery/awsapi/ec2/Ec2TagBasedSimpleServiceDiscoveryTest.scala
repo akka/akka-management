@@ -16,7 +16,7 @@ class FiltersParsingTest extends AnyFunSuite with Matchers {
   test("empty string does not break parsing") {
     val filters = ""
     val result: List[Filter] = parseFiltersString(filters)
-    result should be('empty)
+    result should be(empty)
   }
 
   test("can parse simple filter") {

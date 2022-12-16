@@ -13,12 +13,12 @@ import spray.json._
  * INTERNAL API
  */
 @InternalApi private[akka] object JsonFormat extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val containerPortFormat: JsonFormat[ContainerPort] = jsonFormat2(ContainerPort)
-  implicit val containerFormat: JsonFormat[Container] = jsonFormat2(Container)
-  implicit val podSpecFormat: JsonFormat[PodSpec] = jsonFormat1(PodSpec)
-  implicit val containerStatusFormat: JsonFormat[ContainerStatus] = jsonFormat2(ContainerStatus)
-  implicit val podStatusFormat: JsonFormat[PodStatus] = jsonFormat3(PodStatus)
-  implicit val metadataFormat: JsonFormat[Metadata] = jsonFormat1(Metadata)
-  implicit val podFormat: JsonFormat[Pod] = jsonFormat3(Pod)
+  implicit val containerPortFormat: JsonFormat[ContainerPort] = jsonFormat2(ContainerPort.apply)
+  implicit val containerFormat: JsonFormat[Container] = jsonFormat2(Container.apply)
+  implicit val podSpecFormat: JsonFormat[PodSpec] = jsonFormat1(PodSpec.apply)
+  implicit val containerStatusFormat: JsonFormat[ContainerStatus] = jsonFormat2(ContainerStatus.apply)
+  implicit val podStatusFormat: JsonFormat[PodStatus] = jsonFormat3(PodStatus.apply)
+  implicit val metadataFormat: JsonFormat[Metadata] = jsonFormat1(Metadata.apply)
+  implicit val podFormat: JsonFormat[Pod] = jsonFormat3(Pod.apply)
   implicit val podListFormat: RootJsonFormat[PodList] = jsonFormat1(PodList.apply)
 }

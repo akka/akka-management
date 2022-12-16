@@ -91,6 +91,8 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
       .flatMap {
         case LeaseReleased       => Future.successful(true)
         case InvalidRequest(msg) => Future.failed(new LeaseException(msg))
+        case _ =>
+          Future.failed(new IllegalArgumentException("Unexpected response from lease actor")) // compiler completeness check pleaser
       }(ExecutionContexts.parasitic)
       .recoverWith {
         case _: AskTimeoutException =>
@@ -108,9 +110,12 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
     // replace with transform once 2.11 dropped
     (leaseActor ? Acquire(leaseLostCallback))
       .flatMap {
-        case LeaseAcquired       => Future.successful(true)
-        case LeaseTaken          => Future.successful(false)
-        case InvalidRequest(msg) => Future.failed(new LeaseException(msg))
+        case LeaseAcquired => Future.successful(true)
+        case LeaseTaken    => Future.successful(false)
+        case InvalidRequest(msg) =>
+          Future.failed(new LeaseException(msg))
+        case _ =>
+          Future.failed(new IllegalArgumentException("Unexpected response from lease actor")) // compiler completeness check pleaser
       }
       .recoverWith {
         case _: AskTimeoutException =>

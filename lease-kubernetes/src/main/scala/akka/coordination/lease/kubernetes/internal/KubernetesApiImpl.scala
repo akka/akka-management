@@ -47,8 +47,8 @@ import javax.net.ssl.TrustManager
 
   import system.dispatcher
 
-  private implicit val sys = system
-  private val log = Logging(system, getClass)
+  private implicit val sys: ActorSystem = system
+  private val log = Logging(system, classOf[KubernetesApiImpl])
   private val http = Http()(system)
 
   private lazy val sslContext = {

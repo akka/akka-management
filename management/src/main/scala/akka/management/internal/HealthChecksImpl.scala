@@ -174,7 +174,7 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
   def alive(): Future[Boolean] = aliveResult().map(_.isRight)
 
   private def runCheck(check: HealthCheck): Future[Boolean] = {
-    Future.fromTry(Try(check())).flatMap(identity)
+    Future.fromTry(Try[Future[Boolean]](check())).flatMap(identity)
   }
 
   private def check(checks: immutable.Seq[HealthCheck]): Future[Either[String, Unit]] = {
@@ -182,7 +182,7 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
       Future.failed(new RuntimeException) // will be enriched with which check timed out below
     )
 
-    val spawnedChecks = checks.map { check =>
+    val spawnedChecks = checks.map { (check: HealthCheck) =>
       val checkName = check.getClass.getName
       Future.firstCompletedOf(
         Seq(
