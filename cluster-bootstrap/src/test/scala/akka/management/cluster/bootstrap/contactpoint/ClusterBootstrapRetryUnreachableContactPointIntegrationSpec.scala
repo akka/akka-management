@@ -6,6 +6,7 @@ package akka.management.cluster.bootstrap.contactpoint
 
 import java.net.InetAddress
 
+import scala.collection.immutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -36,7 +37,7 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends AnyWor
     var unreachablePorts = Map.empty[String, Int]
 
     def config(id: String): Config = {
-      val Vector(managementPort, remotingPort, unreachablePort) =
+      val immutable.IndexedSeq(managementPort, remotingPort, unreachablePort) =
         SocketUtil.temporaryServerAddresses(3, "127.0.0.1").map(_.getPort)
 
       info(s"System [$id]:  management port: $managementPort")
@@ -139,7 +140,7 @@ class ClusterBootstrapRetryUnreachableContactPointIntegrationSpec extends AnyWor
 
     "start listening with the http contact-points on 3 systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {
-        implicit val sys = system
+        implicit val sys: ActorSystem = system
 
         val bootstrap = ClusterBootstrap(system)
         val routes = new HttpClusterBootstrapRoutes(bootstrap.settings).routes

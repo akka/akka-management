@@ -4,6 +4,8 @@
 
 package akka.management.cluster
 
+import scala.collection.immutable
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, StatusCodes }
@@ -37,7 +39,9 @@ class MultiDcSpec
 
   "Http cluster management" must {
     "allow multiple DCs" in {
-      val Vector(httpPortA, portA, portB) = SocketUtil.temporaryServerAddresses(3, "127.0.0.1").map(_.getPort)
+      val immutable.IndexedSeq(httpPortA: Int, portA: Int, portB) =
+        SocketUtil.temporaryServerAddresses(3, "127.0.0.1").map(_.getPort)
+
       val dcA = ConfigFactory.parseString(
         s"""
            |akka.management.http.hostname = "127.0.0.1"

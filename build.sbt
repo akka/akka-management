@@ -130,7 +130,7 @@ lazy val `loglevels-log4j2` = project
   .disablePlugins(MimaPlugin)
   .settings(
     name := "akka-management-loglevels-log4j2",
-    libraryDependencies := Dependencies.LoglevelsLog4j2,
+    libraryDependencies := Dependencies.LoglevelsLog4j2
   )
   .dependsOn(`akka-management`)
 

@@ -18,6 +18,7 @@ import scala.collection.immutable
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
 import akka.management.ManagementLogMarker
@@ -174,7 +175,11 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
   def alive(): Future[Boolean] = aliveResult().map(_.isRight)
 
   private def runCheck(check: HealthCheck): Future[Boolean] = {
-    Future.fromTry(Try(check())).flatMap(identity)
+    try {
+      check()
+    } catch {
+      case NonFatal(e) => Future.failed(e)
+    }
   }
 
   private def check(checks: immutable.Seq[HealthCheck]): Future[Either[String, Unit]] = {
@@ -187,8 +192,8 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
       Future.firstCompletedOf(
         Seq(
           timeout.recoverWith {
-            case t: Throwable =>
-              Future.failed(
+            case _ =>
+              Future.failed[Either[String, Unit]](
                 CheckTimeoutException(s"Check [$checkName] timed out after ${settings.checkTimeout}")
               )
           },
@@ -198,7 +203,7 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
               case false => Left(s"Check [$checkName] not ok")
             }
             .recoverWith {
-              case t: Throwable => Future.failed(CheckFailedException(s"Check [$checkName] failed: ${t.getMessage}", t))
+              case t => Future.failed(CheckFailedException(s"Check [$checkName] failed: ${t.getMessage}", t))
             }
         )
       )

@@ -10,8 +10,10 @@ import java.util.concurrent.TimeoutException
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+
 import akka.actor.Actor
 import akka.actor.ActorLogging
+import akka.actor.ActorSystem
 import akka.actor.DeadLetterSuppression
 import akka.actor.Props
 import akka.actor.Status
@@ -80,7 +82,7 @@ private[bootstrap] class HttpContactPointBootstrap(
     )
   }
 
-  private implicit val sys = context.system
+  private implicit val sys: ActorSystem = context.system
   private val http = Http()
   private val connectionPoolWithoutRetries = ConnectionPoolSettings(context.system).withMaxRetries(0)
   import context.dispatcher

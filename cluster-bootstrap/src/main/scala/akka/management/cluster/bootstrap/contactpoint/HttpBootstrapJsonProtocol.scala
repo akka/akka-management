@@ -19,9 +19,9 @@ trait HttpBootstrapJsonProtocol extends SprayJsonSupport with DefaultJsonProtoco
 
     override def write(obj: Address): JsValue = JsString(obj.toString)
   }
-  implicit val SeedNodeFormat: RootJsonFormat[SeedNode] = jsonFormat1(SeedNode)
-  implicit val ClusterMemberFormat: RootJsonFormat[ClusterMember] = jsonFormat4(ClusterMember)
-  implicit val ClusterMembersFormat: RootJsonFormat[SeedNodes] = jsonFormat2(SeedNodes)
+  implicit val SeedNodeFormat: RootJsonFormat[SeedNode] = jsonFormat1(SeedNode.apply)
+  implicit val ClusterMemberFormat: RootJsonFormat[ClusterMember] = jsonFormat4(ClusterMember.apply)
+  implicit val ClusterMembersFormat: RootJsonFormat[SeedNodes] = jsonFormat2(SeedNodes.apply)
 }
 
 object HttpBootstrapJsonProtocol extends DefaultJsonProtocol {

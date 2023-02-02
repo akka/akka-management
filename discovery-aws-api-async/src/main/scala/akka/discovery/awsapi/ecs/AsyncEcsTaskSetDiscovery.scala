@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.ecs.model.{
   Tag => _
 }
 import spray.json.DefaultJsonProtocol._
+import spray.json.RootJsonFormat
 
 @ApiMayChange
 class AsyncEcsTaskSetDiscovery(system: ActorSystem) extends ServiceDiscovery {
@@ -83,7 +84,7 @@ object AsyncEcsTaskSetDiscovery {
   private[this] case class TaskMetadata(TaskARN: String)
   private[this] case class TaskSet(value: String) extends AnyVal
 
-  private[this] implicit val orderFormat = jsonFormat1(TaskMetadata)
+  private[this] implicit val orderFormat: RootJsonFormat[TaskMetadata] = jsonFormat1(TaskMetadata.apply)
 
   private val ECS_CONTAINER_METADATA_URI_PATH = "ECS_CONTAINER_METADATA_URI"
 

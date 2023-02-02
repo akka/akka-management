@@ -110,7 +110,7 @@ class LocalBootstrapTest extends AnyWordSpec with ScalaFutures with Matchers wit
     val clusters = systems.map(Cluster.apply)
     systems.foreach(AkkaManagement(_).start())
     // for http client
-    implicit val system = systems(0)
+    implicit val system: ActorSystem = systems.head
 
     "not be ready initially" in {
       eventually {

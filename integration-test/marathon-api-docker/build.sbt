@@ -2,9 +2,7 @@ import com.typesafe.sbt.packager.docker._
 
 name := "bootstrap-demo-marathon-api-docker"
 
-version := "0.1.0"
-
-scalaVersion := "2.12.16"
+scalaVersion := "2.13.10"
 
 enablePlugins(JavaServerAppPackaging)
 
@@ -12,7 +10,7 @@ version := "1.0"
 
 dockerUsername := sys.env.get("DOCKER_USER")
 
-val akkaManagementVersion = "0.10.0"
+val akkaManagementVersion = "1.2.0"
 
 libraryDependencies ++= Vector(
   "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % akkaManagementVersion,

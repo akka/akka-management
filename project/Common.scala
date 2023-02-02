@@ -42,13 +42,12 @@ object Common extends AutoPlugin {
           "UTF-8",
           "-feature",
           "-unchecked",
-          "-deprecation",
-          "-Xlint",
-          "-Ywarn-dead-code",
-          "-target:jvm-1.8"
+          "-deprecation"
         )
         if (scalaVersion.value == Dependencies.Scala212)
-          scalacOptionsBase ++: Seq("-Xfuture", "-Xfatal-warnings")
+          scalacOptionsBase ++: Seq("-Xfuture", "-Xfatal-warnings", "-Xlint", "-Ywarn-dead-code")
+        else if (scalaVersion.value == Dependencies.Scala213)
+          scalacOptionsBase ++: Seq("-Xlint", "-Ywarn-dead-code")
         else
           scalacOptionsBase
       },
@@ -57,6 +56,10 @@ object Common extends AutoPlugin {
         ),
       javacOptions ++= (
           if (isJdk8) Seq.empty
+          else Seq("--release", "8")
+        ),
+      scalacOptions ++= (
+          if (isJdk8 || scalaVersion.value == Dependencies.Scala212) Seq.empty
           else Seq("--release", "8")
         ),
       Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
@@ -81,7 +84,7 @@ object Common extends AutoPlugin {
       // -v Log "test run started" / "test started" / "test run finished" events on log level "info" instead of "debug".
       // -a Show stack traces and exception class name for AssertionErrors.
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
-      scalaVersion := Dependencies.Scala212,
+      scalaVersion := Dependencies.CrossScalaVersions.head,
       sonatypeProfileName := "com.lightbend"
     )
 

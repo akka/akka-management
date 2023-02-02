@@ -18,7 +18,7 @@ object ClusterApp {
 
   def main(args: Array[String]): Unit = {
 
-    implicit val system = ActorSystem()
+    implicit val system: ActorSystem = ActorSystem()
     val cluster = Cluster(system)
 
     system.log.info("Starting Akka Management")
@@ -27,13 +27,13 @@ object ClusterApp {
 
     system.actorOf(
       ClusterSingletonManager.props(
-        Props[NoisySingleton],
+        NoisySingleton.props(),
         PoisonPill,
         ClusterSingletonManagerSettings(system)
       )
     )
     Cluster(system).subscribe(
-      system.actorOf(Props[ClusterWatcher]),
+      system.actorOf(ClusterWatcher.props()),
       ClusterEvent.InitialStateAsEvents,
       classOf[ClusterDomainEvent]
     )
@@ -57,6 +57,10 @@ object ClusterApp {
     cluster.registerOnMemberUp(() => {
       system.log.info("Cluster member is up!")
     })
+  }
+
+  object ClusterWatcher {
+    def props(): Props = Props(new ClusterWatcher)
   }
 
   class ClusterWatcher extends Actor with ActorLogging {

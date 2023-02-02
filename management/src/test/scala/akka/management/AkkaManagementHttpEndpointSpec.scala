@@ -84,7 +84,7 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
           """
         )
 
-        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+        implicit val system: ActorSystem = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
 
         val management = AkkaManagement(system)
         management.settings.Http.RouteProviders should contain(
@@ -119,7 +119,7 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
           """
         )
 
-        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+        implicit val system: ActorSystem = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
         import system.dispatcher
 
         def myUserPassAuthenticator(credentials: Credentials): Future[Option[String]] =
@@ -159,7 +159,7 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
           """
         )
 
-        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+        implicit val system: ActorSystem = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
 
         val password
             : Array[Char] = "password".toCharArray // do not store passwords in code, read them from somewhere safe!
@@ -221,7 +221,7 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
           """
         )
 
-        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+        implicit val system: ActorSystem = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
 
         val management = AkkaManagement(system)
         Await.result(management.start(), 10.seconds)
@@ -246,7 +246,7 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
           """
         )
 
-        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+        implicit val system: ActorSystem = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
 
         val management = AkkaManagement(system)
         val boundUri = Await.result(management.start(), 10.seconds)
@@ -282,7 +282,7 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
           """
         )
 
-        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+        implicit val system: ActorSystem = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
 
         val management = AkkaManagement(system)
         Await.result(management.start(), 10.seconds)
@@ -314,7 +314,7 @@ class AkkaManagementHttpEndpointSpec extends AnyWordSpecLike with Matchers {
           """
         )
 
-        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
+        implicit val system: ActorSystem = ActorSystem("test", config.withFallback(configClusterHttpManager).resolve())
 
         val management = AkkaManagement(system)
         intercept[IllegalArgumentException] {

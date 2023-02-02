@@ -131,7 +131,7 @@ class ClusterBootstrapIntegrationSpec extends AnyWordSpecLike with Matchers {
 
     "start listening with the http contact-points on 3 systems" in {
       def start(system: ActorSystem, contactPointPort: Int) = {
-        implicit val sys = system
+        implicit val sys: ActorSystem = system
 
         val bootstrap = ClusterBootstrap(system)
         val routes = new HttpClusterBootstrapRoutes(bootstrap.settings).routes

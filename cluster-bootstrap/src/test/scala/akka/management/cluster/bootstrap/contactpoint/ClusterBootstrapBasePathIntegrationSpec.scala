@@ -6,6 +6,8 @@ package akka.management.cluster.bootstrap.contactpoint
 
 import java.net.InetAddress
 
+import scala.collection.immutable
+
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{ CurrentClusterState, MemberUp }
@@ -28,7 +30,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 class ClusterBootstrapBasePathIntegrationSpec extends AnyWordSpecLike with Matchers {
 
   "Cluster Bootstrap" should {
-    val Vector(managementPort, remotingPort) =
+    val immutable.IndexedSeq(managementPort, remotingPort) =
       SocketUtil.temporaryServerAddresses(2, "127.0.0.1").map(_.getPort)
 
     val config =
