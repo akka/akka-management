@@ -192,11 +192,11 @@ class IntegrationTest
 
       log.info("querying the Cluster Http Management interface of each node, eventually we should see a well formed cluster")
 
-      clusterPublicIps.foreach { nodeIp: String => {
+      clusterPublicIps.foreach { nodeIp => {
 
         val result = httpGetRequest(s"http://$nodeIp:8558/cluster/members").futureValue(httpCallTimeout)
         result._1 should ===(200)
-        result._2 should not be 'empty
+        result._2.nonEmpty should be (true)
 
         val clusterMembers = result._2.parseJson.convertTo[ClusterMembers]
 
@@ -204,7 +204,7 @@ class IntegrationTest
         clusterMembers.members.count(_.status == "Up") should ===(instanceCount)
         clusterMembers.members.map(_.node) should ===(expectedNodes)
 
-        clusterMembers.unreachable should be('empty)
+        clusterMembers.unreachable.isEmpty should be(true)
         clusterMembers.leader shouldBe defined
         clusterMembers.oldest shouldBe defined
 
