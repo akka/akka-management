@@ -40,6 +40,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
       "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
       "com.orbitz.consul" % "consul-client" % "1.5.3",
+      "org.immutables" % "value" % "2.8.8" % Provided, // workaround for https://github.com/lampepfl/dotty/issues/13523
       "com.pszymczyk.consul" % "embedded-consul" % "2.2.1" % Test,
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
       "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
