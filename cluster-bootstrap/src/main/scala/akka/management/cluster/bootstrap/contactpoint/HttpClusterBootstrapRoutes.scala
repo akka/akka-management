@@ -72,6 +72,6 @@ object ClusterBootstrapRequests {
   import akka.http.scaladsl.client.RequestBuilding._
 
   def bootstrapSeedNodes(baseUri: Uri): HttpRequest =
-    Get(baseUri.toString + "/bootstrap/seed-nodes") // FIXME is there a better way than string concatenation?
+    Get(baseUri.toString + "/bootstrap/seed-nodes")
 
 }
