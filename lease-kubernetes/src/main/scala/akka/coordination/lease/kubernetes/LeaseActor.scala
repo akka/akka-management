@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import akka.actor.Status.Failure
 import akka.actor.{ ActorRef, DeadLetterSuppression, FSM, LoggingFSM, Props }
 import akka.annotation.InternalApi
-import akka.coordination.lease.kubernetes.LeaseActor._
 import akka.coordination.lease.{ LeaseSettings, LeaseTimeoutException }
 import akka.util.ConstantFun
 import akka.util.PrettyDuration._
@@ -83,8 +82,9 @@ private[akka] class LeaseActor(
     settings: LeaseSettings,
     leaseName: String,
     granted: AtomicBoolean)
-    extends LoggingFSM[State, Data] {
+    extends LoggingFSM[LeaseActor.State, LeaseActor.Data] {
 
+  import akka.coordination.lease.kubernetes.LeaseActor._
   import akka.pattern.pipe
   import context.dispatcher
 
@@ -95,7 +95,7 @@ private[akka] class LeaseActor(
   when(Idle) {
     case Event(Acquire(leaseLostCallback), ReadRequired) =>
       // Send off read, pipe result back to self
-      pipe(k8sApi.readOrCreateLeaseResource(leaseName).map(ReadResponse)).to(self)
+      pipe(k8sApi.readOrCreateLeaseResource(leaseName).map(ReadResponse.apply)).to(self)
       goto(PendingRead).using(PendingReadData(sender(), leaseLostCallback))
 
     // Initial read can be skipped as we have a version
@@ -179,7 +179,7 @@ private[akka] class LeaseActor(
   when(Granted) {
     case Event(Heartbeat, GrantedVersion(version, _)) =>
       log.debug("Heartbeat: updating lease time. Version {}", version)
-      pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(WriteResponse)).to(self)
+      pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(WriteResponse.apply)).to(self)
       stay()
     case Event(WriteResponse(Right(resource)), gv: GrantedVersion) =>
       require(
@@ -200,7 +200,7 @@ private[akka] class LeaseActor(
       executeLeaseLockCallback(leaseLost, Some(t))
       goto(Idle).using(ReadRequired)
     case Event(Release(), GrantedVersion(version, leaseLost)) =>
-      pipe(k8sApi.updateLeaseResource(leaseName, "", version).map(WriteResponse)).to(self)
+      pipe(k8sApi.updateLeaseResource(leaseName, "", version).map(WriteResponse.apply)).to(self)
       goto(Releasing).using(OperationInProgress(sender(), version, leaseLost))
     case Event(Acquire(leaseLostCallback), gv: GrantedVersion) =>
       sender() ! LeaseAcquired

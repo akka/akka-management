@@ -35,7 +35,7 @@ case class Spec(owner: String, time: Long)
  */
 @InternalApi
 trait KubernetesJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val metadataFormat: JsonFormat[Metadata] = jsonFormat2(Metadata)
-  implicit val specFormat: JsonFormat[Spec] = jsonFormat2(Spec)
-  implicit val leaseCustomResourceFormat: RootJsonFormat[LeaseCustomResource] = jsonFormat4(LeaseCustomResource)
+  implicit val metadataFormat: JsonFormat[Metadata] = jsonFormat2(Metadata.apply)
+  implicit val specFormat: JsonFormat[Spec] = jsonFormat2(Spec.apply)
+  implicit val leaseCustomResourceFormat: RootJsonFormat[LeaseCustomResource] = jsonFormat4(LeaseCustomResource.apply)
 }

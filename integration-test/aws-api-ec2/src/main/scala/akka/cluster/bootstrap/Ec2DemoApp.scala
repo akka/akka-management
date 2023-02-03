@@ -10,7 +10,7 @@ import akka.management.scaladsl.AkkaManagement
 
 object Ec2DemoApp extends App {
 
-  implicit val system = ActorSystem("demo")
+  implicit val system: ActorSystem = ActorSystem("demo")
 
   AkkaManagement(system).start()
 

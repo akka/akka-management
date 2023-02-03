@@ -364,7 +364,7 @@ class ClusterHttpManagementRoutesSpec
           """.stripMargin
         )
 
-        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager))
+        implicit val system: ActorSystem = ActorSystem("test", config.withFallback(configClusterHttpManager))
         val cluster = Cluster(system)
         val selfAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
         cluster.join(selfAddress)
@@ -379,7 +379,7 @@ class ClusterHttpManagementRoutesSpec
           TestShardedActor.extractShardId
         )
 
-        implicit val t = ScalatestTimeout(5.seconds)
+        implicit val t: ScalatestTimeout = ScalatestTimeout(5.seconds)
 
         shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String].futureValue(t)
 
@@ -429,7 +429,7 @@ class ClusterHttpManagementRoutesSpec
           """.stripMargin
         )
 
-        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager))
+        implicit val system: ActorSystem = ActorSystem("test", config.withFallback(configClusterHttpManager))
         val cluster = Cluster(system)
         val selfAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
         cluster.join(selfAddress)
@@ -444,7 +444,7 @@ class ClusterHttpManagementRoutesSpec
           TestShardedActor.extractShardId
         )
 
-        implicit val t = ScalatestTimeout(5.seconds)
+        implicit val t: ScalatestTimeout = ScalatestTimeout(5.seconds)
 
         shardRegion.ask("hello")(Timeout(3.seconds)).mapTo[String].futureValue(t)
 
@@ -499,13 +499,13 @@ class ClusterHttpManagementRoutesSpec
           """.stripMargin
         )
 
-        implicit val system = ActorSystem("test", config.withFallback(configClusterHttpManager))
+        implicit val system: ActorSystem = ActorSystem("test", config.withFallback(configClusterHttpManager))
         val cluster = Cluster(system)
         val selfAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
         cluster.join(selfAddress)
         cluster.clusterCore ! LeaderActionsTick
 
-        implicit val t = ScalatestTimeout(5.seconds)
+        implicit val t: ScalatestTimeout = ScalatestTimeout(5.seconds)
 
         val done = Promise[Unit]
         cluster.registerOnMemberUp { done.success(()) }

@@ -4,6 +4,8 @@
 
 package akka.management
 
+import scala.concurrent.ExecutionContext
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.server.directives.Credentials
 import scala.concurrent.Future
@@ -12,7 +14,7 @@ import akka.management.scaladsl.AkkaManagement
 
 object CompileOnly {
   val system: ActorSystem = null
-  implicit val ec = system.dispatcher
+  implicit val ec: ExecutionContext = system.dispatcher
   //#basic-auth
   def myUserPassAuthenticator(credentials: Credentials): Future[Option[String]] =
     credentials match {

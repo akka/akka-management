@@ -72,6 +72,6 @@ object ClusterBootstrapRequests {
   import akka.http.scaladsl.client.RequestBuilding._
 
   def bootstrapSeedNodes(baseUri: Uri): HttpRequest =
-    Get(baseUri + "/bootstrap/seed-nodes")
+    Get(baseUri.toString + "/bootstrap/seed-nodes")
 
 }

@@ -15,7 +15,7 @@ import com.typesafe.config.ConfigFactory
 
 object DemoApp extends App {
 
-  implicit val system = ActorSystem("simple")
+  implicit val system: ActorSystem = ActorSystem("simple")
 
   import system.log
   import system.dispatcher
@@ -27,12 +27,16 @@ object DemoApp extends App {
   ClusterBootstrap(system).start()
 
   cluster
-    .subscribe(system.actorOf(Props[ClusterWatcher]), ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
+    .subscribe(system.actorOf(ClusterWatcher.props()), ClusterEvent.InitialStateAsEvents, classOf[ClusterDomainEvent])
 
   import akka.http.scaladsl.server.Directives._
   Http().bindAndHandle(complete("Hello world"), "0.0.0.0", 8080)
 
 }
+
+object ClusterWatcher {
+    def props(): Props = Props(new ClusterWatcher)
+  }
 
 class ClusterWatcher extends Actor with ActorLogging {
   val cluster = Cluster(context.system)

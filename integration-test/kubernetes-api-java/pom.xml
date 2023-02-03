@@ -18,10 +18,10 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <akka.version>2.7.0-M1</akka.version>
-    <akka.http.version>10.2.0</akka.http.version>
-    <akka-management.version>1.0.5</akka-management.version>
-    <scala.binary.version>2.12</scala.binary.version>
+    <akka.version>2.7.0</akka.version>
+    <akka.http.version>10.4.0</akka.http.version>
+    <akka-management.version>1.2.0</akka-management.version>
+    <scala.binary.version>2.13</scala.binary.version>
   </properties>
 
   <dependencies>
@@ -43,7 +43,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.3</version>
+      <version>1.2.11</version>
     </dependency>
     <dependency>
       <groupId>com.lightbend.akka.management</groupId>

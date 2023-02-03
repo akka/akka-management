@@ -6,6 +6,11 @@ package akka.cluster.bootstrap
 
 import akka.actor.Actor
 import akka.actor.ActorLogging
+import akka.actor.Props
+
+object NoisySingleton {
+  def props(): Props = Props(new NoisySingleton)
+}
 
 class NoisySingleton extends Actor with ActorLogging {
 

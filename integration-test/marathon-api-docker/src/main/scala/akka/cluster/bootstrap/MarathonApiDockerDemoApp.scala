@@ -13,7 +13,7 @@ import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
 
 object MarathonApiDockerDemoApp extends App {
-  implicit val system = ActorSystem("my-system")
+  implicit val system: ActorSystem = ActorSystem("my-system")
 
   val cluster = Cluster(system)
 

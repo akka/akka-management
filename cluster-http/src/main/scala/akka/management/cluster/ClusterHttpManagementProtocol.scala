@@ -48,12 +48,12 @@ final case class ShardDetails(regions: immutable.Seq[ShardRegionInfo])
 
 trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val clusterUnreachableMemberFormat: RootJsonFormat[ClusterUnreachableMember] =
-    jsonFormat2(ClusterUnreachableMember)
+    jsonFormat2(ClusterUnreachableMember.apply)
   implicit val clusterMemberFormat: RootJsonFormat[ClusterMember] = jsonFormat4(ClusterMember.apply)
-  implicit val clusterMembersFormat: RootJsonFormat[ClusterMembers] = jsonFormat6(ClusterMembers)
+  implicit val clusterMembersFormat: RootJsonFormat[ClusterMembers] = jsonFormat6(ClusterMembers.apply)
   implicit val clusterMemberMessageFormat: RootJsonFormat[ClusterHttpManagementMessage] =
-    jsonFormat1(ClusterHttpManagementMessage)
-  implicit val shardEntityTypeKeysFormat: RootJsonFormat[ShardEntityTypeKeys] = jsonFormat1(ShardEntityTypeKeys)
-  implicit val shardRegionInfoFormat: RootJsonFormat[ShardRegionInfo] = jsonFormat2(ShardRegionInfo)
-  implicit val shardDetailsFormat: RootJsonFormat[ShardDetails] = jsonFormat1(ShardDetails)
+    jsonFormat1(ClusterHttpManagementMessage.apply)
+  implicit val shardEntityTypeKeysFormat: RootJsonFormat[ShardEntityTypeKeys] = jsonFormat1(ShardEntityTypeKeys.apply)
+  implicit val shardRegionInfoFormat: RootJsonFormat[ShardRegionInfo] = jsonFormat2(ShardRegionInfo.apply)
+  implicit val shardDetailsFormat: RootJsonFormat[ShardDetails] = jsonFormat1(ShardDetails.apply)
 }

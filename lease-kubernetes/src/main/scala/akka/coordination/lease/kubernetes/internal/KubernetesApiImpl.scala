@@ -47,8 +47,9 @@ import javax.net.ssl.TrustManager
 
   import system.dispatcher
 
-  private implicit val sys = system
-  private val log = Logging(system, getClass)
+  private implicit val sys: ActorSystem = system
+  // FIXME the asInstanceOf is because Scala3 complains
+  private val log = Logging(system, getClass.asInstanceOf[Class[Any]])
   private val http = Http()(system)
 
   private lazy val sslContext = {

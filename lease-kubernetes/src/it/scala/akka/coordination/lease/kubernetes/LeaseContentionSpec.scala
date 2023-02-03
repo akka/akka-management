@@ -63,7 +63,8 @@ class LeaseContentionSpec extends TestKit(ActorSystem("LeaseContentionSpec", Con
     "only allow one client to get acquire lease" in {
       val underTest = LeaseProvider(system)
       val nrClients = 30
-      implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(nrClients)) // too many = HTTP request queue of pool fills up
+      implicit val ec: ExecutionContext =
+        ExecutionContext.fromExecutor(Executors.newFixedThreadPool(nrClients)) // too many = HTTP request queue of pool fills up
       // could make this more contended with a countdown latch so they all start at the same time
       val leases: immutable.Seq[(String, Boolean)] = Future.sequence((0 until nrClients).map(i => {
         val clientName = s"client$i"

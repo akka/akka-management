@@ -103,5 +103,5 @@ final class CheckResult private[javadsl] (private val result: Either[String, Uni
   def isSuccess: java.lang.Boolean = result.isRight
 
   def success: Optional[Unit] =
-    Optional.ofNullable(result.right.toOption.orNull)
+    Optional.ofNullable(result.toOption.orNull)
 }

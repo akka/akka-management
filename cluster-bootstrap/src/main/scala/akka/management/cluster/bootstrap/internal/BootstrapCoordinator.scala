@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 import java.util.concurrent.ThreadLocalRandom
 
 import scala.collection.immutable
+import scala.concurrent.ExecutionContext
 
 import akka.actor.Actor
 import akka.actor.ActorRef
@@ -139,7 +140,7 @@ private[akka] class BootstrapCoordinator(
   import BootstrapCoordinator.Protocol._
   import BootstrapCoordinator._
 
-  implicit private val ec = context.dispatcher
+  implicit private val ec: ExecutionContext = context.dispatcher
   private val log = Logging.withMarker(this)
   private val cluster = Cluster(context.system)
   private val DiscoverTimerKey = "resolve-key"

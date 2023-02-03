@@ -5,14 +5,15 @@ object Dependencies {
 
   val Scala212 = "2.12.17"
   val Scala213 = "2.13.10"
-  val CrossScalaVersions = Seq(Dependencies.Scala213, Dependencies.Scala212)
+  val Scala3 = "3.1.3"
+  val CrossScalaVersions = Seq(Scala213, Scala212, Scala3)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val AkkaVersion = "2.7.0"
   val AkkaBinaryVersion = "2.7"
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaHttpVersion = "10.4.0"
-  val AkkaHttpBinaryVersion = "10.4"
+  val AkkaHttpVersion = "10.5.0-M1"
+  val AkkaHttpBinaryVersion = "10.5"
 
   val ScalaTestVersion = "3.2.15"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
@@ -39,6 +40,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
       "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
       "com.orbitz.consul" % "consul-client" % "1.5.3",
+      "org.immutables" % "value" % "2.8.8" % Provided, // workaround for https://github.com/lampepfl/dotty/issues/13523
       "com.pszymczyk.consul" % "embedded-consul" % "2.2.1" % Test,
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
       "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,

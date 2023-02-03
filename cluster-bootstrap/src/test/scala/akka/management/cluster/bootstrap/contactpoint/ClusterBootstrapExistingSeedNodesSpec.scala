@@ -4,6 +4,8 @@
 
 package akka.management.cluster.bootstrap.contactpoint
 
+import scala.collection.immutable
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
@@ -27,9 +29,8 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
     with Matchers
     with BeforeAndAfterAll {
 
-  def this() {
+  def this() =
     this(ActorSystem("ClusterBootstrapExistingSeedNodesSpec"))
-  }
 
   val systemName = Logging.simpleName(classOf[ClusterBootstrapExistingSeedNodesSpec]) + "System"
 
@@ -40,7 +41,7 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
   val JoinYourself: List[Address] = List(null, null, null)
 
   def newSystem(id: String, seedNodes: List[Address]) = {
-    val Vector(managementPort, remotingPort) =
+    val immutable.IndexedSeq(managementPort, remotingPort) =
       SocketUtil.temporaryServerAddresses(2, "127.0.0.1").map(_.getPort)
 
     info(s"System [$id]: remoting port: $remotingPort")
@@ -107,7 +108,7 @@ class ClusterBootstrapExistingSeedNodesSpec(system: ActorSystem)
   "Cluster Bootstrap" should {
 
     "start listening with the http contact-points on all systems" in {
-      def start(system: ActorSystem, contactPointPort: Int) = {
+      def start(system: ActorSystem, contactPointPort: Int): Future[Http.ServerBinding] = {
         implicit val sys: ActorSystem = system
 
         val bootstrap = ClusterBootstrap(system)

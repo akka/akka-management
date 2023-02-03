@@ -18,7 +18,7 @@ import akka.management.scaladsl.AkkaManagement
 
 object DemoApp extends App {
 
-  implicit val system = ActorSystem("Appka")
+  implicit val system: ActorSystem = ActorSystem("Appka")
 
   import system.log
   val cluster = Cluster(system)
@@ -31,7 +31,7 @@ object DemoApp extends App {
   ClusterBootstrap(system).start()
 
   cluster.subscribe(
-    system.actorOf(Props[ClusterWatcher]),
+    system.actorOf(ClusterWatcher.props()),
     ClusterEvent.InitialStateAsEvents,
     classOf[ClusterDomainEvent]
   )
@@ -54,6 +54,10 @@ object DemoApp extends App {
     log.info("Cluster member is up!")
   })
 
+}
+
+object ClusterWatcher {
+  def props(): Props = Props(new ClusterWatcher)
 }
 
 class ClusterWatcher extends Actor with ActorLogging {

@@ -28,7 +28,7 @@ import scala.concurrent.duration._
 
 class ClusterBootstrapAutostartIntegrationSpec extends AnyWordSpecLike with Matchers with ScalaFutures {
 
-  implicit val patience = PatienceConfig(Span(3, Seconds), Span(500, Milliseconds))
+  implicit val patience: PatienceConfig = PatienceConfig(Span(3, Seconds), Span(500, Milliseconds))
 
   "Cluster Bootstrap" should {
 
