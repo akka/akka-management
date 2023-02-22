@@ -153,6 +153,16 @@ object Dependencies {
     "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
   )
 
+  val PodDeletionCost = Seq(
+    "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-cluster" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+  )
+
   val LeaseKubernetes = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-coordination" % AkkaVersion,
