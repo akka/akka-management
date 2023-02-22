@@ -153,7 +153,7 @@ object Dependencies {
     "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
   )
 
-  val PodDeletionCost = Seq(
+  val RollingUpdateKubernetes = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % AkkaVersion,

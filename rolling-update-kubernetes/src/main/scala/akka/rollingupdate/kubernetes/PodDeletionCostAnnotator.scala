@@ -2,31 +2,39 @@
  * Copyright (C) 2017-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka.management.pod
+package akka.rollingupdate.kubernetes
 
-import akka.actor.{Actor, ActorLogging}
-import akka.cluster.{Cluster, ClusterEvent, Member}
-import akka.event.Logging
-import akka.http.scaladsl.model.HttpMethods.PATCH
-import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import akka.actor.Actor
+import akka.actor.ActorLogging
+import akka.annotation.InternalApi
+import akka.cluster.Cluster
+import akka.cluster.ClusterEvent
+import akka.cluster.Member
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.{ConnectionContext, Http, HttpsConnectionContext}
+import akka.http.scaladsl.ConnectionContext
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.HttpsConnectionContext
 import akka.pki.kubernetes.PemManagersProvider
-import akka.util.ByteString
 
-import java.nio.file.{Files, Paths}
-import java.security.{KeyStore, SecureRandom}
-import javax.net.ssl.{KeyManager, KeyManagerFactory, SSLContext, TrustManager}
-import scala.collection.immutable.{SortedSet, TreeSet}
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.security.KeyStore
+import java.security.SecureRandom
+import javax.net.ssl.KeyManager
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
 import scala.collection.immutable
+import scala.collection.immutable.SortedSet
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-
-class KubernetesPodAnnotator(val podName: String) extends Actor with ActorLogging {
+@InternalApi
+final class PodDeletionCostAnnotator extends Actor with ActorLogging {
   private val cluster = Cluster(context.system)
-  private val k8sSettings = PodDeletionCostSettings(context.system)
+  private val k8sSettings = KubernetesSettings(context.system)
 
   private val http = Http()(context.system)
   private lazy val apiToken = readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("")
@@ -70,7 +78,6 @@ class KubernetesPodAnnotator(val podName: String) extends Actor with ActorLoggin
     sslContext
   }
 
-
   implicit val orderByAgeDesc: Ordering[Member] = Member.ageOrdering
   def receive = onMessage(0, SortedSet.empty)
 
@@ -84,23 +91,33 @@ class KubernetesPodAnnotator(val podName: String) extends Actor with ActorLoggin
     case _ =>
   }
 
-  private def updateDeletionCost(existingCost: Int,
-                                 membersByAgeDesc: immutable.SortedSet[Member],
-                                 costStrategy: CostStrategy = OlderCostsMore): Unit = {
+  private def updateDeletionCost(
+      existingCost: Int,
+      membersByAgeDesc: immutable.SortedSet[Member],
+      costStrategy: CostStrategy = OlderCostsMore): Unit = {
     val newCost: Int = costStrategy.costOf(cluster.selfMember, membersByAgeDesc).getOrElse(0)
-    log.debug("Calculated cost={} for member={} in members by age (desc): {}", newCost, cluster.selfMember, membersByAgeDesc)
+    log.debug(
+      "Calculated cost={} for member={} in members by age (desc): {}",
+      newCost,
+      cluster.selfMember,
+      membersByAgeDesc)
 
     if (newCost != existingCost) {
       log.debug(
         "Updating pod-deletion-cost annotation for pod: [{}] with cost: [{}] (previously: {}). Namespace: [{}]",
-        podName, newCost, existingCost, podNamespace)
+        k8sSettings.podName,
+        newCost,
+        existingCost,
+        podNamespace
+      )
 
-      val request = podDeletionCostRequest(podNamespace, podName, newCost)
+      val request = ApiRequests.podDeletionCost(k8sSettings, apiToken, podNamespace, newCost)
 
-      val responseFuture: Future[HttpResponse] = if (k8sSettings.secure)
-        http.singleRequest(request, clientSslContext)
-      else
-        http.singleRequest(request)
+      val responseFuture: Future[HttpResponse] =
+        if (k8sSettings.secure)
+          http.singleRequest(request, clientSslContext)
+        else
+          http.singleRequest(request)
 
       val res = Await.result(responseFuture, 2.seconds)
       if (res.status.isSuccess()) {
@@ -114,19 +131,4 @@ class KubernetesPodAnnotator(val podName: String) extends Actor with ActorLoggin
     } else context.become(onMessage(existingCost, membersByAgeDesc))
   }
 
-  private def podDeletionCostRequest(namespace: String, pod: String, cost: Int): HttpRequest = {
-    val path = Uri.Path.Empty / "api" / "v1" / "namespaces" / namespace / "pods" / pod
-    val scheme = if (k8sSettings.secure) "https" else "http"
-    val uri = Uri.from(scheme, host = k8sSettings.apiServiceHost, port = k8sSettings.apiServicePort.toInt)
-      .withPath(path)
-    val headers = if (k8sSettings.secure) immutable.Seq(Authorization(OAuth2BearerToken(apiToken))) else Nil
-
-    HttpRequest(
-      method = PATCH,
-      uri = uri,
-      headers = headers,
-      entity = HttpEntity(MediaTypes.`application/merge-patch+json`, ByteString(
-        s"""{"metadata": {"annotations": {"controller.kubernetes.io/pod-deletion-cost": "$cost" }}}"""
-      )))
-  }
 }

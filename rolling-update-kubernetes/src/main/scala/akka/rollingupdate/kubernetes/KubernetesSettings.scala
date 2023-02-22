@@ -2,7 +2,7 @@
  * Copyright (C) 2017-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka.management.pod
+package akka.rollingupdate.kubernetes
 
 import akka.actor._
 import com.typesafe.config.Config
@@ -10,7 +10,7 @@ import com.typesafe.config.Config
 import java.util.Optional
 import scala.compat.java8.OptionConverters._
 
-final class PodDeletionCostSettings(system: ExtendedActorSystem) extends Extension {
+final class KubernetesSettings(system: ExtendedActorSystem) extends Extension {
 
   /**
    * Copied from AkkaManagementSettings, which we don't depend on.
@@ -25,7 +25,7 @@ final class PodDeletionCostSettings(system: ExtendedActorSystem) extends Extensi
       if (hasDefined(key)) Some(config.getString(key)) else None
   }
 
-  private val kubernetesApi = system.settings.config.getConfig("akka.management.pod-deletion-cost")
+  private val kubernetesApi = system.settings.config.getConfig("akka.rollingupdate.kubernetes")
 
   val apiCaPath: String =
     kubernetesApi.getString("api-ca-path")
@@ -59,12 +59,12 @@ final class PodDeletionCostSettings(system: ExtendedActorSystem) extends Extensi
     s"$podNamespacePath, $podNamespace, $podName, $secure)"
 }
 
-object PodDeletionCostSettings extends ExtensionId[PodDeletionCostSettings] with ExtensionIdProvider {
-  override def get(system: ActorSystem): PodDeletionCostSettings = super.get(system)
+object KubernetesSettings extends ExtensionId[KubernetesSettings] with ExtensionIdProvider {
+  override def get(system: ActorSystem): KubernetesSettings = super.get(system)
 
-  override def get(system: ClassicActorSystemProvider): PodDeletionCostSettings = super.get(system)
+  override def get(system: ClassicActorSystemProvider): KubernetesSettings = super.get(system)
 
-  override def lookup: PodDeletionCostSettings.type = PodDeletionCostSettings
+  override def lookup: KubernetesSettings.type = KubernetesSettings
 
-  override def createExtension(system: ExtendedActorSystem): PodDeletionCostSettings = new PodDeletionCostSettings(system)
+  override def createExtension(system: ExtendedActorSystem): KubernetesSettings = new KubernetesSettings(system)
 }

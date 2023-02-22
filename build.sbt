@@ -29,7 +29,7 @@ lazy val `akka-management-root` = project
     `integration-test-marathon-api-docker`,
     `cluster-http`,
     `cluster-bootstrap`,
-    `node-deletion-cost`,
+    `rolling-update-kubernetes`,
     `lease-kubernetes`,
     `lease-kubernetes-int-test`,
     docs
@@ -155,12 +155,12 @@ lazy val `cluster-bootstrap` = project
   )
   .dependsOn(`akka-management`)
 
-lazy val `node-deletion-cost` = project
-  .in(file("node-deletion-cost"))
+lazy val `rolling-update-kubernetes` = project
+  .in(file("rolling-update-kubernetes"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "akka-management-node-deletion-cost",
-    libraryDependencies := Dependencies.PodDeletionCost,
+    name := "akka-rolling-update-kubernetes",
+    libraryDependencies := Dependencies.RollingUpdateKubernetes,
     mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management`, `akka-management-pki`, `cluster-bootstrap`)
