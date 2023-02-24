@@ -6,65 +6,67 @@ package akka.rollingupdate.kubernetes
 
 import akka.actor.Actor
 import akka.actor.ActorLogging
+import akka.actor.Timers
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent
 import akka.cluster.Member
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
+import akka.http.scaladsl.model.StatusCodes.ClientError
+import akka.http.scaladsl.model._
+import akka.pattern.pipe
 import akka.pki.kubernetes.PemManagersProvider
+import akka.rollingupdate.OlderCostsMore
+import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.GiveUp
+import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.PodAnnotated
+import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.RequestResult
+import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.RetryAnnotate
+import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.RetryTimerId
+import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.ScheduleRetry
+import akka.stream.Materializer
+import com.typesafe.config.Config
 
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.security.KeyStore
 import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import scala.collection.immutable
 import scala.collection.immutable.SortedSet
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.Await
+import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationLong
+import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 
-@InternalApi
-final class PodDeletionCostAnnotator extends Actor with ActorLogging {
+/**
+ * INTERNAL API
+ *
+ * Actor responsible to annotate the hosting pod with the pod-deletion-cost.
+ * It will automatically retry upon a fixed-configurable delay if the annotation fails.
+ */
+@InternalApi private[kubernetes] final class PodDeletionCostAnnotator(
+    settings: KubernetesSettings,
+    apiToken: String,
+    podNamespace: String,
+    costSettings: PodDeletionCostSettings)
+    extends Actor
+    with ActorLogging
+    with Timers {
   private val cluster = Cluster(context.system)
-  private val k8sSettings = KubernetesSettings(context.system)
 
   private val http = Http()(context.system)
-  private lazy val apiToken = readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("")
-  private val podNamespace = k8sSettings.podNamespace
-    .orElse(readConfigVarFromFilesystem(k8sSettings.podNamespacePath, "namespace"))
-    .getOrElse("default")
 
-  /**
-   * This uses blocking IO, and so should only be used to read configuration at startup.
-   */
-  private def readConfigVarFromFilesystem(path: String, name: String): Option[String] = {
-    val file = Paths.get(path)
-    if (Files.exists(file)) {
-      try {
-        Some(new String(Files.readAllBytes(file), "utf-8"))
-      } catch {
-        case NonFatal(e) =>
-          log.error(e, "Error reading {} from {}", name, path)
-          None
-      }
-    } else {
-      log.warning("Unable to read {} from {} because it doesn't exist.", name, path)
-      None
-    }
-  }
+  Cluster(context.system).subscribe(context.self, classOf[ClusterEvent.MemberUp], classOf[ClusterEvent.MemberRemoved])
 
   private val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
 
   private lazy val sslContext = {
-    val certificates = PemManagersProvider.loadCertificates(k8sSettings.apiCaPath)
+    val certificates = PemManagersProvider.loadCertificates(settings.apiCaPath)
     val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
     val keyStore = KeyStore.getInstance("PKCS12")
     keyStore.load(null)
@@ -78,57 +80,114 @@ final class PodDeletionCostAnnotator extends Actor with ActorLogging {
     sslContext
   }
 
-  implicit val orderByAgeDesc: Ordering[Member] = Member.ageOrdering
-  def receive = onMessage(0, SortedSet.empty)
+  implicit val dispatcher: ExecutionContextExecutor = context.system.dispatcher
+  def receive = onMessage(0, SortedSet.empty(Member.ageOrdering))
 
   private def onMessage(deletionCost: Int, membersByAgeDesc: SortedSet[Member]): Receive = {
+    case cs @ ClusterEvent.CurrentClusterState(members, _, _, _, _) =>
+      log.debug("Received CurrentClusterState {}", cs)
+      updateIfNewCost(deletionCost, membersByAgeDesc ++ members) // ordering used is from the first operand (so, by age)
+
     case ClusterEvent.MemberUp(m) =>
       log.debug("Received MemberUp {}", m)
-      updateDeletionCost(deletionCost, membersByAgeDesc + m)
+      updateIfNewCost(deletionCost, membersByAgeDesc + m)
+
     case ClusterEvent.MemberRemoved(m, _) =>
       log.debug("Received MemberRemoved {}", m)
-      updateDeletionCost(deletionCost, membersByAgeDesc - m)
-    case _ =>
+      updateIfNewCost(deletionCost, membersByAgeDesc - m)
+
+    case PodAnnotated() =>
+      log.debug("Annotation updated successfully to {}", deletionCost)
+      // cancelling an eventual retry in case the annotation succeeded in the meantime
+      timers.cancel(RetryTimerId)
+
+    case ScheduleRetry(ex) =>
+      log.error(s"Failed to update annotation: [$ex]. Retrying with fixed delay of {}.", costSettings.retryDelay)
+      timers.startSingleTimer(RetryTimerId, RetryAnnotate, costSettings.retryDelay)
+
+    case GiveUp(er: String) =>
+      log.error(
+        "There was a client error when trying to set pod-deletion-cost annotation. " +
+        "Not retrying, check configuration. Error: {}",
+        er)
+
+    case RetryAnnotate =>
+      costRequestToResult(deletionCost).pipeTo(self)
+
+    case es => log.debug("Ignoring message {}", es)
   }
 
-  private def updateDeletionCost(
-      existingCost: Int,
-      membersByAgeDesc: immutable.SortedSet[Member],
-      costStrategy: CostStrategy = OlderCostsMore): Unit = {
-    val newCost: Int = costStrategy.costOf(cluster.selfMember, membersByAgeDesc).getOrElse(0)
+  implicit val mat = Materializer(context)
+  private def costRequestToResult(newCost: Int): Future[RequestResult] = {
     log.debug(
-      "Calculated cost={} for member={} in members by age (desc): {}",
+      "Updating pod-deletion-cost annotation for pod: [{}] with cost: [{}]. Namespace: [{}]",
+      settings.podName,
       newCost,
+      podNamespace
+    )
+    val request = ApiRequests.podDeletionCost(settings, apiToken, podNamespace, newCost)
+    if (settings.secure)
+      http.singleRequest(request, clientSslContext)
+    else
+      http.singleRequest(request)
+  }.map {
+      case HttpResponse(status, _, e, _) if status.isSuccess() => e.discardBytes(); PodAnnotated()
+      case HttpResponse(s @ ClientError(_), _, _, _)           => GiveUp(s.toString())
+      case HttpResponse(status, _, _, _)                       => ScheduleRetry(s"Request failed with status=$status")
+      case _                                                   => GiveUp("Unknown")
+    }
+    .recover {
+      case NonFatal(e) => ScheduleRetry(e.getMessage)
+    }
+
+  private def updateIfNewCost(existingCost: Int, membersByAgeDesc: immutable.SortedSet[Member]): Unit = {
+
+    val podsToAnnotate = membersByAgeDesc.take(costSettings.annotatedPodsNr)
+    val newCost: Int = OlderCostsMore.costOf(cluster.selfMember, podsToAnnotate).getOrElse(0)
+    log.debug(
+      "Calculated cost={} (previously {}) for member={} in members by age (desc): {}",
+      newCost,
+      existingCost,
       cluster.selfMember,
       membersByAgeDesc)
 
     if (newCost != existingCost) {
-      log.debug(
-        "Updating pod-deletion-cost annotation for pod: [{}] with cost: [{}] (previously: {}). Namespace: [{}]",
-        k8sSettings.podName,
-        newCost,
-        existingCost,
-        podNamespace
-      )
-
-      val request = ApiRequests.podDeletionCost(k8sSettings, apiToken, podNamespace, newCost)
-
-      val responseFuture: Future[HttpResponse] =
-        if (k8sSettings.secure)
-          http.singleRequest(request, clientSslContext)
-        else
-          http.singleRequest(request)
-
-      val res = Await.result(responseFuture, 2.seconds)
-      if (res.status.isSuccess()) {
-        log.debug("Annotation updated successfully was {} now {}", existingCost, newCost)
-        context.become(onMessage(newCost, membersByAgeDesc))
-      } else {
-        // FIXME retry?
-        log.error(s"Failed to update annotation: ${res.status.intValue()} ${res.status.reason()}")
-        context.become(onMessage(existingCost, membersByAgeDesc))
-      }
+      costRequestToResult(newCost).pipeTo(self)
+      context.become(onMessage(newCost, membersByAgeDesc))
     } else context.become(onMessage(existingCost, membersByAgeDesc))
   }
 
+}
+
+/**
+ * INTERNAL API
+ * @param annotatedPodsNr the number of members of the cluster that need to be annotated
+ * @param retryDelay fixed time delay before next attempt to annotate in case the previous one failed
+ */
+@InternalApi private[kubernetes] final case class PodDeletionCostSettings(
+    annotatedPodsNr: Int,
+    retryDelay: FiniteDuration)
+
+/**
+ * INTERNAL API
+ */
+@InternalApi private[kubernetes] object PodDeletionCostSettings {
+  val configPath: String = "pod-deletion-cost"
+  def apply(config: Config): PodDeletionCostSettings =
+    PodDeletionCostSettings(
+      config.getInt(s"$configPath.annotated-pods-nr"),
+      config.getDuration(s"$configPath.retry-delay", TimeUnit.SECONDS).seconds
+    )
+}
+
+/**
+ * INTERNAL API
+ */
+@InternalApi private[kubernetes] object PodDeletionCostAnnotator {
+  case object RetryTimerId
+  case object RetryAnnotate
+  sealed trait RequestResult
+  case class PodAnnotated() extends RequestResult
+  case class ScheduleRetry(cause: String) extends RequestResult
+  case class GiveUp(cause: String) extends RequestResult
 }

@@ -11,39 +11,70 @@ import akka.actor.Extension
 import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.actor.Props
-import akka.cluster.Cluster
-import akka.cluster.ClusterEvent
+import akka.annotation.InternalApi
+import akka.dispatch.MessageDispatcher
 import akka.event.Logging
 import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.BootstrapStep
 import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.Initializing
 import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.NotRunning
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extension {
 
-  import system.dispatcher
-
   private val log = Logging(system, classOf[PodDeletionCost])
-
-  private val settings = KubernetesSettings(system)
-  log.debug("Settings {}", settings)
+  private val configPath = "akka.rollingupdate.kubernetes"
+  private val config = system.settings.config.getConfig(configPath)
+  private val k8sSettings = KubernetesSettings(config)
+  private val costSettings = PodDeletionCostSettings(config)
+  log.debug("Settings {}", k8sSettings)
 
   private final val startStep = new AtomicReference[BootstrapStep](NotRunning)
 
   def start(): Unit = {
-    if (settings.podName.isEmpty) {
+    if (k8sSettings.podName.isEmpty) {
       log.warning(
         "No configuration found to extract the pod name from. " +
-        "Be sure to provide the pod name with `akka.management.pod-deletion-cost.pod-name` " +
+        s"Be sure to provide the pod name with `$configPath.pod-name` " +
         "or by setting ENV variable `KUBERNETES_POD_NAME`.")
     } else if (startStep.compareAndSet(NotRunning, Initializing)) {
-      val listener = system.systemActorOf(Props[PodDeletionCostAnnotator](), "podDeletionCostAnnotator")
-      Cluster(system).subscribe(listener, classOf[ClusterEvent.MemberUp])
-      Cluster(system).subscribe(listener, classOf[ClusterEvent.MemberRemoved])
+      log.debug("Starting PodDeletionCost for podName={} with settings={}", k8sSettings.podName, costSettings)
+
+      implicit val blockingDispatcher: MessageDispatcher = system.dispatchers.lookup("blocking-dispatcher")
+      val props = for {
+        apiToken: String <- Future { readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("") }
+        podNamespace: String <- Future {
+          k8sSettings.namespace
+            .orElse(readConfigVarFromFilesystem(k8sSettings.namespacePath, "namespace"))
+            .getOrElse("default")
+        }
+      } yield Props(classOf[PodDeletionCostAnnotator], k8sSettings, apiToken, podNamespace, costSettings)
+
+      props.foreach(system.systemActorOf(_, "podDeletionCostAnnotator"))
     } else log.warning("PodDeletionCost extension already initiated, yet start() method was called again. Ignoring.")
+  }
+
+  /**
+   * This uses blocking IO, and so should only be used to read configuration at startup.
+   */
+  private def readConfigVarFromFilesystem(path: String, name: String): Option[String] = {
+    val file = Paths.get(path)
+    if (Files.exists(file)) {
+      try {
+        Some(new String(Files.readAllBytes(file), "utf-8"))
+      } catch {
+        case NonFatal(e) =>
+          log.error(e, "Error reading {} from {}", name, path)
+          None
+      }
+    } else {
+      log.warning("Unable to read {} from {} because it doesn't exist.", name, path)
+      None
+    }
   }
 
   // autostart if the extension is loaded through the config extension list
@@ -52,6 +83,7 @@ final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extens
 
   if (autostart) {
     log.info("PodDeletionCost loaded through 'akka.extensions' auto-starting itself.")
+    import system.dispatcher
     Future {
       try {
         PodDeletionCost(system).start()
@@ -76,7 +108,7 @@ object PodDeletionCost extends ExtensionId[PodDeletionCost] with ExtensionIdProv
   /**
    * INTERNAL API
    */
-  private[kubernetes] object Internal {
+  @InternalApi private[kubernetes] object Internal {
     sealed trait BootstrapStep
     case object NotRunning extends BootstrapStep
     case object Initializing extends BootstrapStep
