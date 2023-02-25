@@ -117,7 +117,6 @@ import scala.util.control.NonFatal
     case es => log.debug("Ignoring message {}", es)
   }
 
-  implicit val mat = Materializer(context)
   private def costRequestToResult(newCost: Int): Future[RequestResult] = {
     log.debug(
       "Updating pod-deletion-cost annotation for pod: [{}] with cost: [{}]. Namespace: [{}]",
@@ -131,10 +130,11 @@ import scala.util.control.NonFatal
     else
       http.singleRequest(request)
   }.map {
-      case HttpResponse(status, _, e, _) if status.isSuccess() => e.discardBytes(); PodAnnotated()
-      case HttpResponse(s @ ClientError(_), _, _, _)           => GiveUp(s.toString())
-      case HttpResponse(status, _, _, _)                       => ScheduleRetry(s"Request failed with status=$status")
-      case _                                                   => GiveUp("Unknown")
+      case HttpResponse(status, _, e, _) if status.isSuccess() =>
+        e.discardBytes()(Materializer(context)); PodAnnotated()
+      case HttpResponse(s @ ClientError(_), _, _, _) => GiveUp(s.toString())
+      case HttpResponse(status, _, _, _)             => ScheduleRetry(s"Request failed with status=$status")
+      case _                                         => GiveUp("Unknown")
     }
     .recover {
       case NonFatal(e) => ScheduleRetry(e.getMessage)

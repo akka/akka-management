@@ -44,7 +44,7 @@ final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extens
     } else if (startStep.compareAndSet(NotRunning, Initializing)) {
       log.debug("Starting PodDeletionCost for podName={} with settings={}", k8sSettings.podName, costSettings)
 
-      implicit val blockingDispatcher: MessageDispatcher = system.dispatchers.lookup("blocking-dispatcher")
+      implicit val blockingDispatcher: MessageDispatcher = system.dispatchers.lookup("blocking-io-dispatcher")
       val props = for {
         apiToken: String <- Future { readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("") }
         podNamespace: String <- Future {
