@@ -62,14 +62,16 @@ object Common extends AutoPlugin {
           if (isJdk8 || scalaVersion.value == Dependencies.Scala212) Seq.empty
           else Seq("--release", "8")
         ),
+      doc / javacOptions := Nil,
       Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
           "-doc-title",
           "Akka Management",
           "-doc-version",
-          version.value,
-          "-skip-packages",
-          "akka.pattern" // for some reason Scaladoc creates this
-        ),
+          version.value
+        ) ++
+        // for some reason Scaladoc creates this
+        (if (scalaVersion.value.startsWith("3")) Seq.empty
+         else Seq("-skip-packages", "akka.pattern")),
       Compile / doc / scalacOptions ++= Seq(
           "-doc-source-url", {
             val branch = if (isSnapshot.value) "master" else s"v${version.value}"
