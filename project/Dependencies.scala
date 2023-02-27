@@ -18,11 +18,11 @@ object Dependencies {
   val ScalaTestVersion = "3.2.15"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
-  val AwsSdkVersion = "1.12.413"
+  val AwsSdkVersion = "1.12.414"
   val JacksonVersion = "2.13.4"
   val JacksonDatabindVersion = "2.13.4.2"
 
-  val Log4j2Version = "2.19.0"
+  val Log4j2Version = "2.20.0"
 
   // often called-in transitively with insecure versions of databind / core
   private val JacksonDatabind = Seq(
@@ -40,7 +40,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
       "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
       "com.orbitz.consul" % "consul-client" % "1.5.3",
-      "org.immutables" % "value" % "2.8.8" % Provided, // workaround for https://github.com/lampepfl/dotty/issues/13523
+      "org.immutables" % "value" % "2.9.3" % Provided, // workaround for https://github.com/lampepfl/dotty/issues/13523
       "com.pszymczyk.consul" % "embedded-consul" % "2.2.1" % Test,
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
       "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
@@ -80,7 +80,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
       "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-      ("software.amazon.awssdk" % "ecs" % "2.17.292").exclude("software.amazon.awssdk", "apache-client"),
+      ("software.amazon.awssdk" % "ecs" % "2.17.295").exclude("software.amazon.awssdk", "apache-client"),
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
     ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
@@ -160,7 +160,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-    "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
+    "com.github.tomakehurst" % "wiremock-jre8" % "2.35.0" % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % "it,test",
     "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "it,test",
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "it,test"
