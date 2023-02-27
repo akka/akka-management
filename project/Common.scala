@@ -51,10 +51,10 @@ object Common extends AutoPlugin {
         else
           scalacOptionsBase
       },
-      Compile / javacOptions ++= Seq(
+      javacOptions ++= Seq(
           "-Xlint:unchecked"
         ),
-      Compile / javacOptions ++= (
+      javacOptions ++= (
           if (isJdk8) Seq.empty
           else Seq("--release", "8")
         ),
@@ -62,7 +62,7 @@ object Common extends AutoPlugin {
           if (isJdk8 || scalaVersion.value == Dependencies.Scala212) Seq.empty
           else Seq("--release", "8")
         ),
-      Compile / doc / javacOptions := Nil,
+      doc / javacOptions := Nil,
       Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
           "-doc-title",
           "Akka Management",
