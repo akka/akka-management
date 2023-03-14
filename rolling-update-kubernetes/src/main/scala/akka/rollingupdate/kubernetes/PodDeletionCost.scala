@@ -12,7 +12,6 @@ import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.actor.Props
 import akka.annotation.InternalApi
-import akka.dispatch.MessageDispatcher
 import akka.event.Logging
 import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.BootstrapStep
 import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.Initializing
@@ -21,6 +20,7 @@ import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.NotRunning
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicReference
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
@@ -44,7 +44,7 @@ final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extens
     } else if (startStep.compareAndSet(NotRunning, Initializing)) {
       log.debug("Starting PodDeletionCost for podName={} with settings={}", k8sSettings.podName, costSettings)
 
-      implicit val blockingDispatcher: MessageDispatcher = system.dispatchers.lookup("blocking-io-dispatcher")
+      implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup("blocking-io-dispatcher")
       val props = for {
         apiToken: String <- Future { readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("") }
         podNamespace: String <- Future {

@@ -5,6 +5,7 @@
 package akka.rollingupdate.kubernetes
 
 import akka.actor.Actor
+import akka.actor.ActorContext
 import akka.actor.ActorLogging
 import akka.actor.Timers
 import akka.annotation.InternalApi
@@ -25,6 +26,7 @@ import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.RequestResult
 import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.RetryAnnotate
 import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.RetryTimerId
 import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.ScheduleRetry
+import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.toResult
 import akka.stream.Materializer
 import com.typesafe.config.Config
 
@@ -58,12 +60,9 @@ import scala.util.control.NonFatal
     with ActorLogging
     with Timers {
   private val cluster = Cluster(context.system)
-
   private val http = Http()(context.system)
 
   Cluster(context.system).subscribe(context.self, classOf[ClusterEvent.MemberUp], classOf[ClusterEvent.MemberRemoved])
-
-  private val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
 
   private lazy val sslContext = {
     val certificates = PemManagersProvider.loadCertificates(settings.apiCaPath)
@@ -79,6 +78,7 @@ import scala.util.control.NonFatal
     sslContext.init(km, tm, random)
     sslContext
   }
+  private val clientSslContext: Option[HttpsConnectionContext] = if (settings.secure) Some(ConnectionContext.httpsClient(sslContext)) else None
 
   implicit val dispatcher: ExecutionContextExecutor = context.system.dispatcher
   def receive = onMessage(0, SortedSet.empty(Member.ageOrdering))
@@ -96,7 +96,7 @@ import scala.util.control.NonFatal
       log.debug("Received MemberRemoved {}", m)
       updateIfNewCost(deletionCost, membersByAgeDesc - m)
 
-    case PodAnnotated() =>
+    case PodAnnotated =>
       log.debug("Annotation updated successfully to {}", deletionCost)
       // cancelling an eventual retry in case the annotation succeeded in the meantime
       timers.cancel(RetryTimerId)
@@ -104,6 +104,7 @@ import scala.util.control.NonFatal
     case ScheduleRetry(ex) =>
       log.error(s"Failed to update annotation: [$ex]. Retrying with fixed delay of {}.", costSettings.retryDelay)
       timers.startSingleTimer(RetryTimerId, RetryAnnotate, costSettings.retryDelay)
+      context.become(underRetryBackoff(deletionCost, membersByAgeDesc))
 
     case GiveUp(er: String) =>
       log.error(
@@ -111,8 +112,24 @@ import scala.util.control.NonFatal
         "Not retrying, check configuration. Error: {}",
         er)
 
+    case es => log.debug("Ignoring message {}", es)
+  }
+
+  private def underRetryBackoff(deletionCost: Int, membersByAgeDesc: SortedSet[Member]): Receive = {
+    case cs@ClusterEvent.CurrentClusterState(members, _, _, _, _) =>
+      log.debug("Received while on retry backoff CurrentClusterState {}", cs)
+      context.become(underRetryBackoff(deletionCost, membersByAgeDesc ++ members)) // ordering used is from the first operand (so, by age)
+
+    case ClusterEvent.MemberUp(m) =>
+      log.debug("Received while on retry backoff MemberUp {}", m)
+      context.become(underRetryBackoff(deletionCost, membersByAgeDesc + m))
+
+    case ClusterEvent.MemberRemoved(m, _) =>
+      log.debug("Received while on retry backoff MemberRemoved {}", m)
+      context.become(underRetryBackoff(deletionCost, membersByAgeDesc - m))
+
     case RetryAnnotate =>
-      costRequestToResult(deletionCost).pipeTo(self)
+      updateIfNewCost(deletionCost, membersByAgeDesc)
 
     case es => log.debug("Ignoring message {}", es)
   }
@@ -125,20 +142,13 @@ import scala.util.control.NonFatal
       podNamespace
     )
     val request = ApiRequests.podDeletionCost(settings, apiToken, podNamespace, newCost)
-    if (settings.secure)
-      http.singleRequest(request, clientSslContext)
-    else
-      http.singleRequest(request)
-  }.map {
-      case HttpResponse(status, _, e, _) if status.isSuccess() =>
-        e.discardBytes()(Materializer(context)); PodAnnotated()
-      case HttpResponse(s @ ClientError(_), _, _, _) => GiveUp(s.toString())
-      case HttpResponse(status, _, _, _)             => ScheduleRetry(s"Request failed with status=$status")
-      case _                                         => GiveUp("Unknown")
-    }
-    .recover {
-      case NonFatal(e) => ScheduleRetry(e.getMessage)
-    }
+    val response =
+      clientSslContext
+        .map(http.singleRequest(request, _))
+        .getOrElse(http.singleRequest(request))
+
+    toResult(response)
+  }
 
   private def updateIfNewCost(existingCost: Int, membersByAgeDesc: immutable.SortedSet[Member]): Unit = {
 
@@ -187,7 +197,25 @@ import scala.util.control.NonFatal
   case object RetryTimerId
   case object RetryAnnotate
   sealed trait RequestResult
-  case class PodAnnotated() extends RequestResult
+  case object PodAnnotated extends RequestResult
   case class ScheduleRetry(cause: String) extends RequestResult
   case class GiveUp(cause: String) extends RequestResult
+
+  private def toResult(futResponse: Future[HttpResponse])(implicit context: ActorContext): Future[RequestResult] = {
+    implicit val mat: Materializer = Materializer(context)
+    futResponse.map {
+      case HttpResponse(status, _, e, _) if status.isSuccess() =>
+        e.discardBytes()
+        PodAnnotated
+      case HttpResponse(s @ ClientError(_), _, e, _) =>
+        e.discardBytes()
+        GiveUp(s.toString())
+      case HttpResponse(status, _, e, _) =>
+        e.discardBytes()
+        ScheduleRetry(s"Request failed with status=$status")
+    }(context.dispatcher)
+    .recover {
+      case NonFatal(e) => ScheduleRetry(e.getMessage)
+    }(context.dispatcher)
+  }
 }
