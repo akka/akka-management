@@ -4,18 +4,15 @@
 
 package akka.cluster.bootstrap
 
-import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
-import akka.cluster.ClusterEvent.ClusterDomainEvent
-import akka.cluster.{ Cluster, ClusterEvent }
+import akka.actor.ActorSystem
+import akka.cluster.Cluster
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
 import akka.rollingupdate.kubernetes.PodDeletionCost
 
-
-object DemoApp extends App {
+object PodDeletionCostDemoApp extends App {
 
   implicit val system: ActorSystem = ActorSystem("akka-rollingupdate-demo")
 
@@ -26,9 +23,7 @@ object DemoApp extends App {
 
   AkkaManagement(system).start()
   ClusterBootstrap(system).start()
-
   PodDeletionCost(system).start()
 
   Http().newServerAt("0.0.0.0", 8080).bind(complete("Hello world"))
-
 }

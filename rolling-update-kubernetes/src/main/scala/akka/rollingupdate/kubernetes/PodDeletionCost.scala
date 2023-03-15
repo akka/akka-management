@@ -12,6 +12,7 @@ import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.actor.Props
 import akka.annotation.InternalApi
+import akka.dispatch.Dispatchers.DefaultBlockingDispatcherId
 import akka.event.Logging
 import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.BootstrapStep
 import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.Initializing
@@ -44,7 +45,7 @@ final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extens
     } else if (startStep.compareAndSet(NotRunning, Initializing)) {
       log.debug("Starting PodDeletionCost for podName={} with settings={}", k8sSettings.podName, costSettings)
 
-      implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup("blocking-io-dispatcher")
+      implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
       val props = for {
         apiToken: String <- Future { readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("") }
         podNamespace: String <- Future {
@@ -83,14 +84,11 @@ final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extens
 
   if (autostart) {
     log.info("PodDeletionCost loaded through 'akka.extensions' auto-starting itself.")
-    import system.dispatcher
-    Future {
-      try {
-        PodDeletionCost(system).start()
-      } catch {
-        case NonFatal(ex) =>
-          log.error(ex, "Failed to autostart PodDeletionCost extension")
-      }
+    try {
+      PodDeletionCost(system).start()
+    } catch {
+      case NonFatal(ex) =>
+        log.error(ex, "Failed to autostart PodDeletionCost extension")
     }
   }
 }

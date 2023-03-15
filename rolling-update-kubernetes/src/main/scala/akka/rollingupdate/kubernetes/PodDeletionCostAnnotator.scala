@@ -5,8 +5,8 @@
 package akka.rollingupdate.kubernetes
 
 import akka.actor.Actor
-import akka.actor.ActorContext
 import akka.actor.ActorLogging
+import akka.actor.ActorSystem
 import akka.actor.Timers
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
@@ -22,12 +22,10 @@ import akka.pki.kubernetes.PemManagersProvider
 import akka.rollingupdate.OlderCostsMore
 import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.GiveUp
 import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.PodAnnotated
-import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.RequestResult
 import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.RetryAnnotate
 import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.RetryTimerId
 import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.ScheduleRetry
 import akka.rollingupdate.kubernetes.PodDeletionCostAnnotator.toResult
-import akka.stream.Materializer
 import com.typesafe.config.Config
 
 import java.security.KeyStore
@@ -78,12 +76,13 @@ import scala.util.control.NonFatal
     sslContext.init(km, tm, random)
     sslContext
   }
-  private val clientSslContext: Option[HttpsConnectionContext] = if (settings.secure) Some(ConnectionContext.httpsClient(sslContext)) else None
+  private val clientSslContext: Option[HttpsConnectionContext] =
+    if (settings.secure) Some(ConnectionContext.httpsClient(sslContext)) else None
 
   implicit val dispatcher: ExecutionContextExecutor = context.system.dispatcher
-  def receive = onMessage(0, SortedSet.empty(Member.ageOrdering))
+  def receive = idle(0, SortedSet.empty(Member.ageOrdering))
 
-  private def onMessage(deletionCost: Int, membersByAgeDesc: SortedSet[Member]): Receive = {
+  private def idle(deletionCost: Int, membersByAgeDesc: SortedSet[Member]): Receive = {
     case cs @ ClusterEvent.CurrentClusterState(members, _, _, _, _) =>
       log.debug("Received CurrentClusterState {}", cs)
       updateIfNewCost(deletionCost, membersByAgeDesc ++ members) // ordering used is from the first operand (so, by age)
@@ -104,7 +103,7 @@ import scala.util.control.NonFatal
     case ScheduleRetry(ex) =>
       log.error(s"Failed to update annotation: [$ex]. Retrying with fixed delay of {}.", costSettings.retryDelay)
       timers.startSingleTimer(RetryTimerId, RetryAnnotate, costSettings.retryDelay)
-      context.become(underRetryBackoff(deletionCost, membersByAgeDesc))
+      context.become(underRetryBackoff(membersByAgeDesc))
 
     case GiveUp(er: String) =>
       log.error(
@@ -115,39 +114,19 @@ import scala.util.control.NonFatal
     case es => log.debug("Ignoring message {}", es)
   }
 
-  private def underRetryBackoff(deletionCost: Int, membersByAgeDesc: SortedSet[Member]): Receive = {
-    case cs@ClusterEvent.CurrentClusterState(members, _, _, _, _) =>
-      log.debug("Received while on retry backoff CurrentClusterState {}", cs)
-      context.become(underRetryBackoff(deletionCost, membersByAgeDesc ++ members)) // ordering used is from the first operand (so, by age)
-
+  private def underRetryBackoff(membersByAgeDesc: SortedSet[Member]): Receive = {
     case ClusterEvent.MemberUp(m) =>
       log.debug("Received while on retry backoff MemberUp {}", m)
-      context.become(underRetryBackoff(deletionCost, membersByAgeDesc + m))
+      context.become(underRetryBackoff(membersByAgeDesc + m))
 
     case ClusterEvent.MemberRemoved(m, _) =>
       log.debug("Received while on retry backoff MemberRemoved {}", m)
-      context.become(underRetryBackoff(deletionCost, membersByAgeDesc - m))
+      context.become(underRetryBackoff(membersByAgeDesc - m))
 
     case RetryAnnotate =>
-      updateIfNewCost(deletionCost, membersByAgeDesc)
+      updateIfNewCost(Int.MinValue, membersByAgeDesc)
 
-    case es => log.debug("Ignoring message {}", es)
-  }
-
-  private def costRequestToResult(newCost: Int): Future[RequestResult] = {
-    log.debug(
-      "Updating pod-deletion-cost annotation for pod: [{}] with cost: [{}]. Namespace: [{}]",
-      settings.podName,
-      newCost,
-      podNamespace
-    )
-    val request = ApiRequests.podDeletionCost(settings, apiToken, podNamespace, newCost)
-    val response =
-      clientSslContext
-        .map(http.singleRequest(request, _))
-        .getOrElse(http.singleRequest(request))
-
-    toResult(response)
+    case es => log.debug("Under retry backoff, ignoring message {}", es)
   }
 
   private def updateIfNewCost(existingCost: Int, membersByAgeDesc: immutable.SortedSet[Member]): Unit = {
@@ -162,9 +141,19 @@ import scala.util.control.NonFatal
       membersByAgeDesc)
 
     if (newCost != existingCost) {
-      costRequestToResult(newCost).pipeTo(self)
-      context.become(onMessage(newCost, membersByAgeDesc))
-    } else context.become(onMessage(existingCost, membersByAgeDesc))
+      log.info(
+        "Updating pod-deletion-cost annotation for pod: [{}] with cost: [{}]. Namespace: [{}]",
+        settings.podName,
+        newCost,
+        podNamespace
+      )
+      val request = ApiRequests.podDeletionCost(settings, apiToken, podNamespace, newCost)
+      val response =
+        clientSslContext.map(http.singleRequest(request, _)).getOrElse(http.singleRequest(request))
+
+      toResult(response)(context.system).pipeTo(self)
+      context.become(idle(newCost, membersByAgeDesc))
+    } else context.become(idle(existingCost, membersByAgeDesc))
   }
 
 }
@@ -201,21 +190,22 @@ import scala.util.control.NonFatal
   case class ScheduleRetry(cause: String) extends RequestResult
   case class GiveUp(cause: String) extends RequestResult
 
-  private def toResult(futResponse: Future[HttpResponse])(implicit context: ActorContext): Future[RequestResult] = {
-    implicit val mat: Materializer = Materializer(context)
-    futResponse.map {
-      case HttpResponse(status, _, e, _) if status.isSuccess() =>
-        e.discardBytes()
-        PodAnnotated
-      case HttpResponse(s @ ClientError(_), _, e, _) =>
-        e.discardBytes()
-        GiveUp(s.toString())
-      case HttpResponse(status, _, e, _) =>
-        e.discardBytes()
-        ScheduleRetry(s"Request failed with status=$status")
-    }(context.dispatcher)
-    .recover {
-      case NonFatal(e) => ScheduleRetry(e.getMessage)
-    }(context.dispatcher)
+  private def toResult(futResponse: Future[HttpResponse])(implicit system: ActorSystem): Future[RequestResult] = {
+    import system.dispatcher
+    futResponse
+      .map {
+        case HttpResponse(status, _, e, _) if status.isSuccess() =>
+          e.discardBytes()
+          PodAnnotated
+        case HttpResponse(s @ ClientError(_), _, e, _) =>
+          e.discardBytes()
+          GiveUp(s.toString())
+        case HttpResponse(status, _, e, _) =>
+          e.discardBytes()
+          ScheduleRetry(s"Request failed with status=$status")
+      }
+      .recover {
+        case NonFatal(e) => ScheduleRetry(e.getMessage)
+      }
   }
 }

@@ -13,7 +13,6 @@ import akka.cluster.Member
 import akka.cluster.MemberStatus
 import akka.cluster.MemberStatus.Up
 import akka.cluster.UniqueAddress
-import akka.http.scaladsl.model.Uri
 import akka.testkit.EventFilter
 import akka.testkit.ImplicitSender
 import akka.testkit.TestKit
@@ -42,8 +41,7 @@ import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.duration._
-import scala.jdk.CollectionConverters.CollectionHasAsScala
-import scala.language.postfixOps
+import scala.collection.JavaConverters._
 
 class PodDeletionCostAnnotatorSpec
     extends TestKit(
@@ -101,11 +99,13 @@ class PodDeletionCostAnnotatorSpec
     wireMockServer.resetAll()
   }
 
+  private val podK8sPath = urlEqualTo("/api/v1/namespaces/" + namespace + "/pods/" + podName)
+
   private def stubWithReturnCode(returnCode: Int) =
     stubFor(patchPodDeletionCost().willReturn(aResponse().withStatus(returnCode)))
 
   private def patchPodDeletionCost(): MappingBuilder =
-    patch(urlEqualTo("/api/v1/namespaces/" + namespace + "/pods/" + podName))
+    patch(podK8sPath)
       .withHeader("Content-Type", new EqualToPattern("application/merge-patch+json"))
       .withRequestBody(new ContainsPattern(
         """{"metadata": {"annotations": {"controller.kubernetes.io/pod-deletion-cost": "10000" }}}"""))
@@ -123,8 +123,11 @@ class PodDeletionCostAnnotatorSpec
 
     "correctly annotate the cluster node" in {
       stubWithReturnCode(200)
-      expectLogDebug(pattern = ".*Annotation updated successfully.*") {
+      expectLogInfo(pattern = ".*Updating pod-deletion-cost annotation.*") {
         system.actorOf(annotatorActorProps)
+      }
+      eventually {
+        verify(1, patchRequestedFor(podK8sPath))
       }
     }
 
@@ -136,7 +139,6 @@ class PodDeletionCostAnnotatorSpec
     }
 
     "retry when failing with transient error" in {
-
       val scenarioName = "RetryScenario"
 
       // first call fails
@@ -206,10 +208,10 @@ class PodDeletionCostAnnotatorSpec
       underTest ! dummyNewMember
 
       // no other interactions should have occurred while on backoff regardless of updates to the cluster
-      verify(1, patchRequestedFor(urlEqualTo("/api/v1/namespaces/" + namespace + "/pods/" + podName)))
+      verify(1, patchRequestedFor(podK8sPath))
 
       assertState(scenarioName, "OK")
-      verify(2, patchRequestedFor(urlEqualTo("/api/v1/namespaces/" + namespace + "/pods/" + podName)))
+      verify(2, patchRequestedFor(podK8sPath))
     }
   }
 
@@ -217,10 +219,10 @@ class PodDeletionCostAnnotatorSpec
     val scenario = wireMockServer.getAllScenarios.getScenarios.asScala.toList.find(_.getName == scenarioName).get
     scenario.getState should ===(state)
   }
-  private def expectLogDebug[T](message: String = null, pattern: String = null)(block: => T): T =
-    EventFilter.debug(message = message, pattern = pattern, occurrences = 1).intercept(block)(system)
+  def expectLogInfo[T](pattern: String = null)(block: => T): T =
+    EventFilter.info(pattern = pattern, occurrences = 1).intercept(block)(system)
 
-  private def expectLogError[T](message: String = null, pattern: String = null)(block: => T): T =
-    EventFilter.error(message = message, pattern = pattern, occurrences = 1).intercept(block)(system)
+  def expectLogError[T](pattern: String = null)(block: => T): T =
+    EventFilter.error(pattern = pattern, occurrences = 1).intercept(block)(system)
 
 }

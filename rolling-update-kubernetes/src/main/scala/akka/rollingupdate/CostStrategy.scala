@@ -14,9 +14,6 @@ import scala.collection.SortedSet
  *  Defines a trait for calculating the cost of removing a member from the akka cluster,
  *  given said member and the list of the members of the cluster from oldest to newest.
  */
-/**
- * INTERNAL API
- */
 @InternalApi private[rollingupdate] trait CostStrategy {
   def costOf(member: Member, membersByAgeDesc: SortedSet[Member]): Option[Int]
 }
