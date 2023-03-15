@@ -158,7 +158,9 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-cluster" % AkkaVersion,
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+    "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
   )
 
   val LeaseKubernetes = Seq(
