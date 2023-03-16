@@ -41,8 +41,8 @@ If using @extref:[Split Brain Resolver](akka:split-brain-resolver.html) have a `
 
 ### Cluster singletons
 
-Deployments order pods by pod state and then time spent ready when deciding which to remove first. This works well
-with cluster singletons as they are typically removed last and then the cluster singletons move to the the oldest new pod.
+Deployments used to order pods by pod state and then time spent ready when deciding which to remove first. This worked well
+with cluster singletons as they were typically removed last and then the cluster singletons would move to the oldest new pod. However, since Kubernetes v1.22, this is no longer the default behaviour for Kubernetes deployments thus we advise the use of `PodDeletionCost` extension from @ref:[Akka Kubernetes Rolling Update](../rolling-update-kubernetes.md).
 
 ### External traffic
 

@@ -59,7 +59,7 @@ spec:
           value: "3"
 #deployment
 ---
-#rbac
+#rbac-reader
 #
 # Create a role, `pod-annotator`, that can list pods and
 # bind the default service account in the namespace
@@ -69,16 +69,16 @@ spec:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: pod-annotator
+  name: pod-reader
 rules:
 - apiGroups: [""] # "" indicates the core API group
   resources: ["pods"]
-  verbs: ["get", "watch", "list", "patch"] # requires "patch" to annotate the pod
+  verbs: ["get", "watch", "list"] # requires "patch" to annotate the pod
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: annotate-pods
+  name: pod-reader
 subjects:
   # Uses the default service account.
   # Consider creating a dedicated service account to run your
@@ -87,6 +87,33 @@ subjects:
   name: default
 roleRef:
   kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+#rbac-reader
+---
+#rbac-annotator
+#
+# Create a role, `pod-annotator`, that can annotate pods
+# with the pod-deletion-cost value
+#
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-annotator
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["pods"]
+    verbs: ["patch"] # requires "patch" to annotate the pod
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: annotate-pods
+subjects:
+  - kind: User
+    name: system:serviceaccount:akka-rollingupdate-demo-ns:default
+roleRef:
+  kind: Role
   name: pod-annotator
   apiGroup: rbac.authorization.k8s.io
-#rbac
+#rbac-annotator

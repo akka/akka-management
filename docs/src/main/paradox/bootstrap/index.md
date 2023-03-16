@@ -100,7 +100,7 @@ Scala
 Java
 :  @@snip [CompileOnly.java](/cluster-bootstrap/src/test/java/jdoc/akka/management/cluster/bootstrap/ClusterBootstrapCompileOnly.java) { #start }
 
-`AkkaManagment().start()` will return a @Scala[`Future`]@Java[`CompletionStage`] that will fail if management cannot be started. It is 
+`AkkaManagement().start()` will return a @Scala[`Future`]@Java[`CompletionStage`] that will fail if management cannot be started. It is 
 a good idea to act on such a failure, for example by logging an error and terminating the actor system.
 
 Ensure that `seed-nodes` is not present in configuration and that either autoloading through config or `start()` is called on every node.
@@ -186,7 +186,7 @@ and the operation will (presumably) eventually succeed. You'll want to specify t
 #### Graceful shutdown 
 
 Akka Cluster can handle hard failures using a downing provider such as Lightbend's split brain resolver discussed below.
-However this should not be relied upon for regular rolling redeploys. Features such as `ClusterSingleton`s and `ClusterSharding`
+However, this should not be relied upon for regular rolling redeploys. Features such as `ClusterSingleton`s and `ClusterSharding`
 can safely restart actors on new nodes far quicker when it is certain that a node has shutdown rather than crashed. 
 
 Graceful leaving will happen with the default settings as it is part of @extref:[Coordinated Shutdown](akka:actors.html#coordinated-shutdown). 
@@ -197,7 +197,7 @@ Upon receiving a `SIGTERM` Coordinated Shutdown will:
 
 * Perform a `Cluster(system).leave` on itself
 * The status of the member will be changed to Exiting while allowing any shards to be shutdown gracefully and 
-  `ClusterSingleton`s to be migrated if this was the oldest node. Finally the node is removed from the Akka Cluster membership.
+  `ClusterSingleton`s to be migrated if this was the oldest node. Finally, the node is removed from the Akka Cluster membership.
   
 
 #### Number of nodes to redeploy at once
@@ -208,8 +208,7 @@ updates it is best to wait for a node (or group of nodes) to finish joining the 
 #### Cluster Singletons
 
 `ClusterSingleton`s run on the oldest node in the cluster. To avoid singletons moving during every node deployment it is advised
-to start a rolling redeploy starting at the newest node. Then `ClusterSingleton`s only move once. This is the default behaviour 
-for Kubernetes deployments. Cluster Sharding uses a singleton internally so this is important even if not using singletons directly.
+to start a rolling redeploy starting at the newest node. Then `ClusterSingleton`s only move once. Since Kubernetes v1.22, this is no longer the default behaviour for Kubernetes deployments thus we advise the use of `PodDeletionCost` extension from @ref:[Akka Kubernetes Rolling Update](../rolling-update-kubernetes.md). Cluster Sharding uses a singleton internally so this is important even if not using singletons directly.
 
 
 ### Split brains and ungraceful shutdown

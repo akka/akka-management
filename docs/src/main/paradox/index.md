@@ -11,7 +11,8 @@ Akka Management consists of multiple modules:
  * @ref[akka-cluster-bootstrap](bootstrap/index.md) helps bootstrapping an Akka cluster using @extref:[Akka Discovery](akka:discovery/index.html).
  * @ref[akka-management-cluster-http](cluster-http-management.md) is a module that provides HTTP endpoints for introspecting and managing Akka clusters.
  * @ref[kubernetes-lease](kubernetes-lease.md) a lease backed by Kubernetes API server. 
- 
+ * @ref[rolling-update-kubernetes](rolling-update-kubernetes.md) is a module providing extensions for smoother rolling updates in Kubernetes.
+
  As well as @extref:[Akka Discovery](akka:discovery/index.html) methods for:
  
  * @ref[Kubernetes API](discovery/kubernetes.md)
@@ -35,4 +36,5 @@ Various parts of Akka management can be used together for deploying Akka Cluster
   - [Akka Cluster Management (JMX)](cluster-jmx-management.md)
   - [Dynamic Log Levels](loglevels/index.md)
   - [Akka Coordination Lease for Kubernetes](kubernetes-lease.md)
+  - [Akka Rolling Update for Kubernetes](rolling-update-kubernetes.md)
 @@@
