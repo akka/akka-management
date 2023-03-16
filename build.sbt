@@ -162,7 +162,7 @@ lazy val `rolling-update-kubernetes` = project
   .settings(
     name := "akka-rolling-update-kubernetes",
     libraryDependencies := Dependencies.RollingUpdateKubernetes,
-    mimaPreviousArtifactsSet
+    mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(`akka-management`, `akka-management-pki`, `cluster-bootstrap`)
 
