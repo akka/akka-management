@@ -164,7 +164,7 @@ lazy val `rolling-update-kubernetes` = project
     libraryDependencies := Dependencies.RollingUpdateKubernetes,
     mimaPreviousArtifacts := Set.empty
   )
-  .dependsOn(`akka-management`, `akka-management-pki`, `cluster-bootstrap`)
+  .dependsOn(`akka-management-pki`)
 
 lazy val `lease-kubernetes` = project
   .in(file("lease-kubernetes"))

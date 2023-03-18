@@ -40,21 +40,31 @@ import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpecLike
 
-import scala.concurrent.duration._
 import scala.collection.JavaConverters._
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
+object PodDeletionCostAnnotatorSpec {
+  val config = ConfigFactory.parseString("""
+      akka.loggers = ["akka.testkit.TestEventListener"]
+      akka.actor.provider = cluster
+      akka.rollingupdate.kubernetes.pod-deletion-cost.retry-delay = 1s
+
+      akka.remote.artery.canonical.port = 0
+      akka.remote.artery.canonical.hostname = 127.0.0.1
+
+      akka.cluster.jmx.multi-mbeans-in-same-jvm = on
+      akka.coordinated-shutdown.terminate-actor-system = off
+      akka.coordinated-shutdown.run-by-actor-system-terminate = off
+      akka.test.filter-leeway = 10s
+    """)
+}
 
 class PodDeletionCostAnnotatorSpec
     extends TestKit(
       ActorSystem(
         "MySpec",
-        ConfigFactory.parseString("""
-    akka.loggers = ["akka.testkit.TestEventListener"]
-    akka.actor.provider = cluster
-    akka.rollingupdate.kubernetes.pod-deletion-cost.retry-delay = 1s
-
-    akka.coordinated-shutdown.terminate-actor-system = off
-    akka.coordinated-shutdown.run-by-actor-system-terminate = off
-    """)
+        PodDeletionCostAnnotatorSpec.config
       ))
     with ImplicitSender
     with AnyWordSpecLike
@@ -65,50 +75,55 @@ class PodDeletionCostAnnotatorSpec
 
   private val wireMockServer = new WireMockServer(wireMockConfig().port(0))
   wireMockServer.start()
+  WireMock.configureFor(wireMockServer.port())
 
   private val namespace = "namespace-test"
-  private val podName = "pod-test"
-  private val settings = new KubernetesSettings(
-    apiCaPath = "",
-    apiTokenPath = "",
-    apiServiceHost = "localhost",
-    apiServicePort = wireMockServer.port(),
-    namespace = Some(namespace),
-    namespacePath = "",
-    podName = podName,
-    secure = false)
+  private val podName1 = "pod-test-1"
+  private val podName2 = "pod-test-2"
+  private lazy val system2 = ActorSystem("MySpec", PodDeletionCostAnnotatorSpec.config)
 
-  WireMock.configureFor(settings.apiServicePort)
+  private def settings(podName: String) = {
+    new KubernetesSettings(
+      apiCaPath = "",
+      apiTokenPath = "",
+      apiServiceHost = "localhost",
+      apiServicePort = wireMockServer.port(),
+      namespace = Some(namespace),
+      namespacePath = "",
+      podName = podName,
+      secure = false)
+  }
 
-  private val annotatorActorProps = Props(
+  private def annotatorProps(pod: String) = Props(
     classOf[PodDeletionCostAnnotator],
-    settings,
+    settings(pod),
     "apiToken",
     namespace,
     PodDeletionCostSettings(system.settings.config.getConfig("akka.rollingupdate.kubernetes"))
   )
 
-  override implicit val patienceConfig =
+  override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = Span(5, Seconds), interval = Span(100, Millis))
 
   override protected def afterAll(): Unit = {
-    TestKit.shutdownActorSystem(system)
+    super.shutdown()
+    TestKit.shutdownActorSystem(system2)
   }
 
   override protected def beforeEach(): Unit = {
     wireMockServer.resetAll()
   }
 
-  private val podK8sPath = urlEqualTo("/api/v1/namespaces/" + namespace + "/pods/" + podName)
+  private def podK8sPath(podName: String) = urlEqualTo("/api/v1/namespaces/" + namespace + "/pods/" + podName)
 
-  private def stubWithReturnCode(returnCode: Int) =
-    stubFor(patchPodDeletionCost().willReturn(aResponse().withStatus(returnCode)))
+  private def stubForPods(podName: String, cost: Int = 10000, returnCode: Int) =
+    stubFor(patchPodDeletionCost(podName, cost).willReturn(aResponse().withStatus(returnCode)))
 
-  private def patchPodDeletionCost(): MappingBuilder =
-    patch(podK8sPath)
+  private def patchPodDeletionCost(podName: String, cost: Int = 10000): MappingBuilder =
+    patch(podK8sPath(podName))
       .withHeader("Content-Type", new EqualToPattern("application/merge-patch+json"))
       .withRequestBody(new ContainsPattern(
-        """{"metadata": {"annotations": {"controller.kubernetes.io/pod-deletion-cost": "10000" }}}"""))
+        s"""{"metadata": {"annotations": {"controller.kubernetes.io/pod-deletion-cost": "$cost" }}}"""))
 
   "The pod-deletion-cost annotator, when under normal behavior" should {
 
@@ -122,19 +137,19 @@ class PodDeletionCostAnnotatorSpec
     }
 
     "correctly annotate the cluster node" in {
-      stubWithReturnCode(200)
+      stubForPods(podName1, returnCode = 200)
       expectLogInfo(pattern = ".*Updating pod-deletion-cost annotation.*") {
-        system.actorOf(annotatorActorProps)
+        system.actorOf(annotatorProps(podName1))
       }
       eventually {
-        verify(1, patchRequestedFor(podK8sPath))
+        verify(1, patchRequestedFor(podK8sPath(podName1)))
       }
     }
 
     "give up when failing with non-transient error" in {
-      stubWithReturnCode(404)
+      stubForPods(podName1, returnCode = 404)
       expectLogError(pattern = ".*Not retrying, check configuration.*") {
-        system.actorOf(annotatorActorProps)
+        system.actorOf(annotatorProps(podName1))
       }
     }
 
@@ -143,7 +158,7 @@ class PodDeletionCostAnnotatorSpec
 
       // first call fails
       stubFor(
-        patchPodDeletionCost()
+        patchPodDeletionCost(podName1)
           .inScenario(scenarioName)
           .whenScenarioStateIs("FAILING")
           .willReturn(aResponse().withStatus(500))
@@ -151,7 +166,7 @@ class PodDeletionCostAnnotatorSpec
 
       // second call succeeds
       stubFor(
-        patchPodDeletionCost()
+        patchPodDeletionCost(podName1)
           .inScenario(scenarioName)
           .whenScenarioStateIs("AVAILABLE")
           .willReturn(aResponse().withStatus(200))
@@ -159,10 +174,30 @@ class PodDeletionCostAnnotatorSpec
       wireMockServer.setScenarioState(scenarioName, "FAILING") // set starting state to failing
 
       assertState(scenarioName, "FAILING")
-      system.actorOf(annotatorActorProps)
+      system.actorOf(annotatorProps(podName1))
       assertState(scenarioName, "AVAILABLE")
       // after the retry backoff delay
       assertState(scenarioName, "OK")
+
+      wireMockServer.checkForUnmatchedRequests()
+    }
+
+    "annotate a second node correctly" in {
+
+      stubForPods(podName2, cost = 9900, returnCode = 200)
+
+      val probe = TestProbe()
+      Cluster(system2).join(Cluster(system).selfMember.address)
+      probe.awaitAssert({
+        Cluster(system2).selfMember.status == MemberStatus.Up
+      }, 3.seconds)
+
+      system2.actorOf(annotatorProps(podName2))
+      eventually {
+        verify(1, patchRequestedFor(podK8sPath(podName2)))
+      }
+
+      wireMockServer.checkForUnmatchedRequests()
     }
 
   }
@@ -182,25 +217,27 @@ class PodDeletionCostAnnotatorSpec
 
       // first call fails
       stubFor(
-        patchPodDeletionCost()
+        patchPodDeletionCost(podName1)
           .inScenario(scenarioName)
           .whenScenarioStateIs("FAILING")
-          .willReturn(aResponse().withStatus(500))
-          .willSetStateTo("AVAILABLE"))
+          .willReturn(aResponse().withStatus(500)))
       wireMockServer.setScenarioState(scenarioName, "FAILING") // set starting state to failing
 
       // second call succeeds
       stubFor(
-        patchPodDeletionCost()
+        patchPodDeletionCost(podName1)
           .inScenario(scenarioName)
           .whenScenarioStateIs("AVAILABLE")
           .willReturn(aResponse().withStatus(200))
           .willSetStateTo("OK"))
 
       assertState(scenarioName, "FAILING")
-      val underTest = system.actorOf(annotatorActorProps)
-      assertState(scenarioName, "AVAILABLE")
 
+      val underTest = expectLogWarning(".*Failed to update annotation:.*") {
+        system.actorOf(annotatorProps(podName1))
+      }
+
+      wireMockServer.resetRequests()
       val dummyNewMember =
         MemberUp(Member(UniqueAddress(Address("", ""), 2L), Set("dc-default"), Version("v1")).copy(Up))
       underTest ! dummyNewMember
@@ -208,10 +245,14 @@ class PodDeletionCostAnnotatorSpec
       underTest ! dummyNewMember
 
       // no other interactions should have occurred while on backoff regardless of updates to the cluster
-      verify(1, patchRequestedFor(podK8sPath))
+      verify(0, patchRequestedFor(podK8sPath(podName1)))
 
+      wireMockServer.setScenarioState(scenarioName, "AVAILABLE")
+
+      eventually {
+        verify(1, patchRequestedFor(podK8sPath(podName1)))
+      }
       assertState(scenarioName, "OK")
-      verify(2, patchRequestedFor(podK8sPath))
     }
   }
 
@@ -222,7 +263,10 @@ class PodDeletionCostAnnotatorSpec
   def expectLogInfo[T](pattern: String = null)(block: => T): T =
     EventFilter.info(pattern = pattern, occurrences = 1).intercept(block)(system)
 
-  def expectLogError[T](pattern: String = null)(block: => T): T =
-    EventFilter.error(pattern = pattern, occurrences = 1).intercept(block)(system)
+  def expectLogError[T](pattern: String = null, occurrences: Int = 1)(block: => T): T =
+    EventFilter.error(pattern = pattern, occurrences = occurrences).intercept(block)(system)
+
+  def expectLogWarning[T](pattern: String = null, occurrences: Int = 1)(block: => T): T =
+    EventFilter.warning(pattern = pattern, occurrences = occurrences).intercept(block)(system)
 
 }

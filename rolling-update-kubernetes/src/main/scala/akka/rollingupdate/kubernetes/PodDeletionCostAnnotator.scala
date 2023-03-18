@@ -12,6 +12,8 @@ import akka.annotation.InternalApi
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent
 import akka.cluster.Member
+import akka.event.Logging.InfoLevel
+import akka.event.Logging.WarningLevel
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
@@ -80,30 +82,35 @@ import scala.util.control.NonFatal
     if (settings.secure) Some(ConnectionContext.httpsClient(sslContext)) else None
 
   implicit val dispatcher: ExecutionContextExecutor = context.system.dispatcher
-  def receive = idle(0, SortedSet.empty(Member.ageOrdering))
+  def receive = idle(0, SortedSet.empty(Member.ageOrdering), 0)
 
-  private def idle(deletionCost: Int, membersByAgeDesc: SortedSet[Member]): Receive = {
+  private def idle(deletionCost: Int, membersByAgeDesc: SortedSet[Member], retryNr: Int): Receive = {
     case cs @ ClusterEvent.CurrentClusterState(members, _, _, _, _) =>
       log.debug("Received CurrentClusterState {}", cs)
-      updateIfNewCost(deletionCost, membersByAgeDesc ++ members) // ordering used is from the first operand (so, by age)
+      updateIfNewCost(deletionCost, membersByAgeDesc ++ members, retryNr) // ordering used is from the first operand (so, by age)
 
     case ClusterEvent.MemberUp(m) =>
       log.debug("Received MemberUp {}", m)
-      updateIfNewCost(deletionCost, membersByAgeDesc + m)
+      updateIfNewCost(deletionCost, membersByAgeDesc + m, retryNr)
 
     case ClusterEvent.MemberRemoved(m, _) =>
       log.debug("Received MemberRemoved {}", m)
-      updateIfNewCost(deletionCost, membersByAgeDesc - m)
+      updateIfNewCost(deletionCost, membersByAgeDesc - m, retryNr)
 
     case PodAnnotated =>
       log.debug("Annotation updated successfully to {}", deletionCost)
       // cancelling an eventual retry in case the annotation succeeded in the meantime
       timers.cancel(RetryTimerId)
+      context.become(idle(deletionCost, membersByAgeDesc, 0))
 
     case ScheduleRetry(ex) =>
-      log.error(s"Failed to update annotation: [$ex]. Retrying with fixed delay of {}.", costSettings.retryDelay)
+      val ll = if (retryNr < 3) InfoLevel else WarningLevel
+      log.log(
+        ll,
+        s"Failed to update annotation: [$ex]. Scheduled retry with fixed delay of ${costSettings.retryDelay}, retry number $retryNr.")
+
       timers.startSingleTimer(RetryTimerId, RetryAnnotate, costSettings.retryDelay)
-      context.become(underRetryBackoff(membersByAgeDesc))
+      context.become(underRetryBackoff(membersByAgeDesc, retryNr))
 
     case GiveUp(er: String) =>
       log.error(
@@ -111,25 +118,25 @@ import scala.util.control.NonFatal
         "Not retrying, check configuration. Error: {}",
         er)
 
-    case es => log.debug("Ignoring message {}", es)
+    case msg => log.debug("Ignoring message {}", msg)
   }
 
-  private def underRetryBackoff(membersByAgeDesc: SortedSet[Member]): Receive = {
+  private def underRetryBackoff(membersByAgeDesc: SortedSet[Member], retryNr: Int): Receive = {
     case ClusterEvent.MemberUp(m) =>
       log.debug("Received while on retry backoff MemberUp {}", m)
-      context.become(underRetryBackoff(membersByAgeDesc + m))
+      context.become(underRetryBackoff(membersByAgeDesc + m, retryNr))
 
     case ClusterEvent.MemberRemoved(m, _) =>
       log.debug("Received while on retry backoff MemberRemoved {}", m)
-      context.become(underRetryBackoff(membersByAgeDesc - m))
+      context.become(underRetryBackoff(membersByAgeDesc - m, retryNr))
 
     case RetryAnnotate =>
-      updateIfNewCost(Int.MinValue, membersByAgeDesc)
+      updateIfNewCost(Int.MinValue, membersByAgeDesc, retryNr + 1)
 
-    case es => log.debug("Under retry backoff, ignoring message {}", es)
+    case msg => log.debug("Under retry backoff, ignoring message {}", msg)
   }
 
-  private def updateIfNewCost(existingCost: Int, membersByAgeDesc: immutable.SortedSet[Member]): Unit = {
+  private def updateIfNewCost(existingCost: Int, membersByAgeDesc: immutable.SortedSet[Member], retryNr: Int): Unit = {
 
     val podsToAnnotate = membersByAgeDesc.take(costSettings.annotatedPodsNr)
     val newCost: Int = OlderCostsMore.costOf(cluster.selfMember, podsToAnnotate).getOrElse(0)
@@ -152,8 +159,8 @@ import scala.util.control.NonFatal
         clientSslContext.map(http.singleRequest(request, _)).getOrElse(http.singleRequest(request))
 
       toResult(response)(context.system).pipeTo(self)
-      context.become(idle(newCost, membersByAgeDesc))
-    } else context.become(idle(existingCost, membersByAgeDesc))
+      context.become(idle(newCost, membersByAgeDesc, retryNr))
+    } else context.become(idle(existingCost, membersByAgeDesc, retryNr))
   }
 
 }
