@@ -15,7 +15,7 @@ Contributions & Maintainers
 We love new maintainers as well as old maintainers. :-)
 The Akka core team keeps an eye on the project to assure its overall coherence but does not fully support these modules.
 
-Contributions are very welcome, see [CONTRIBUTING.md](https://github.com/akka/akka-management/blob/master/CONTRIBUTING.md) or skim [existing tickets](https://github.com/akka/akka-management/issues) to see where you could help out.
+Contributions are very welcome, see [CONTRIBUTING.md](https://github.com/akka/akka-management/blob/main/CONTRIBUTING.md) or skim [existing tickets](https://github.com/akka/akka-management/issues) to see where you could help out.
 
 Project Status
 --------------
