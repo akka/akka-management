@@ -32,9 +32,9 @@ Various parts of Akka management can be used together for deploying Akka Cluster
   - [Health Checks](healthchecks.md)
   - [Akka Cluster Bootstrap](bootstrap/index.md)
   - [Akka Discovery Methods](discovery/index.md)
+  - [Rolling Updates](rolling-updates.md)
   - [Akka Cluster Management (HTTP)](cluster-http-management.md)
   - [Akka Cluster Management (JMX)](cluster-jmx-management.md)
-  - [Rolling Updates](rolling-updates.md)
   - [Dynamic Log Levels](loglevels/index.md)
   - [Akka Coordination Lease for Kubernetes](kubernetes-lease.md)
 @@@

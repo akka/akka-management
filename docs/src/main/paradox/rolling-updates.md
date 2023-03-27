@@ -91,7 +91,11 @@ setting `akka.rollingupdate.kubernetes.namespace` or by providing `KUBERNETES_NA
 
 ##### Role based access control
 
+@@@ warning
+
 This extension uses the Kubernetes API to set the `pod-deletion-cost` annotation on its own pod. To be able to do that, it requires special permission to be able to `patch` the pod configuration. Each pod only needs access to the namespace they are in.
+
+@@@
 
 An example RBAC that can be used:
 ```yaml
