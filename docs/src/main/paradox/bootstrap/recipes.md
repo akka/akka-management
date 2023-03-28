@@ -1,6 +1,6 @@
 # Bootstrap environments
 
-A set of integration tests projects can be found in [integration-test folder of the Akka Management project](https://github.com/akka/akka-management/tree/master/integration-test).
+A set of integration tests projects can be found in [integration-test folder of the Akka Management project](https://github.com/akka/akka-management/tree/main/integration-test).
 These test various Akka management features together in various environments such as Kubernetes.
 
 The following samples exist as standalone projects:
@@ -41,8 +41,8 @@ If using @extref:[Split Brain Resolver](akka:split-brain-resolver.html) have a `
 
 ### Cluster singletons
 
-Deployments order pods by pod state and then time spent ready when deciding which to remove first. This works well
-with cluster singletons as they are typically removed last and then the cluster singletons move to the the oldest new pod.
+Deployments used to order pods by pod state and then time spent ready when deciding which to remove first. This worked well
+with cluster singletons as they were typically removed last and then the cluster singletons would move to the oldest new pod. However, since Kubernetes v1.22, this is no longer the default behaviour for Kubernetes deployments thus we advise the use of `PodDeletionCost` extension from @ref:[Akka Kubernetes Rolling Update](../rolling-updates.md#kubernetes-rolling-updates).
 
 ### External traffic
 

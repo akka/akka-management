@@ -79,7 +79,7 @@ metadata:
   name: lease-access
 subjects:
   - kind: User
-    name: system:serviceaccount:<YOUR NAMSPACE>:default
+    name: system:serviceaccount:<YOUR NAMESPACE>:default
 roleRef:
   kind: Role
   name: lease-access
