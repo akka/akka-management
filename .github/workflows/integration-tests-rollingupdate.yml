@@ -1,0 +1,59 @@
+name: Integration test for Rolling Update Kubernetes
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - release-*
+    tags-ignore: [ v.* ]
+  schedule:
+    - cron: '0 2 * * *'  # every day 2am
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+   integration-test:
+    name: Integration Tests for Rolling Update Kubernetes
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+        with:
+          fetch-depth: 0
+
+      - name: Checkout GitHub merge
+        if: github.event.pull_request
+        run: |-
+          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
+          git checkout scratch
+
+      - name: Cache Coursier cache
+        uses: coursier/cache-action@v6.4.0
+
+      - name: Set up JDK 11
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:1.11.0
+
+      - name: Setup Minikube
+        # https://github.com/manusa/actions-setup-minikube/releases
+        # v2.7.1
+        uses: manusa/actions-setup-minikube@4582844dcacbf482729f8d7ef696f515d2141bb9
+        with:
+          minikube version: 'v1.21.0'
+          kubernetes version: 'v1.22.0'
+          driver: docker
+          start args: '--addons=ingress'
+
+      - name: Run Integration Tests
+        run: |-
+          ./integration-test/rollingupdate-kubernetes/test.sh
+
+      - name: Print logs on failure
+        if: ${{ failure() }}
+        run: find . -name "*.log" -exec ./scripts/cat-log.sh {} \;

@@ -153,6 +153,16 @@ object Dependencies {
     "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test
   )
 
+  val RollingUpdateKubernetes = Seq(
+    "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-cluster" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+    "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
+  )
+
   val LeaseKubernetes = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-coordination" % AkkaVersion,
