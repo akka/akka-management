@@ -29,7 +29,12 @@ object Common extends AutoPlugin {
           "https://gitter.im/akka/dev",
           url("https://github.com/akka/akka-management/graphs/contributors")
         ),
-      licenses := Seq(("BUSL-1.1", url("https://raw.githubusercontent.com/akka/akka-management/main/LICENSE"))), // FIXME change s/main/v1.2.1/ when released
+      licenses := {
+        val tagOrBranch =
+          if (version.value.endsWith("SNAPSHOT")) "main"
+          else "v" + version.value
+        Seq(("BUSL-1.1", url(s"https://raw.githubusercontent.com/akka/akka-management/${tagOrBranch}/LICENSE")))
+      },
       description := "Akka Management is a suite of tools for operating Akka Clusters.",
       headerLicense := Some(
           HeaderLicense.Custom(s"Copyright (C) 2017-$currentYear Lightbend Inc. <https://www.lightbend.com>")),
@@ -37,7 +42,7 @@ object Common extends AutoPlugin {
       projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
       crossVersion := CrossVersion.binary,
       scalacOptions ++= {
-        var scalacOptionsBase = Seq(
+        val scalacOptionsBase = Seq(
           "-encoding",
           "UTF-8",
           "-feature",
