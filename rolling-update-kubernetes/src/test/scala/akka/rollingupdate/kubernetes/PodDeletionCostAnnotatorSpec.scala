@@ -4,9 +4,11 @@
 
 package akka.rollingupdate.kubernetes
 
+import scala.collection.JavaConverters._
+import scala.concurrent.duration._
+
 import akka.actor.ActorSystem
 import akka.actor.Address
-import akka.actor.Props
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.MemberUp
 import akka.cluster.Member
@@ -39,9 +41,6 @@ import org.scalatest.time.Millis
 import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpecLike
-
-import scala.collection.JavaConverters._
-import scala.concurrent.duration._
 
 object PodDeletionCostAnnotatorSpec {
   val config = ConfigFactory.parseString("""
@@ -90,16 +89,21 @@ class PodDeletionCostAnnotatorSpec
       namespace = Some(namespace),
       namespacePath = "",
       podName = podName,
-      secure = false)
+      secure = false,
+      apiServiceRequestTimeout = 2.seconds,
+      customResourceSettings = new CustomResourceSettings(enabled = false)
+    )
   }
 
-  private def annotatorProps(pod: String) = Props(
-    classOf[PodDeletionCostAnnotator],
-    settings(pod),
-    "apiToken",
-    namespace,
-    PodDeletionCostSettings(system.settings.config.getConfig("akka.rollingupdate.kubernetes"))
-  )
+  private val kubernetesApi =
+    new KubernetesApiImpl(system, settings(podName1), namespace, apiToken = "apiToken", clientHttpsConnectionContext = None)
+
+  private def annotatorProps(pod: String) =
+    PodDeletionCostAnnotator.props(
+      settings(pod),
+      PodDeletionCostSettings(system.settings.config.getConfig("akka.rollingupdate.kubernetes")),
+      kubernetesApi
+    )
 
   override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = Span(5, Seconds), interval = Span(100, Millis))

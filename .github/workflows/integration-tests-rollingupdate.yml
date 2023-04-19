@@ -51,7 +51,16 @@ jobs:
           start args: '--addons=ingress'
 
       - name: Run Integration Tests
+        timeout-minutes: 15
         run: |-
+          echo 'Creating namespace'
+          kubectl create namespace rolling
+          echo 'Creating resources'
+          kubectl apply -f ./rolling-update-kubernetes/pod-cost.yml
+          echo 'Adding proxy port'
+          kubectl proxy --port=8080 &
+          echo 'Running tests'
+          sbt "rolling-update-kubernetes/IntegrationTest/test"
           ./integration-test/rollingupdate-kubernetes/test.sh
 
       - name: Print logs on failure

@@ -4,6 +4,8 @@
 
 package akka.rollingupdate.kubernetes
 
+import scala.concurrent.duration._
+import akka.util.JavaDurationConverters._
 import akka.annotation.InternalApi
 import com.typesafe.config.Config
 
@@ -24,6 +26,10 @@ private[kubernetes] object KubernetesSettings {
   }
 
   def apply(config: Config): KubernetesSettings = {
+    val customResourceSettings = new CustomResourceSettings(
+      enabled = config.getBoolean("custom-resource.enabled")
+    )
+
     new KubernetesSettings(
       config.getString("api-ca-path"),
       config.getString("api-token-path"),
@@ -32,7 +38,9 @@ private[kubernetes] object KubernetesSettings {
       config.optDefinedValue("namespace"),
       config.getString("namespace-path"),
       config.getString("pod-name"),
-      config.getBoolean("secure-api-server")
+      config.getBoolean("secure-api-server"),
+      config.getDuration("api-service-request-timeout").asScala,
+      customResourceSettings
     )
   }
 }
@@ -49,4 +57,16 @@ private[kubernetes] class KubernetesSettings(
     val namespace: Option[String],
     val namespacePath: String,
     val podName: String,
-    val secure: Boolean)
+    val secure: Boolean,
+    val apiServiceRequestTimeout: FiniteDuration,
+    val customResourceSettings: CustomResourceSettings,
+    val bodyReadTimeout: FiniteDuration = 1.second
+)
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
+private[kubernetes] class CustomResourceSettings(
+    val enabled: Boolean
+)

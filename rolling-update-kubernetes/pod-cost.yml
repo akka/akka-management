@@ -1,0 +1,47 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  # name must match the spec fields below, and be in the form: <plural>.<group>
+  name: podcosts.akka.io
+spec:
+  group: akka.io
+  versions:
+   - name: v1
+     storage: true
+     served: true
+     schema:
+       openAPIV3Schema:
+         type: object
+         properties:
+           spec:
+             type: object
+             properties:
+               version:
+                 type: string
+               pods:
+                 type: array
+                 items:
+                   type: object
+                   properties:
+                     podName:
+                       type: string
+                     cost:
+                       type: integer
+                     # address, uid and time are used for cleanup of removed members
+                     address:
+                       type: string
+                     # address, uid and time are used for cleanup of removed members
+                     uid:
+                       type: integer
+                     # address, uid and time are used for cleanup of removed members
+                     time:
+                       type: integer
+  scope: Namespaced
+  names:
+    # kind is normally the CamelCased singular type. Your resource manifests use this.
+    kind: PodCost
+    listKind: PodCostList
+    # singular name to be used as an alias on the CLI and for display
+    singular: podcost
+    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: podcosts
