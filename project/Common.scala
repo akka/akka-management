@@ -1,5 +1,6 @@
 import com.geirsson.CiReleasePlugin
 import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys._
+import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import de.heikoseeberger.sbtheader._
 import sbt.Keys._
@@ -41,6 +42,7 @@ object Common extends AutoPlugin {
       crossScalaVersions := Dependencies.CrossScalaVersions,
       projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
       crossVersion := CrossVersion.binary,
+      scalafmtOnCompile := System.getenv("CI") != "true",
       scalacOptions ++= {
         val scalacOptionsBase = Seq(
           "-encoding",
