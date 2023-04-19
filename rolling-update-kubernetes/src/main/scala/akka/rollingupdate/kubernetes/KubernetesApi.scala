@@ -48,6 +48,7 @@ private[akka] final case class PodCost(podName: String, cost: Int, address: Stri
  * INTERNAL API
  */
 @InternalApi private[akka] object KubernetesApi {
+
   /**
    * Limit the length of a name to 63 characters.
    * Some subsystem of Kubernetes cannot manage longer names.

@@ -223,7 +223,7 @@ import com.typesafe.config.Config
       }
       .recover {
         case e: PodCostClientException => GiveUp(e.getMessage)
-        case NonFatal(e) => ScheduleRetry(e.getMessage)
+        case NonFatal(e)               => ScheduleRetry(e.getMessage)
       }
   }
 

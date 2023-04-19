@@ -96,7 +96,12 @@ class PodDeletionCostAnnotatorSpec
   }
 
   private val kubernetesApi =
-    new KubernetesApiImpl(system, settings(podName1), namespace, apiToken = "apiToken", clientHttpsConnectionContext = None)
+    new KubernetesApiImpl(
+      system,
+      settings(podName1),
+      namespace,
+      apiToken = "apiToken",
+      clientHttpsConnectionContext = None)
 
   private def annotatorProps(pod: String) =
     PodDeletionCostAnnotator.props(
