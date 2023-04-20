@@ -42,8 +42,7 @@ import akka.util.ByteString
   import system.dispatcher
 
   private implicit val sys: ActorSystem = system
-  // FIXME the asInstanceOf is because Scala3 complains
-  private val log = Logging(system, getClass.asInstanceOf[Class[Any]])
+  private val log = Logging(system, classOf[KubernetesApiImpl])
   private val http = Http()(system)
 
   private val scheme = if (settings.secure) "https" else "http"
@@ -101,8 +100,8 @@ import akka.util.ByteString
     def loop(tries: Int = 0): Future[PodCostResource] = {
       log.debug("Trying to create PodCost {}", tries)
       for {
-        olr <- getPodCostResource(crName)
-        lr <- olr match {
+        oldResource <- getPodCostResource(crName)
+        lr <- oldResource match {
           case Some(found) =>
             log.debug("{} already exists. Returning {}", crName, found)
             Future.successful(found)
@@ -162,23 +161,21 @@ PUTs must contain resourceVersions. Response:
               Right(toPodCostResource(updatedCr))
             })
         case StatusCodes.Conflict =>
-          getPodCostResource(crName).flatMap {
+          getPodCostResource(crName).map {
             case None =>
-              Future.failed(new PodCostException(s"GET after PUT conflict did not return a PodCost [$crName]"))
+              throw new PodCostException(s"GET after PUT conflict did not return a PodCost [$crName]")
             case Some(cr) =>
               log.debug("PodCostResource read after conflict: {}", cr)
-              Future.successful(Left(cr))
+              Left(cr)
           }
         case StatusCodes.Unauthorized =>
           handleUnauthorized(response)
         case unexpected =>
           Unmarshal(response.entity)
             .to[String]
-            .flatMap(body => {
-              Future.failed(
-                new PodCostException(
-                  s"PUT for PodCost [$crName] returned unexpected status code $unexpected. Body: $body"))
-            })
+            .map(body =>
+              throw new PodCostException(
+                s"PUT for PodCost [$crName] returned unexpected status code $unexpected. Body: $body"))
       }
     } yield result
   }
@@ -203,10 +200,9 @@ PUTs must contain resourceVersions. Response:
         case unexpected =>
           Unmarshal(response.entity)
             .to[String]
-            .flatMap(body => {
-              Future.failed(
-                new PodCostException(s"Unexpected status code when deleting PodCost. Status: $unexpected. Body: $body"))
-            })
+            .map(body =>
+              throw new PodCostException(
+                s"Unexpected status code when deleting PodCost. Status: $unexpected. Body: $body"))
       }
     } yield result
   }
@@ -230,11 +226,9 @@ PUTs must contain resourceVersions. Response:
         case unexpected =>
           Unmarshal(response.entity)
             .to[String]
-            .flatMap(body => {
-              Future.failed(
-                new PodCostException(
-                  s"Unexpected response from API server when retrieving PodCost StatusCode: $unexpected. Body: $body"))
-            })
+            .map(body =>
+              throw new PodCostException(
+                s"Unexpected response from API server when retrieving PodCost StatusCode: $unexpected. Body: $body"))
       }
     } yield lr
   }
@@ -242,10 +236,11 @@ PUTs must contain resourceVersions. Response:
   private def handleUnauthorized(response: HttpResponse) = {
     Unmarshal(response.entity)
       .to[String]
-      .flatMap(body => {
-        Future.failed(new PodCostException(
-          s"Unauthorized to communicate with Kubernetes API server. See https://doc.akka.io/docs/akka-management/current/rolling-updates.html#role-based-access-control for setting up access control. Body: $body"))
-      })
+      .map(body =>
+        throw new PodCostException(
+          "Unauthorized to communicate with Kubernetes API server. See " +
+          "https://doc.akka.io/docs/akka-management/current/rolling-updates.html#role-based-access-control " +
+          s"for setting up access control. Body: $body"))
   }
 
   private def pathForPodCostResource(crName: String): Uri.Path =
@@ -309,11 +304,9 @@ PUTs must contain resourceVersions. Response:
           responseEntity
             .toStrict(settings.bodyReadTimeout)
             .flatMap(e => Unmarshal(e).to[String])
-            .flatMap(body => {
-              Future.failed(
-                new PodCostException(
-                  s"Unexpected response from API server when creating PodCost StatusCode: $unexpected. Body: $body"))
-            })
+            .map(body =>
+              throw new PodCostException(
+                s"Unexpected response from API server when creating PodCost StatusCode: $unexpected. Body: $body"))
       }
     } yield resource
   }
