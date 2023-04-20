@@ -52,8 +52,6 @@ final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extens
         s"Be sure to provide the pod name with `$configPath.pod-name` " +
         "or by setting ENV variable `KUBERNETES_POD_NAME`.")
     } else if (startStep.compareAndSet(NotRunning, Initializing)) {
-      log.debug("Starting PodDeletionCost for podName={} with settings={}", k8sSettings.podName, costSettings)
-
       implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
       val props = for {
         apiToken: String <- Future { readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("") }
@@ -65,7 +63,24 @@ final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extens
         httpsContext <- Future(clientHttpsConnectionContext())
       } yield {
         val kubernetesApi = new KubernetesApiImpl(system, k8sSettings, podNamespace, apiToken, httpsContext)
-        PodDeletionCostAnnotator.props(k8sSettings, costSettings, kubernetesApi)
+        val crName =
+          if (k8sSettings.customResourceSettings.enabled) {
+            // FIXME config setting to override context.system.name
+            val name = KubernetesApi.makeDNS1039Compatible(system.name)
+            log.info(
+              "Starting PodDeletionCost for podName [{}], [{}] oldest will written to CR [{}].",
+              k8sSettings.podName,
+              costSettings.annotatedPodsNr,
+              name)
+            Some(name)
+          } else {
+            log.info(
+              "Starting PodDeletionCost for podName [{}], [{}] oldest will be annotated.",
+              k8sSettings.podName,
+              costSettings.annotatedPodsNr)
+            None
+          }
+        PodDeletionCostAnnotator.props(k8sSettings, costSettings, kubernetesApi, crName)
       }
 
       props.foreach(system.systemActorOf(_, "podDeletionCostAnnotator"))

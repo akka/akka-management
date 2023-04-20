@@ -27,7 +27,7 @@ private[kubernetes] object KubernetesSettings {
 
   def apply(config: Config): KubernetesSettings = {
     val customResourceSettings = new CustomResourceSettings(
-      enabled = config.getBoolean("custom-resource.enabled")
+      enabled = config.getBoolean("pod-deletion-cost.custom-resource.enabled")
     )
 
     new KubernetesSettings(

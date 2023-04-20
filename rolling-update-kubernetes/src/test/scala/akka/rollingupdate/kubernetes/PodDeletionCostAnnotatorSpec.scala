@@ -107,7 +107,8 @@ class PodDeletionCostAnnotatorSpec
     PodDeletionCostAnnotator.props(
       settings(pod),
       PodDeletionCostSettings(system.settings.config.getConfig("akka.rollingupdate.kubernetes")),
-      kubernetesApi
+      kubernetesApi,
+      crName = None
     )
 
   override implicit val patienceConfig: PatienceConfig =

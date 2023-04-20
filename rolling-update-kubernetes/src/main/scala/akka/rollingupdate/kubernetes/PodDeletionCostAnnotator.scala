@@ -34,26 +34,22 @@ import com.typesafe.config.Config
 /**
  * INTERNAL API
  *
- * Actor responsible to annotate the hosting pod with the pod-deletion-cost.
+ * Actor responsible to annotate the hosting pod with the pod-deletion-cost or
+ * update the PodCost CR depending on configuration.
  * It will automatically retry upon a fixed-configurable delay if the annotation fails.
  */
 @InternalApi private[kubernetes] final class PodDeletionCostAnnotator(
     settings: KubernetesSettings,
     costSettings: PodDeletionCostSettings,
-    kubernetesApi: KubernetesApi)
+    kubernetesApi: KubernetesApi,
+    crName: Option[String])
     extends Actor
     with ActorLogging
     with Timers {
   import PodDeletionCostAnnotator._
 
   private val podName = settings.podName
-  private val crName =
-    if (settings.customResourceSettings.enabled) {
-      // FIXME config setting to override context.system.name
-      KubernetesApi.makeDNS1039Compatible(context.system.name)
-    } else {
-      "N/A"
-    }
+  private val resourceLogDescription = if (crName.isDefined) "PodCost CR" else "pod-deletion-cost annotation"
 
   private val cluster = Cluster(context.system)
 
@@ -75,8 +71,8 @@ import com.typesafe.config.Config
       updateIfNewCost(deletionCost, membersByAgeDesc - m, retryNr)
 
     case PodAnnotated =>
-      log.debug("Annotation updated successfully to {}", deletionCost)
-      // cancelling an eventual retry in case the annotation succeeded in the meantime
+      log.debug("{} updated successfully to [{}]", resourceLogDescription, deletionCost)
+      // cancelling an eventual retry in case the operation succeeded in the meantime
       timers.cancel(RetryTimerId)
       context.become(idle(deletionCost, membersByAgeDesc, 0))
 
@@ -84,7 +80,7 @@ import com.typesafe.config.Config
       val ll = if (retryNr < 3) InfoLevel else WarningLevel
       log.log(
         ll,
-        s"Failed to update annotation: [$ex]. Scheduled retry with fixed delay of ${costSettings.retryDelay}, retry number $retryNr.")
+        s"Failed to update $resourceLogDescription: [$ex]. Scheduled retry with fixed delay of ${costSettings.retryDelay}, retry number $retryNr.")
 
       // FIXME add some random delay to minimize risk of conflicts
       timers.startSingleTimer(RetryTimerId, RetryAnnotate, costSettings.retryDelay)
@@ -92,8 +88,9 @@ import com.typesafe.config.Config
 
     case GiveUp(er: String) =>
       log.error(
-        "There was a client error when trying to set pod-deletion-cost annotation. " +
+        "There was a client error when trying to set {}. " +
         "Not retrying, check configuration. Error: {}",
+        resourceLogDescription,
         er)
 
     case msg => log.debug("Ignoring message {}", msg)
@@ -127,14 +124,15 @@ import com.typesafe.config.Config
 
     if (newCost != existingCost) {
       log.info(
-        "Updating pod-deletion-cost annotation for pod: [{}] with cost: [{}]. Namespace: [{}]",
+        "Updating {} for pod: [{}] with cost: [{}]. Namespace: [{}]",
+        resourceLogDescription,
         podName,
         newCost,
         kubernetesApi.namespace
       )
 
       implicit val dispatcher: ExecutionContext = context.system.dispatcher
-      updatePodCost(settings, kubernetesApi, crName, podName, newCost, cluster.selfUniqueAddress, membersByAgeDesc)(
+      updatePodCost(kubernetesApi, crName, podName, newCost, cluster.selfUniqueAddress, membersByAgeDesc)(
         context.system).pipeTo(self)
 
       context.become(idle(newCost, membersByAgeDesc, retryNr))
@@ -180,37 +178,39 @@ import com.typesafe.config.Config
   def props(
       settings: KubernetesSettings,
       costSettings: PodDeletionCostSettings,
-      kubernetesApi: KubernetesApi
+      kubernetesApi: KubernetesApi,
+      crName: Option[String]
   ): Props =
-    Props(new PodDeletionCostAnnotator(settings, costSettings, kubernetesApi))
+    Props(new PodDeletionCostAnnotator(settings, costSettings, kubernetesApi, crName))
 
   private def updatePodCost(
-      settings: KubernetesSettings,
       kubernetesApi: KubernetesApi,
-      crName: String,
+      crNameOpt: Option[String],
       podName: String,
       newCost: Int,
       selfUniqueAddress: UniqueAddress,
       membersByAgeDesc: immutable.SortedSet[Member])(implicit system: ActorSystem): Future[RequestResult] = {
     import system.dispatcher
-    if (settings.customResourceSettings.enabled) {
-      kubernetesApi.readOrCreatePodCostResource(podName).flatMap { cr =>
-        val now = System.currentTimeMillis()
-        val newPodCost =
-          PodCost(podName, newCost, selfUniqueAddress.address.toString, selfUniqueAddress.longUid, now)
-        val newPods = cr.pods.filterNot { podCost =>
-            // FIXME config for the time interval
-            // remove entry that is to be added for this podName
-            podCost.podName == podName ||
-            // remove entries that don't exist in the cluster membership any more
-            (now - podCost.time > 60000 && !membersByAgeDesc.exists(_.uniqueAddress == podCost.uniqueAddress))
-          } :+ newPodCost
-        val response = kubernetesApi.updatePodCostResource(crName, cr.version, newPods)
+    crNameOpt match {
+      case Some(crName) =>
+        val response =
+          kubernetesApi.readOrCreatePodCostResource(crName).flatMap { cr =>
+            val now = System.currentTimeMillis()
+            val newPodCost =
+              PodCost(podName, newCost, selfUniqueAddress.address.toString, selfUniqueAddress.longUid, now)
+            val newPods = cr.pods.filterNot { podCost =>
+                // FIXME config for the time interval
+                // remove entry that is to be added for this podName
+                podCost.podName == podName ||
+                // remove entries that don't exist in the cluster membership any more
+                (now - podCost.time > 60000 && !membersByAgeDesc.exists(_.uniqueAddress == podCost.uniqueAddress))
+              } :+ newPodCost
+            kubernetesApi.updatePodCostResource(crName, cr.version, newPods)
+          }
         updatePodCostResourceResult(response)
-      }
-    } else {
-      val response = kubernetesApi.updatePodDeletionCostAnnotation(podName, newCost)
-      updatePodDeletionCostAnnotationResult(response)
+      case None =>
+        val response = kubernetesApi.updatePodDeletionCostAnnotation(podName, newCost)
+        updatePodDeletionCostAnnotationResult(response)
     }
   }
 
@@ -236,6 +236,7 @@ import com.typesafe.config.Config
         case Left(_)  => ScheduleRetry("Request failed with conflict")
       }
       .recover {
+        case e: PodCostClientException => GiveUp(e.getMessage)
         case NonFatal(e) => ScheduleRetry(e.getMessage)
       }
 
