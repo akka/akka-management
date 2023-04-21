@@ -56,7 +56,9 @@ class KubernetesApiIntegrationTest
     secure = false,
     apiServiceRequestTimeout = 1.second,
     new CustomResourceSettings(
-      enabled = true
+      enabled = true,
+      crName = None,
+      cleanupAfter = 60.seconds
     )
   )
 
