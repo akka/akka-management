@@ -64,7 +64,7 @@ spec:
         - name: REQUIRED_CONTACT_POINT_NR
           value: "1"
         - name: JAVA_TOOL_OPTIONS
-          value: "-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
+          value: "-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -Dakka.rollingupdate.kubernetes.custom-resource.enabled=on"
 #deployment
 ---
 #rbac-reader
@@ -99,7 +99,7 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 #rbac-reader
 ---
-#rbac-annotator
+#rbac-podcost-cr
 #
 # Create a role, `pod-annotator`, that can annotate pods
 # with the pod-deletion-cost value
@@ -107,21 +107,21 @@ roleRef:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: pod-annotator
+  name: podcost-access
 rules:
-  - apiGroups: [""] # "" indicates the core API group
-    resources: ["pods"]
-    verbs: ["patch"] # requires "patch" to annotate the pod
+  - apiGroups: ["akka.io"]
+    resources: ["podcosts"]
+    verbs: ["get", "create", "update", "delete", "list"]
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: annotate-pods
+  name: podcost-access
 subjects:
   - kind: User
     name: system:serviceaccount:akka-rollingupdate-demo-ns:default
 roleRef:
   kind: Role
-  name: pod-annotator
+  name: podcost-access
   apiGroup: rbac.authorization.k8s.io
-#rbac-annotator
+#rbac-podcost-cr

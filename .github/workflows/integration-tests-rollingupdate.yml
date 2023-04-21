@@ -62,6 +62,7 @@ jobs:
           echo 'Running tests'
           sbt "rolling-update-kubernetes/IntegrationTest/test"
           ./integration-test/rollingupdate-kubernetes/test.sh
+          ./integration-test/rollingupdate-kubernetes/test-cr.sh
 
       - name: Print logs on failure
         if: ${{ failure() }}
