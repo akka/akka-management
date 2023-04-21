@@ -19,6 +19,7 @@ import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.actor.ActorSystem
 import akka.actor.Props
+import akka.actor.Status
 import akka.actor.Timers
 import akka.annotation.InternalApi
 import akka.cluster.Cluster
@@ -93,6 +94,12 @@ import com.typesafe.config.Config
         resourceLogDescription,
         er)
 
+    case Status.Failure(exc) =>
+      throw new IllegalStateException(
+        "Unexpected failure, Future failure should have been recovered " +
+        "to message before pipeTo self. This is a bug.",
+        exc)
+
     case msg => log.debug("Ignoring message {}", msg)
   }
 
@@ -107,6 +114,12 @@ import com.typesafe.config.Config
 
     case RetryAnnotate =>
       updateIfNewCost(Int.MinValue, membersByAgeDesc, retryNr + 1)
+
+    case Status.Failure(exc) =>
+      throw new IllegalStateException(
+        "Unexpected failure, Future failure should have been recovered " +
+        "to message before pipeTo self. This is a bug.",
+        exc)
 
     case msg => log.debug("Under retry backoff, ignoring message {}", msg)
   }
@@ -237,7 +250,7 @@ import com.typesafe.config.Config
       }
       .recover {
         case e: PodCostClientException => GiveUp(e.getMessage)
-        case NonFatal(e) => ScheduleRetry(e.getMessage)
+        case NonFatal(e)               => ScheduleRetry(e.getMessage)
       }
 
   }
