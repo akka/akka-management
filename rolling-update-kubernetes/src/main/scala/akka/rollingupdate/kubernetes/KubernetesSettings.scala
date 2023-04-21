@@ -26,8 +26,15 @@ private[kubernetes] object KubernetesSettings {
   }
 
   def apply(config: Config): KubernetesSettings = {
+    val crName = config.getString("custom-resource.cr-name") match {
+      case ""   => None
+      case name => Some(name)
+    }
+
     val customResourceSettings = new CustomResourceSettings(
-      enabled = config.getBoolean("pod-deletion-cost.custom-resource.enabled")
+      enabled = config.getBoolean("custom-resource.enabled"),
+      crName = crName,
+      cleanupAfter = config.getDuration("custom-resource.cleanup-after").asScala
     )
 
     new KubernetesSettings(
@@ -68,5 +75,7 @@ private[kubernetes] class KubernetesSettings(
  */
 @InternalApi
 private[kubernetes] class CustomResourceSettings(
-    val enabled: Boolean
+    val enabled: Boolean,
+    val crName: Option[String],
+    val cleanupAfter: FiniteDuration
 )

@@ -145,8 +145,14 @@ import com.typesafe.config.Config
       )
 
       implicit val dispatcher: ExecutionContext = context.system.dispatcher
-      updatePodCost(kubernetesApi, crName, podName, newCost, cluster.selfUniqueAddress, membersByAgeDesc)(
-        context.system).pipeTo(self)
+      updatePodCost(
+        kubernetesApi,
+        crName,
+        podName,
+        newCost,
+        cluster.selfUniqueAddress,
+        membersByAgeDesc,
+        settings.customResourceSettings.cleanupAfter)(context.system).pipeTo(self)
 
       context.become(idle(newCost, membersByAgeDesc, retryNr))
     } else {
@@ -202,7 +208,8 @@ import com.typesafe.config.Config
       podName: String,
       newCost: Int,
       selfUniqueAddress: UniqueAddress,
-      membersByAgeDesc: immutable.SortedSet[Member])(implicit system: ActorSystem): Future[RequestResult] = {
+      membersByAgeDesc: immutable.SortedSet[Member],
+      cleanupAfter: FiniteDuration)(implicit system: ActorSystem): Future[RequestResult] = {
     import system.dispatcher
     crNameOpt match {
       case Some(crName) =>
@@ -212,11 +219,13 @@ import com.typesafe.config.Config
             val newPodCost =
               PodCost(podName, newCost, selfUniqueAddress.address.toString, selfUniqueAddress.longUid, now)
             val newPods = cr.pods.filterNot { podCost =>
-                // FIXME config for the time interval
                 // remove entry that is to be added for this podName
                 podCost.podName == podName ||
                 // remove entries that don't exist in the cluster membership any more
-                (now - podCost.time > 60000 && !membersByAgeDesc.exists(_.uniqueAddress == podCost.uniqueAddress))
+                (podCost.uniqueAddress.address.system == selfUniqueAddress.address.system && // only same cluster
+                now - podCost.time > cleanupAfter.toMillis && // in case new member hasn't been seen yet
+                !membersByAgeDesc.exists(_.uniqueAddress == podCost.uniqueAddress) // removed, not in cluster membership
+                )
               } :+ newPodCost
             kubernetesApi.updatePodCostResource(crName, cr.version, newPods)
           }

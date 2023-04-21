@@ -23,8 +23,10 @@ spec:
                  items:
                    type: object
                    properties:
+                     # the name of the pod that should be updated with the pod-deletion-cost annotation
                      podName:
                        type: string
+                     # the value of the controller.kubernetes.io/pod-deletion-cost annotation
                      cost:
                        type: integer
                      # address, uid and time are used for cleanup of removed members
