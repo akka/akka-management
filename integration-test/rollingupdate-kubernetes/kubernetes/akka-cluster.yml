@@ -6,7 +6,7 @@ metadata:
     app: akka-rollingupdate-demo
   name: akka-rollingupdate-demo
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
      app: akka-rollingupdate-demo
@@ -62,7 +62,7 @@ spec:
             fieldRef:
               fieldPath: metadata.name
         - name: REQUIRED_CONTACT_POINT_NR
-          value: "1"
+          value: "3"
         - name: JAVA_TOOL_OPTIONS
           value: "-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
 #deployment

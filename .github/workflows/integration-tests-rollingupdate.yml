@@ -61,8 +61,8 @@ jobs:
           kubectl proxy --port=8080 &
           echo 'Running tests'
           sbt "rolling-update-kubernetes/IntegrationTest/test"
-          ./integration-test/rollingupdate-kubernetes/test.sh
           ./integration-test/rollingupdate-kubernetes/test-cr.sh
+          ./integration-test/rollingupdate-kubernetes/test.sh
 
       - name: Print logs on failure
         if: ${{ failure() }}
