@@ -242,7 +242,7 @@ class PodDeletionCostAnnotatorSpec
 
       assertState(scenarioName, "FAILING")
 
-      val underTest = expectLogWarning(".*Failed to update annotation:.*") {
+      val underTest = expectLogWarning(".*Failed to update pod-deletion-cost annotation:.*") {
         system.actorOf(annotatorProps(podName1))
       }
 
