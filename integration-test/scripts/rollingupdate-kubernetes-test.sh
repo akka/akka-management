@@ -6,6 +6,7 @@ sbt $PROJECT_NAME/docker:publishLocal
 docker images | head
 
 kubectl create namespace $NAMESPACE || true
+kubectl -n $NAMESPACE delete deployment akka-rollingupdate-demo || true
 kubectl -n $NAMESPACE apply -f $DEPLOYMENT
 
 for i in {1..10}
@@ -19,6 +20,7 @@ done
 if [ $i -eq 10 ]
 then
   echo "Pods did not get ready"
+  kubectl -n $NAMESPACE describe deployment akka-rollingupdate-demo
   exit -1
 fi
 
