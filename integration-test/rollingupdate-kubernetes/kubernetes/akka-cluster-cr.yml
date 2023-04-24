@@ -101,8 +101,7 @@ roleRef:
 ---
 #rbac-podcost-cr
 #
-# Create a role, `pod-annotator`, that can annotate pods
-# with the pod-deletion-cost value
+# Create a role, `podcost-access`, that can update the PodCost CR
 #
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
