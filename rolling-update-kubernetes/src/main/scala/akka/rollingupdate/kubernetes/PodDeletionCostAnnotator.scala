@@ -4,6 +4,7 @@
 
 package akka.rollingupdate.kubernetes
 
+import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
 
 import scala.collection.immutable
@@ -83,8 +84,14 @@ import com.typesafe.config.Config
         ll,
         s"Failed to update $resourceLogDescription: [$ex]. Scheduled retry with fixed delay of ${costSettings.retryDelay}, retry number $retryNr.")
 
-      // FIXME add some random delay to minimize risk of conflicts
-      timers.startSingleTimer(RetryTimerId, RetryAnnotate, costSettings.retryDelay)
+      val retryDelay =
+        if (crName.isDefined)
+          // add some random delay to minimize risk of conflicts
+          costSettings.retryDelay + (costSettings.retryDelay * ThreadLocalRandom.current().nextDouble(0.1))
+            .asInstanceOf[FiniteDuration]
+        else
+          costSettings.retryDelay
+      timers.startSingleTimer(RetryTimerId, RetryAnnotate, retryDelay)
       context.become(underRetryBackoff(membersByAgeDesc, retryNr))
 
     case GiveUp(er: String) =>
