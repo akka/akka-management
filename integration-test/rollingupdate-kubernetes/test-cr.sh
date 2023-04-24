@@ -2,7 +2,7 @@
 
 set -exu
 
-export NAMESPACE=akka-rollingupdate-demo-ns
+export NAMESPACE=akka-rollingupdate-demo-cr-ns
 export APP_NAME=akka-rollingupdate-demo
 export PROJECT_NAME=integration-test-rollingupdate-kubernetes
 export CRD=rolling-update-kubernetes/pod-cost.yml

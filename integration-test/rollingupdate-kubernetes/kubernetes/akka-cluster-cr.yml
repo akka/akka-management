@@ -118,7 +118,7 @@ metadata:
   name: podcost-access
 subjects:
   - kind: User
-    name: system:serviceaccount:akka-rollingupdate-demo-ns:default
+    name: system:serviceaccount:akka-rollingupdate-demo-cr-ns:default
 roleRef:
   kind: Role
   name: podcost-access
