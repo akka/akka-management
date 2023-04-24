@@ -67,9 +67,9 @@ object PodDeletionCostAnnotatorCrSpec {
     }
 
     override def updatePodCostResource(
-      crName: String,
-      v: String,
-      pods: immutable.Seq[PodCost]): Future[Either[PodCostResource, PodCostResource]] = this.synchronized {
+        crName: String,
+        v: String,
+        pods: immutable.Seq[PodCost]): Future[Either[PodCostResource, PodCostResource]] = this.synchronized {
 
       podCosts = pods.toVector
       version = v.toInt + 1
