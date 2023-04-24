@@ -13,13 +13,11 @@ import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.MemberUp
 import akka.cluster.Member
 import akka.cluster.MemberStatus
-import akka.cluster.MemberStatus.Up
 import akka.cluster.UniqueAddress
 import akka.testkit.EventFilter
 import akka.testkit.ImplicitSender
 import akka.testkit.TestKit
 import akka.testkit.TestProbe
-import akka.util.Version
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
@@ -61,7 +59,7 @@ object PodDeletionCostAnnotatorSpec {
 class PodDeletionCostAnnotatorSpec
     extends TestKit(
       ActorSystem(
-        "MySpec",
+        "PodDeletionCostAnnotatorSpec",
         PodDeletionCostAnnotatorSpec.config
       ))
     with ImplicitSender
@@ -78,7 +76,7 @@ class PodDeletionCostAnnotatorSpec
   private val namespace = "namespace-test"
   private val podName1 = "pod-test-1"
   private val podName2 = "pod-test-2"
-  private lazy val system2 = ActorSystem("MySpec", PodDeletionCostAnnotatorSpec.config)
+  private lazy val system2 = ActorSystem(system.name, system.settings.config)
 
   private def settings(podName: String) = {
     new KubernetesSettings(
@@ -248,7 +246,12 @@ class PodDeletionCostAnnotatorSpec
 
       wireMockServer.resetRequests()
       val dummyNewMember =
-        MemberUp(Member(UniqueAddress(Address("", ""), 2L), Set("dc-default"), Version("v1")).copy(Up))
+        MemberUp(
+          Member(
+            UniqueAddress(Address("akka", system.name, Cluster(system).selfAddress.host.get, 2553), 2L),
+            Cluster(system).selfRoles,
+            Cluster(system).selfMember.appVersion
+          ).copyUp(upNumber = 2))
       underTest ! dummyNewMember
       underTest ! dummyNewMember
       underTest ! dummyNewMember
