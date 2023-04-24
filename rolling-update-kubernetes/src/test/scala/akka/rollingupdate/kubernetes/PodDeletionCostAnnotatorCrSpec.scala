@@ -6,6 +6,7 @@ package akka.rollingupdate.kubernetes
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import scala.collection.immutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -45,6 +46,41 @@ object PodDeletionCostAnnotatorCrSpec {
       akka.coordinated-shutdown.run-by-actor-system-terminate = off
       akka.test.filter-leeway = 10s
     """)
+
+  private[akka] trait TestCallCount {
+    val callCount = new AtomicInteger()
+
+    def getCallCount(): Int = callCount.get()
+  }
+
+  private[akka] class TestKubernetesApi extends KubernetesApi {
+    private var version = 1
+    private var podCosts = Vector.empty[PodCost]
+
+    override def namespace: String = "namespace-test"
+
+    override def updatePodDeletionCostAnnotation(podName: String, cost: Int): Future[Done] =
+      Future.successful(Done)
+
+    override def readOrCreatePodCostResource(crName: String): Future[PodCostResource] = this.synchronized {
+      Future.successful(PodCostResource(version.toString, podCosts))
+    }
+
+    override def updatePodCostResource(
+      crName: String,
+      v: String,
+      pods: immutable.Seq[PodCost]): Future[Either[PodCostResource, PodCostResource]] = this.synchronized {
+
+      podCosts = pods.toVector
+      version = v.toInt + 1
+
+      Future.successful(Right(PodCostResource(version.toString, podCosts)))
+    }
+
+    def getPodCosts(): Vector[PodCost] = this.synchronized {
+      podCosts
+    }
+  }
 }
 
 class PodDeletionCostAnnotatorCrSpec
@@ -59,6 +95,7 @@ class PodDeletionCostAnnotatorCrSpec
     with BeforeAndAfterAll
     with BeforeAndAfterEach
     with Eventually {
+  import PodDeletionCostAnnotatorCrSpec._
 
   private val namespace = "namespace-test"
   private val podName1 = "pod-test-1"
@@ -78,35 +115,6 @@ class PodDeletionCostAnnotatorCrSpec
       apiServiceRequestTimeout = 2.seconds,
       customResourceSettings = new CustomResourceSettings(enabled = false, crName = None, 60.seconds)
     )
-  }
-
-  class TestKubernetesApi extends KubernetesApi {
-    private var version = 1
-    private var podCosts = Vector.empty[PodCost]
-
-    override def namespace: String = PodDeletionCostAnnotatorCrSpec.this.namespace
-
-    override def updatePodDeletionCostAnnotation(podName: String, cost: Int): Future[Done] =
-      Future.successful(Done)
-
-    override def readOrCreatePodCostResource(crName: String): Future[PodCostResource] = this.synchronized {
-      Future.successful(PodCostResource(version.toString, podCosts))
-    }
-
-    override def updatePodCostResource(
-        crName: String,
-        v: String,
-        pods: Seq[PodCost]): Future[Either[PodCostResource, PodCostResource]] = this.synchronized {
-
-      podCosts = pods.toVector
-      version = v.toInt + 1
-
-      Future.successful(Right(PodCostResource(version.toString, podCosts)))
-    }
-
-    def getPodCosts(): Vector[PodCost] = this.synchronized {
-      podCosts
-    }
   }
 
   private def annotatorProps(pod: String, kubernetesApi: KubernetesApi) =
@@ -162,12 +170,12 @@ class PodDeletionCostAnnotatorCrSpec
     }
 
     "retry when failing with transient error" in {
-      val kubernetesApi = new TestKubernetesApi {
-        val callCount = new AtomicInteger()
+      val kubernetesApi = new TestKubernetesApi with TestCallCount {
+
         override def updatePodCostResource(
             crName: String,
             v: String,
-            pods: Seq[PodCost]): Future[Either[PodCostResource, PodCostResource]] = {
+            pods: immutable.Seq[PodCost]): Future[Either[PodCostResource, PodCostResource]] = {
           // first call fails
           if (callCount.incrementAndGet() == 1)
             Future.failed(new PodCostException("test 500"))
@@ -178,7 +186,7 @@ class PodDeletionCostAnnotatorCrSpec
 
       system.actorOf(annotatorProps(podName1, kubernetesApi))
       eventually {
-        kubernetesApi.callCount.get shouldBe 2
+        kubernetesApi.getCallCount() shouldBe 2
         val podCosts = kubernetesApi.getPodCosts()
         podCosts.size shouldBe 1
         podCosts.head.podName shouldBe podName1
@@ -187,13 +195,12 @@ class PodDeletionCostAnnotatorCrSpec
     }
 
     "retry when conflicting update" in {
-      val kubernetesApi = new TestKubernetesApi {
-        val callCount = new AtomicInteger()
+      val kubernetesApi = new TestKubernetesApi with TestCallCount {
 
         override def updatePodCostResource(
             crName: String,
             v: String,
-            pods: Seq[PodCost]): Future[Either[PodCostResource, PodCostResource]] = this.synchronized {
+            pods: immutable.Seq[PodCost]): Future[Either[PodCostResource, PodCostResource]] = this.synchronized {
           // conflict for first call
           if (callCount.incrementAndGet() == 1)
             readOrCreatePodCostResource(crName).map { existing =>
@@ -206,7 +213,7 @@ class PodDeletionCostAnnotatorCrSpec
 
       system.actorOf(annotatorProps(podName1, kubernetesApi))
       eventually {
-        kubernetesApi.callCount.get shouldBe 2
+        kubernetesApi.getCallCount() shouldBe 2
         val podCosts = kubernetesApi.getPodCosts()
         podCosts.size shouldBe 1
         podCosts.head.podName shouldBe podName1
@@ -244,13 +251,12 @@ class PodDeletionCostAnnotatorCrSpec
     }
 
     "not annotate until backoff delay expires" in {
-      val kubernetesApi = new TestKubernetesApi {
-        val callCount = new AtomicInteger()
+      val kubernetesApi = new TestKubernetesApi with TestCallCount {
 
         override def updatePodCostResource(
             crName: String,
             v: String,
-            pods: Seq[PodCost]): Future[Either[PodCostResource, PodCostResource]] = {
+            pods: immutable.Seq[PodCost]): Future[Either[PodCostResource, PodCostResource]] = {
           // first 3 call fails
           if (callCount.incrementAndGet() <= 3)
             Future.failed(new PodCostException("test 500"))
@@ -275,12 +281,12 @@ class PodDeletionCostAnnotatorCrSpec
       underTest ! dummyNewMember
 
       // no other interactions should have occurred while on backoff regardless of updates to the cluster
-      kubernetesApi.callCount.get shouldBe 1
+      kubernetesApi.getCallCount() shouldBe 1
       Thread.sleep(100)
-      kubernetesApi.callCount.get shouldBe 1
+      kubernetesApi.getCallCount() shouldBe 1
 
       eventually {
-        kubernetesApi.callCount.get shouldBe 4
+        kubernetesApi.getCallCount() shouldBe 4
         val podCosts = kubernetesApi.getPodCosts()
         podCosts.size shouldBe 1 // dummyNewMember is not added by pod1
         podCosts.head.podName shouldBe podName1
