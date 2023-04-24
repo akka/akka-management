@@ -50,14 +50,6 @@ private[akka] final case class PodCost(podName: String, cost: Int, address: Stri
 @InternalApi private[akka] object KubernetesApi {
 
   /**
-   * Limit the length of a name to 63 characters.
-   * Some subsystem of Kubernetes cannot manage longer names.
-   */
-  private def truncateTo63Characters(name: String): String =
-    // FIXME fail instead, see issue https://github.com/akka/akka-management/issues/910
-    name.take(63)
-
-  /**
    * Removes from the leading and trailing positions the specified characters.
    */
   private def trim(name: String, characters: List[Char]): String =
@@ -66,12 +58,15 @@ private[akka] final case class PodCost(podName: String, cost: Int, address: Stri
   /**
    * Make a name compatible with DNS 1039 standard: like a single domain name segment.
    * Regex to follow: [a-z]([-a-z0-9]*[a-z0-9])
-   * Limit the resulting name to 63 characters
+   * Validates the resulting name to be at most 63 characters, otherwise throws `IllegalArgumentException`.
    */
   def makeDNS1039Compatible(name: String): String = {
     val normalized =
       Normalizer.normalize(name, Normalizer.Form.NFKD).toLowerCase.replaceAll("[_.]", "-").replaceAll("[^-a-z0-9]", "")
-    trim(truncateTo63Characters(normalized), List('-'))
+    if (normalized.length > 63)
+      throw new IllegalArgumentException(s"Too long resource name [$normalized]. At most 63 characters is accepted. " +
+      "A custom resource name can be defined in configuration `akka.rollingupdate.kubernetes.custom-resource.cr-name`.")
+    trim(normalized, List('-'))
   }
 }
 
