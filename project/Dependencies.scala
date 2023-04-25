@@ -18,7 +18,7 @@ object Dependencies {
   val ScalaTestVersion = "3.2.15"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
-  val AwsSdkVersion = "1.12.435"
+  val AwsSdkVersion = "1.12.455"
   val JacksonVersion = "2.13.4"
   val JacksonDatabindVersion = "2.13.4.2"
 
@@ -161,7 +161,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
     "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
-    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "test",
+    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "test"
   )
 
   val LeaseKubernetes = Seq(
