@@ -80,7 +80,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
       "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-      ("software.amazon.awssdk" % "ecs" % "2.20.32").exclude("software.amazon.awssdk", "apache-client"),
+      ("software.amazon.awssdk" % "ecs" % "2.20.52").exclude("software.amazon.awssdk", "apache-client"),
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
     ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
@@ -161,7 +161,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
     "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
-    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "test",
+    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "test"
   )
 
   val LeaseKubernetes = Seq(
