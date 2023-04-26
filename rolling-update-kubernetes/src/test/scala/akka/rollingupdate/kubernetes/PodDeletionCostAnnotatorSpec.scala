@@ -4,20 +4,20 @@
 
 package akka.rollingupdate.kubernetes
 
+import scala.collection.JavaConverters._
+import scala.concurrent.duration._
+
 import akka.actor.ActorSystem
 import akka.actor.Address
-import akka.actor.Props
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.MemberUp
 import akka.cluster.Member
 import akka.cluster.MemberStatus
-import akka.cluster.MemberStatus.Up
 import akka.cluster.UniqueAddress
 import akka.testkit.EventFilter
 import akka.testkit.ImplicitSender
 import akka.testkit.TestKit
 import akka.testkit.TestProbe
-import akka.util.Version
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
@@ -40,9 +40,6 @@ import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpecLike
 
-import scala.collection.JavaConverters._
-import scala.concurrent.duration._
-
 object PodDeletionCostAnnotatorSpec {
   val config = ConfigFactory.parseString("""
       akka.loggers = ["akka.testkit.TestEventListener"]
@@ -62,7 +59,7 @@ object PodDeletionCostAnnotatorSpec {
 class PodDeletionCostAnnotatorSpec
     extends TestKit(
       ActorSystem(
-        "MySpec",
+        "PodDeletionCostAnnotatorSpec",
         PodDeletionCostAnnotatorSpec.config
       ))
     with ImplicitSender
@@ -79,7 +76,7 @@ class PodDeletionCostAnnotatorSpec
   private val namespace = "namespace-test"
   private val podName1 = "pod-test-1"
   private val podName2 = "pod-test-2"
-  private lazy val system2 = ActorSystem("MySpec", PodDeletionCostAnnotatorSpec.config)
+  private lazy val system2 = ActorSystem(system.name, system.settings.config)
 
   private def settings(podName: String) = {
     new KubernetesSettings(
@@ -90,16 +87,27 @@ class PodDeletionCostAnnotatorSpec
       namespace = Some(namespace),
       namespacePath = "",
       podName = podName,
-      secure = false)
+      secure = false,
+      apiServiceRequestTimeout = 2.seconds,
+      customResourceSettings = new CustomResourceSettings(enabled = false, crName = None, 60.seconds)
+    )
   }
 
-  private def annotatorProps(pod: String) = Props(
-    classOf[PodDeletionCostAnnotator],
-    settings(pod),
-    "apiToken",
-    namespace,
-    PodDeletionCostSettings(system.settings.config.getConfig("akka.rollingupdate.kubernetes"))
-  )
+  private val kubernetesApi =
+    new KubernetesApiImpl(
+      system,
+      settings(podName1),
+      namespace,
+      apiToken = "apiToken",
+      clientHttpsConnectionContext = None)
+
+  private def annotatorProps(pod: String) =
+    PodDeletionCostAnnotator.props(
+      settings(pod),
+      PodDeletionCostSettings(system.settings.config.getConfig("akka.rollingupdate.kubernetes")),
+      kubernetesApi,
+      crName = None
+    )
 
   override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = Span(5, Seconds), interval = Span(100, Millis))
@@ -232,13 +240,18 @@ class PodDeletionCostAnnotatorSpec
 
       assertState(scenarioName, "FAILING")
 
-      val underTest = expectLogWarning(".*Failed to update annotation:.*") {
+      val underTest = expectLogWarning(".*Failed to update pod-deletion-cost annotation:.*") {
         system.actorOf(annotatorProps(podName1))
       }
 
       wireMockServer.resetRequests()
       val dummyNewMember =
-        MemberUp(Member(UniqueAddress(Address("", ""), 2L), Set("dc-default"), Version("v1")).copy(Up))
+        MemberUp(
+          Member(
+            UniqueAddress(Address("akka", system.name, Cluster(system).selfAddress.host.get, 2553), 2L),
+            Cluster(system).selfRoles,
+            Cluster(system).selfMember.appVersion
+          ).copyUp(upNumber = 2))
       underTest ! dummyNewMember
       underTest ! dummyNewMember
       underTest ! dummyNewMember

@@ -1,0 +1,16 @@
+apiVersion: akka.io/v1
+kind: PodCost
+metadata:
+  name: sampleservice
+spec:
+  pods:
+    - address: akka://SampleService@10.42.0.13:2552
+      cost: 10000
+      podName: "pod1"
+      time: 1681909802669
+      uid: 3870636288020406585
+    - address: akka://SampleService@10.42.0.14:2552
+      cost: 9900
+      podName: "pod2"
+      time: 1681909802716
+      uid: 1681910047053

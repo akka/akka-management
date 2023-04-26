@@ -2,7 +2,7 @@
 
 Rolling updates allow you to update an application by gradually replacing old nodes with new ones. This ensures that the application remains available throughout the update process, with minimal disruption to clients.
 
-#### Graceful shutdown
+## Graceful shutdown
 
 Akka Cluster can handle hard failures using a downing provider such as Lightbend's @extref:[Split Brain Resolver](akka:split-brain-resolver.html).
 However, this should not be relied upon for regular rolling redeploys. Features such as `ClusterSingleton`s and `ClusterSharding`
@@ -19,12 +19,12 @@ Upon receiving a `SIGTERM` Coordinated Shutdown will:
   `ClusterSingleton`s to be migrated if this was the oldest node. Finally, the node is removed from the Akka Cluster membership.
 
 
-#### Number of nodes to redeploy at once
+## Number of nodes to redeploy at once
 
 Akka bootstrap requires a `stable-period` where service discovery returns a stable set of contact points. When doing rolling
 updates it is best to wait for a node (or group of nodes) to finish joining the cluster before adding and removing other nodes.
 
-#### Cluster Singletons
+## Cluster Singletons
 
 `ClusterSingleton`s run on the oldest node in the cluster. To avoid singletons moving during every node deployment it is advised
 to start a rolling redeploy starting at the newest node. Then `ClusterSingleton`s only move once. Cluster Sharding uses a singleton internally so this is important even if not using singletons directly.
@@ -89,11 +89,11 @@ Additionally, the pod annotator needs to know which namespace the pod belongs to
 from the service account secret, in `/var/run/secrets/kubernetes.io/serviceaccount/namespace`, but can be overridden by
 setting `akka.rollingupdate.kubernetes.namespace` or by providing `KUBERNETES_NAMESPACE` environment variable.
 
-##### Role based access control
+#### Role based access control
 
 @@@ warning
 
-This extension uses the Kubernetes API to set the `pod-deletion-cost` annotation on its own pod. To be able to do that, it requires special permission to be able to `patch` the pod configuration. Each pod only needs access to the namespace they are in.
+This extension uses the Kubernetes API to set the `pod-deletion-cost` annotation on its own pod. To be able to do that, it requires special permission to be able to `patch` the pod configuration. Each pod only needs access to the namespace they are in. If this is a security concern in your environment you may instead use @ref:[Alternative with Custom Resource Definition](#alternative-with-custom-resource-definition).
 
 @@@
 
@@ -130,5 +130,54 @@ This RBAC example covers only the permissions needed for this `PodDeletionCost` 
 
 @@@
 
+#### Alternative with Custom Resource Definition
+
+If it's a security concern in your environment to allow "patch" in RBAC as described above, you can instead use an
+intermediate Custom Resource Definition (CRD). Instead of updating the `controller.kubernetes.io/pod-deletion-cost`
+annotation directly it will update a `PodCost` custom resource and then you would have an operator that reconciles
+that and updates the pod-deletion-cost annotation of the pod resource. 
+
+@@@ note
+
+You would have to write the Kubernetes operator that watches the `PodCost` resource and updates the
+`controller.kubernetes.io/pod-deletion-cost` annotation of the corresponding pod resource. This operator
+is not provided by Akka.
+
+@@@
+
+Enable updates of custom resource with configuration:
+
+```
+akka.rollingupdate.kubernetes.custom-resource.enabled = true
+```
+
+The `PodCost` CRD:
+
+@@snip [pod-cost.yml](/rolling-update-kubernetes/pod-cost.yml) {}
+
+The RBAC for the application to update the `PodCost` CR, instead of "patch" of the "pods" resources:
+
+```
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: podcost-access
+rules:
+  - apiGroups: ["akka.io"]
+    resources: ["podcosts"]
+    verbs: ["get", "create", "update", "delete", "list"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: podcost-access
+subjects:
+  - kind: User
+    name: system:serviceaccount:<YOUR NAMESPACE>:default
+roleRef:
+  kind: Role
+  name: podcost-access
+  apiGroup: rbac.authorization.k8s.io
+```
 
 

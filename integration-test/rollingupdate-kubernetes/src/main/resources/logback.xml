@@ -8,10 +8,12 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
     </root>
 
     <logger name="akka.rollingupdate" level="DEBUG"/>
+    <logger name="akka.http" level="INFO"/>
+    <logger name="akka.io" level="INFO"/>
 
 </configuration>

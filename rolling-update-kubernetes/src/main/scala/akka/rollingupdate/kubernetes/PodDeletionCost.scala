@@ -4,26 +4,35 @@
 
 package akka.rollingupdate.kubernetes
 
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.security.KeyStore
+import java.security.SecureRandom
+import java.util.concurrent.atomic.AtomicReference
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.util.control.NonFatal
+
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
 import akka.actor.ExtendedActorSystem
 import akka.actor.Extension
 import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
-import akka.actor.Props
 import akka.annotation.InternalApi
 import akka.dispatch.Dispatchers.DefaultBlockingDispatcherId
 import akka.event.Logging
+import akka.http.scaladsl.ConnectionContext
+import akka.http.scaladsl.HttpsConnectionContext
+import akka.pki.kubernetes.PemManagersProvider
 import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.BootstrapStep
 import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.Initializing
 import akka.rollingupdate.kubernetes.PodDeletionCost.Internal.NotRunning
-
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.util.concurrent.atomic.AtomicReference
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.util.control.NonFatal
+import javax.net.ssl.KeyManager
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
 
 final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extension {
 
@@ -43,8 +52,6 @@ final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extens
         s"Be sure to provide the pod name with `$configPath.pod-name` " +
         "or by setting ENV variable `KUBERNETES_POD_NAME`.")
     } else if (startStep.compareAndSet(NotRunning, Initializing)) {
-      log.debug("Starting PodDeletionCost for podName={} with settings={}", k8sSettings.podName, costSettings)
-
       implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
       val props = for {
         apiToken: String <- Future { readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("") }
@@ -53,14 +60,56 @@ final class PodDeletionCost(implicit system: ExtendedActorSystem) extends Extens
             .orElse(readConfigVarFromFilesystem(k8sSettings.namespacePath, "namespace"))
             .getOrElse("default")
         }
-      } yield Props(classOf[PodDeletionCostAnnotator], k8sSettings, apiToken, podNamespace, costSettings)
+        httpsContext <- Future(clientHttpsConnectionContext())
+      } yield {
+        val kubernetesApi = new KubernetesApiImpl(system, k8sSettings, podNamespace, apiToken, httpsContext)
+        val crName =
+          if (k8sSettings.customResourceSettings.enabled) {
+            val name =
+              k8sSettings.customResourceSettings.crName.getOrElse(KubernetesApi.makeDNS1039Compatible(system.name))
+            log.info(
+              "Starting PodDeletionCost for podName [{}], [{}] oldest will written to CR [{}].",
+              k8sSettings.podName,
+              costSettings.annotatedPodsNr,
+              name)
+            Some(name)
+          } else {
+            log.info(
+              "Starting PodDeletionCost for podName [{}], [{}] oldest will be annotated.",
+              k8sSettings.podName,
+              costSettings.annotatedPodsNr)
+            None
+          }
+        PodDeletionCostAnnotator.props(k8sSettings, costSettings, kubernetesApi, crName)
+      }
 
       props.foreach(system.systemActorOf(_, "podDeletionCostAnnotator"))
     } else log.warning("PodDeletionCost extension already initiated, yet start() method was called again. Ignoring.")
   }
 
   /**
-   * This uses blocking IO, and so should only be used to read configuration at startup.
+   * This uses blocking IO, and so should only be used at startup from blocking dispatcher.
+   */
+  private def clientHttpsConnectionContext(): Option[HttpsConnectionContext] = {
+    if (k8sSettings.secure) {
+      val certificates = PemManagersProvider.loadCertificates(k8sSettings.apiCaPath)
+      val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+      val keyStore = KeyStore.getInstance("PKCS12")
+      keyStore.load(null)
+      factory.init(keyStore, Array.empty)
+      val km: Array[KeyManager] = factory.getKeyManagers
+      val tm: Array[TrustManager] =
+        PemManagersProvider.buildTrustManagers(certificates)
+      val random: SecureRandom = new SecureRandom
+      val sslContext = SSLContext.getInstance("TLSv1.2")
+      sslContext.init(km, tm, random)
+      Some(ConnectionContext.httpsClient(sslContext))
+    } else
+      None
+  }
+
+  /**
+   * This uses blocking IO, and so should only be used to read configuration at startup from blocking dispatcher.
    */
   private def readConfigVarFromFilesystem(path: String, name: String): Option[String] = {
     val file = Paths.get(path)
