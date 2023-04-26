@@ -27,12 +27,6 @@ spec:
         image: integration-test-rollingupdate-kubernetes:1.3.3.7
         # Remove for a real project, the image is picked up locally for the integration test
         imagePullPolicy: Never
-        resources:
-          limits:
-            memory: "256Mi"
-          requests:
-            memory: "256Mi"
-            cpu: "300m"
         #health
         livenessProbe:
           httpGet:
