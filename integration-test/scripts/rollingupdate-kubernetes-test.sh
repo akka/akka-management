@@ -37,6 +37,7 @@ do
   # Get the list of pods matching the namespace and app name, and are in the Running state
   pod_list=$(kubectl get pods -n $NAMESPACE | grep $APP_NAME | grep Running | awk '{ print $1 }')
   annotated_count=0
+  echo "## Pod List:\n$pod_list\n##"
 
   for pod_name in $pod_list
   do
@@ -55,7 +56,7 @@ do
     fi
   done
 
-  if [ $annotated_count -eq $(echo $pod_list | wc -w) ]
+  if [ ! -z "$pod_list" ] && [ $annotated_count -eq $(echo $pod_list | wc -w) ]
   then
     echo "All pods were annotated successfully!"
     break
@@ -69,7 +70,7 @@ do
 
     echo "Logs"
     echo "=============================="
-    for POD in $(kubectl get pods -n $NAMESPACE | grep $APP_NAME | grep Running | awk '{ print $1 }')
+    for POD in $(kubectl get pods -n $NAMESPACE | grep $APP_NAME | awk '{ print $1 }')
     do
       echo "Logging for $POD"
       kubectl logs $POD -n $NAMESPACE
