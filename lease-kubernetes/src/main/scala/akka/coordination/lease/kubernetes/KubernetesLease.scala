@@ -4,24 +4,39 @@
 
 package akka.coordination.lease.kubernetes
 
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.security.KeyStore
+import java.security.SecureRandom
 import java.text.Normalizer
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
+import akka.actor.ActorRef
 import akka.actor.ExtendedActorSystem
+import akka.coordination.lease.LeaseException
+import akka.coordination.lease.LeaseSettings
+import akka.coordination.lease.LeaseTimeoutException
 import akka.coordination.lease.kubernetes.KubernetesLease.makeDNS1039Compatible
 import akka.coordination.lease.kubernetes.LeaseActor._
 import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.coordination.lease.scaladsl.Lease
-import akka.coordination.lease.LeaseException
-import akka.coordination.lease.LeaseSettings
-import akka.coordination.lease.LeaseTimeoutException
-import akka.dispatch.ExecutionContexts
+import akka.dispatch.Dispatchers.DefaultBlockingDispatcherId
+import akka.http.scaladsl.ConnectionContext
+import akka.http.scaladsl.HttpsConnectionContext
 import akka.pattern.AskTimeoutException
+import akka.pattern.ask
+import akka.pki.kubernetes.PemManagersProvider
 import akka.util.ConstantFun
 import akka.util.Timeout
+import javax.net.ssl.KeyManager
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
 import org.slf4j.LoggerFactory
 
 object KubernetesLease {
@@ -50,54 +65,74 @@ object KubernetesLease {
       Normalizer.normalize(name, Normalizer.Form.NFKD).toLowerCase.replaceAll("[_.]", "-").replaceAll("[^-a-z0-9]", "")
     trim(truncateTo63Characters(normalized), List('-'))
   }
+
 }
 
 class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: AtomicBoolean, settings: LeaseSettings)
     extends Lease(settings) {
 
-  import akka.pattern.ask
-  import system.dispatcher
-
   private val logger = LoggerFactory.getLogger(classOf[KubernetesLease])
 
   private val k8sSettings = KubernetesSettings(settings.leaseConfig, settings.timeoutSettings)
-  private val k8sApi = new KubernetesApiImpl(system, k8sSettings)
+  private val k8sApi: Future[KubernetesApi] = {
+    implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
+    for {
+      apiToken: String <- Future {
+        readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("")
+      }
+      namespace: String <- Future {
+        k8sSettings.namespace
+          .orElse(readConfigVarFromFilesystem(k8sSettings.namespacePath, "namespace"))
+          .getOrElse("default")
+      }
+      httpsContext <- Future(clientHttpsConnectionContext())
+    } yield {
+      new KubernetesApiImpl(system, k8sSettings, namespace, apiToken, httpsContext)
+    }
+  }
   private implicit val timeout: Timeout = Timeout(settings.timeoutSettings.operationTimeout)
+  import system.dispatcher
 
   def this(leaseSettings: LeaseSettings, system: ExtendedActorSystem) =
     this(system, new AtomicBoolean(false), leaseSettings)
 
   private val leaseName = makeDNS1039Compatible(settings.leaseName)
-  private val leaseActor = system.systemActorOf(
-    LeaseActor.props(k8sApi, settings, leaseName, leaseTaken),
-    s"kubernetesLease${KubernetesLease.leaseCounter.incrementAndGet}"
-  )
+  private val leaseActor: Future[ActorRef] = {
+    k8sApi.map { api =>
+      logger.debug(
+        "Starting kubernetes lease actor [{}] for lease [{}], owner [{}]",
+        leaseActor,
+        leaseName,
+        settings.ownerName)
+      system.systemActorOf(
+        LeaseActor.props(api, settings, leaseName, leaseTaken),
+        s"kubernetesLease${KubernetesLease.leaseCounter.incrementAndGet}"
+      )
+    }
+  }
   if (leaseName != settings.leaseName) {
     logger.info(
       "Original lease name [{}] sanitized for kubernetes: [{}]",
       Array[Object](settings.leaseName, leaseName): _*)
   }
-  logger.debug(
-    "Starting kubernetes lease actor [{}] for lease [{}], owner [{}]",
-    leaseActor,
-    leaseName,
-    settings.ownerName)
 
   override def checkLease(): Boolean = leaseTaken.get()
 
   override def release(): Future[Boolean] = {
-    // replace with transform once 2.11 dropped
-    (leaseActor ? Release())
-      .flatMap {
-        case LeaseReleased       => Future.successful(true)
-        case InvalidRequest(msg) => Future.failed(new LeaseException(msg))
-      }(ExecutionContexts.parasitic)
-      .recoverWith {
+    for {
+      ref <- leaseActor
+      response <- (ref ? Release()).recoverWith {
         case _: AskTimeoutException =>
           Future.failed(
             new LeaseTimeoutException(
               s"Timed out trying to release lease [${leaseName}, ${settings.ownerName}]. It may still be taken."))
       }
+    } yield {
+      response match {
+        case LeaseReleased       => true
+        case InvalidRequest(msg) => throw new LeaseException(msg)
+      }
+    }
   }
 
   override def acquire(): Future[Boolean] = {
@@ -105,17 +140,60 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
 
   }
   override def acquire(leaseLostCallback: Option[Throwable] => Unit): Future[Boolean] = {
-    // replace with transform once 2.11 dropped
-    (leaseActor ? Acquire(leaseLostCallback))
-      .flatMap {
-        case LeaseAcquired       => Future.successful(true)
-        case LeaseTaken          => Future.successful(false)
-        case InvalidRequest(msg) => Future.failed(new LeaseException(msg))
-      }
-      .recoverWith {
+    for {
+      ref <- leaseActor
+      response <- (ref ? Acquire(leaseLostCallback)).recoverWith {
         case _: AskTimeoutException =>
-          Future.failed[Boolean](new LeaseTimeoutException(
-            s"Timed out trying to acquire lease [${leaseName}, ${settings.ownerName}]. It may still be taken."))
-      }(ExecutionContexts.parasitic)
+          Future.failed[Boolean](
+            new LeaseTimeoutException(
+              s"Timed out trying to acquire lease [${leaseName}, ${settings.ownerName}]. It may still be taken."))
+      }
+    } yield {
+      response match {
+        case LeaseAcquired       => true
+        case LeaseTaken          => false
+        case InvalidRequest(msg) => throw new LeaseException(msg)
+      }
+    }
+  }
+
+  /**
+   * This uses blocking IO, and so should only be used at startup from blocking dispatcher.
+   */
+  private def clientHttpsConnectionContext(): Option[HttpsConnectionContext] = {
+    if (k8sSettings.secure) {
+      val certificates = PemManagersProvider.loadCertificates(k8sSettings.apiCaPath)
+      val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+      val keyStore = KeyStore.getInstance("PKCS12")
+      keyStore.load(null)
+      factory.init(keyStore, Array.empty)
+      val km: Array[KeyManager] = factory.getKeyManagers
+      val tm: Array[TrustManager] =
+        PemManagersProvider.buildTrustManagers(certificates)
+      val random: SecureRandom = new SecureRandom
+      val sslContext = SSLContext.getInstance("TLSv1.2")
+      sslContext.init(km, tm, random)
+      Some(ConnectionContext.httpsClient(sslContext))
+    } else
+      None
+  }
+
+  /**
+   * This uses blocking IO, and so should only be used to read configuration at startup from blocking dispatcher.
+   */
+  private def readConfigVarFromFilesystem(path: String, name: String): Option[String] = {
+    val file = Paths.get(path)
+    if (Files.exists(file)) {
+      try {
+        Some(new String(Files.readAllBytes(file), "utf-8"))
+      } catch {
+        case NonFatal(e) =>
+          logger.error("Error reading {} from {}", name, path, e)
+          None
+      }
+    } else {
+      logger.warn("Unable to read {} from {} because it doesn't exist.", name, path)
+      None
+    }
   }
 }
