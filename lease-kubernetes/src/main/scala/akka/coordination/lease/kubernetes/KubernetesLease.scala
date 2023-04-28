@@ -26,6 +26,7 @@ import akka.coordination.lease.kubernetes.LeaseActor._
 import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.coordination.lease.scaladsl.Lease
 import akka.dispatch.Dispatchers.DefaultBlockingDispatcherId
+import akka.event.Logging
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.HttpsConnectionContext
 import akka.pattern.AskTimeoutException
@@ -37,7 +38,6 @@ import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
-import org.slf4j.LoggerFactory
 
 object KubernetesLease {
   val configPath = "akka.coordination.lease.kubernetes"
@@ -71,7 +71,7 @@ object KubernetesLease {
 class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: AtomicBoolean, settings: LeaseSettings)
     extends Lease(settings) {
 
-  private val logger = LoggerFactory.getLogger(classOf[KubernetesLease])
+  private val log = Logging(system, classOf[KubernetesLease])
 
   private val k8sSettings = KubernetesSettings(settings.leaseConfig, settings.timeoutSettings)
   private val k8sApi: Future[KubernetesApi] = {
@@ -99,7 +99,7 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
   private val leaseName = makeDNS1039Compatible(settings.leaseName)
   private val leaseActor: Future[ActorRef] = {
     k8sApi.map { api =>
-      logger.debug(
+      log.debug(
         "Starting kubernetes lease actor [{}] for lease [{}], owner [{}]",
         leaseActor,
         leaseName,
@@ -111,9 +111,7 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
     }
   }
   if (leaseName != settings.leaseName) {
-    logger.info(
-      "Original lease name [{}] sanitized for kubernetes: [{}]",
-      Array[Object](settings.leaseName, leaseName): _*)
+    log.info("Original lease name [{}] sanitized for kubernetes: [{}]", settings.leaseName, leaseName)
   }
 
   override def checkLease(): Boolean = leaseTaken.get()
@@ -188,11 +186,11 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
         Some(new String(Files.readAllBytes(file), "utf-8"))
       } catch {
         case NonFatal(e) =>
-          logger.error("Error reading {} from {}", name, path, e)
+          log.error(e, "Error reading {} from {}", name, path)
           None
       }
     } else {
-      logger.warn("Unable to read {} from {} because it doesn't exist.", name, path)
+      log.warning("Unable to read {} from {} because it doesn't exist.", name, path)
       None
     }
   }
