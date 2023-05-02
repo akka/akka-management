@@ -5,13 +5,14 @@
 package akka.coordination.lease.kubernetes
 
 import akka.actor.ActorSystem
-import akka.coordination.lease.TimeoutSettings
-import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.coordination.lease.scaladsl.LeaseProvider
-import org.scalatest.concurrent.{ Eventually, ScalaFutures }
-import org.scalatest.time.{ Milliseconds, Seconds, Span }
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.concurrent.Eventually
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.Milliseconds
+import org.scalatest.time.Seconds
+import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
 
 /**
@@ -26,7 +27,6 @@ abstract class LeaseSpec() extends AnyWordSpec with ScalaFutures with BeforeAndA
   lazy val underTest = LeaseProvider(system)
   // for cleanup
   val config = system.settings.config.getConfig(KubernetesLease.configPath)
-  lazy val k8sApi = new KubernetesApiImpl(system, KubernetesSettings(config, TimeoutSettings(config)))
   val leaseName = "lease-1"
   val client1 = "client1"
   val client2 = "client2"
