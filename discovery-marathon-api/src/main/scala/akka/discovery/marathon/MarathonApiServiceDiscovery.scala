@@ -78,8 +78,7 @@ class MarathonApiServiceDiscovery(implicit system: ActorSystem) extends ServiceD
   import MarathonApiServiceDiscovery._
   import system.dispatcher
 
-  // FIXME the asInstanceOf is because Scala3 complains
-  private val log = Logging(system, getClass.asInstanceOf[Class[Any]])
+  private val log = Logging(system, classOf[MarathonApiServiceDiscovery])
 
   private val http = Http()
 

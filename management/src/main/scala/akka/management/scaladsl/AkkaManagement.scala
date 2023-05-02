@@ -71,7 +71,7 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
   )
 
   // FIXME the asInstanceOf is because Scala3 complains
-  private val log = Logging.withMarker(system, getClass.asInstanceOf[Class[Any]])
+  private val log = Logging.withMarker(system, classOf[AkkaManagement])
   val settings: AkkaManagementSettings = new AkkaManagementSettings(system.settings.config)
 
   import system.dispatcher

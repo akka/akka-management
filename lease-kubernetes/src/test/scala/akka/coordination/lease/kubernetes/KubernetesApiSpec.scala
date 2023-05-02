@@ -53,10 +53,7 @@ class KubernetesApiSpec
 
   implicit val patience: PatienceConfig = PatienceConfig(testKitSettings.DefaultTimeout.duration)
 
-  val underTest = new KubernetesApiImpl(system, settings) {
-    // avoid touching slow CI filesystem
-    override protected def readConfigVarFromFilesystem(path: String, name: String): Option[String] = None
-  }
+  val underTest = new KubernetesApiImpl(system, settings, "lease", "token", None)
   val leaseName = "lease-1"
   val client1 = "client-1"
   val client2 = "client-2"

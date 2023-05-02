@@ -23,8 +23,7 @@ import scala.concurrent.duration._
     settings: ClusterBootstrapSettings
 ) extends JoinDecider {
 
-  // FIXME the asInstanceOf is because Scala3 complains
-  protected val log = Logging.withMarker(system, getClass.asInstanceOf[Class[Any]])
+  protected val log = Logging.withMarker(system, classOf[SelfAwareJoinDecider])
 
   /** Returns the current `selfContactPoints` as a String for logging, e.g. [127.0.0.1:64714]. */
   protected def contactPointString(contactPoint: (String, Int)): String =

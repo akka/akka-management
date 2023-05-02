@@ -37,8 +37,7 @@ object MockDiscovery {
 @InternalApi
 final class MockDiscovery(system: ActorSystem) extends ServiceDiscovery {
 
-  // FIXME the asInstanceOf is because Scala3 complains
-  private val log = Logging(system, getClass.asInstanceOf[Class[Any]])
+  private val log = Logging(system, classOf[MockDiscovery])
 
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     MockDiscovery.data.get().get(query) match {

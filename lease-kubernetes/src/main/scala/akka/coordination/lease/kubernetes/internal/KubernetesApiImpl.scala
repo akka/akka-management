@@ -4,14 +4,8 @@
 
 package akka.coordination.lease.kubernetes.internal
 
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.security.KeyStore
-import java.security.SecureRandom
-
 import scala.collection.immutable
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 import akka.Done
 import akka.actor.ActorSystem
@@ -22,7 +16,6 @@ import akka.coordination.lease.kubernetes.KubernetesApi
 import akka.coordination.lease.kubernetes.KubernetesSettings
 import akka.coordination.lease.kubernetes.LeaseResource
 import akka.event.Logging
-import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
 import akka.http.scaladsl.marshalling.Marshal
@@ -31,49 +24,27 @@ import akka.http.scaladsl.model.headers.Authorization
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.pattern.after
-import akka.pki.kubernetes.PemManagersProvider
-import javax.net.ssl.KeyManager
-import javax.net.ssl.KeyManagerFactory
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
 
 /**
  * Could be shared between leases: https://github.com/akka/akka-management/issues/680
  * INTERNAL API
  */
-@InternalApi private[akka] class KubernetesApiImpl(system: ActorSystem, settings: KubernetesSettings)
-    extends KubernetesApi
+@InternalApi private[akka] class KubernetesApiImpl(
+    system: ActorSystem,
+    settings: KubernetesSettings,
+    namespace: String,
+    apiToken: String,
+    clientHttpsConnectionContext: Option[HttpsConnectionContext]
+) extends KubernetesApi
     with KubernetesJsonSupport {
 
   import system.dispatcher
 
   private implicit val sys: ActorSystem = system
-  // FIXME the asInstanceOf is because Scala3 complains
-  private val log = Logging(system, getClass.asInstanceOf[Class[Any]])
+  private val log = Logging(system, classOf[KubernetesApiImpl])
   private val http = Http()(system)
 
-  private lazy val sslContext = {
-    val certificates = PemManagersProvider.loadCertificates(settings.apiCaPath)
-    val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
-    val keyStore = KeyStore.getInstance("PKCS12")
-    keyStore.load(null)
-    factory.init(keyStore, Array.empty)
-    val km: Array[KeyManager] = factory.getKeyManagers
-    val tm: Array[TrustManager] =
-      PemManagersProvider.buildTrustManagers(certificates)
-    val random: SecureRandom = new SecureRandom
-    val sslContext = SSLContext.getInstance("TLSv1.2")
-    sslContext.init(km, tm, random)
-    sslContext
-  }
-
-  private lazy val clientSslContext: HttpsConnectionContext = ConnectionContext.httpsClient(sslContext)
-
-  private val namespace =
-    settings.namespace.orElse(readConfigVarFromFilesystem(settings.namespacePath, "namespace")).getOrElse("default")
-
   private val scheme = if (settings.secure) "https" else "http"
-  private lazy val apiToken = readConfigVarFromFilesystem(settings.apiTokenPath, "api-token").getOrElse("")
   private lazy val headers = if (settings.secure) immutable.Seq(Authorization(OAuth2BearerToken(apiToken))) else Nil
 
   log.debug("kubernetes access namespace: {}. Secure: {}", namespace, settings.secure)
@@ -159,24 +130,21 @@ PUTs must contain resourceVersions. Response:
               Right(toLeaseResource(updatedLcr))
             })
         case StatusCodes.Conflict =>
-          getLeaseResource(leaseName).flatMap {
+          getLeaseResource(leaseName).map {
             case None =>
-              Future.failed(
-                new LeaseException(s"GET after PUT conflict did not return a lease. Lease[${leaseName}-${ownerName}]"))
+              throw new LeaseException(s"GET after PUT conflict did not return a lease. Lease[$leaseName-$ownerName]")
             case Some(lr) =>
               log.debug("LeaseResource read after conflict: {}", lr)
-              Future.successful(Left(lr))
+              Left(lr)
           }
         case StatusCodes.Unauthorized =>
           handleUnauthorized(response)
         case unexpected =>
           Unmarshal(response.entity)
             .to[String]
-            .flatMap(body => {
-              Future.failed(
-                new LeaseException(
-                  s"PUT for lease $leaseName returned unexpected status code ${unexpected}. Body: ${body}"))
-            })
+            .map(body =>
+              throw new LeaseException(
+                s"PUT for lease $leaseName returned unexpected status code $unexpected. Body: $body"))
       }
     } yield result
   }
@@ -201,16 +169,14 @@ PUTs must contain resourceVersions. Response:
         case unexpected =>
           Unmarshal(response.entity)
             .to[String]
-            .flatMap(body => {
-              Future.failed(
-                new LeaseException(s"Unexpected status code when deleting lease. Status: $unexpected. Body: $body"))
-            })
+            .map(body =>
+              throw new LeaseException(s"Unexpected status code when deleting lease. Status: $unexpected. Body: $body"))
       }
     } yield result
   }
 
   private def getLeaseResource(name: String): Future[Option[LeaseResource]] = {
-    val fResponse = makeRequest(requestForPath(pathForLease(name)), s"Timed out reading lease ${name}")
+    val fResponse = makeRequest(requestForPath(pathForLease(name)), s"Timed out reading lease $name")
     for {
       response <- fResponse
       entity <- response.entity.toStrict(settings.bodyReadTimeout)
@@ -232,21 +198,19 @@ PUTs must contain resourceVersions. Response:
         case unexpected =>
           Unmarshal(response.entity)
             .to[String]
-            .flatMap(body => {
-              Future.failed(new LeaseException(
-                s"Unexpected response from API server when retrieving lease StatusCode: ${unexpected}. Body: ${body}"))
-            })
+            .map(body =>
+              throw new LeaseException(
+                s"Unexpected response from API server when retrieving lease StatusCode: $unexpected. Body: $body"))
       }
     } yield lr
   }
 
-  private def handleUnauthorized(response: HttpResponse) = {
+  private def handleUnauthorized(response: HttpResponse): Future[Nothing] = {
     Unmarshal(response.entity)
       .to[String]
-      .flatMap(body => {
-        Future.failed(new LeaseException(
-          s"Unauthorized to communicate with Kubernetes API server. See https://doc.akka.io/docs/akka-management/current/kubernetes-lease.html#role-based-access-control for setting up access control. Body: ${body}"))
-      })
+      .map(body =>
+        throw new LeaseException(
+          s"Unauthorized to communicate with Kubernetes API server. See https://doc.akka.io/docs/akka-management/current/kubernetes-lease.html#role-based-access-control for setting up access control. Body: $body"))
   }
 
   private def pathForLease(name: String): Uri.Path =
@@ -263,11 +227,12 @@ PUTs must contain resourceVersions. Response:
   }
 
   private def makeRequest(request: HttpRequest, timeoutMsg: String): Future[HttpResponse] = {
-    val response =
-      if (settings.secure)
-        http.singleRequest(request, clientSslContext)
-      else
-        http.singleRequest(request)
+    val response = {
+      clientHttpsConnectionContext match {
+        case None                         => http.singleRequest(request)
+        case Some(httpsConnectionContext) => http.singleRequest(request, httpsConnectionContext)
+      }
+    }
 
     // make sure we always consume response body (in case of timeout)
     val strictResponse = response.flatMap(_.toStrict(settings.bodyReadTimeout))
@@ -313,32 +278,11 @@ PUTs must contain resourceVersions. Response:
           responseEntity
             .toStrict(settings.bodyReadTimeout)
             .flatMap(e => Unmarshal(e).to[String])
-            .flatMap(body => {
-              Future.failed(
-                new LeaseException(
-                  s"Unexpected response from API server when creating Lease StatusCode: ${unexpected}. Body: ${body}"))
-            })
+            .map(body =>
+              throw new LeaseException(
+                s"Unexpected response from API server when creating Lease StatusCode: $unexpected. Body: $body"))
       }
     } yield lr
-  }
-
-  /**
-   * This uses blocking IO, and so should only be used to read configuration at startup.
-   */
-  protected def readConfigVarFromFilesystem(path: String, name: String): Option[String] = {
-    val file = Paths.get(path)
-    if (Files.exists(file)) {
-      try {
-        Some(new String(Files.readAllBytes(file), "utf-8"))
-      } catch {
-        case NonFatal(e) =>
-          log.error(e, "Error reading {} from {}", name, path)
-          None
-      }
-    } else {
-      log.warning("Unable to read {} from {} because it doesn't exist.", name, path)
-      None
-    }
   }
 
 }
