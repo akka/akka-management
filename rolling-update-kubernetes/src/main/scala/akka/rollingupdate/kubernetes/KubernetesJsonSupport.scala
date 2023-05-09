@@ -16,6 +16,42 @@ import spray.json.RootJsonFormat
  * INTERNAL API
  */
 @InternalApi
+case class ReplicaAnnotation(`deployment.kubernetes.io/revision`: String)
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
+case class ReplicaSetMetadata(annotations: ReplicaAnnotation)
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
+case class ReplicaSet(metadata: ReplicaSetMetadata)
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
+case class PodOwnerRef(name: String, kind: String)
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
+case class PodMetadata(ownerReferences: immutable.Seq[PodOwnerRef])
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
+case class Pod(metadata: PodMetadata)
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
 case class PodCostCustomResource(
     metadata: Metadata,
     spec: Spec,
@@ -44,4 +80,12 @@ trait KubernetesJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val specFormat: JsonFormat[Spec] = jsonFormat1(Spec.apply)
   implicit val podCostCustomResourceFormat: RootJsonFormat[PodCostCustomResource] = jsonFormat4(
     PodCostCustomResource.apply)
+
+  implicit val podOwnerRefFormat: JsonFormat[PodOwnerRef] = jsonFormat2(PodOwnerRef.apply)
+  implicit val podMetadataFormat: JsonFormat[PodMetadata] = jsonFormat1(PodMetadata.apply)
+  implicit val podFormat: RootJsonFormat[Pod] = jsonFormat1(Pod.apply)
+
+  implicit val replicaAnnotationFormat: JsonFormat[ReplicaAnnotation] = jsonFormat1(ReplicaAnnotation.apply)
+  implicit val replicaSetMedatataFormat: JsonFormat[ReplicaSetMetadata] = jsonFormat1(ReplicaSetMetadata.apply)
+  implicit val podReplicaSetFormat: RootJsonFormat[ReplicaSet] = jsonFormat1(ReplicaSet.apply)
 }

@@ -1,6 +1,7 @@
 import com.typesafe.sbt.packager.docker.{ Cmd, ExecCmd }
 import sbt.Keys.parallelExecution
 
+ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 ThisBuild / resolvers += Resolver.jcenterRepo
 Global / excludeLintKeys += autoAPIMappings
 Global / excludeLintKeys += projectInfoVersion

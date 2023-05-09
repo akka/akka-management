@@ -10,7 +10,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
-import akka.rollingupdate.kubernetes.PodDeletionCost
+import akka.rollingupdate.kubernetes.{ AppVersionRevision, PodDeletionCost }
 
 object PodDeletionCostDemoApp extends App {
 
@@ -22,7 +22,12 @@ object PodDeletionCostDemoApp extends App {
   log.info(s"Started [$system], cluster.selfAddress = ${cluster.selfAddress}")
 
   AkkaManagement(system).start()
+
+  // preferred to be called before ClusterBootstrap
+  AppVersionRevision(system).start()
+
   ClusterBootstrap(system).start()
+
   PodDeletionCost(system).start()
 
   Http().newServerAt("0.0.0.0", 8080).bind(complete("Hello world"))
