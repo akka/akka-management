@@ -5,12 +5,15 @@
 package akka.rollingupdate.kubernetes
 
 import scala.collection.immutable
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-
 import akka.Done
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
+import akka.dispatch.Dispatchers.DefaultBlockingDispatcherId
 import akka.event.Logging
+import akka.event.LoggingAdapter
+import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
 import akka.http.scaladsl.marshalling.Marshal
@@ -25,7 +28,18 @@ import akka.http.scaladsl.model.headers.Authorization
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.pattern.after
+import akka.pki.kubernetes.PemManagersProvider
 import akka.util.ByteString
+
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.security.KeyStore
+import java.security.SecureRandom
+import javax.net.ssl.KeyManager
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import scala.util.control.NonFatal
 
 /**
  * INTERNAL API
@@ -180,6 +194,51 @@ PUTs must contain resourceVersions. Response:
     } yield result
   }
 
+  /**
+   * Start a proxy in local minikube:
+   * - kubectl proxy --port=8080
+   * - replic_set_name=$(curl -s http://localhost:8080/api/v1/namespaces/akka-rollingupdate-demo-ns/pods | jq '.items[0].metadata.ownerReferences[0].name'| tr -d '"')
+   * - revision=$(curl -s http://localhost:8080/apis/apps/v1/namespaces/akka-rollingupdate-demo-ns/replicasets/"$replic_set_name" | jq '.metadata.annotations["deployment.kubernetes.io/revision"]'| tr -d '"')
+   *
+   * @return
+   */
+  override def readRevision(): Future[String] = {
+    val maxTries = 5
+    def loop(tries: Int = 0): Future[Option[String]] = {
+
+      val powOwnerRef = getPod().map(_.metadata.ownerReferences.filter(_.kind == "ReplicaSet").headOption)
+
+      val replicaSet = powOwnerRef.flatMap {
+        case Some(podOwnerRef) => getReplicaSet(podOwnerRef.name)
+        case None              => Future.failed(new ReadRevisionException("No replica name found"))
+      }
+
+      val revision = replicaSet.map(_.metadata.annotations.`deployment.kubernetes.io/revision`)
+      revision.map(Some(_)).recoverWith {
+        case ex =>
+          if (tries >= maxTries) {
+            Future(None)
+          } else {
+            log.warning(s"Failed to get revision ${ex.getMessage}. Try again ($tries)")
+            loop(tries + 1)
+          }
+      }
+    }
+
+    loop()
+      .map {
+        case Some(revision) =>
+          log.info(s"Reading revision from Kubernetes: akka.cluster.app-version was set to $revision")
+          revision
+        case None => throw new ReadRevisionException(s"Not able to read revision from Kubernetes.")
+      }
+      .recover {
+        case ex =>
+          throw new ReadRevisionException(s"Error. Not able to read revision from Kubernetes: ${ex.getMessage}")
+      }
+
+  }
+
   private[akka] def removePodCostResource(crName: String): Future[Done] = {
     for {
       response <- makeRequest(
@@ -311,4 +370,125 @@ PUTs must contain resourceVersions. Response:
     } yield resource
   }
 
+  private val pathForGetPod: Uri.Path =
+    Uri.Path.Empty / "api" / "v1" / "namespaces" / namespace / "pods" / settings.podName
+
+  private def pathForReplicaSet(replicaSetName: String): Uri.Path =
+    Uri.Path.Empty / "apis" / "apps" / "v1" / "namespaces" / namespace / "replicasets" / replicaSetName
+
+  private def getReplicaSet(name: String): Future[ReplicaSet] = {
+    val ent = HttpEntity.Empty.withContentType(ContentTypes.`application/json`)
+    val request = requestForPath(pathForReplicaSet(name), entity = ent)
+    val httpResponse = makeRequest(request, s"Timeout getting replica set '$name'")
+    for {
+      response <- httpResponse
+      responseEntity <- response.entity.toStrict(settings.bodyReadTimeout)
+      replicaSet <- response.status match {
+        case StatusCodes.OK =>
+          Unmarshal(responseEntity).to[ReplicaSet].recover {
+            case ex =>
+              throw new ReplicaSetException(s"Error while parsing ReplicaSet: ${ex.getMessage}")
+          }
+        case StatusCodes.Unauthorized =>
+          handleUnauthorized(response)
+        case unexpected =>
+          responseEntity
+            .toStrict(settings.bodyReadTimeout)
+            .flatMap(e => Unmarshal(e).to[String])
+            .map(body =>
+              throw new ReplicaSetException(
+                s"Unexpected response from API server when creating PodCost. ReplicaSet: $unexpected. Body: $body"))
+      }
+    } yield {
+      replicaSet
+    }
+  }
+
+  private def getPod(): Future[Pod] = {
+
+    val ent = HttpEntity.Empty.withContentType(ContentTypes.`application/json`)
+    val request = requestForPath(pathForGetPod, entity = ent)
+    val httpResponse = makeRequest(request, "Timeout listing pods")
+    for {
+      response <- httpResponse
+      responseEntity <- response.entity.toStrict(settings.bodyReadTimeout)
+      pod <- response.status match {
+        case StatusCodes.OK =>
+          Unmarshal(responseEntity).to[Pod].recover {
+            case ex => throw new GetPodException(s"Error while parsing Pod: ${ex.getMessage}")
+          }
+        case StatusCodes.Unauthorized =>
+          handleUnauthorized(response)
+        case unexpected =>
+          Unmarshal(response.entity)
+            .to[String]
+            .map(body =>
+              throw new GetPodException(
+                s"Unexpected response from API server when retrieving Pod. StatusCode: $unexpected. Body: $body"))
+      }
+    } yield pod
+  }
+
+}
+
+/**
+ * INTERNAL API
+ */
+@InternalApi private[akka] object KubernetesApiImpl {
+  def apply(log: LoggingAdapter, k8sSettings: KubernetesSettings)(implicit system: ActorSystem) = {
+    implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
+    for {
+      apiToken: String <- Future {
+        readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token", log).getOrElse("")
+      }
+      podNamespace: String <- Future {
+        k8sSettings.namespace
+          .orElse(readConfigVarFromFilesystem(k8sSettings.namespacePath, "namespace", log))
+          .getOrElse("default")
+      }
+      httpsContext <- Future(clientHttpsConnectionContext(k8sSettings))
+    } yield {
+      new KubernetesApiImpl(system, k8sSettings, podNamespace, apiToken, httpsContext)
+    }
+  }
+
+  /**
+   * This uses blocking IO, and so should only be used to read configuration at startup from blocking dispatcher.
+   */
+  private def readConfigVarFromFilesystem(path: String, name: String, log: LoggingAdapter): Option[String] = {
+    val file = Paths.get(path)
+    if (Files.exists(file)) {
+      try {
+        Some(new String(Files.readAllBytes(file), "utf-8"))
+      } catch {
+        case NonFatal(e) =>
+          log.error(e, "Error reading {} from {}", name, path)
+          None
+      }
+    } else {
+      log.warning("Unable to read {} from {} because it doesn't exist.", name, path)
+      None
+    }
+  }
+
+  /**
+   * This uses blocking IO, and so should only be used at startup from blocking dispatcher.
+   */
+  private def clientHttpsConnectionContext(k8sSettings: KubernetesSettings): Option[HttpsConnectionContext] = {
+    if (k8sSettings.secure) {
+      val certificates = PemManagersProvider.loadCertificates(k8sSettings.apiCaPath)
+      val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+      val keyStore = KeyStore.getInstance("PKCS12")
+      keyStore.load(null)
+      factory.init(keyStore, Array.empty)
+      val km: Array[KeyManager] = factory.getKeyManagers
+      val tm: Array[TrustManager] =
+        PemManagersProvider.buildTrustManagers(certificates)
+      val random: SecureRandom = new SecureRandom
+      val sslContext = SSLContext.getInstance("TLSv1.2")
+      sslContext.init(km, tm, random)
+      Some(ConnectionContext.httpsClient(sslContext))
+    } else
+      None
+  }
 }

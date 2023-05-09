@@ -1,0 +1,5 @@
+# removed an internal class
+ProblemFilters.exclude[MissingClassProblem]("akka.management.cluster.bootstrap.ClusterBootstrap$Internal$")
+ProblemFilters.exclude[MissingClassProblem]("akka.management.cluster.bootstrap.ClusterBootstrap$Internal$BootstrapStep")
+ProblemFilters.exclude[MissingClassProblem]("akka.management.cluster.bootstrap.ClusterBootstrap$Internal$Initializing$")
+ProblemFilters.exclude[MissingClassProblem]("akka.management.cluster.bootstrap.ClusterBootstrap$Internal$NotRunning$")

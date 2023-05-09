@@ -24,7 +24,7 @@ import akka.management.scaladsl.AkkaManagement
 import akka.management.scaladsl.ManagementRouteProvider
 import akka.management.scaladsl.ManagementRouteProviderSettings
 
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.concurrent.Promise
@@ -33,12 +33,11 @@ import scala.util.control.NonFatal
 
 final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Extension with ManagementRouteProvider {
 
-  import ClusterBootstrap.Internal._
   import system.dispatcher
 
   private val log = Logging(system, classOf[ClusterBootstrap])
 
-  private final val bootstrapStep = new AtomicReference[BootstrapStep](NotRunning)
+  private final val bootstrapStep = new AtomicBoolean(false)
 
   AkkaVersion.require("cluster-bootstrap", "2.5.27")
 
@@ -105,7 +104,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
         "This node will attempt to join the configured seed nodes.",
         Cluster(system).settings.SeedNodes.mkString("[", ", ", "]")
       )
-    } else if (bootstrapStep.compareAndSet(NotRunning, Initializing)) {
+    } else if (bootstrapStep.compareAndSet(false, true)) {
       log.info("Initiating bootstrap procedure using {} method...", settings.contactPointDiscovery.discoveryMethod)
 
       ensureSelfContactPoint()
@@ -157,14 +156,5 @@ object ClusterBootstrap extends ExtensionId[ClusterBootstrap] with ExtensionIdPr
   override def get(system: ClassicActorSystemProvider): ClusterBootstrap = super.get(system)
 
   override def createExtension(system: ExtendedActorSystem): ClusterBootstrap = new ClusterBootstrap()(system)
-
-  /**
-   * INTERNAL API
-   */
-  private[bootstrap] object Internal {
-    sealed trait BootstrapStep
-    case object NotRunning extends BootstrapStep
-    case object Initializing extends BootstrapStep
-  }
 
 }

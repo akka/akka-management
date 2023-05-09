@@ -180,4 +180,70 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ```
 
+## app-version from Deployment
 
+When using Cluster Sharding, it is [recommended](https://doc.akka.io/docs/akka/current/additional/rolling-updates.html#cluster-sharding) for rolling updates. That means that you have to define an increasing `akka.cluster.app-version` configuration property for each roll out. 
+
+This works well unless you use `kubectl rollout undo` which deploys the previous ReplicaSet configuration which contains the previous value for that config. 
+
+To fix this, you can use `AppVersionRevision` to read the current annotation `deployment.kubernetes.io/revision` (part of the ReplicaSet) from the Kubernetes Deployment via the Kubernetes api which always increases, also during a rollback:
+
+### Using
+
+The AppVersionRevision extension must be started, this can either be done through config or programmatically.
+
+**Through config**
+
+Listing the `AppVersionRevision` extension among the autoloaded `akka.extensions` in `application.conf` will also cause it to autostart:
+
+```
+akka.extensions = ["akka.rollingupdate.kubernetes.AppVersionRevision"]
+```
+
+If the extension configuration is incorrect, the autostart will log an error and terminate the actor system.
+
+**Programmatically**
+
+
+Scala
+:  @@snip [AppVersionRevisionCompileOnly.scala](/rolling-update-kubernetes/src/test/scala/doc/akka/rollingupdate/kubernetes/AppVersionRevisionCompileOnly.scala) { #start }
+
+Java
+:  @@snip [AppVersionRevisionCompileOnly.java](/rolling-update-kubernetes/src/test/java/jdoc/akka/rollingupdate/kubernetes/AppVersionRevisionCompileOnly.java) { #start }
+
+#### Configuration
+
+The following configuration is required, more details for each and additional configurations can be found in [reference.conf](https://github.com/akka/akka-management/blob/main/rolling-updates-kubernetes/src/main/resources/reference.conf):
+
+* `akka.rollingupdate.kubernetes.pod-name`: this can be provided by setting `KUBERNETES_POD_NAME` environment variable to `metadata.name` on the Kubernetes container spec.
+
+Additionally, the pod annotator needs to know which namespace the pod belongs to. By default, this will be detected by reading the namespace
+from the service account secret, in `/var/run/secrets/kubernetes.io/serviceaccount/namespace`, but can be overridden by
+setting `akka.rollingupdate.kubernetes.namespace` or by providing `KUBERNETES_NAMESPACE` environment variable.
+
+#### Role based access control
+
+Make sure to provide access to corresponding rbac rules `apiGroups` and `resources` like this:
+
+```
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-reader
+rules:
+- apiGroups: ["apps", ""]
+  resources: ["pods", "replicasets"]
+  verbs: ["get", "list"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-reader
+subjects: 
+- kind: ServiceAccount
+  name: default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+```
