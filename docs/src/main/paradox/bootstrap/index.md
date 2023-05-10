@@ -100,7 +100,7 @@ Scala
 Java
 :  @@snip [CompileOnly.java](/cluster-bootstrap/src/test/java/jdoc/akka/management/cluster/bootstrap/ClusterBootstrapCompileOnly.java) { #start }
 
-`AkkaManagement().start()` will return a @Scala[`Future`]@Java[`CompletionStage`] that will fail if management cannot be started. It is 
+`AkkaManagement().start()` will return a @scala[`Future`]@java[`CompletionStage`] that will fail if management cannot be started. It is 
 a good idea to act on such a failure, for example by logging an error and terminating the actor system.
 
 Ensure that `seed-nodes` is not present in configuration and that either autoloading through config or `start()` is called on every node.
