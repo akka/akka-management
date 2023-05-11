@@ -37,7 +37,8 @@ do
   # Get the list of pods matching the namespace and app name, and are in the Running state
   pod_list=$(kubectl get pods -n $NAMESPACE | grep $APP_NAME | grep Running | awk '{ print $1 }')
   annotated_count=0
-  echo "## Pod List:\n$pod_list\n##"
+  pod_annotation_array=()
+  echo -e "## Pod List:\n$pod_list\n##"
 
   for pod_name in $pod_list
   do
