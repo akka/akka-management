@@ -182,11 +182,11 @@ roleRef:
 
 ## app-version from Deployment
 
-When using Cluster Sharding, it is [recommended](https://doc.akka.io/docs/akka/current/additional/rolling-updates.html#cluster-sharding) for rolling updates. That means that you have to define an increasing `akka.cluster.app-version` configuration property for each roll out. 
+When using Cluster Sharding, it is [recommended](https://doc.akka.io/docs/akka/current/additional/rolling-updates.html#cluster-sharding) to define an increasing `akka.cluster.app-version` configuration property for each roll out. 
 
 This works well unless you use `kubectl rollout undo` which deploys the previous ReplicaSet configuration which contains the previous value for that config. 
 
-To fix this, you can use `AppVersionRevision` to read the current annotation `deployment.kubernetes.io/revision` (part of the ReplicaSet) from the Kubernetes Deployment via the Kubernetes api which always increases, also during a rollback:
+To fix this, you can use `AppVersionRevision` to read the current annotation `deployment.kubernetes.io/revision` (part of the ReplicaSet) from the Kubernetes Deployment via the Kubernetes api which always increases, also during a rollback.
 
 ### Using
 
