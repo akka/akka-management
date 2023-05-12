@@ -58,7 +58,7 @@ final class AppVersionRevision(implicit system: ExtendedActorSystem) extends Ext
   if (autostart) {
     log.info("AppVersionRevision loaded through 'akka.extensions' auto-starting itself.")
     try {
-      AppVersionRevision(system).start()
+      start()
     } catch {
       case NonFatal(ex) =>
         log.error(ex, "Failed to autostart AppVersionRevision extension")
