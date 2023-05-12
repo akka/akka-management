@@ -82,7 +82,7 @@ final class ClusterBootstrap(implicit system: ExtendedActorSystem) extends Exten
       }
       try {
         AkkaManagement(system).start().failed.foreach(autostartFailed)
-        ClusterBootstrap(system).start()
+        start()
       } catch {
         case NonFatal(ex) => autostartFailed(ex)
       }
