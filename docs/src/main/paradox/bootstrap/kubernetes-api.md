@@ -28,7 +28,15 @@ The following configuration is required:
 
 The lookup needs to know which namespace to look in. By default, this will be detected by reading the namespace
 from the service account secret, in `/var/run/secrets/kubernetes.io/serviceaccount/namespace`, but can be overridden by
-setting `akka.discovery.kubernetes-api.pod-namespace`.
+setting `akka.discovery.kubernetes-api.pod-namespace` or by providing `KUBERNETES_NAMESPACE` environment variable.
+
+```yaml
+        env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+```
 
 For more details on how to configure the Kubernetes deployment see @ref:[recipes](recipes.md).
 
