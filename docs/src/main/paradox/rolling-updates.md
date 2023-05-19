@@ -85,9 +85,25 @@ The following configuration is required, more details for each and additional co
 
 * `akka.rollingupdate.kubernetes.pod-name`: this can be provided by setting `KUBERNETES_POD_NAME` environment variable to `metadata.name` on the Kubernetes container spec.
 
+```yaml
+        env:
+        - name: KUBERNETES_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+```
+
 Additionally, the pod annotator needs to know which namespace the pod belongs to. By default, this will be detected by reading the namespace
 from the service account secret, in `/var/run/secrets/kubernetes.io/serviceaccount/namespace`, but can be overridden by
 setting `akka.rollingupdate.kubernetes.namespace` or by providing `KUBERNETES_NAMESPACE` environment variable.
+
+```yaml
+        env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+```
 
 #### Role based access control
 
@@ -217,9 +233,25 @@ The following configuration is required, more details for each and additional co
 
 * `akka.rollingupdate.kubernetes.pod-name`: this can be provided by setting `KUBERNETES_POD_NAME` environment variable to `metadata.name` on the Kubernetes container spec.
 
+```yaml
+        env:
+        - name: KUBERNETES_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+```
+
 Additionally, the pod annotator needs to know which namespace the pod belongs to. By default, this will be detected by reading the namespace
 from the service account secret, in `/var/run/secrets/kubernetes.io/serviceaccount/namespace`, but can be overridden by
 setting `akka.rollingupdate.kubernetes.namespace` or by providing `KUBERNETES_NAMESPACE` environment variable.
+
+```yaml
+        env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+```
 
 #### Role based access control
 
