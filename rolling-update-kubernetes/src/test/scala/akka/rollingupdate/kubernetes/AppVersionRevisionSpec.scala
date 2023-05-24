@@ -13,42 +13,28 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 object AppVersionRevisionSpec {
   val config = ConfigFactory.parseString("""
-      akka.loggers = ["akka.testkit.TestEventListener"]
       akka.actor.provider = cluster
 
       akka.remote.artery.canonical.port = 0
       akka.remote.artery.canonical.hostname = 127.0.0.1
 
-      akka.cluster.jmx.multi-mbeans-in-same-jvm = on
       akka.coordinated-shutdown.terminate-actor-system = off
       akka.coordinated-shutdown.run-by-actor-system-terminate = off
-      akka.test.filter-leeway = 10s
-      akka.rollingupdate.kubernetes {
-       api-ca-path = ""
-       api-token-path = ""
-       api-service-host = ""
-       api-service-port = 0
-       namespace = ""
-       namespace-path = ""
-       pod-name = ""
-       secure-api-server = false
-       api-service-request-timeout = 2s
-      }
+      akka.rollingupdate.kubernetes.pod-name = ""
     """)
 }
 class AppVersionRevisionSpec
     extends TestKit(
       ActorSystem(
         "AppVersionRevisionSpec",
-        KubernetesApiSpec.config
+        AppVersionRevisionSpec.config
       ))
     with AnyWordSpecLike
     with Matchers
-    with Eventually
     with ScalaFutures {
 
   "AppVersionRevision extension" should {
-    "return failed future if pod-name not configured" in {
+    "return failed future if pod-name is not configured" in {
       val revisionExtension = AppVersionRevision(system)
       revisionExtension.start()
       val failure = revisionExtension.getRevision().failed.futureValue
