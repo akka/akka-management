@@ -7,10 +7,10 @@ package akka.rollingupdate.kubernetes
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
-import org.scalatest.concurrent.Eventually
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
+
 object AppVersionRevisionSpec {
   val config = ConfigFactory.parseString("""
       akka.actor.provider = cluster
