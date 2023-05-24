@@ -34,21 +34,24 @@ final class AppVersionRevision(implicit system: ExtendedActorSystem) extends Ext
   def getRevision(): Future[Version] = versionPromise.future
 
   def start(): Unit = {
-    if (k8sSettings.podName.isEmpty) {
-      log.error(
-        "Not able to read the app version from the revision of the current ReplicaSet. Reason:" +
-        "No configuration found to extract the pod name from. " +
-        s"Be sure to provide the pod name with `$configPath.pod-name` " +
-        "or by setting ENV variable `KUBERNETES_POD_NAME`.")
-    } else {
-      if (isInitialized.compareAndSet(false, true)) {
+    if (isInitialized.compareAndSet(false, true)) {
+      if (k8sSettings.podName.isEmpty) {
+        val msg = "Not able to read the app version from the revision of the current ReplicaSet. Reason:" +
+          "No configuration found to extract the pod name from. " +
+          s"Be sure to provide the pod name with `$configPath.pod-name` " +
+          "or by setting ENV variable `KUBERNETES_POD_NAME`."
+        log.error(msg)
+        versionPromise.failure(new IllegalStateException(msg))
+      } else {
         Cluster(system).setAppVersionLater(getRevision())
         KubernetesApiImpl(log, k8sSettings).foreach { kubernetesApi =>
           versionPromise.completeWith(kubernetesApi.readRevision().map(Version(_)))
         }
-      } else
-        log.warning("AppVersionRevision extension already initiated, yet start() method was called again. Ignoring.")
+      }
+    } else {
+      log.warning("AppVersionRevision extension already initiated, yet start() method was called again. Ignoring.")
     }
+
   }
 
   // autostart if the extension is loaded through the config extension list
