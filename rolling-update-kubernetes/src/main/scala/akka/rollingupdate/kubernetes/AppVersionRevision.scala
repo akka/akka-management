@@ -41,7 +41,7 @@ final class AppVersionRevision(implicit system: ExtendedActorSystem) extends Ext
           s"Be sure to provide the pod name with `$configPath.pod-name` " +
           "or by setting ENV variable `KUBERNETES_POD_NAME`."
         log.error(msg)
-        versionPromise.failure(new IllegalStateException(msg))
+        versionPromise.failure(new MissingPodNameException(msg))
       } else {
         Cluster(system).setAppVersionLater(getRevision())
         KubernetesApiImpl(log, k8sSettings).foreach { kubernetesApi =>

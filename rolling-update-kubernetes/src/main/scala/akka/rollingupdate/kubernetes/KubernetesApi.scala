@@ -52,6 +52,11 @@ private[akka] final case class PodCost(podName: String, cost: Int, address: Stri
 /**
  * INTERNAL API
  */
+@InternalApi private[akka] sealed class MissingPodNameException(message: String) extends RuntimeException(message)
+
+/**
+ * INTERNAL API
+ */
 @InternalApi private[akka] sealed class GetPodException(message: String) extends RuntimeException(message)
 
 /**
