@@ -206,7 +206,7 @@ PUTs must contain resourceVersions. Response:
     val maxTries = 5
     def loop(tries: Int = 0): Future[Option[String]] = {
 
-      val powOwnerRef = getPod().map(_.metadata.ownerReferences.filter(_.kind == "ReplicaSet").headOption)
+      val powOwnerRef = getPod().map(_.metadata.ownerReferences.find(_.kind == "ReplicaSet"))
 
       val replicaSet = powOwnerRef.flatMap {
         case Some(podOwnerRef) => getReplicaSet(podOwnerRef.name)
@@ -296,7 +296,7 @@ PUTs must contain resourceVersions. Response:
     Unmarshal(response.entity)
       .to[String]
       .map(body =>
-        throw new PodCostException(
+        throw new UnauthorizedException(
           "Unauthorized to communicate with Kubernetes API server. See " +
           "https://doc.akka.io/docs/akka-management/current/rolling-updates.html#role-based-access-control " +
           s"for setting up access control. Body: $body"))
@@ -397,7 +397,7 @@ PUTs must contain resourceVersions. Response:
             .flatMap(e => Unmarshal(e).to[String])
             .map(body =>
               throw new ReplicaSetException(
-                s"Unexpected response from API server when creating PodCost. ReplicaSet: $unexpected. Body: $body"))
+                s"Unexpected response from API server when getting ReplicaSet. ReplicaSet: $unexpected. Body: $body"))
       }
     } yield {
       replicaSet

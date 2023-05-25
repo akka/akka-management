@@ -263,8 +263,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: pod-reader
 rules:
-- apiGroups: ["apps", ""]
-  resources: ["pods", "replicasets"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+- apiGroups: ["apps"]
+  resources: ["replicasets"]
   verbs: ["get", "list"]
 ---
 kind: RoleBinding

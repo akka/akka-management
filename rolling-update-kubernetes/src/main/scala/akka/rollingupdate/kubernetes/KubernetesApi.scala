@@ -32,6 +32,11 @@ private[akka] final case class PodCost(podName: String, cost: Int, address: Stri
 /**
  * INTERNAL API
  */
+@InternalApi private[akka] sealed class UnauthorizedException(message: String) extends RuntimeException(message)
+
+/**
+ * INTERNAL API
+ */
 @InternalApi private[akka] sealed class PodCostException(message: String) extends RuntimeException(message)
 
 /**
