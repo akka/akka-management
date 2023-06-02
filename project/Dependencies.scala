@@ -15,10 +15,10 @@ object Dependencies {
   val AkkaHttpVersion = "10.5.1"
   val AkkaHttpBinaryVersion = "10.5"
 
-  val ScalaTestVersion = "3.2.15"
+  val ScalaTestVersion = "3.2.16"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
-  val AwsSdkVersion = "1.12.455"
+  val AwsSdkVersion = "1.12.477"
   val JacksonVersion = "2.13.4"
   val JacksonDatabindVersion = "2.13.4.2"
 
@@ -33,7 +33,7 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-guava" % JacksonVersion,
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % JacksonVersion,
     // Specifying guava dependency because older transitive dependency has security vulnerability
-    "com.google.guava" % "guava" % "31.1-jre"
+    "com.google.guava" % "guava" % "32.0.0-jre"
   )
 
   val DiscoveryConsul = Seq(
@@ -80,7 +80,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
       "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-      ("software.amazon.awssdk" % "ecs" % "2.20.52").exclude("software.amazon.awssdk", "apache-client"),
+      ("software.amazon.awssdk" % "ecs" % "2.20.74").exclude("software.amazon.awssdk", "apache-client"),
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
     ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
