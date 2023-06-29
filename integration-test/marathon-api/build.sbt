@@ -4,7 +4,7 @@ name := "bootstrap-demo-marathon-api"
 
 version := "0.1.0"
 
-scalaVersion := "2.13.10"
+scalaVersion := "2.13.11"
 
 val akkaManagementVersion = "1.2.0"
 
