@@ -33,7 +33,17 @@ A discovery mechanism needs to be chosen. A good default choice is DNS.
 Add `akka-management-cluster-bootstrap` and one or more discovery mechanisms to use for the discovery process.
 
 For example, you might choose to use the @extref:[DNS discovery](akka:discovery/index.html#discovery-method-dns)
-and bootstrap extensions:
+and bootstrap extensions.
+
+The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
+
+@@repository [sbt,Gradle,Maven] {
+id="akka-repository"
+name="Akka library repository"
+url="https://repo.akka.io/maven"
+}
+
+Additionally, add the dependencies as below.
 
 @@dependency[sbt,Gradle,Maven] {
   symbol=AkkaVersion

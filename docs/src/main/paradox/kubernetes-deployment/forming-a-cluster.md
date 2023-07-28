@@ -24,6 +24,16 @@ Add the following dependencies to your application:
 * @ref[Akka Discovery Kubernetes](../discovery/kubernetes.md): This provides a discovery mechanism that queries the Kubernetes API
 * @ref[Akka Bootstrap](../bootstrap/index.md): This bootstraps the cluster from nodes discovered via the Kubernetes API
 
+The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
+
+@@repository [sbt,Gradle,Maven] {
+id="akka-repository"
+name="Akka library repository"
+url="https://repo.akka.io/maven"
+
+
+Additionally, add the dependencies as below.
+
 @@dependency[sbt,Gradle,Maven] {
   symbol1=AkkaManagementVersion
   value1=$project.version$
