@@ -14,6 +14,16 @@ and you have to combine it with the management extension libraries that you want
 or cluster bootstrap). This design choice enables users to include only the minimal set of features they
 actually want to use (and load) in their project.
 
+The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
+
+@@repository [sbt,Gradle,Maven] {
+id="akka-repository"
+name="Akka library repository"
+url="https://repo.akka.io/maven"
+}
+
+Additionally, add the dependency as below.
+
 @@dependency[sbt,Gradle,Maven] {
   symbol1=AkkaManagementVersion
   value1="$project.version$"

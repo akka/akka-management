@@ -14,7 +14,17 @@ The operations exposed are comparable to the Command Line Management tool or the
 ## Dependencies
 
 The Akka Cluster HTTP Management is a separate jar file.
-Make sure to include it along with the core akka-management library in your project:
+Make sure to include it along with the core akka-management library in your project.
+
+The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
+
+@@repository [sbt,Gradle,Maven] {
+id="akka-repository"
+name="Akka library repository"
+url="https://repo.akka.io/maven"
+}
+
+Additionally, add the dependencies as below.
 
 @@dependency[sbt,Gradle,Maven] {
   symbol1=AkkaManagementVersion
