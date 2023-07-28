@@ -58,8 +58,17 @@ Note that the `app` is the same for both services as they both refer to the same
 ### Health checks
 
 `akka-management` includes a HTTP route for readiness and liveness checks.
-`akka-management-cluster-http` includes readiness check for the Akka Cluster membership. To use it
-add the following dependency:
+`akka-management-cluster-http` includes readiness check for the Akka Cluster membership.
+
+The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
+
+@@repository [sbt,Gradle,Maven] {
+id="akka-repository"
+name="Akka library repository"
+url="https://repo.akka.io/maven"
+}
+
+Additionally, add the dependency as below.
 
 @@dependency[sbt,Gradle,Maven] {
   symbol1=AkkaManagementVersion

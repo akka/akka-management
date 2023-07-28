@@ -47,7 +47,15 @@ ensure the "Tag New Instances" option is checked.
 
 #### Dependencies and usage (EC2 Tag-Based Discovery)
 
-This is a separate JAR file:
+The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
+
+@@repository [sbt,Gradle,Maven] {
+id="akka-repository"
+name="Akka library repository"
+url="https://repo.akka.io/maven"
+}
+
+Additionally, add the dependency as below.
 
 @@dependency[sbt,Gradle,Maven] {
   symbol1=AkkaManagementVersion
