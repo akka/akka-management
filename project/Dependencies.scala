@@ -21,7 +21,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http-core" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     // Making it so our modified cluster-bootstrap depends on the official implementation of akka-management core
-    "com.lightbend.akka.management" %% "akka-management" % version.value,
+    "com.lightbend.akka.management" %% "akka-management" % "1.1.4",
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
     "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
     "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Test,
