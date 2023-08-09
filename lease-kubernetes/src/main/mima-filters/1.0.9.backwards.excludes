@@ -1,3 +1,0 @@
-# internals, kubernetes lease improvements
-ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor.props")
-ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor.this")

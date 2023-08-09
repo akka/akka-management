@@ -1,6 +1,0 @@
-# internal, endpoint for cluster shutdown
-ProblemFilters.exclude[MissingClassProblem]("akka.management.cluster.ClusterHttpManagementOperation$")
-ProblemFilters.exclude[MissingClassProblem]("akka.management.cluster.ClusterHttpManagementOperation")
-ProblemFilters.exclude[MissingTypesProblem]("akka.management.cluster.Down$")
-ProblemFilters.exclude[MissingTypesProblem]("akka.management.cluster.Leave$")
-ProblemFilters.exclude[MissingTypesProblem]("akka.management.cluster.Join$")

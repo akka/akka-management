@@ -1,5 +1,0 @@
-ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.discovery.kubernetes.PodList#PodStatus.containerStatuses")
-ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.discovery.kubernetes.PodList#PodStatus.copy")
-ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.discovery.kubernetes.PodList#PodStatus.copy$default$2")
-ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.discovery.kubernetes.PodList#PodStatus.this")
-ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.discovery.kubernetes.PodList#PodStatus.apply")

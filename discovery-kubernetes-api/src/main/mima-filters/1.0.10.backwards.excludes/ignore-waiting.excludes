@@ -1,4 +1,0 @@
-# private[kubernetes]
-ProblemFilters.exclude[DirectMissingMethodProblem]("akka.discovery.kubernetes.KubernetesApiServiceDiscovery.targets")
-ProblemFilters.exclude[Problem]("akka.discovery.kubernetes.PodList#*")
-ProblemFilters.exclude[Problem]("akka.discovery.kubernetes.PodList$*")
