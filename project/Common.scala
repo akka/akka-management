@@ -81,7 +81,7 @@ object Common extends AutoPlugin {
       // -v Log "test run started" / "test started" / "test run finished" events on log level "info" instead of "debug".
       // -a Show stack traces and exception class name for AssertionErrors.
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
-      scalaVersion := Dependencies.Scala212,
+//      scalaVersion := Dependencies.Scala212,
       sonatypeProfileName := "com.lightbend"
     )
 
