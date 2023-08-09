@@ -345,7 +345,16 @@ private[akka] class BootstrapCoordinator(
       selfContactPointScheme: String,
       contactPoint: ResolvedTarget): Option[ActorRef] = {
     val targetPort = contactPoint.port.getOrElse(settings.contactPoint.fallbackPort)
-    val rawBaseUri = Uri(selfContactPointScheme, Uri.Authority(Uri.Host(contactPoint.host), targetPort))
+    val host =
+      if (settings.contactPoint.connectByIP) contactPoint.address match {
+        case Some(address) =>
+          address.getCanonicalHostName
+        case None =>
+          log.warning(
+            s"'connect-by-ip' enabled, but no address found for ${contactPoint.host}. Falling back to hostname.")
+          contactPoint.host
+      } else contactPoint.host
+    val rawBaseUri = Uri("http", Uri.Authority(Uri.Host(host), targetPort))
     val baseUri = settings.managementBasePath.fold(rawBaseUri)(prefix => rawBaseUri.withPath(Uri.Path(s"/$prefix")))
 
     val childActorName = HttpContactPointBootstrap.name(baseUri.authority.host, baseUri.authority.port)

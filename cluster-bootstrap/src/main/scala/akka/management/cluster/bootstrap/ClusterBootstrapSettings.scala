@@ -124,6 +124,8 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
   object contactPoint {
     private val contactPointConfig = bootConfig.getConfig("contact-point")
 
+    val connectByIP: Boolean = contactPointConfig.getBoolean("connect-by-ip")
+
     val fallbackPort: Int =
       contactPointConfig
         .optDefinedValue("fallback-port")
