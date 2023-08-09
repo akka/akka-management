@@ -143,6 +143,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-cluster" % AkkaVersion,
     "com.typesafe.akka" %% "akka-http-core" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+    "com.lightbend.akka.management" %% "akka-management" % "1.1.4",
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
     "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
     "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Test,

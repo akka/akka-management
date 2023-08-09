@@ -152,7 +152,6 @@ lazy val `cluster-bootstrap` = project
     libraryDependencies := Dependencies.ClusterBootstrap,
     mimaPreviousArtifactsSet
   )
-  .dependsOn(`akka-management`)
 
 lazy val `lease-kubernetes` = project
   .in(file("lease-kubernetes"))
