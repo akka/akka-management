@@ -190,7 +190,7 @@ and even trigger joining/leaving/downing decisions via HTTP calls to these route
 logic for these are implemented inside the `akka-management-cluster-http`.
 
 Management route providers should be regular extensions that additionally extend the
-`akka.management.scaladsl.ManagementRoutesProvider` or `akka.management.javadsl.ManagementRoutesProvider`
+`akka.management.scaladsl.ManagementRouteProvider` or `akka.management.javadsl.ManagementRouteProvider`
 interface.
 
 Libraries may register routes into the management routes by defining entries to this setting
@@ -205,7 +205,7 @@ akka.management.http.routes {
 Where the `name` of the entry should be unique to allow different route providers to be registered
 by different libraries and applications.
 
-The FQCN is the fully qualified class name of the `ManagementRoutesProvider`.
+The FQCN is the fully qualified class name of the `ManagementRouteProvider`.
 
 Route providers included by a library (from reference.conf) can be excluded by an application
 by using `""` or `null` as the FQCN of the named entry, for example:
