@@ -49,7 +49,7 @@ ensure the "Tag New Instances" option is checked.
 
 The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
 
-@@repository[sbt,Gradle,Maven] {
+@@repository [sbt,Gradle,Maven] {
 id="akka-repository"
 name="Akka library repository"
 url="https://repo.akka.io/maven"
