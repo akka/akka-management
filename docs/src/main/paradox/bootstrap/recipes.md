@@ -21,7 +21,7 @@ The recommended approach is to:
 
 * Use a Deployment for creating the pods
 * Use either the Kubernetes API or DNS for contact point discovery (details below)
-* Optionally use a service or ingress for any for traffic coming from outside of the Akka Cluster e.g. gRPC and HTTP
+* Optionally use a service or ingress for any traffic coming from outside of the Akka Cluster e.g. gRPC and HTTP
 
 ### Example project
 
