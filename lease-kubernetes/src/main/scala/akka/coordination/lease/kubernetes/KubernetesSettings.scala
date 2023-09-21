@@ -52,7 +52,8 @@ private[akka] object KubernetesSettings {
       config.getString("namespace-path"),
       apiServerRequestTimeout,
       secure = config.getBoolean("secure-api-server"),
-      apiServerRequestTimeout / 2)
+      apiServerRequestTimeout / 2,
+      config.getBoolean("allow-lease-name-truncation"))
 
   }
 }
@@ -70,4 +71,5 @@ private[akka] class KubernetesSettings(
     val namespacePath: String,
     val apiServerRequestTimeout: FiniteDuration,
     val secure: Boolean = true,
-    val bodyReadTimeout: FiniteDuration = 1.second)
+    val bodyReadTimeout: FiniteDuration = 1.second,
+    val allowLeaseNameTruncation: Boolean = false)
