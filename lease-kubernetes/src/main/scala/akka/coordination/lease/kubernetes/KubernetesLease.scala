@@ -60,10 +60,22 @@ object KubernetesLease {
    * Regex to follow: [a-z]([-a-z0-9]*[a-z0-9])
    * Limit the resulting name to 63 characters
    */
-  private def makeDNS1039Compatible(name: String): String = {
+  private def makeDNS1039Compatible(name: String, allowLeaseNameTruncation: Boolean): String = {
     val normalized =
       Normalizer.normalize(name, Normalizer.Form.NFKD).toLowerCase.replaceAll("[_.]", "-").replaceAll("[^-a-z0-9]", "")
-    trim(truncateTo63Characters(normalized), List('-'))
+
+    if (allowLeaseNameTruncation)
+      trim(truncateTo63Characters(normalized), List('-'))
+    else {
+      if (normalized.length > 63)
+        throw new IllegalArgumentException(
+          s"Too long lease resource name [$normalized]. At most 63 characters is accepted. " +
+          "A custom resource name can be defined in configuration `lease-name`, ClusterSingletonSettings, " +
+          "or ClusterShardingSettings. " +
+          "For backwards compatibility, lease name truncation can be allowed by enabling config " +
+          "`akka.coordination.lease.kubernetes.allow-lease-name-truncation`.")
+      trim(normalized, List('-'))
+    }
   }
 
 }
@@ -74,6 +86,8 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
   private val log = Logging(system, classOf[KubernetesLease])
 
   private val k8sSettings = KubernetesSettings(settings.leaseConfig, settings.timeoutSettings)
+  private val leaseName = makeDNS1039Compatible(settings.leaseName, k8sSettings.allowLeaseNameTruncation)
+
   private val k8sApi: Future[KubernetesApi] = {
     implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
     for {
@@ -96,7 +110,6 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
   def this(leaseSettings: LeaseSettings, system: ExtendedActorSystem) =
     this(system, new AtomicBoolean(false), leaseSettings)
 
-  private val leaseName = makeDNS1039Compatible(settings.leaseName)
   private val leaseActor: Future[ActorRef] = {
     k8sApi.map { api =>
       log.debug(
