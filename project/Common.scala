@@ -55,9 +55,7 @@ object Common extends AutoPlugin {
           "-unchecked",
           "-deprecation"
         )
-        if (scalaVersion.value == Dependencies.Scala212)
-          scalacOptionsBase ++: Seq("-Xfuture", "-Xfatal-warnings", "-Xlint", "-Ywarn-dead-code")
-        else if (scalaVersion.value == Dependencies.Scala213)
+        if (scalaVersion.value == Dependencies.Scala213)
           scalacOptionsBase ++: Seq("-Xlint", "-Ywarn-dead-code")
         else
           scalacOptionsBase
@@ -70,7 +68,7 @@ object Common extends AutoPlugin {
           else Seq("--release", "8")
         ),
       scalacOptions ++= (
-          if (isJdk8 || scalaVersion.value == Dependencies.Scala212) Seq.empty
+          if (isJdk8) Seq.empty
           else Seq("--release", "8")
         ),
       doc / javacOptions := Nil,
