@@ -10,7 +10,7 @@ dockerCommands :=
   }
 
 dockerExposedPorts := Seq(8080, 8558, 2552)
-dockerBaseImage := "openjdk:8-jre-alpine"
+dockerBaseImage := "docker.io/library/eclipse-temurin:17.0.8.1_1-jre"
 
 dockerCommands ++= Seq(
   Cmd("USER", "root"),
