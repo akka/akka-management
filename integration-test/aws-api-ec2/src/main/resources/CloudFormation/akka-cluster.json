@@ -63,7 +63,7 @@
         "UserData": {
           "Fn::Base64": {
             "Fn::Join": ["", ["#!/bin/bash -xe\n",
-              "sudo yum install -y java-1.8.0\n",
+              "sudo yum install -y java-11-openjdk\n",
               "sudo yum remove -y java-1.7.0-openjdk\n",
               "wget ", {"Ref": "Build"}, "\n",
               "export PURPOSE=", {"Ref": "Purpose"}, "\n",

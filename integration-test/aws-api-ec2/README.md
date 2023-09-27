@@ -15,7 +15,7 @@ Step 1: Launch Instances
 
 From the AWS Management Console, provision a few EC2 instances (you'll need at least 2). Recommended image: Ubuntu Server 16.04. As for the instance type, this demo app runs fine even on t1.micro instances. As for the security group, 
 for now, just select the default one and make sure you allow yourself ssh access to your instances. Once the instances are ready, 
-ssh into them - you may need to install Java 8 ( you can use this [guide](https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-get-on-ubuntu-16-04)).
+ssh into them - you may need to install Java 11 ( you can use this [guide](https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-get-on-ubuntu-16-04)).
 
 
 Step 2: Create IAM Role

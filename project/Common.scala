@@ -63,14 +63,8 @@ object Common extends AutoPlugin {
       javacOptions ++= Seq(
           "-Xlint:unchecked"
         ),
-      javacOptions ++= (
-          if (isJdk8) Seq.empty
-          else Seq("--release", "8")
-        ),
-      scalacOptions ++= (
-          if (isJdk8) Seq.empty
-          else Seq("--release", "8")
-        ),
+      javacOptions ++= Seq("--release", "11"),
+      scalacOptions ++= Seq("--release", "11"),
       doc / javacOptions := Nil,
       Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
           "-doc-title",
@@ -99,6 +93,10 @@ object Common extends AutoPlugin {
       sonatypeProfileName := "com.lightbend"
     )
 
-  private def isJdk8 =
-    VersionNumber(sys.props("java.specification.version")).matchesSemVer(SemanticSelector(s"=1.8"))
+  val isJdk11orHigher: Boolean = {
+    val result = VersionNumber(sys.props("java.specification.version")).matchesSemVer(SemanticSelector(">=11"))
+    if (!result)
+      throw new IllegalArgumentException("JDK 11 or higher is required")
+    result
+  }
 }
