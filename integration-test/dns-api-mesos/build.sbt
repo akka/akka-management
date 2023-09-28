@@ -1,7 +1,7 @@
 enablePlugins(JavaAppPackaging)
 name := "bootstrap-demo-dns-api"
 
-scalaVersion := "2.13.11"
+scalaVersion := "2.13.12"
 
 def akkaManagementVersion(version: String) = version.split('+')(0)
 
