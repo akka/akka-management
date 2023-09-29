@@ -198,7 +198,7 @@ lazy val `lease-kubernetes-int-test` = project
     publish / skip := true,
     libraryDependencies := Dependencies.LeaseKubernetesTest,
     version ~= (_.replace('+', '-')),
-    dockerBaseImage := "openjdk:8-jre-alpine",
+    dockerBaseImage := "docker.io/library/eclipse-temurin:17.0.8.1_1-jre",
     dockerUpdateLatest := true,
     dockerCommands := dockerCommands.value.flatMap {
         case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
@@ -207,7 +207,6 @@ lazy val `lease-kubernetes-int-test` = project
     dockerCommands ++= Seq(
         Cmd("USER", "root"),
         Cmd("RUN", "chgrp -R 0 . && chmod -R g=u ."),
-        Cmd("RUN", "/sbin/apk", "add", "--no-cache", "bash", "bind-tools", "busybox-extras", "curl", "strace"),
         Cmd("RUN", "chmod +x /opt/docker/bin/akka-lease-kubernetes-int-test")
       )
   )

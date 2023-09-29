@@ -10,10 +10,9 @@ dockerCommands :=
   }
 
 dockerExposedPorts := Seq(8080, 8558, 2552)
-dockerBaseImage := "openjdk:8-jre-alpine"
+dockerBaseImage := "docker.io/library/eclipse-temurin:17.0.8.1_1-jre"
 
 dockerCommands ++= Seq(
   Cmd("USER", "root"),
-  Cmd("RUN", "/sbin/apk", "add", "--no-cache", "bash", "bind-tools", "busybox-extras", "curl", "strace"),
   Cmd("RUN", "chgrp -R 0 . && chmod -R g=u .")
 )
