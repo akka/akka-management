@@ -14,7 +14,7 @@ object Dependencies {
   val AkkaHttpVersion = "10.5.1"
   val AkkaHttpBinaryVersion = "10.5"
 
-  val ScalaTestVersion = "3.2.16"
+  val ScalaTestVersion = "3.2.17"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
   val AwsSdkVersion = "1.12.539"
