@@ -25,7 +25,7 @@ public class CodeExamples {
     //#start-akka-management-with-https-context
     AkkaManagement management = AkkaManagement.get(system);
 
-    HttpsConnectionContext https = ConnectionContext.https(sslContext);
+    HttpsConnectionContext https = ConnectionContext.httpsServer(sslContext);
     management.start(settings -> settings.withHttpsConnectionContext(https));
     //#start-akka-management-with-https-context
   }

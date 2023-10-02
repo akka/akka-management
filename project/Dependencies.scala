@@ -8,18 +8,18 @@ object Dependencies {
   val CrossScalaVersions = Seq(Scala213, Scala3)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaVersion = "2.8.2"
-  val AkkaBinaryVersion = "2.8"
+  val AkkaVersion = "2.9.0-M2"
+  val AkkaBinaryVersion = "2.9"
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaHttpVersion = "10.5.1"
-  val AkkaHttpBinaryVersion = "10.5"
+  val AkkaHttpVersion = "10.6.0-M1"
+  val AkkaHttpBinaryVersion = "10.6"
 
   val ScalaTestVersion = "3.2.17"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
   val AwsSdkVersion = "1.12.559"
   val JacksonVersion = "2.15.2"
-  val JacksonDatabindVersion = "2.15.2"
+  val JacksonDatabindVersion = JacksonVersion
 
   val Log4j2Version = "2.20.0"
 
