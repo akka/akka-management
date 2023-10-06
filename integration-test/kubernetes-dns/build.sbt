@@ -2,6 +2,8 @@ import com.typesafe.sbt.packager.docker._
 
 enablePlugins(JavaServerAppPackaging)
 
+resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+
 version := "1.3.3.7" // we hard-code the version here, it could be anything really
 dockerCommands :=
   dockerCommands.value.flatMap {
@@ -16,3 +18,4 @@ dockerCommands ++= Seq(
   Cmd("USER", "root"),
   Cmd("RUN", "chgrp -R 0 . && chmod -R g=u .")
 )
+

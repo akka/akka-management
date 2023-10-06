@@ -2,6 +2,8 @@ enablePlugins(JavaServerAppPackaging)
 
 name := "bootstrap-demo-marathon-api"
 
+resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+
 version := "0.1.0"
 
 scalaVersion := "2.13.12"
