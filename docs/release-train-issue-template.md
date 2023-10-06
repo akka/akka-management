@@ -26,7 +26,7 @@ Variables to be expanded in this template:
 
 - [ ] Check [API](https://doc.akka.io/api/akka-management/$VERSION$/) documentation
 - [ ] Check [reference](https://doc.akka.io/docs/akka-management/$VERSION$/) documentation. Check that the reference docs were deployed and show a version warning (see section below on how to fix the version warning).
-- [ ] Check the release on https://repo.akka.io/maven/com/lightbend/akka/management/akka-management_2.13/$VERSION$/akka-management-cluster-http_2.13-$VERSION$.pom
+- [ ] Check the release on https://repo.akka.io/maven/com/lightbend/akka/management/akka-management_2.13/$VERSION$/akka-management_2.13-$VERSION$.pom
 
 ### When everything is on https://repo.akka.io/maven
   - [ ] Log into `gustav.akka.io` as `akkarepo` 
