@@ -6,6 +6,8 @@ scalaVersion := "2.13.12"
 
 enablePlugins(JavaServerAppPackaging)
 
+resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+
 version := "1.0"
 
 dockerUsername := sys.env.get("DOCKER_USER")

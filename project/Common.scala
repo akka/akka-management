@@ -1,4 +1,3 @@
-import com.geirsson.CiReleasePlugin
 import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys._
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
@@ -10,7 +9,7 @@ import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 object Common extends AutoPlugin {
 
   override def trigger = allRequirements
-  override def requires = plugins.JvmPlugin && HeaderPlugin && CiReleasePlugin
+  override def requires = plugins.JvmPlugin && HeaderPlugin
 
   val currentYear = "2023"
 
@@ -89,8 +88,7 @@ object Common extends AutoPlugin {
       // -v Log "test run started" / "test started" / "test run finished" events on log level "info" instead of "debug".
       // -a Show stack traces and exception class name for AssertionErrors.
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
-      scalaVersion := Dependencies.CrossScalaVersions.head,
-      sonatypeProfileName := "com.lightbend"
+      scalaVersion := Dependencies.CrossScalaVersions.head
     )
 
   val isJdk11orHigher: Boolean = {

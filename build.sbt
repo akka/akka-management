@@ -1,6 +1,7 @@
 import com.typesafe.sbt.packager.docker.{ Cmd, ExecCmd }
 import sbt.Keys.parallelExecution
 
+ThisBuild / resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 ThisBuild / resolvers += Resolver.jcenterRepo
 Global / excludeLintKeys += autoAPIMappings
 Global / excludeLintKeys += projectInfoVersion
@@ -10,7 +11,7 @@ Global / excludeLintKeys += previewPath
 lazy val `akka-management-root` = project
   .in(file("."))
   .enablePlugins(ScalaUnidocPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, com.geirsson.CiReleasePlugin)
   .aggregate(
     // When this aggregate is updated the list of modules in ManifestInfo.checkSameVersion
     // in AkkaManagement should also be updated
@@ -52,6 +53,7 @@ lazy val mimaPreviousArtifactsSet =
 lazy val `akka-discovery-kubernetes-api` = project
   .in(file("discovery-kubernetes-api"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-discovery-kubernetes-api",
     organization := "com.lightbend.akka.discovery",
@@ -63,6 +65,7 @@ lazy val `akka-discovery-kubernetes-api` = project
 lazy val `akka-discovery-marathon-api` = project
   .in(file("discovery-marathon-api"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-discovery-marathon-api",
     organization := "com.lightbend.akka.discovery",
@@ -73,6 +76,7 @@ lazy val `akka-discovery-marathon-api` = project
 lazy val `akka-discovery-aws-api` = project
   .in(file("discovery-aws-api"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-discovery-aws-api",
     organization := "com.lightbend.akka.discovery",
@@ -83,6 +87,7 @@ lazy val `akka-discovery-aws-api` = project
 lazy val `akka-discovery-aws-api-async` = project
   .in(file("discovery-aws-api-async"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-discovery-aws-api-async",
     organization := "com.lightbend.akka.discovery",
@@ -93,6 +98,7 @@ lazy val `akka-discovery-aws-api-async` = project
 lazy val `akka-discovery-consul` = project
   .in(file("discovery-consul"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-discovery-consul",
     organization := "com.lightbend.akka.discovery",
@@ -104,6 +110,7 @@ lazy val `akka-discovery-consul` = project
 lazy val `akka-management` = project
   .in(file("management"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-management",
     libraryDependencies := Dependencies.ManagementHttp,
@@ -113,6 +120,7 @@ lazy val `akka-management` = project
 lazy val `akka-management-pki` = project
   .in(file("management-pki"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-management-pki",
     libraryDependencies := Dependencies.ManagementPki,
@@ -122,6 +130,7 @@ lazy val `akka-management-pki` = project
 lazy val `loglevels-logback` = project
   .in(file("loglevels-logback"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-management-loglevels-logback",
     libraryDependencies := Dependencies.LoglevelsLogback,
@@ -132,6 +141,7 @@ lazy val `loglevels-logback` = project
 lazy val `loglevels-log4j2` = project
   .in(file("loglevels-log4j2"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .disablePlugins(MimaPlugin)
   .settings(
     name := "akka-management-loglevels-log4j2",
@@ -142,6 +152,7 @@ lazy val `loglevels-log4j2` = project
 lazy val `cluster-http` = project
   .in(file("cluster-http"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-management-cluster-http",
     libraryDependencies := Dependencies.ClusterHttp,
@@ -152,6 +163,7 @@ lazy val `cluster-http` = project
 lazy val `cluster-bootstrap` = project
   .in(file("cluster-bootstrap"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-management-cluster-bootstrap",
     libraryDependencies := Dependencies.ClusterBootstrap,
@@ -162,6 +174,7 @@ lazy val `cluster-bootstrap` = project
 lazy val `rolling-update-kubernetes` = project
   .in(file("rolling-update-kubernetes"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-rolling-update-kubernetes",
     libraryDependencies := Dependencies.RollingUpdateKubernetes,
@@ -176,6 +189,7 @@ lazy val `rolling-update-kubernetes` = project
 lazy val `lease-kubernetes` = project
   .in(file("lease-kubernetes"))
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-lease-kubernetes",
     libraryDependencies := Dependencies.LeaseKubernetes,
@@ -190,6 +204,7 @@ lazy val `lease-kubernetes` = project
 lazy val `lease-kubernetes-int-test` = project
   .in(file("lease-kubernetes-int-test"))
   .enablePlugins(JavaAppPackaging, DockerPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .dependsOn(`lease-kubernetes`)
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(MimaPlugin)
@@ -213,8 +228,9 @@ lazy val `lease-kubernetes-int-test` = project
 
 lazy val `integration-test-kubernetes-api` = project
   .in(file("integration-test/kubernetes-api"))
-  .disablePlugins(MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     publish / skip := true,
     doc / sources := Seq.empty,
@@ -224,8 +240,9 @@ lazy val `integration-test-kubernetes-api` = project
 
 lazy val `integration-test-kubernetes-api-java` = project
   .in(file("integration-test/kubernetes-api-java"))
-  .disablePlugins(MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     publish / skip := true,
     doc / sources := Seq.empty,
@@ -240,8 +257,9 @@ lazy val `integration-test-kubernetes-api-java` = project
 
 lazy val `integration-test-kubernetes-dns` = project
   .in(file("integration-test/kubernetes-dns"))
-  .disablePlugins(MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     publish / skip := true,
     doc / sources := Seq.empty,
@@ -256,8 +274,9 @@ lazy val `integration-test-kubernetes-dns` = project
 lazy val `integration-test-aws-api-ec2-tag-based` = project
   .in(file("integration-test/aws-api-ec2"))
   .configs(IntegrationTest)
-  .disablePlugins(MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     publish / skip := true,
     doc / sources := Seq.empty,
@@ -272,8 +291,9 @@ lazy val `integration-test-aws-api-ec2-tag-based` = project
 
 lazy val `integration-test-marathon-api-docker` = project
   .in(file("integration-test/marathon-api-docker"))
-  .disablePlugins(MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "integration-test-marathon-api-docker",
     publish / skip := true,
@@ -288,8 +308,9 @@ lazy val `integration-test-marathon-api-docker` = project
 
 lazy val `integration-test-aws-api-ecs` = project
   .in(file("integration-test/aws-api-ecs"))
-  .disablePlugins(MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     publish / skip := true,
     doc / sources := Seq.empty
@@ -309,8 +330,9 @@ lazy val `integration-test-aws-api-ecs` = project
 
 lazy val `integration-test-local` = project
   .in(file("integration-test/local"))
-  .disablePlugins(MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "integration-test-local",
     publish / skip := true,
@@ -326,8 +348,9 @@ lazy val `integration-test-local` = project
 
 lazy val `integration-test-rollingupdate-kubernetes` = project
   .in(file("integration-test/rollingupdate-kubernetes"))
-  .disablePlugins(MimaPlugin)
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     publish / skip := true,
     doc / sources := Seq.empty,
@@ -345,6 +368,7 @@ lazy val docs = project
   .in(file("docs"))
   .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
   .disablePlugins(MimaPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "Akka Management",
     publish / skip := true,
