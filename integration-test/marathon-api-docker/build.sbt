@@ -12,7 +12,7 @@ version := "1.0"
 
 dockerUsername := sys.env.get("DOCKER_USER")
 
-val akkaManagementVersion = "1.2.0"
+val akkaManagementVersion = "1.5.0-M2"
 
 libraryDependencies ++= Vector(
   "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % akkaManagementVersion,
