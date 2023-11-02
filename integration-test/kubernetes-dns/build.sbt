@@ -18,4 +18,3 @@ dockerCommands ++= Seq(
   Cmd("USER", "root"),
   Cmd("RUN", "chgrp -R 0 . && chmod -R g=u .")
 )
-
