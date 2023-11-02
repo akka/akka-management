@@ -3,6 +3,8 @@ import sbt.Keys.parallelExecution
 
 ThisBuild / resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 ThisBuild / resolvers += Resolver.jcenterRepo
+// append -SNAPSHOT to version when isSnapshot
+ThisBuild / dynverSonatypeSnapshots := true
 Global / excludeLintKeys += autoAPIMappings
 Global / excludeLintKeys += projectInfoVersion
 Global / excludeLintKeys += previewPath
