@@ -30,8 +30,8 @@ object Common extends AutoPlugin {
           url("https://github.com/akka/akka-management/graphs/contributors")
         ),
       releaseNotesURL := (
-        if (isSnapshot.value) None
-        else Some(url(s"https://github.com/akka/akka-management/releases/tag/v${version.value}"))
+          if (isSnapshot.value) None
+          else Some(url(s"https://github.com/akka/akka-management/releases/tag/v${version.value}"))
         ),
       licenses := {
         val tagOrBranch =
