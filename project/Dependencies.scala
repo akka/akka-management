@@ -17,7 +17,7 @@ object Dependencies {
   val ScalaTestVersion = "3.2.17"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
-  val AwsSdkVersion = "1.12.561"
+  val AwsSdkVersion = "1.12.581"
   val JacksonVersion = "2.15.2"
   val JacksonDatabindVersion = JacksonVersion
 
