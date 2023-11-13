@@ -1,7 +1,7 @@
 # Akka Management
 
 Akka Management is a suite of tools for operating Akka Clusters.
-The current version may only be used with Akka 2.7.
+The current version may only be used with Akka $akka.binary.version$.
 
 ## Overview
 
