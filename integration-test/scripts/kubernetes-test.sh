@@ -19,6 +19,8 @@ done
 if [ $i -eq 10 ]
 then
   echo "Pods did not get ready"
+  kubectl -n $NAMESPACE events $APP_NAME
+  kubectl -n $NAMESPACE describe deployment $APP_NAME
   exit -1
 fi
 
