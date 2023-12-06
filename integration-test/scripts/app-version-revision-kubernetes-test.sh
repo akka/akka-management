@@ -27,7 +27,8 @@ testRevisionInPodsLog () {
   if [ $i -eq 20 ]
   then
     echo "Pods did not get ready (revision $1)"
-    kubectl -n $NAMESPACE describe deployment akka-rollingupdate-demo
+    kubectl -n $NAMESPACE events $APP_NAME
+    kubectl -n $NAMESPACE describe deployment $APP_NAME
     exit -1
   fi
 
@@ -56,7 +57,7 @@ testRevisionInPodsLog () {
 # prep
 docker images | head
 kubectl create namespace $NAMESPACE || true
-kubectl -n $NAMESPACE delete deployment akka-rollingupdate-demo || true
+kubectl -n $NAMESPACE delete deployment $APP_NAME || true
 kubectl -n $NAMESPACE apply -f $DEPLOYMENT
 
 # after the initial deployment

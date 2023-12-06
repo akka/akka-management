@@ -8,21 +8,36 @@ sbt $PROJECT_NAME/docker:publishLocal
 docker images | head
 
 kubectl create namespace $NAMESPACE || true
-kubectl -n $NAMESPACE delete deployment akka-rollingupdate-demo || true
+kubectl -n $NAMESPACE delete deployment $APP_NAME || true
 kubectl -n $NAMESPACE apply -f $DEPLOYMENT
 
-for i in {1..10}
+for i in {1..20}
 do
   echo "Waiting for pods to get ready..."
   kubectl get pods -n $NAMESPACE
-  [ `kubectl get pods -n $NAMESPACE | grep Running | wc -l` -eq 3 ] && break
+  phase=$(kubectl get pods -o jsonpath="{.items[*].status.phase}" -n $NAMESPACE)
+  status=$(kubectl get pods -o jsonpath="{.items[*].status.containerStatuses[*].ready}" -n $NAMESPACE)
+  if [ "$phase" == "Running Running Running" ] && [ "$status" == "true true true" ]
+  then
+    break
+  fi
   sleep 4
 done
 
-if [ $i -eq 10 ]
+if [ $i -eq 20 ]
 then
   echo "Pods did not get ready"
-  kubectl -n $NAMESPACE describe deployment akka-rollingupdate-demo
+  kubectl events $APP_NAME -n $NAMESPACE
+  kubectl describe deployment $APP_NAME -n $NAMESPACE
+
+  echo ""
+  echo "Logs from all $APP_NAME containers"
+  kubectl logs -l app=$APP_NAME --all-containers=true -n $NAMESPACE || true
+
+  echo ""
+  echo "Logs from all previous $APP_NAME containers"
+  kubectl logs -p -l app=$APP_NAME --all-containers=true -n $NAMESPACE || true
+
   exit -1
 fi
 

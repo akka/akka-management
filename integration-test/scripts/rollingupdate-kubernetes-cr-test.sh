@@ -9,21 +9,36 @@ docker images | head
 
 kubectl create namespace $NAMESPACE || true
 kubectl apply -f $CRD
-kubectl -n $NAMESPACE delete deployment akka-rollingupdate-demo || true
+kubectl -n $NAMESPACE delete deployment $APP_NAME || true
 kubectl -n $NAMESPACE apply -f $DEPLOYMENT
 
-for i in {1..10}
+for i in {1..20}
 do
   echo "Waiting for pods to get ready..."
   kubectl get pods -n $NAMESPACE
-  [ `kubectl get pods -n $NAMESPACE | grep Running | wc -l` -eq 3 ] && break
+  phase=$(kubectl get pods -o jsonpath="{.items[*].status.phase}" -n $NAMESPACE)
+  status=$(kubectl get pods -o jsonpath="{.items[*].status.containerStatuses[*].ready}" -n $NAMESPACE)
+  if [ "$phase" == "Running Running Running" ] && [ "$status" == "true true true" ]
+  then
+    break
+  fi
   sleep 4
 done
 
-if [ $i -eq 10 ]
+if [ $i -eq 20 ]
 then
   echo "Pods did not get ready"
-  kubectl -n $NAMESPACE describe deployment akka-rollingupdate-demo
+  kubectl events $APP_NAME -n $NAMESPACE
+  kubectl describe deployment $APP_NAME -n $NAMESPACE
+
+  echo ""
+  echo "Logs from all $APP_NAME containers"
+  kubectl logs -l app=$APP_NAME --all-containers=true -n $NAMESPACE || true
+
+  echo ""
+  echo "Logs from all previous $APP_NAME containers"
+  kubectl logs -p -l app=$APP_NAME --all-containers=true -n $NAMESPACE || true
+
   exit -1
 fi
 
@@ -37,7 +52,7 @@ do
   pod_list=$(kubectl get pods -n $NAMESPACE | grep $APP_NAME | grep Running | awk '{ print $1 }' | sort)
 
   # Get the pods in the CR
-  cr_pod_list=$(kubectl describe podcosts.akka.io akka-rollingupdate-demo -n $NAMESPACE | grep "Pod Name" | awk '{print $3}' | sort)
+  cr_pod_list=$(kubectl describe podcosts.akka.io $APP_NAME -n $NAMESPACE | grep "Pod Name" | awk '{print $3}' | sort)
 
   if [ "$pod_list" = "$cr_pod_list" ]
     then
@@ -50,7 +65,7 @@ do
   for pod_name in $pod_list
   do
     # Get the pod names from the cr
-    cr_pod_list=$(kubectl describe podcosts.akka.io akka-rollingupdate-demo -n $NAMESPACE | grep "Pod Name" | awk '{print $3}' | sort -z)
+    cr_pod_list=$(kubectl describe podcosts.akka.io $APP_NAME -n $NAMESPACE | grep "Pod Name" | awk '{print $3}' | sort -z)
 
     # Check if the annotation value is set or empty
     if ["$pod_list" == "$cr_pod_list" ]
