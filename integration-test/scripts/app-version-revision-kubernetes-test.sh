@@ -20,7 +20,9 @@ testRevisionInPodsLog () {
 
     # the two lines below ensure a rollout is fully completed, before we look at the logs for updated revision
     # if not filtering out Terminated or pods that are not not ready (0/1) we will see previous revisions in the logs
-    [ `kubectl get pods -n $NAMESPACE | grep Terminating | wc -l` -ne 0 ] && continue   # loop again until no Terminating nods in the list
+    [ `kubectl get pods -n $NAMESPACE | grep Running | wc -l` -ne 3 ] && continue   # loop again until 3 pods running
+    [ `kubectl get pods -n $NAMESPACE | grep Terminating | wc -l` -ne 0 ] && continue   # loop again until no Terminating pods in the list
+    [ `kubectl get pods -n $NAMESPACE | grep ContainerCreating | wc -l` -ne 0 ] && continue   # loop again until no new pods in the list
     [ `kubectl get pods -n $NAMESPACE | grep 0/1 | wc -l` -eq 0 ] && break              # exit the loop once we only have READY (1/1) pods
   done
 
