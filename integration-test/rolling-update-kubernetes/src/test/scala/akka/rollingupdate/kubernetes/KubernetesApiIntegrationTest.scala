@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2017-2023 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.rollingupdate.kubernetes
 
 import scala.concurrent.Await

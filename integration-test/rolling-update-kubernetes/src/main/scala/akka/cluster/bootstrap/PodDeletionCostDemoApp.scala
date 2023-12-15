@@ -15,7 +15,7 @@ import akka.rollingupdate.kubernetes.PodDeletionCost
 
 object PodDeletionCostDemoApp extends App {
 
-  implicit val system: ActorSystem = ActorSystem("akka-rollingupdate-demo")
+  implicit val system: ActorSystem = ActorSystem("akka-rolling-update-demo")
 
   import system.log
   val cluster = Cluster(system)

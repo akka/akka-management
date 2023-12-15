@@ -164,7 +164,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test
   )
 
-  val RollingUpdateKubernetesCrIntegration = RollingUpdateKubernetes ++ Seq(
+  val RollingUpdateKubernetesIntegration = RollingUpdateKubernetes ++ Seq(
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
       "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
       "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test,

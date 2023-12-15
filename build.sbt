@@ -33,7 +33,7 @@ lazy val `akka-management-root` = project
     `integration-test-kubernetes-api-java`,
     `integration-test-kubernetes-dns`,
     `integration-test-marathon-api-docker`,
-    `integration-test-rollingupdate-kubernetes`,
+    `integration-test-rolling-update-kubernetes`,
     `cluster-http`,
     `cluster-bootstrap`,
     `rolling-update-kubernetes`,
@@ -183,17 +183,6 @@ lazy val `rolling-update-kubernetes` = project
     mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(`akka-management-pki`)
-
-lazy val `integration-tests-rolling-update-kubernetes-cr` = project
-  .in(file("integration-tests/rolling-update-kubernetes-cr"))
-  .enablePlugins(AutomateHeaderPlugin)
-  .disablePlugins(com.geirsson.CiReleasePlugin, MimaPlugin)
-  .settings(
-    name := "integration-tests-rolling-update-kubernetes-cr",
-    libraryDependencies := Dependencies.RollingUpdateKubernetesCrIntegration,
-    publish / skip := true
-  )
-  .dependsOn(`rolling-update-kubernetes`)
 
 lazy val `lease-kubernetes` = project
   .in(file("lease-kubernetes"))
@@ -355,15 +344,15 @@ lazy val `integration-test-local` = project
   )
   .enablePlugins(JavaAppPackaging, AshScriptPlugin)
 
-lazy val `integration-test-rollingupdate-kubernetes` = project
-  .in(file("integration-test/rollingupdate-kubernetes"))
+lazy val `integration-test-rolling-update-kubernetes` = project
+  .in(file("integration-test/rolling-update-kubernetes"))
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(MimaPlugin)
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     publish / skip := true,
     doc / sources := Seq.empty,
-    libraryDependencies := Dependencies.BootstrapDemos
+    libraryDependencies := Dependencies.BootstrapDemos ++ Dependencies.RollingUpdateKubernetesIntegration
   )
   .dependsOn(
     `akka-management`,

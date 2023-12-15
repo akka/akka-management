@@ -12,7 +12,7 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="akka.rollingupdate" level="DEBUG"/>
+    <logger name="akka.rolling-update" level="DEBUG"/>
     <logger name="akka.http" level="INFO"/>
     <logger name="akka.io" level="INFO"/>
 
