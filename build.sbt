@@ -182,11 +182,18 @@ lazy val `rolling-update-kubernetes` = project
     libraryDependencies := Dependencies.RollingUpdateKubernetes,
     mimaPreviousArtifacts := Set.empty
   )
-  .settings(
-    Defaults.itSettings
-  )
-  .configs(IntegrationTest)
   .dependsOn(`akka-management-pki`)
+
+lazy val `integration-tests-rolling-update-kubernetes-cr` = project
+  .in(file("integration-tests/rolling-update-kubernetes-cr"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin, MimaPlugin)
+  .settings(
+    name := "integration-tests-rolling-update-kubernetes-cr",
+    libraryDependencies := Dependencies.RollingUpdateKubernetesCrIntegration,
+    publish / skip := true
+  )
+  .dependsOn(`rolling-update-kubernetes`)
 
 lazy val `lease-kubernetes` = project
   .in(file("lease-kubernetes"))

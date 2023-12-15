@@ -10,7 +10,8 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
-import akka.rollingupdate.kubernetes.{ AppVersionRevision, PodDeletionCost }
+import akka.rollingupdate.kubernetes.AppVersionRevision
+import akka.rollingupdate.kubernetes.PodDeletionCost
 
 object PodDeletionCostDemoApp extends App {
 

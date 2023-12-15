@@ -5,7 +5,7 @@
 package doc.akka.rollingupdate.kubernetes
 
 import akka.actor.ActorSystem
-import akka.rollingupdate.kubernetes.{ AppVersionRevision }
+import akka.rollingupdate.kubernetes.AppVersionRevision
 
 object AppVersionRevisionCompileOnly {
 
