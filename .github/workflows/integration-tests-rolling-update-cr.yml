@@ -60,7 +60,7 @@ jobs:
           echo 'Adding proxy port'
           kubectl proxy --port=8080 &
           echo 'Running tests'
-          sbt "integration-tests-rolling-update-kubernetes/test"
+          sbt "integration-test-rolling-update-kubernetes/test"
           ./integration-test/rolling-update-kubernetes/test-cr.sh
 
       - name: Print logs on failure

@@ -52,7 +52,7 @@ jobs:
 
       - name: Run Integration Tests
         run: |-
-          ./integration-test/rollingupdate-kubernetes/test-app-version-revision.sh
+          ./integration-test/rolling-update-kubernetes/test-app-version-revision.sh
 
       - name: Print logs on failure
         if: ${{ failure() }}
