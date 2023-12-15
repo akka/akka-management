@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-echo "Running rollingupdate-kubernetes-test.sh with deployment: $DEPLOYMENT"
+echo "Running rolling-update-kubernetes-test.sh with deployment: $DEPLOYMENT"
 
 eval $(minikube -p minikube docker-env)
 sbt $PROJECT_NAME/docker:publishLocal
