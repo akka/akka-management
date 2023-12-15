@@ -26,14 +26,6 @@ lazy val `akka-management-root` = project
     `akka-management-pki`,
     `loglevels-logback`,
     `loglevels-log4j2`,
-    `integration-test-aws-api-ec2-tag-based`,
-    `integration-test-local`,
-    `integration-test-aws-api-ecs`,
-    `integration-test-kubernetes-api`,
-    `integration-test-kubernetes-api-java`,
-    `integration-test-kubernetes-dns`,
-    `integration-test-marathon-api-docker`,
-    `integration-test-rolling-update-kubernetes`,
     `cluster-http`,
     `cluster-bootstrap`,
     `rolling-update-kubernetes`,
@@ -44,6 +36,22 @@ lazy val `akka-management-root` = project
   .settings(
     GlobalScope / parallelExecution := false,
     publish / skip := true
+  )
+
+// integration tests separated so they don't run on `test` in root project
+// also, none of these are published artifacts
+lazy val `akka-management-integration` = project
+  .in(file("integration-test"))
+  .disablePlugins(MimaPlugin, com.geirsson.CiReleasePlugin)
+  .aggregate(
+    `integration-test-aws-api-ec2-tag-based`,
+    `integration-test-local`,
+    `integration-test-aws-api-ecs`,
+    `integration-test-kubernetes-api`,
+    `integration-test-kubernetes-api-java`,
+    `integration-test-kubernetes-dns`,
+    `integration-test-marathon-api-docker`,
+    `integration-test-rolling-update-kubernetes`
   )
 
 lazy val mimaPreviousArtifactsSet =
