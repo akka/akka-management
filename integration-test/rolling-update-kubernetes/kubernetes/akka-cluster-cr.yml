@@ -58,7 +58,7 @@ spec:
         - name: REQUIRED_CONTACT_POINT_NR
           value: "3"
         - name: JAVA_TOOL_OPTIONS
-          value: "-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -Xlog:gc -Dakka.rolling-update.kubernetes.custom-resource.enabled=on"
+          value: "-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -Xlog:gc -Dakka.rollingupdate.kubernetes.custom-resource.enabled=on"
 #deployment
 ---
 #rbac-reader
