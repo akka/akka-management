@@ -37,7 +37,7 @@ jobs:
           jvm: temurin:1.11.0
 
       - name: Code style check, compilation and binary-compatibility check
-        run: sbt "scalafmtCheckAll;headerCheckAll;+Test/compile;+IntegrationTest/compile;mimaReportBinaryIssues"
+        run: sbt "scalafmtCheckAll;headerCheckAll;+Test/compile;mimaReportBinaryIssues"
 
       - name: Code style check, compilation for integration tests
         run: sbt "akka-management-integration/scalafmtCheckAll;akka-management-integration/headerCheckAll;+akka-management-integration/Test/compile"
