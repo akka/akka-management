@@ -224,7 +224,7 @@ lazy val `lease-kubernetes-integration` = project
     dockerCommands ++= Seq(
         Cmd("USER", "root"),
         Cmd("RUN", "chgrp -R 0 . && chmod -R g=u ."),
-        Cmd("RUN", "chmod +x /opt/docker/bin/akka-lease-kubernetes-int-test")
+        Cmd("RUN", "chmod +x /opt/docker/bin/akka-lease-kubernetes-integration")
       )
   )
 

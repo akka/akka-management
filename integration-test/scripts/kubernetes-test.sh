@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 eval $(minikube -p minikube docker-env)
-sbt $PROJECT_NAME/docker:publishLocal
+sbt $PROJECT_NAME/Docker/publishLocal
 
 docker images | head
 

@@ -1,7 +1,12 @@
+/*
+ * Copyright (C) 2017-2023 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.coordination.lease.kubernetes
 
 import akka.Done
 import akka.actor.ActorSystem
+import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{ BeforeAndAfterAll, CancelAfterFailure }

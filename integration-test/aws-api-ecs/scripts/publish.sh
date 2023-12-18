@@ -10,7 +10,7 @@ fi
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-(cd $DIR/../../.. && sbt integration-test-aws-api-ecs/docker:publishLocal)
+(cd $DIR/../../.. && sbt integration-test-aws-api-ecs/Docker/publishLocal)
 
 eval $(
   aws ecr get-login \

@@ -185,7 +185,8 @@ object Dependencies {
   )
 
   val LeaseKubernetesTest = Seq(
-    "org.scalatest" %% "scalatest" % ScalaTestVersion
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
+    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test
   )
 
   val BootstrapDemos = Seq(

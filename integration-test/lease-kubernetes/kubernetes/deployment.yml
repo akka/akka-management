@@ -17,4 +17,4 @@ spec:
       containers:
         - name: lease-test
           imagePullPolicy: Never
-          image: lease-kubernetes-int-test:latest
+          image: akka-lease-kubernetes-integration:latest
