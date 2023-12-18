@@ -28,14 +28,13 @@ Compile / mainClass := Some("akka.sample.cluster.kubernetes.DemoApp")
 
 ### Selecting a JDK
 
-By default, sbt native packager uses the `openjdk` latest Docker image from DockerHub. At time of writing, this will give you OpenJDK 11, which is not certified by Lightbend, and it also gives you the Debian OpenJDK build, 
-which is not certified by Lightbend either. For a full list of Lightbend certified JDK builds and versions, see [here](https://developer.lightbend.com/docs/introduction/getting-help/java-versions.html).
-
-We recommend using the AdoptOpenJDK base image:
+We recommend using the Eclipse Temurin 17 base image:
 
 ```scala
-dockerBaseImage := "adoptopenjdk:11-jre-hotspot"
+dockerBaseImage := "docker.io/library/eclipse-temurin:17-jre"
 ```
+
+For a full list of Lightbend certified JDK builds and versions, see [here](https://doc.akka.io/docs/akka-dependencies/current/java-versions.html).
 
 ### Git hash based version numbers
 
