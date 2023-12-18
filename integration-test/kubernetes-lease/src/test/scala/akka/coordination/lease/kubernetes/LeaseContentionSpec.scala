@@ -8,7 +8,6 @@ import scala.concurrent.Future
 
 import akka.actor.ActorSystem
 import akka.coordination.lease.TimeoutSettings
-import akka.coordination.lease.kubernetes.internal.KubernetesApiImpl
 import akka.coordination.lease.scaladsl.LeaseProvider
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory

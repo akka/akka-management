@@ -5,10 +5,10 @@
 set -exu
 
 JOB_NAME=lease-test
-PROJECT_DIR=lease-kubernetes-int-test
+PROJECT_DIR=integration-test/lease-kubernetes
 
 eval $(minikube -p minikube docker-env)
-sbt "lease-kubernetes-int-test / docker:publishLocal"
+sbt "lease-kubernetes-integration / docker:publishLocal"
 
 kubectl apply -f $PROJECT_DIR/kubernetes/rbac.yml
 kubectl delete -f $PROJECT_DIR/kubernetes/job.yml || true
