@@ -63,7 +63,7 @@ jobs:
           kubectl proxy --port=8080 &
           echo 'Running tests'
           sbt ";lease-kubernetes-integration/test"
-          ./integration-tests/lease-kubernetes/minikube-test.sh
+          ./integration-test/lease-kubernetes/minikube-test.sh
 
       - name: Print logs on failure
         if: ${{ failure() }}
