@@ -53,17 +53,17 @@ abstract class JoinDeciderSpec extends AbstractBootstrapSpec {
         """)
 
   val contactA = ResolvedTarget(
-    host = "10-0-0-2.default.svc.cluster.local",
+    host = "10-0-0-2.default.pod.cluster.local",
     port = None,
     address = Some(InetAddress.getByName("10.0.0.2")))
 
   val contactB = ResolvedTarget(
-    host = "10-0-0-3.default.svc.cluster.local",
+    host = "10-0-0-3.default.pod.cluster.local",
     port = None,
     address = Some(InetAddress.getByName("10.0.0.3")))
 
   val contactC = ResolvedTarget(
-    host = "10-0-0-4.default.svc.cluster.local",
+    host = "10-0-0-4.default.pod.cluster.local",
     port = None,
     address = Some(InetAddress.getByName("10.0.0.4")))
 
@@ -306,17 +306,17 @@ class SelfAwareJoinDeciderIPv6Spec extends JoinDeciderSpec {
   val settings = ClusterBootstrapSettings(system.settings.config, NoLogging)
 
   val contactIPv6A = ResolvedTarget(
-    host = "240b-c0e0-202-5e2b-b424-2-0-450.default.svc.cluster.local",
+    host = "240b-c0e0-202-5e2b-b424-2-0-450.default.pod.cluster.local",
     port = None,
     address = Some(InetAddress.getByName("240b:c0e0:202:5e2b:b424:2:0:450")))
 
   val contactIPv6B = ResolvedTarget(
-    host = "240b-c0e0-202-5e2b-b424-2-0-cc4.default.svc.cluster.local",
+    host = "240b-c0e0-202-5e2b-b424-2-0-cc4.default.pod.cluster.local",
     port = None,
     address = Some(InetAddress.getByName("240b:c0e0:202:5e2b:b424:2:0:cc4")))
 
   val contactIPv6C = ResolvedTarget(
-    host = "240b-c0e0-202-5e2b-b424-2-0-cc5.default.svc.cluster.local",
+    host = "240b-c0e0-202-5e2b-b424-2-0-cc5.default.pod.cluster.local",
     port = None,
     address = Some(InetAddress.getByName("240b:c0e0:202:5e2b:b424:2:0:cc5")))
 

@@ -46,7 +46,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
 
       KubernetesApiServiceDiscovery.targets(podList, Some("management"), "default", "cluster.local", false, None) shouldBe List(
         ResolvedTarget(
-          host = "172-17-0-4.default.svc.cluster.local",
+          host = "172-17-0-4.default.pod.cluster.local",
           port = Some(10001),
           address = Some(InetAddress.getByName("172.17.0.4"))
         ))
@@ -112,17 +112,17 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
 
       KubernetesApiServiceDiscovery.targets(podList, None, "default", "cluster.local", false, None) shouldBe List(
         ResolvedTarget(
-          host = "172-17-0-4.default.svc.cluster.local",
+          host = "172-17-0-4.default.pod.cluster.local",
           port = None,
           address = Some(InetAddress.getByName("172.17.0.4"))
         ),
         ResolvedTarget(
-          host = "172-17-0-5.default.svc.cluster.local",
+          host = "172-17-0-5.default.pod.cluster.local",
           port = None,
           address = Some(InetAddress.getByName("172.17.0.5"))
         ),
         ResolvedTarget(
-          host = "172-17-0-6.default.svc.cluster.local",
+          host = "172-17-0-6.default.pod.cluster.local",
           port = None,
           address = Some(InetAddress.getByName("172.17.0.6"))
         )
@@ -170,7 +170,7 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
         false,
         Some("user-function")) shouldBe List(
         ResolvedTarget(
-          "10-8-7-9.b58dbc88-3651-4fb4-8408-60c375592d1d.svc.cluster.local",
+          "10-8-7-9.b58dbc88-3651-4fb4-8408-60c375592d1d.pod.cluster.local",
           None,
           Some(InetAddress.getByName("10.8.7.9")))
       )
