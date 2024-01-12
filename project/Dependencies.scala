@@ -21,7 +21,7 @@ object Dependencies {
   val JacksonVersion = "2.15.2"
   val JacksonDatabindVersion = JacksonVersion
 
-  val Log4j2Version = "2.20.0"
+  val Log4j2Version = "2.22.1"
 
   // often called-in transitively with insecure versions of databind / core
   private val JacksonDatabind = Seq(
