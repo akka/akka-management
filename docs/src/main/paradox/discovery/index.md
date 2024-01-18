@@ -7,7 +7,6 @@ Akka Discovery module in Akka.
 Akka Management contains methods for:
 
  * @ref[Kubernetes](kubernetes.md)
- * @ref[Consul](consul.md)
  * @ref[Marathon](marathon.md)
  * @ref[AWS](aws.md)
  
@@ -18,8 +17,8 @@ part of the build and release process.
 @@@ index
 
   - [Kubernetes](kubernetes.md)
-  - [Consul](consul.md)
   - [Marathon](marathon.md)
   - [AWS](aws.md)
+  - [Consul (discontinued)](consul.md)
   
 @@@

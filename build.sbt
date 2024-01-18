@@ -19,7 +19,6 @@ lazy val `akka-management-root` = project
     // in AkkaManagement should also be updated
     `akka-discovery-aws-api`,
     `akka-discovery-aws-api-async`,
-    `akka-discovery-consul`,
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
@@ -94,17 +93,6 @@ lazy val `akka-discovery-aws-api-async` = project
     name := "akka-discovery-aws-api-async",
     organization := "com.lightbend.akka.discovery",
     libraryDependencies := Dependencies.DiscoveryAwsApiAsync,
-    mimaPreviousArtifactsSet
-  )
-
-lazy val `akka-discovery-consul` = project
-  .in(file("discovery-consul"))
-  .enablePlugins(AutomateHeaderPlugin)
-  .disablePlugins(com.geirsson.CiReleasePlugin)
-  .settings(
-    name := "akka-discovery-consul",
-    organization := "com.lightbend.akka.discovery",
-    libraryDependencies := Dependencies.DiscoveryConsul,
     mimaPreviousArtifactsSet
   )
 

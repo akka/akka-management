@@ -31,7 +31,6 @@ for the following modules.
 * akka-discovery-marathon-api
 * akka-discovery-aws-api
 * akka-discovery-aws-api-async
-* akka-discovery-consul
 
 
 
