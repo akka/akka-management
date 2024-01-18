@@ -28,24 +28,6 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-databind" % JacksonDatabindVersion
   )
 
-  private val JacksonDatatype = Seq(
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-guava" % JacksonVersion,
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % JacksonVersion,
-    // Specifying guava dependency because older transitive dependency has security vulnerability
-    "com.google.guava" % "guava" % "32.1.3-jre"
-  )
-
-  val DiscoveryConsul = Seq(
-      "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
-      "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
-      "com.orbitz.consul" % "consul-client" % "1.5.3",
-      "com.pszymczyk.consul" % "embedded-consul" % "2.2.1" % Test,
-      "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
-      "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
-      "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion % Test,
-      "ch.qos.logback" % "logback-classic" % "1.2.13" % Test
-    ) ++ JacksonDatabind ++ JacksonDatatype // consul depends on insecure version of jackson
-
   val DiscoveryKubernetesApi = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,

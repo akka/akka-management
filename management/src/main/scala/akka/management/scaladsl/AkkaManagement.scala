@@ -58,7 +58,6 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
   ManifestInfo(system).checkSameVersion(
     productName = "Akka Management",
     dependencies = List(
-      "akka-discovery-consul",
       "akka-discovery-aws-api",
       "akka-discovery-marathon-api",
       "akka-discovery-aws-api-async",
