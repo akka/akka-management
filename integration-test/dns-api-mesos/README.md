@@ -2,7 +2,7 @@ DNS lookup example
 ==================
 
 Build and publish docker image into the local repo.
-`sbt docker:publishLocal`
+`sbt Docker/publishLocal`
 
 Tag built image:
 `docker tag integration-test-dns-api:1.0 <dockerhub-id>/integration-test-dns-api:1.0`

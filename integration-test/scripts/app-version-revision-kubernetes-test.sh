@@ -6,7 +6,7 @@ echo "Running app-version-revision-kubernetes-test.sh with deployment: $DEPLOYME
 
 eval $(minikube -p minikube docker-env)
 
-sbt $PROJECT_NAME/docker:publishLocal
+sbt $PROJECT_NAME/Docker/publishLocal
 
 # function to run after each change of ReplicaSet - see below `kubectl ...`
 # Param $1 is the expected revision

@@ -1,4 +1,4 @@
-name: Integration Tests for AppVersionRevision
+name: Integration test for Rolling Update CR Kubernetes
 
 on:
   pull_request:
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
    integration-test:
-    name: Integration Tests for AppVersionRevision
+    name: Integration Tests for Rolling Update CR Kubernetes
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false    
@@ -51,8 +51,17 @@ jobs:
           start args: '--addons=ingress'
 
       - name: Run Integration Tests
+        timeout-minutes: 15
         run: |-
-          ./integration-test/rolling-update-kubernetes/test-app-version-revision.sh
+          echo 'Creating namespace'
+          kubectl create namespace rolling
+          echo 'Creating resources'
+          kubectl apply -f ./rolling-update-kubernetes/pod-cost.yml
+          echo 'Adding proxy port'
+          kubectl proxy --port=8080 &
+          echo 'Running tests'
+          sbt "integration-test-rolling-update-kubernetes/test"
+          ./integration-test/rolling-update-kubernetes/test-cr.sh
 
       - name: Print logs on failure
         if: ${{ failure() }}

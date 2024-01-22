@@ -25,6 +25,23 @@ lazy val `akka-management-root` = project
     `akka-management-pki`,
     `loglevels-logback`,
     `loglevels-log4j2`,
+    `cluster-http`,
+    `cluster-bootstrap`,
+    `rolling-update-kubernetes`,
+    `lease-kubernetes`,
+    docs
+  )
+  .settings(
+    GlobalScope / parallelExecution := false,
+    publish / skip := true
+  )
+
+// integration tests separated so they don't run on `test` in root project
+// also, none of these are published artifacts
+lazy val `akka-management-integration` = project
+  .in(file("integration-test"))
+  .disablePlugins(MimaPlugin, com.geirsson.CiReleasePlugin)
+  .aggregate(
     `integration-test-aws-api-ec2-tag-based`,
     `integration-test-local`,
     `integration-test-aws-api-ecs`,
@@ -32,17 +49,8 @@ lazy val `akka-management-root` = project
     `integration-test-kubernetes-api-java`,
     `integration-test-kubernetes-dns`,
     `integration-test-marathon-api-docker`,
-    `integration-test-rollingupdate-kubernetes`,
-    `cluster-http`,
-    `cluster-bootstrap`,
-    `rolling-update-kubernetes`,
-    `lease-kubernetes`,
-    `lease-kubernetes-int-test`,
-    docs
-  )
-  .settings(
-    GlobalScope / parallelExecution := false,
-    publish / skip := true
+    `integration-test-rolling-update-kubernetes`,
+    `lease-kubernetes-integration`
   )
 
 lazy val mimaPreviousArtifactsSet =
@@ -170,10 +178,6 @@ lazy val `rolling-update-kubernetes` = project
     libraryDependencies := Dependencies.RollingUpdateKubernetes,
     mimaPreviousArtifacts := Set.empty
   )
-  .settings(
-    Defaults.itSettings
-  )
-  .configs(IntegrationTest)
   .dependsOn(`akka-management-pki`)
 
 lazy val `lease-kubernetes` = project
@@ -185,22 +189,18 @@ lazy val `lease-kubernetes` = project
     libraryDependencies := Dependencies.LeaseKubernetes,
     mimaPreviousArtifactsSet
   )
-  .settings(
-    Defaults.itSettings
-  )
-  .configs(IntegrationTest)
   .dependsOn(`akka-management-pki`)
 
-lazy val `lease-kubernetes-int-test` = project
-  .in(file("lease-kubernetes-int-test"))
+lazy val `lease-kubernetes-integration` = project
+  .in(file("integration-test/lease-kubernetes"))
   .enablePlugins(JavaAppPackaging, DockerPlugin)
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .dependsOn(`lease-kubernetes`)
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(MimaPlugin)
+  .settings(IntegrationTests.settings)
   .settings(
-    name := "akka-lease-kubernetes-int-test",
-    publish / skip := true,
+    name := "akka-lease-kubernetes-integration",
     libraryDependencies := Dependencies.LeaseKubernetesTest,
     version ~= (_.replace('+', '-')),
     dockerBaseImage := "docker.io/library/eclipse-temurin:17.0.8.1_1-jre",
@@ -212,7 +212,7 @@ lazy val `lease-kubernetes-int-test` = project
     dockerCommands ++= Seq(
         Cmd("USER", "root"),
         Cmd("RUN", "chgrp -R 0 . && chmod -R g=u ."),
-        Cmd("RUN", "chmod +x /opt/docker/bin/akka-lease-kubernetes-int-test")
+        Cmd("RUN", "chmod +x /opt/docker/bin/akka-lease-kubernetes-integration")
       )
   )
 
@@ -221,11 +221,8 @@ lazy val `integration-test-kubernetes-api` = project
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(MimaPlugin)
   .disablePlugins(com.geirsson.CiReleasePlugin)
-  .settings(
-    publish / skip := true,
-    doc / sources := Seq.empty,
-    libraryDependencies := Dependencies.BootstrapDemos
-  )
+  .settings(IntegrationTests.settings)
+  .settings(libraryDependencies := Dependencies.BootstrapDemos)
   .dependsOn(`akka-management`, `cluster-http`, `cluster-bootstrap`, `akka-discovery-kubernetes-api`)
 
 lazy val `integration-test-kubernetes-api-java` = project
@@ -233,11 +230,8 @@ lazy val `integration-test-kubernetes-api-java` = project
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(MimaPlugin)
   .disablePlugins(com.geirsson.CiReleasePlugin)
-  .settings(
-    publish / skip := true,
-    doc / sources := Seq.empty,
-    libraryDependencies := Dependencies.BootstrapDemos
-  )
+  .settings(IntegrationTests.settings)
+  .settings(libraryDependencies := Dependencies.BootstrapDemos)
   .dependsOn(
     `akka-management`,
     `cluster-http`,
@@ -250,11 +244,8 @@ lazy val `integration-test-kubernetes-dns` = project
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(MimaPlugin)
   .disablePlugins(com.geirsson.CiReleasePlugin)
-  .settings(
-    publish / skip := true,
-    doc / sources := Seq.empty,
-    libraryDependencies := Dependencies.BootstrapDemos
-  )
+  .settings(IntegrationTests.settings)
+  .settings(libraryDependencies := Dependencies.BootstrapDemos)
   .dependsOn(
     `akka-management`,
     `cluster-http`,
@@ -263,15 +254,10 @@ lazy val `integration-test-kubernetes-dns` = project
 
 lazy val `integration-test-aws-api-ec2-tag-based` = project
   .in(file("integration-test/aws-api-ec2"))
-  .configs(IntegrationTest)
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(MimaPlugin)
   .disablePlugins(com.geirsson.CiReleasePlugin)
-  .settings(
-    publish / skip := true,
-    doc / sources := Seq.empty,
-    Defaults.itSettings
-  )
+  .settings(IntegrationTests.settings)
   .dependsOn(
     `akka-management`,
     `cluster-http`,
@@ -285,10 +271,9 @@ lazy val `integration-test-marathon-api-docker` = project
   .disablePlugins(MimaPlugin)
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
-    name := "integration-test-marathon-api-docker",
-    publish / skip := true,
-    doc / sources := Seq.empty
+    name := "integration-test-marathon-api-docker"
   )
+  .settings(IntegrationTests.settings)
   .dependsOn(
     `akka-management`,
     `cluster-http`,
@@ -301,10 +286,7 @@ lazy val `integration-test-aws-api-ecs` = project
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(MimaPlugin)
   .disablePlugins(com.geirsson.CiReleasePlugin)
-  .settings(
-    publish / skip := true,
-    doc / sources := Seq.empty
-  )
+  .settings(IntegrationTests.settings)
   .dependsOn(
     `akka-management`,
     `cluster-http`,
@@ -325,10 +307,9 @@ lazy val `integration-test-local` = project
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "integration-test-local",
-    publish / skip := true,
-    doc / sources := Seq.empty,
     libraryDependencies := Dependencies.BootstrapDemos
   )
+  .settings(IntegrationTests.settings)
   .dependsOn(
     `akka-management`,
     `cluster-http`,
@@ -336,15 +317,14 @@ lazy val `integration-test-local` = project
   )
   .enablePlugins(JavaAppPackaging, AshScriptPlugin)
 
-lazy val `integration-test-rollingupdate-kubernetes` = project
-  .in(file("integration-test/rollingupdate-kubernetes"))
+lazy val `integration-test-rolling-update-kubernetes` = project
+  .in(file("integration-test/rolling-update-kubernetes"))
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(MimaPlugin)
   .disablePlugins(com.geirsson.CiReleasePlugin)
+  .settings(IntegrationTests.settings)
   .settings(
-    publish / skip := true,
-    doc / sources := Seq.empty,
-    libraryDependencies := Dependencies.BootstrapDemos
+    libraryDependencies := Dependencies.BootstrapDemos ++ Dependencies.RollingUpdateKubernetesIntegration
   )
   .dependsOn(
     `akka-management`,

@@ -1,4 +1,4 @@
-name: Integration Tests for AppVersionRevision
+name: Integration test for Rolling Update Kubernetes
 
 on:
   pull_request:
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
    integration-test:
-    name: Integration Tests for AppVersionRevision
+    name: Integration Tests for Rolling Update Kubernetes
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false    
@@ -52,7 +52,7 @@ jobs:
 
       - name: Run Integration Tests
         run: |-
-          ./integration-test/rolling-update-kubernetes/test-app-version-revision.sh
+          ./integration-test/rolling-update-kubernetes/test.sh
 
       - name: Print logs on failure
         if: ${{ failure() }}

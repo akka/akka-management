@@ -139,11 +139,18 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
-    "org.scalatest" %% "scalatest" % ScalaTestVersion % "it,test",
+    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
     "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
-    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "test",
-    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "it,test"
+    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test,
+    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test
   )
+
+  val RollingUpdateKubernetesIntegration = RollingUpdateKubernetes ++ Seq(
+      "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+      "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
+      "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test,
+      "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test
+    )
 
   val LeaseKubernetes = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
@@ -153,13 +160,14 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "com.github.tomakehurst" % "wiremock-jre8" % "2.35.0" % Test,
-    "org.scalatest" %% "scalatest" % ScalaTestVersion % "it,test",
-    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % "it,test",
-    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "it,test"
+    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+    "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test,
+    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test
   )
 
   val LeaseKubernetesTest = Seq(
-    "org.scalatest" %% "scalatest" % ScalaTestVersion
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
+    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test
   )
 
   val BootstrapDemos = Seq(

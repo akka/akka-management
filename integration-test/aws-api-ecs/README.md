@@ -50,7 +50,7 @@ before executing it, to understand what's happening inside:
 
 `./scripts/publish.sh`
 
-The script uses `docker:publishLocal` and then tags and pushes the image
+The script uses `Docker/publishLocal` and then tags and pushes the image
 manually (in favour of just using `docker:publish` as might normally be done)
 because this avoids the need to set `dockerRepository` within the SBT build
 (which would then require that we inject the AWS account ID into the build).

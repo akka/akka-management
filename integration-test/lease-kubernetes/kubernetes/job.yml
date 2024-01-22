@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lease-test
+spec:
+  parallelism: 1
+  completions: 1
+  backoffLimit: 0
+  template:
+    spec:
+      containers:
+        - name: lease-test
+          imagePullPolicy: Never
+          image: akka-lease-kubernetes-integration:latest
+      restartPolicy: Never
