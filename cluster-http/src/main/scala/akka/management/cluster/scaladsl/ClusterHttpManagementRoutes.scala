@@ -8,6 +8,7 @@ import akka.cluster.sharding.{ ClusterSharding, ShardRegion }
 import akka.cluster.{ Cluster, Member, MemberStatus }
 import akka.http.scaladsl.model.{ HttpMethod, HttpMethods, StatusCodes, Uri }
 import Uri.Path
+import akka.actor.ClassicActorSystemProvider
 import akka.http.scaladsl.server.Route
 import akka.management.cluster._
 import akka.pattern.ask
@@ -249,6 +250,13 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
     }
 
   /**
+   * Creates an instance of [[ClusterHttpManagementRoutes]] to manage the cluster for the given
+   * typed or classic actor system instance. This version does not provide Basic Authentication.
+   */
+  def apply(actorySystemProvider: ClassicActorSystemProvider): Route =
+    apply(Cluster(actorySystemProvider.classicSystem))
+
+  /**
    * Creates an instance of [[ClusterHttpManagementRoutes]] to manage the specified
    * [[akka.cluster.Cluster]] instance. This version does not provide Basic Authentication.
    */
@@ -290,6 +298,12 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       }
     }
   }
+
+  /**
+   * Creates an instance of [[ClusterHttpManagementRoutes]] with only the read only routes.
+   */
+  def readOnly(actorySystemProvider: ClassicActorSystemProvider): Route =
+    readOnly(Cluster(actorySystemProvider.classicSystem))
 
   /**
    * Creates an instance of [[ClusterHttpManagementRoutes]] with only the read only routes.
