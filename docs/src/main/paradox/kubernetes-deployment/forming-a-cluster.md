@@ -30,7 +30,7 @@ The Akka dependencies are available from Akka's library repository. To access th
 id="akka-repository"
 name="Akka library repository"
 url="https://repo.akka.io/maven"
-
+}
 
 Additionally, add the dependencies as below.
 
