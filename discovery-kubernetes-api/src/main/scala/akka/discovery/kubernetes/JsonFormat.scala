@@ -13,6 +13,7 @@ import spray.json._
  * INTERNAL API
  */
 @InternalApi private[akka] object JsonFormat extends SprayJsonSupport with DefaultJsonProtocol {
+  // If adding more formats here, remember to also add in META-INF/native-image reflect config
   implicit val containerPortFormat: JsonFormat[ContainerPort] = jsonFormat2(ContainerPort.apply)
   implicit val containerFormat: JsonFormat[Container] = jsonFormat2(Container.apply)
   implicit val podSpecFormat: JsonFormat[PodSpec] = jsonFormat1(PodSpec.apply)
