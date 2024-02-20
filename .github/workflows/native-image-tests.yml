@@ -43,14 +43,12 @@ jobs:
         run: |-
           sbt "publishLocal; publishM2"
 
-      #- name: Akka Management native image test app build
-      #  run: |-
-      #    cd native-image-tests/grpc-scala
-      #    sbt nativeImage -Dakka.grpc.version=`cat ~/.version`
-      #    # run the binary, netty client backend
-      #    target/native-image/grpc-scala
-      #    # akka-http client backend
-      #    target/native-image/grpc-scala akka-http-client
+      - name: Akka Management native image test app build
+        run: |-
+          cd native-image-tests
+          sbt nativeImage -Dakka.management.version=`cat ~/.version`
+          # run the binary to see it can bootstrap a cluster
+          target/native-image/native-image-tests
 
       - name: Email on failure
         if: ${{ failure() }}

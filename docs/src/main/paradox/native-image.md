@@ -5,9 +5,9 @@ Building native images with Akka HTTP is supported out of the box for the follow
  * akka-management
  * akka-management-cluster-bootstrap
  * akka-management-cluster-http
- * akka-management-discovery-kubernetes-api
+ * akka-discovery-kubernetes-api
  * akka-lease-kubernetes
- * akka-rolling-upgrade-kubernetes
+ * akka-rolling-update-kubernetes
 
 Other modules can likely be used but will require figuring out and adding additional native-image metadata.
 
