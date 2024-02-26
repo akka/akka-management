@@ -7,14 +7,8 @@
         </encoder>
     </appender>
 
-    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>1024</queueSize>
-        <neverBlock>true</neverBlock>
-        <appender-ref ref="STDOUT" />
-    </appender>
-
     <root level="INFO">
-        <appender-ref ref="ASYNC"/>
+        <appender-ref ref="STDOUT"/>
     </root>
 
 </configuration>

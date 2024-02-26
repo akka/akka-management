@@ -2,7 +2,7 @@ name := "native-image-tests"
 
 version := "1.0"
 
-scalaVersion := s"2.13.12"
+scalaVersion := "2.13.12"
 
 resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
@@ -47,5 +47,6 @@ nativeImageVersion := "21.0.2"
 nativeImageOptions := Seq(
   "--no-fallback",
   "--verbose",
+  "--initialize-at-build-time=ch.qos.logback",
   "-Dakka.native-image.debug=true"
 )
