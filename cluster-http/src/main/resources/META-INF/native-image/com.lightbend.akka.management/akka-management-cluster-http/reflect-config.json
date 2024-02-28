@@ -1,0 +1,57 @@
+[
+  {
+    "name": "akka.management.cluster.ClusterHttpManagementRouteProvider$",
+    "fields": [ {
+      "name": "MODULE$"
+    } ]
+  },
+  {
+    "name": "akka.management.cluster.javadsl.ClusterMembershipCheck",
+    "methods": [{
+      "name": "<init>",
+      "parameterTypes": ["akka.actor.ActorSystem"]
+    }]
+  },
+  {
+    "name": "akka.management.cluster.scaladsl.ClusterMembershipCheck",
+    "methods": [{
+      "name": "<init>",
+      "parameterTypes": ["akka.actor.ActorSystem"]
+    }]
+  },
+  {
+    "name": "akka.management.cluster.ClusterUnreachableMember",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "akka.management.cluster.ClusterMember",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "akka.management.cluster.ClusterMembers",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "akka.management.cluster.ClusterHttpManagementMessage",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "akka.management.cluster.ShardEntityTypeKeys",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "akka.management.cluster.ShardRegionInfo",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "akka.management.cluster.ShardDetails",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  }
+]

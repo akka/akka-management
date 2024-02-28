@@ -17,8 +17,8 @@
   <properties>
     <encoding>UTF-8</encoding>
     <maven.compiler.release>11</maven.compiler.release>
-    <akka.version>2.9.0</akka.version>
-    <akka.http.version>10.6.0</akka.http.version>
+    <akka.version>2.9.2</akka.version>
+    <akka.http.version>10.6.1</akka.http.version>
     <akka-management.version>1.5.0</akka-management.version>
     <scala.binary.version>2.13</scala.binary.version>
   </properties>

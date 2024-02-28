@@ -1,0 +1,15 @@
+[
+  {
+    "name": "akka.management.scaladsl.AkkaManagement$",
+    "fields": [ {
+      "name": "MODULE$"
+    } ]
+  },
+  {
+    "name": "akka.management.HealthCheckRoutes",
+    "methods": [{
+      "name": "<init>",
+      "parameterTypes": ["akka.actor.ExtendedActorSystem"]
+    }]
+  }
+]

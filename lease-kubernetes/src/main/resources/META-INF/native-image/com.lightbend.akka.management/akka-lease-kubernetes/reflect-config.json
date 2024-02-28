@@ -1,0 +1,26 @@
+[
+  {
+    "name": "akka.coordination.lease.kubernetes.KubernetesLease",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": ["akka.coordination.lease.LeaseSettings", "akka.actor.ExtendedActorSystem"]
+      }
+    ]
+  },
+  {
+    "name": "akka.coordination.lease.kubernetes.internal.LeaseCustomResource",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "akka.coordination.lease.kubernetes.internal.Metadata",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "akka.coordination.lease.kubernetes.internal.Spec",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  }
+]

@@ -47,6 +47,7 @@ final case class ShardDetails(regions: immutable.Seq[ShardRegionInfo])
 }
 
 trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJsonProtocol {
+  // If adding more formats here, remember to also add in META-INF/native-image reflect config
   implicit val clusterUnreachableMemberFormat: RootJsonFormat[ClusterUnreachableMember] =
     jsonFormat2(ClusterUnreachableMember.apply)
   implicit val clusterMemberFormat: RootJsonFormat[ClusterMember] = jsonFormat4(ClusterMember.apply)

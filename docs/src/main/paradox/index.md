@@ -36,4 +36,5 @@ Various parts of Akka management can be used together for deploying Akka Cluster
   - [Akka Cluster Management (JMX)](cluster-jmx-management.md)
   - [Dynamic Log Levels](loglevels/index.md)
   - [Akka Coordination Lease for Kubernetes](kubernetes-lease.md)
+  - [Native Image](native-image.md)
 @@@
