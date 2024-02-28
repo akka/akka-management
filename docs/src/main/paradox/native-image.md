@@ -1,6 +1,6 @@
 # Building Native Images
 
-Building native images with Akka HTTP is supported out of the box for the following modules:
+Building native images with Akka Management is supported out of the box for the following modules:
 
  * akka-management
  * akka-management-cluster-bootstrap
