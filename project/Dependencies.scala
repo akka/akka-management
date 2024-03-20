@@ -140,14 +140,14 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
-    "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
+    "com.github.tomakehurst" % "wiremock-jre8" % "2.35.2" % Test,
     "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test
   )
 
   val RollingUpdateKubernetesIntegration = RollingUpdateKubernetes ++ Seq(
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
-      "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
+      "com.github.tomakehurst" % "wiremock-jre8" % "2.35.2" % Test,
       "org.scalatestplus" %% "junit-4-13" % ScalaTestPlusJUnitVersion % Test,
       "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test
     )
