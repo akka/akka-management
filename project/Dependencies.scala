@@ -86,7 +86,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.13",
+    "ch.qos.logback" % "logback-classic" % "1.5.3",
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
@@ -174,7 +174,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.13",
+    "ch.qos.logback" % "logback-classic" % "1.5.3",
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
   )
 

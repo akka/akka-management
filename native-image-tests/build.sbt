@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
   "com.lightbend.akka.discovery" %% "akka-discovery-kubernetes-api" % akkaManagementVersion,
   "com.lightbend.akka.management" %% "akka-lease-kubernetes" % akkaManagementVersion,
   "com.lightbend.akka.management" %% "akka-rolling-update-kubernetes" % akkaManagementVersion,
-  "ch.qos.logback" % "logback-classic" % "1.2.13"
+  "ch.qos.logback" % "logback-classic" % "1.5.3"
 )
 
 // useful for investigations: sbt nativeImageRunAgent
