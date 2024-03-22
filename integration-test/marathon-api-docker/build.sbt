@@ -2,7 +2,7 @@ import com.typesafe.sbt.packager.docker._
 
 name := "bootstrap-demo-marathon-api-docker"
 
-scalaVersion := "2.13.12"
+scalaVersion := "2.13.13"
 
 enablePlugins(JavaServerAppPackaging)
 
