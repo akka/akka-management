@@ -1,5 +1,7 @@
 # Akka (Cluster) Management
 
+The Akka family of projects is managed by teams at [Lightbend](https://lightbend.com/) with help from the community.
+
 This repository contains interfaces to inspect, interact and manage various Parts of Akka, primarily Akka Cluster.
 Future additions may extend these concepts to other parts of Akka.
 
@@ -31,6 +33,11 @@ for the following modules.
 * akka-discovery-marathon-api
 * akka-discovery-aws-api
 * akka-discovery-aws-api-async
+
+License
+-------
+
+Akka is licensed under the Business Source License 1.1, please see the [Akka License FAQ](https://www.lightbend.com/akka/license-faq).
 
 
 
