@@ -1,0 +1,62 @@
+name: Integration test for akka-sample-cluster-kubernetes-scala
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - release-*
+    tags-ignore: [ v.* ]
+  schedule:
+    - cron: '0 2 * * *'  # every day 2am
+
+permissions:
+  contents: read
+
+jobs:
+   integration-test:
+    name: Integration Tests for akka-sample-cluster-kubernetes-scala
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        # https://github.com/actions/checkout/releases
+        # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          fetch-depth: 0
+
+      - name: Checkout GitHub merge
+        if: github.event.pull_request
+        run: |-
+          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
+          git checkout scratch
+
+      - name: Cache Coursier cache
+        # https://github.com/coursier/cache-action/releases
+        # v6.4.5
+        uses: coursier/cache-action@1ff273bff02a8787bc9f1877d347948af647956d
+
+      - name: Set up JDK 17
+        # https://github.com/coursier/setup-action/releases
+        # v1.3.5
+        uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
+        with:
+          jvm: temurin:1.17.0
+
+      - name: Setup Minikube
+        # https://github.com/manusa/actions-setup-minikube/releases
+        # v2.7.1
+        uses: manusa/actions-setup-minikube@4582844dcacbf482729f8d7ef696f515d2141bb9
+        with:
+          minikube version: 'v1.32.0'
+          kubernetes version: 'v1.28.4'
+          driver: docker
+          start args: '--addons=ingress'
+
+      - name: Run Integration Tests
+        run: |-
+          ./integration-test/akka-sample-cluster-kubernetes-scala/test.sh
+
+      - name: Print logs on failure
+        if: ${{ failure() }}
+        run: find . -name "*.log" -exec ./scripts/cat-log.sh {} \;
