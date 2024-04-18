@@ -3,8 +3,8 @@
 For this guide we will be using the Akka Cluster in Kubernetes sample. 
 It is available for both:
 
- * [Java](https://developer.lightbend.com/start/?group=akka&project=akka-sample-cluster-kubernetes-java) 
- * [Scala](https://developer.lightbend.com/start/?group=akka&project=akka-sample-cluster-kubernetes-scala)
+* [Java](../attachments/akka-sample-cluster-kubernetes-java.zip)
+* [Scala](../attachments/akka-sample-cluster-kubernetes-scala.zip)
 
 @@toc { depth=2 }
 

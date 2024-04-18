@@ -3,11 +3,6 @@
 A set of integration tests projects can be found in [integration-test folder of the Akka Management project](https://github.com/akka/akka-management/tree/main/integration-test).
 These test various Akka management features together in various environments such as Kubernetes.
 
-The following samples exist as standalone projects:
-
-* [Akka Cluster bootstrap using the Kubernetes API with Java/Maven](https://github.com/akka/akka-sample-cluster-kubernetes-java)
-* [Akka Cluster bootstrap using DNS in Kubernetes](https://github.com/akka/akka-sample-cluster-kubernetes-dns-java)
-
 ## Local
 
 To run Bootstrap locally without any dependencies such as DNS or Kubernetes see the @ref[`local` example](local-config.md)
@@ -25,7 +20,10 @@ The recommended approach is to:
 
 ### Example project
 
-To get started, it might be helpful to have a look at the [Akka Cluster on Kubernetes](https://developer.lightbend.com/start/?group=akka&project=akka-sample-cluster-kubernetes-java) example project.
+To get started, it might be helpful to have a look at the example projects.
+
+* [Akka Cluster bootstrap using the Kubernetes API with Java/Maven](../attachments/akka-sample-cluster-kubernetes-java.zip)
+* [Akka Cluster bootstrap using the Kubernetes API with Scala/sbt](../attachments/akka-sample-cluster-kubernetes-scala.zip)
 
 ### Kubernetes Deployment
 

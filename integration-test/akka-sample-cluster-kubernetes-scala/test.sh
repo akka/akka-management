@@ -1,7 +1,15 @@
-#!/bin/bash -e
+#!/bin/bash
+
+set -exu
+
+export NAMESPACE=appka-1
+export APP_NAME=appka
+export PROJECT_DIR=samples/akka-sample-cluster-kubernetes-scala
+export DEPLOYMENT=kubernetes/akka-cluster.yml
 
 eval $(minikube -p minikube docker-env)
-sbt $PROJECT_NAME/Docker/publishLocal
+cd $PROJECT_DIR
+sbt Docker/publishLocal
 
 docker images | head
 
@@ -50,4 +58,6 @@ then
 
   exit -1
 fi
+
+
 

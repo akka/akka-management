@@ -8,8 +8,8 @@ In preparation for production, we need to do two main things:
 The final configuration file and deployment spec are in the sample application.
 In this guide we will show snippets. Locations of the samples:
 
-* [Java](https://developer.lightbend.com/start/?group=akka&project=akka-sample-cluster-kubernetes-java) 
-* [Scala](https://developer.lightbend.com/start/?group=akka&project=akka-sample-cluster-kubernetes-scala)
+* [Java](../attachments/akka-sample-cluster-kubernetes-java.zip)
+* [Scala](../attachments/akka-sample-cluster-kubernetes-scala.zip)
 
 ## Deployment Spec
 
