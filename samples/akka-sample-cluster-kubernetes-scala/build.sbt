@@ -34,7 +34,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream-typed" % akkaVersion,
     "com.typesafe.akka" %% "akka-discovery" % akkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.13",
+    "ch.qos.logback" % "logback-classic" % "1.5.6",
     "com.lightbend.akka.discovery" %% "akka-discovery-kubernetes-api" % akkaManagementVersion,
     "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % akkaManagementVersion,
     "com.lightbend.akka.management" %% "akka-management-cluster-http" % akkaManagementVersion,
@@ -42,5 +42,6 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion % Test,
     "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
-    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test)
+    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test
+  )
 }
