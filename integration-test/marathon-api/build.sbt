@@ -8,7 +8,7 @@ version := "0.1.0"
 
 scalaVersion := "2.13.13"
 
-val akkaManagementVersion = "1.5.0"
+val akkaManagementVersion = "1.5.2"
 
 libraryDependencies ++= Vector(
   "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % akkaManagementVersion,
