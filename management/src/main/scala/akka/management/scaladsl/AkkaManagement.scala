@@ -62,9 +62,11 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
       "akka-discovery-marathon-api",
       "akka-discovery-aws-api-async",
       "akka-discovery-kubernetes-api",
+      "akka-lease-kubernetes",
       "akka-management",
       "akka-management-cluster-bootstrap",
-      "akka-management-cluster-http"
+      "akka-management-cluster-http",
+      "akka-rolling-update-kubernetes"
     ),
     logWarning = true
   )
