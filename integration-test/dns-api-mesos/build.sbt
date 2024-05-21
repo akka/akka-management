@@ -4,7 +4,7 @@ resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 name := "bootstrap-demo-dns-api"
 
-scalaVersion := "2.13.13"
+scalaVersion := "2.13.14"
 
 def akkaManagementVersion(version: String) = version.split('+')(0)
 
