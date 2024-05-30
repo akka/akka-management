@@ -6,3 +6,4 @@ paths:
   exclude:
     - ./integration-test
     - ./native-image-tests
+    - samples
