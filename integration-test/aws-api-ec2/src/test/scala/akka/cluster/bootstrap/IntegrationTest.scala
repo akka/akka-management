@@ -7,21 +7,21 @@ import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
-import akka.management.cluster.{ClusterHttpManagementJsonProtocol, ClusterMembers}
+import akka.management.cluster.{ ClusterHttpManagementJsonProtocol, ClusterMembers }
 import akka.util.ByteString
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
 import com.amazonaws.services.cloudformation.model._
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder
-import com.amazonaws.services.ec2.model.{DescribeInstancesRequest, Filter, Reservation}
-import org.scalatest.concurrent.PatienceConfiguration.{Interval, Timeout}
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import org.scalatest.time.{Seconds, Span, SpanSugar}
+import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter, Reservation }
+import org.scalatest.concurrent.PatienceConfiguration.{ Interval, Timeout }
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.time.{ Seconds, Span, SpanSugar }
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import spray.json._
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
 trait HttpClient {
@@ -35,16 +35,21 @@ trait HttpClient {
   val http = Http()
 
   def httpGetRequest(url: String): Future[(Int, String)] = {
-    http.singleRequest(HttpRequest(uri = url))
+    http
+      .singleRequest(HttpRequest(uri = url))
       .flatMap(r => r.entity.toStrict(3 seconds).map(s => r.status -> s))
-      .flatMap(t => t._2.dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String).map(_.filter(_ >= ' '))
-        .map(r => t._1.intValue() -> r))
+      .flatMap(t =>
+        t._2.dataBytes
+          .runFold(ByteString.empty)(_ ++ _)
+          .map(_.utf8String)
+          .map(_.filter(_ >= ' '))
+          .map(r => t._1.intValue() -> r))
   }
 
 }
 
 class IntegrationTest
-  extends AnyFunSuite
+    extends AnyFunSuite
     with Eventually
     with BeforeAndAfterAll
     with ScalaFutures
@@ -83,10 +88,10 @@ class IntegrationTest
   // Once the CloudFormation stack has CREATE_COMPLETE status, the EC2 instances are
   // still "initializing" (seems to take a very long time) so we add some additional patience for that.
   private val clusterBootstrapPatience: PatienceConfig =
-  PatienceConfig(
-    timeout = 12 minutes,
-    interval = 5 seconds
-  )
+    PatienceConfig(
+      timeout = 12 minutes,
+      interval = 5 seconds
+    )
 
   private var clusterPublicIps: List[String] = List()
 
@@ -124,8 +129,8 @@ class IntegrationTest
     def conditions: Boolean = (dsr.getStacks.size() == 1) && {
       val stack = dsr.getStacks.get(0)
       stack.getStackStatus == StackStatus.CREATE_COMPLETE.toString &&
-        stack.getOutputs.size() >= 1 &&
-        stack.getOutputs.asScala.exists(_.getOutputKey == "AutoScalingGroupName")
+      stack.getOutputs.size() >= 1 &&
+      stack.getOutputs.asScala.exists(_.getOutputKey == "AutoScalingGroupName")
     }
 
     implicit val patienceConfig: PatienceConfig = createStackPatience
@@ -148,15 +153,14 @@ class IntegrationTest
         dsr.getStacks.get(0).getOutputs.asScala.find(_.getOutputKey == "AutoScalingGroupName").get.getOutputValue
 
       val ips: List[(String, String)] = awsEc2Client
-        .describeInstances(new DescribeInstancesRequest()
-          .withFilters(new Filter("tag:aws:autoscaling:groupName", List(asgName).asJava)))
+        .describeInstances(
+          new DescribeInstancesRequest().withFilters(new Filter("tag:aws:autoscaling:groupName", List(asgName).asJava)))
         .getReservations
         .asScala
         .flatMap((r: Reservation) =>
           r.getInstances.asScala.map(instance => (instance.getPublicIpAddress, instance.getPrivateIpAddress)))
         .toList
-        .filter(ips =>
-          ips._1 != null && ips._2 != null) // TODO: investigate whether there are edge cases that may makes this necessary
+        .filter(ips => ips._1 != null && ips._2 != null) // TODO: investigate whether there are edge cases that may makes this necessary
 
       clusterPublicIps = ips.map(_._1)
       clusterPrivateIps = ips.map(_._2)
@@ -190,25 +194,27 @@ class IntegrationTest
 
     eventually {
 
-      log.info("querying the Cluster Http Management interface of each node, eventually we should see a well formed cluster")
+      log.info(
+        "querying the Cluster Http Management interface of each node, eventually we should see a well formed cluster")
 
-      clusterPublicIps.foreach { nodeIp => {
+      clusterPublicIps.foreach { nodeIp =>
+        {
 
-        val result = httpGetRequest(s"http://$nodeIp:8558/cluster/members").futureValue(httpCallTimeout)
-        result._1 should ===(200)
-        result._2.nonEmpty should be (true)
+          val result = httpGetRequest(s"http://$nodeIp:8558/cluster/members").futureValue(httpCallTimeout)
+          result._1 should ===(200)
+          result._2.nonEmpty should be(true)
 
-        val clusterMembers = result._2.parseJson.convertTo[ClusterMembers]
+          val clusterMembers = result._2.parseJson.convertTo[ClusterMembers]
 
-        clusterMembers.members should have size instanceCount
-        clusterMembers.members.count(_.status == "Up") should ===(instanceCount)
-        clusterMembers.members.map(_.node) should ===(expectedNodes)
+          clusterMembers.members should have size instanceCount
+          clusterMembers.members.count(_.status == "Up") should ===(instanceCount)
+          clusterMembers.members.map(_.node) should ===(expectedNodes)
 
-        clusterMembers.unreachable.isEmpty should be(true)
-        clusterMembers.leader shouldBe defined
-        clusterMembers.oldest shouldBe defined
+          clusterMembers.unreachable.isEmpty should be(true)
+          clusterMembers.leader shouldBe defined
+          clusterMembers.oldest shouldBe defined
 
-      }
+        }
       }
     }
   }
@@ -224,6 +230,5 @@ class IntegrationTest
     }
     system.terminate()
   }
-
 
 }
