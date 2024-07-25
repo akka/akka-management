@@ -83,7 +83,8 @@ class KubernetesApiSpec
       podName = podName,
       secure = false,
       apiServiceRequestTimeout = 2.seconds,
-      customResourceSettings = new CustomResourceSettings(enabled = false, crName = None, 60.seconds)
+      customResourceSettings = new CustomResourceSettings(enabled = false, crName = None, 60.seconds),
+      revisionAnnotations = Seq("custom.akka.io/revision", "deployment.kubernetes.io/revision")
     )
   }
 
@@ -159,6 +160,17 @@ class KubernetesApiSpec
     "parse pod and replica response to get the revision" in {
       stubPodResponse()
       stubReplicaResponse()
+
+      EventFilter
+        .info(pattern = "Reading revision from Kubernetes: akka.cluster.app-version was set to 1", occurrences = 1)
+        .intercept {
+          kubernetesApi.readRevision().futureValue should be("1")
+        }
+    }
+
+    "parse pod and replica responses to get the revision from custom annotations" in {
+      stubPodResponse()
+      stubReplicaResponse(defaultReplicaResponseJson.replaceAllLiterally("deployment.kubernetes.io", "custom.akka.io"))
 
       EventFilter
         .info(pattern = "Reading revision from Kubernetes: akka.cluster.app-version was set to 1", occurrences = 1)

@@ -89,7 +89,8 @@ class PodDeletionCostAnnotatorSpec
       podName = podName,
       secure = false,
       apiServiceRequestTimeout = 2.seconds,
-      customResourceSettings = new CustomResourceSettings(enabled = false, crName = None, 60.seconds)
+      customResourceSettings = new CustomResourceSettings(enabled = false, crName = None, 60.seconds),
+      revisionAnnotations = Seq("deployment.kubernetes.io/revision")
     )
   }
 
