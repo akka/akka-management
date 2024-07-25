@@ -17,3 +17,6 @@ target/
 
 # attachments created by scripts/prepare-downloads.sh
 docs/src/main/paradox/attachments
+
+# Metals detritus
+project/project

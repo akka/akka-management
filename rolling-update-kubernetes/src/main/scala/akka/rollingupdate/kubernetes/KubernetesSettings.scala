@@ -4,10 +4,12 @@
 
 package akka.rollingupdate.kubernetes
 
-import scala.concurrent.duration._
 import akka.util.JavaDurationConverters._
 import akka.annotation.InternalApi
 import com.typesafe.config.Config
+
+import scala.concurrent.duration._
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
  * INTERNAL API
@@ -47,7 +49,8 @@ private[kubernetes] object KubernetesSettings {
       config.getString("pod-name"),
       config.getBoolean("secure-api-server"),
       config.getDuration("api-service-request-timeout").asScala,
-      customResourceSettings
+      customResourceSettings,
+      config.getStringList("revision-annotation").asScala.toList
     )
   }
 }
@@ -67,8 +70,17 @@ private[kubernetes] class KubernetesSettings(
     val secure: Boolean,
     val apiServiceRequestTimeout: FiniteDuration,
     val customResourceSettings: CustomResourceSettings,
+    val revisionAnnotations: Seq[String],
     val bodyReadTimeout: FiniteDuration = 1.second
-)
+) extends HasRevisionAnnotations
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
+private[kubernetes] trait HasRevisionAnnotations {
+  def revisionAnnotations: Seq[String]
+}
 
 /**
  * INTERNAL API

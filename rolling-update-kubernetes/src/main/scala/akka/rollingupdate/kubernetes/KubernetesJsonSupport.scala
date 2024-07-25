@@ -10,13 +10,16 @@ import akka.annotation.InternalApi
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json.DefaultJsonProtocol
 import spray.json.JsonFormat
+import spray.json.JsObject
 import spray.json.RootJsonFormat
+import spray.json.JsString
+import spray.json.JsValue
 
 /**
  * INTERNAL API
  */
 @InternalApi
-case class ReplicaAnnotation(`deployment.kubernetes.io/revision`: String)
+case class ReplicaAnnotation(revision: String, source: String, otherAnnotations: Map[String, JsValue])
 
 /**
  * INTERNAL API
@@ -75,6 +78,10 @@ case class Spec(pods: immutable.Seq[PodCost])
  */
 @InternalApi
 trait KubernetesJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
+  val _revisionAnnotations: HasRevisionAnnotations = new HasRevisionAnnotations {
+    def revisionAnnotations = Seq("deployment.kubernetes.io/revision")
+  }
+
   // If adding more formats here, remember to also add in META-INF/native-image reflect config
   implicit val metadataFormat: JsonFormat[Metadata] = jsonFormat2(Metadata.apply)
   implicit val podCostFormat: JsonFormat[PodCost] = jsonFormat5(PodCost.apply)
@@ -86,7 +93,35 @@ trait KubernetesJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val podMetadataFormat: JsonFormat[PodMetadata] = jsonFormat1(PodMetadata.apply)
   implicit val podFormat: RootJsonFormat[Pod] = jsonFormat1(Pod.apply)
 
-  implicit val replicaAnnotationFormat: JsonFormat[ReplicaAnnotation] = jsonFormat1(ReplicaAnnotation.apply)
+  implicit val replicaAnnotationFormat: RootJsonFormat[ReplicaAnnotation] =
+    new RootJsonFormat[ReplicaAnnotation] {
+      // Not sure if we ever write this out, but if we do, this will let us write out exactly what we took in
+      def write(ra: ReplicaAnnotation): JsValue =
+        if (ra.revision.nonEmpty && ra.source.nonEmpty) {
+          JsObject(ra.otherAnnotations + (ra.source -> JsString(ra.revision)))
+        } else JsObject(ra.otherAnnotations)
+
+      def read(json: JsValue): ReplicaAnnotation = {
+        json match {
+          case JsObject(fields) =>
+            _revisionAnnotations.revisionAnnotations.find { annotation =>
+              fields.get(annotation).exists(_.isInstanceOf[JsString])
+            } match {
+              case Some(winningAnnotation) =>
+                ReplicaAnnotation(
+                  fields(winningAnnotation).asInstanceOf[JsString].value,
+                  winningAnnotation,
+                  fields - winningAnnotation)
+
+              case None =>
+                ReplicaAnnotation("", "", fields)
+            }
+
+          case _ => spray.json.deserializationError("expected an object")
+        }
+      }
+    }
+
   implicit val replicaSetMedatataFormat: JsonFormat[ReplicaSetMetadata] = jsonFormat1(ReplicaSetMetadata.apply)
   implicit val podReplicaSetFormat: RootJsonFormat[ReplicaSet] = jsonFormat1(ReplicaSet.apply)
 }
