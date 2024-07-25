@@ -78,9 +78,7 @@ case class Spec(pods: immutable.Seq[PodCost])
  */
 @InternalApi
 trait KubernetesJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  val _revisionAnnotations: HasRevisionAnnotations = new HasRevisionAnnotations {
-    def revisionAnnotations = Seq("deployment.kubernetes.io/revision")
-  }
+  val _revisionAnnotations: HasRevisionAnnotations = KubernetesJsonSupport.defaultRevisionAnnotations
 
   // If adding more formats here, remember to also add in META-INF/native-image reflect config
   implicit val metadataFormat: JsonFormat[Metadata] = jsonFormat2(Metadata.apply)
@@ -124,4 +122,10 @@ trait KubernetesJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
 
   implicit val replicaSetMedatataFormat: JsonFormat[ReplicaSetMetadata] = jsonFormat1(ReplicaSetMetadata.apply)
   implicit val podReplicaSetFormat: RootJsonFormat[ReplicaSet] = jsonFormat1(ReplicaSet.apply)
+}
+
+private[kubernetes] object KubernetesJsonSupport {
+  val defaultRevisionAnnotations: HasRevisionAnnotations = new HasRevisionAnnotations {
+    val revisionAnnotations = Seq("deployment.kubernetes.io/revision")
+  }
 }
