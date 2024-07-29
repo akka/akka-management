@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2017-2023 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package akka.cluster.bootstrap
 
 import akka.actor.ActorSystem
