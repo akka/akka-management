@@ -64,7 +64,7 @@ class KubernetesApiIntegrationTest
       crName = None,
       cleanupAfter = 60.seconds
     ),
-    revisionAnnotations = KubernetesJsonSupport.defaultRevisionAnnotations.revisionAnnotations
+    revisionAnnotation = KubernetesJsonSupport.defaultRevisionAnnotation.revisionAnnotation
   )
 
   private val underTest =

@@ -50,7 +50,7 @@ private[kubernetes] object KubernetesSettings {
       config.getBoolean("secure-api-server"),
       config.getDuration("api-service-request-timeout").asScala,
       customResourceSettings,
-      config.getStringList("revision-annotation").asScala.toList
+      config.getString("revision-annotation")
     )
   }
 }
@@ -70,16 +70,16 @@ private[kubernetes] class KubernetesSettings(
     val secure: Boolean,
     val apiServiceRequestTimeout: FiniteDuration,
     val customResourceSettings: CustomResourceSettings,
-    val revisionAnnotations: Seq[String],
+    val revisionAnnotation: String,
     val bodyReadTimeout: FiniteDuration = 1.second
-) extends HasRevisionAnnotations
+) extends HasRevisionAnnotation
 
 /**
  * INTERNAL API
  */
 @InternalApi
-private[kubernetes] trait HasRevisionAnnotations {
-  def revisionAnnotations: Seq[String]
+private[kubernetes] trait HasRevisionAnnotation {
+  def revisionAnnotation: String
 }
 
 /**

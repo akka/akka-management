@@ -84,7 +84,7 @@ class KubernetesApiSpec
       secure = false,
       apiServiceRequestTimeout = 2.seconds,
       customResourceSettings = new CustomResourceSettings(enabled = false, crName = None, 60.seconds),
-      revisionAnnotations = Seq("custom.akka.io/revision", "deployment.kubernetes.io/revision")
+      revisionAnnotation = "deployment.kubernetes.io/revision"
     )
   }
 
@@ -172,10 +172,35 @@ class KubernetesApiSpec
       stubPodResponse()
       stubReplicaResponse(defaultReplicaResponseJson.replaceAllLiterally("deployment.kubernetes.io", "custom.akka.io"))
 
+      val customSettings = {
+        val base = settings(podName1)
+        new KubernetesSettings(
+          apiCaPath = base.apiCaPath,
+          apiTokenPath = base.apiTokenPath,
+          apiServiceHost = base.apiServiceHost,
+          apiServicePort = base.apiServicePort,
+          namespace = base.namespace,
+          namespacePath = base.namespacePath,
+          podName = base.podName,
+          secure = base.secure,
+          apiServiceRequestTimeout = base.apiServiceRequestTimeout,
+          customResourceSettings = base.customResourceSettings,
+          revisionAnnotation = "custom.akka.io/revision"
+        )
+      }
+
+      val customKubernetesApi =
+        new KubernetesApiImpl(
+          system,
+          customSettings,
+          namespace,
+          apiToken = "apiToken",
+          clientHttpsConnectionContext = None)
+
       EventFilter
         .info(pattern = "Reading revision from Kubernetes: akka.cluster.app-version was set to 1", occurrences = 1)
         .intercept {
-          kubernetesApi.readRevision().futureValue should be("1")
+          customKubernetesApi.readRevision().futureValue should be("1")
         }
     }
 
