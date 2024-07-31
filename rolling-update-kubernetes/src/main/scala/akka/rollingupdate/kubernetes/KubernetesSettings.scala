@@ -72,15 +72,7 @@ private[kubernetes] class KubernetesSettings(
     val customResourceSettings: CustomResourceSettings,
     val revisionAnnotation: String,
     val bodyReadTimeout: FiniteDuration = 1.second
-) extends HasRevisionAnnotation
-
-/**
- * INTERNAL API
- */
-@InternalApi
-private[kubernetes] trait HasRevisionAnnotation {
-  def revisionAnnotation: String
-}
+)
 
 /**
  * INTERNAL API

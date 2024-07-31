@@ -55,7 +55,7 @@ import scala.util.control.NonFatal
 
   import system.dispatcher
 
-  override val _revisionAnnotation: HasRevisionAnnotation = settings
+  override val revisionAnnotation = settings.revisionAnnotation
 
   private implicit val sys: ActorSystem = system
   private val log = Logging(system, classOf[KubernetesApiImpl])
