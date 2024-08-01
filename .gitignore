@@ -12,8 +12,12 @@ target/
 *.class
 *.log
 
-.metals
 .vscode
 
 # attachments created by scripts/prepare-downloads.sh
 docs/src/main/paradox/attachments
+
+# Metals detritus
+.metals
+metals.sbt
+**/project/project

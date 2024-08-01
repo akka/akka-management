@@ -55,6 +55,8 @@ import scala.util.control.NonFatal
 
   import system.dispatcher
 
+  override val revisionAnnotation = settings.revisionAnnotation
+
   private implicit val sys: ActorSystem = system
   private val log = Logging(system, classOf[KubernetesApiImpl])
   private val http = Http()(system)
@@ -93,6 +95,7 @@ import scala.util.control.NonFatal
       case HttpResponse(status, _, e, _) =>
         e.discardBytes()
         throw new PodCostException(s"Request failed with status=$status")
+      // Can we make this exhaustive?
     }
   }
 
@@ -213,7 +216,7 @@ PUTs must contain resourceVersions. Response:
         case None              => Future.failed(new ReadRevisionException("No replica name found"))
       }
 
-      val revision = replicaSet.map(_.metadata.annotations.`deployment.kubernetes.io/revision`)
+      val revision = replicaSet.map(_.metadata.annotations.revision)
       revision.map(Some(_)).recoverWith {
         case ex =>
           if (tries >= maxTries) {
