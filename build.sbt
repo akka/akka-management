@@ -1,4 +1,4 @@
-import com.typesafe.sbt.packager.docker.{ Cmd, ExecCmd }
+import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import sbt.Keys.parallelExecution
 
 ThisBuild / resolvers += "Akka library repository".at("https://repo.akka.io/maven")
@@ -19,6 +19,7 @@ lazy val `akka-management-root` = project
     // in AkkaManagement should also be updated
     `akka-discovery-aws-api`,
     `akka-discovery-aws-api-async`,
+    `akka-discovery-azure-api`,
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
@@ -67,6 +68,17 @@ lazy val `akka-discovery-kubernetes-api` = project
     name := "akka-discovery-kubernetes-api",
     organization := "com.lightbend.akka.discovery",
     libraryDependencies := Dependencies.DiscoveryKubernetesApi,
+    mimaPreviousArtifactsSet
+  )
+  .dependsOn(`akka-management-pki`)
+
+lazy val `akka-discovery-azure-api` = (project in file("akka-discovery-azure-api"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
+  .settings(
+    name := "akka-discovery-azure-api",
+    organization := "com.lightbend.akka.discovery",
+    libraryDependencies := Dependencies.DiscoveryAzureApi,
     mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management-pki`)

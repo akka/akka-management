@@ -21,3 +21,7 @@ docs/src/main/paradox/attachments
 .metals
 metals.sbt
 **/project/project
+
+
+# Bloop
+.bloop
