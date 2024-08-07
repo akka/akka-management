@@ -11,7 +11,7 @@ object Common extends AutoPlugin {
   override def trigger = allRequirements
   override def requires = plugins.JvmPlugin && HeaderPlugin
 
-  val currentYear = "2023"
+  val currentYear = "2024"
 
   override lazy val projectSettings =
     Seq(
