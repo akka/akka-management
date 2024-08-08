@@ -30,7 +30,9 @@ object RootBehavior {
 
   def checkK8RollingUpdate(system: ActorSystem[_]): Unit = {
     // this throws if not all spray-json metadata in place
-    new akka.rollingupdate.kubernetes.KubernetesJsonSupport {}
+    new akka.rollingupdate.kubernetes.KubernetesJsonSupport {
+      override val revisionAnnotation = "deployment.kubernetes.io/revision"
+    }
     val extensionClazzName = system.settings.config.getString("pod-cost-class")
     system.dynamicAccess.getObjectFor[ExtensionId[_]](extensionClazzName).get
   }
