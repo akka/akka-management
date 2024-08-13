@@ -72,7 +72,7 @@ lazy val `akka-discovery-kubernetes-api` = project
   )
   .dependsOn(`akka-management-pki`)
 
-lazy val `akka-discovery-azure-api` = (project in file("akka-discovery-azure-api"))
+lazy val `akka-discovery-azure-api` = (project in file("discovery-azure-api"))
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
