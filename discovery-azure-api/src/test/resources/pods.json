@@ -1,0 +1,672 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "annotations": {
+          "kubectl.kubernetes.io/restartedAt": "2024-08-14T17:43:50+05:30"
+        },
+        "creationTimestamp": "2024-08-14T12:58:18Z",
+        "generateName": "akka-cluster-azure-5c46cccf86-",
+        "labels": {
+          "app": "application",
+          "azure.workload.identity/use": "true"
+        },
+        "name": "akka-cluster-azure-5c46cccf86-54ns8",
+        "namespace": "test-akka-app",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "akka-cluster-azure-5c46cccf86",
+            "uid": "f0622dbb-c1a1-48ab-87d2-0db1a361c443"
+          }
+        ],
+        "resourceVersion": "1745735",
+        "uid": "6b9b5763-806d-4821-9ab1-0341ac2a1548"
+      },
+      "spec": {
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "AZURE_SERVER_ID",
+                "value": "6dae42f8-4368-4678-94ff-3960e28e3630/.default"
+              },
+              {
+                "name": "AZURE_CLIENT_ID",
+                "value": "cbadab65-1c72-4af6-a096-1147ae6b65d3"
+              },
+              {
+                "name": "AZURE_TENANT_ID",
+                "value": "51fafb21-db5e-4294-8268-8c93b235d06d"
+              },
+              {
+                "name": "AZURE_FEDERATED_TOKEN_FILE",
+                "value": "/var/run/secrets/azure/tokens/azure-identity-token"
+              },
+              {
+                "name": "AZURE_AUTHORITY_HOST",
+                "value": "https://login.microsoftonline.com/"
+              }
+            ],
+            "image": "girdharshubham/akka-cluster-azure",
+            "imagePullPolicy": "Always",
+            "name": "akka-cluster-azure",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "kube-api-access-82kgm",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/var/run/secrets/azure/tokens",
+                "name": "azure-identity-token",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "aks-default-42170094-vmss000000",
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "test-akka-app",
+        "serviceAccountName": "test-akka-app",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "name": "kube-api-access-82kgm",
+            "projected": {
+              "defaultMode": 420,
+              "sources": [
+                {
+                  "serviceAccountToken": {
+                    "expirationSeconds": 3607,
+                    "path": "token"
+                  }
+                },
+                {
+                  "configMap": {
+                    "items": [
+                      {
+                        "key": "ca.crt",
+                        "path": "ca.crt"
+                      }
+                    ],
+                    "name": "kube-root-ca.crt"
+                  }
+                },
+                {
+                  "downwardAPI": {
+                    "items": [
+                      {
+                        "fieldRef": {
+                          "apiVersion": "v1",
+                          "fieldPath": "metadata.namespace"
+                        },
+                        "path": "namespace"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "azure-identity-token",
+            "projected": {
+              "defaultMode": 420,
+              "sources": [
+                {
+                  "serviceAccountToken": {
+                    "audience": "api://AzureADTokenExchange",
+                    "expirationSeconds": 3600,
+                    "path": "azure-identity-token"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:20Z",
+            "status": "True",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:18Z",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:20Z",
+            "status": "True",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:20Z",
+            "status": "True",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:18Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://1b7c99cab1cce7622120f9482af63d1b79447e794191ddf90cd67f06399874e7",
+            "image": "docker.io/girdharshubham/akka-cluster-azure:latest",
+            "imageID": "docker.io/girdharshubham/akka-cluster-azure@sha256:361f3868715b3494f3cde263a4a63a8a5ffb7eadf1c4becd60f7c46ac1df635e",
+            "lastState": {},
+            "name": "akka-cluster-azure",
+            "ready": true,
+            "restartCount": 0,
+            "started": true,
+            "state": {
+              "running": {
+                "startedAt": "2024-08-14T12:58:19Z"
+              }
+            }
+          }
+        ],
+        "hostIP": "10.224.0.4",
+        "hostIPs": [
+          {
+            "ip": "10.224.0.4"
+          }
+        ],
+        "phase": "Running",
+        "podIP": "10.244.1.225",
+        "podIPs": [
+          {
+            "ip": "10.244.1.225"
+          }
+        ],
+        "qosClass": "BestEffort",
+        "startTime": "2024-08-14T12:58:18Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "annotations": {
+          "kubectl.kubernetes.io/restartedAt": "2024-08-14T17:43:50+05:30"
+        },
+        "creationTimestamp": "2024-08-14T12:58:18Z",
+        "generateName": "akka-cluster-azure-5c46cccf86-",
+        "labels": {
+          "app": "application",
+          "azure.workload.identity/use": "true"
+        },
+        "name": "akka-cluster-azure-5c46cccf86-74qw2",
+        "namespace": "test-akka-app",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "akka-cluster-azure-5c46cccf86",
+            "uid": "f0622dbb-c1a1-48ab-87d2-0db1a361c443"
+          }
+        ],
+        "resourceVersion": "1745733",
+        "uid": "95e14f4c-c8be-4472-a971-38d1ba3e8377"
+      },
+      "spec": {
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "AZURE_SERVER_ID",
+                "value": "6dae42f8-4368-4678-94ff-3960e28e3630/.default"
+              },
+              {
+                "name": "AZURE_CLIENT_ID",
+                "value": "cbadab65-1c72-4af6-a096-1147ae6b65d3"
+              },
+              {
+                "name": "AZURE_TENANT_ID",
+                "value": "51fafb21-db5e-4294-8268-8c93b235d06d"
+              },
+              {
+                "name": "AZURE_FEDERATED_TOKEN_FILE",
+                "value": "/var/run/secrets/azure/tokens/azure-identity-token"
+              },
+              {
+                "name": "AZURE_AUTHORITY_HOST",
+                "value": "https://login.microsoftonline.com/"
+              }
+            ],
+            "image": "girdharshubham/akka-cluster-azure",
+            "imagePullPolicy": "Always",
+            "name": "akka-cluster-azure",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "kube-api-access-9jzhf",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/var/run/secrets/azure/tokens",
+                "name": "azure-identity-token",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "aks-default-42170094-vmss000000",
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "test-akka-app",
+        "serviceAccountName": "test-akka-app",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "name": "kube-api-access-9jzhf",
+            "projected": {
+              "defaultMode": 420,
+              "sources": [
+                {
+                  "serviceAccountToken": {
+                    "expirationSeconds": 3607,
+                    "path": "token"
+                  }
+                },
+                {
+                  "configMap": {
+                    "items": [
+                      {
+                        "key": "ca.crt",
+                        "path": "ca.crt"
+                      }
+                    ],
+                    "name": "kube-root-ca.crt"
+                  }
+                },
+                {
+                  "downwardAPI": {
+                    "items": [
+                      {
+                        "fieldRef": {
+                          "apiVersion": "v1",
+                          "fieldPath": "metadata.namespace"
+                        },
+                        "path": "namespace"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "azure-identity-token",
+            "projected": {
+              "defaultMode": 420,
+              "sources": [
+                {
+                  "serviceAccountToken": {
+                    "audience": "api://AzureADTokenExchange",
+                    "expirationSeconds": 3600,
+                    "path": "azure-identity-token"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:20Z",
+            "status": "True",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:18Z",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:20Z",
+            "status": "True",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:20Z",
+            "status": "True",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:18Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://2b99697c2ada28dd91160b448bed2935bc5a0ef33341ad846702444f35ea36c6",
+            "image": "docker.io/girdharshubham/akka-cluster-azure:latest",
+            "imageID": "docker.io/girdharshubham/akka-cluster-azure@sha256:361f3868715b3494f3cde263a4a63a8a5ffb7eadf1c4becd60f7c46ac1df635e",
+            "lastState": {},
+            "name": "akka-cluster-azure",
+            "ready": true,
+            "restartCount": 0,
+            "started": true,
+            "state": {
+              "running": {
+                "startedAt": "2024-08-14T12:58:19Z"
+              }
+            }
+          }
+        ],
+        "hostIP": "10.224.0.4",
+        "hostIPs": [
+          {
+            "ip": "10.224.0.4"
+          }
+        ],
+        "phase": "Running",
+        "podIP": "10.244.1.41",
+        "podIPs": [
+          {
+            "ip": "10.244.1.41"
+          }
+        ],
+        "qosClass": "BestEffort",
+        "startTime": "2024-08-14T12:58:18Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "annotations": {
+          "kubectl.kubernetes.io/restartedAt": "2024-08-14T17:43:50+05:30"
+        },
+        "creationTimestamp": "2024-08-14T12:58:17Z",
+        "generateName": "akka-cluster-azure-5c46cccf86-",
+        "labels": {
+          "app": "application",
+          "azure.workload.identity/use": "true"
+        },
+        "name": "akka-cluster-azure-5c46cccf86-shkxx",
+        "namespace": "test-akka-app",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "ReplicaSet",
+            "name": "akka-cluster-azure-5c46cccf86",
+            "uid": "f0622dbb-c1a1-48ab-87d2-0db1a361c443"
+          }
+        ],
+        "resourceVersion": "1745716",
+        "uid": "44a8f12f-35d2-47a6-a886-adac95f9f82c"
+      },
+      "spec": {
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "AZURE_SERVER_ID",
+                "value": "6dae42f8-4368-4678-94ff-3960e28e3630/.default"
+              },
+              {
+                "name": "AZURE_CLIENT_ID",
+                "value": "cbadab65-1c72-4af6-a096-1147ae6b65d3"
+              },
+              {
+                "name": "AZURE_TENANT_ID",
+                "value": "51fafb21-db5e-4294-8268-8c93b235d06d"
+              },
+              {
+                "name": "AZURE_FEDERATED_TOKEN_FILE",
+                "value": "/var/run/secrets/azure/tokens/azure-identity-token"
+              },
+              {
+                "name": "AZURE_AUTHORITY_HOST",
+                "value": "https://login.microsoftonline.com/"
+              }
+            ],
+            "image": "girdharshubham/akka-cluster-azure",
+            "imagePullPolicy": "Always",
+            "name": "akka-cluster-azure",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "kube-api-access-sv85p",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/var/run/secrets/azure/tokens",
+                "name": "azure-identity-token",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "aks-default-42170094-vmss000000",
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "test-akka-app",
+        "serviceAccountName": "test-akka-app",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "name": "kube-api-access-sv85p",
+            "projected": {
+              "defaultMode": 420,
+              "sources": [
+                {
+                  "serviceAccountToken": {
+                    "expirationSeconds": 3607,
+                    "path": "token"
+                  }
+                },
+                {
+                  "configMap": {
+                    "items": [
+                      {
+                        "key": "ca.crt",
+                        "path": "ca.crt"
+                      }
+                    ],
+                    "name": "kube-root-ca.crt"
+                  }
+                },
+                {
+                  "downwardAPI": {
+                    "items": [
+                      {
+                        "fieldRef": {
+                          "apiVersion": "v1",
+                          "fieldPath": "metadata.namespace"
+                        },
+                        "path": "namespace"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "azure-identity-token",
+            "projected": {
+              "defaultMode": 420,
+              "sources": [
+                {
+                  "serviceAccountToken": {
+                    "audience": "api://AzureADTokenExchange",
+                    "expirationSeconds": 3600,
+                    "path": "azure-identity-token"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:19Z",
+            "status": "True",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:17Z",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:19Z",
+            "status": "True",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:19Z",
+            "status": "True",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2024-08-14T12:58:17Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://c2e4226fb0fd993f26c9fbd8b75b2f87604d8f4549c9bc05af1c02ec1dd52c11",
+            "image": "docker.io/girdharshubham/akka-cluster-azure:latest",
+            "imageID": "docker.io/girdharshubham/akka-cluster-azure@sha256:361f3868715b3494f3cde263a4a63a8a5ffb7eadf1c4becd60f7c46ac1df635e",
+            "lastState": {},
+            "name": "akka-cluster-azure",
+            "ready": true,
+            "restartCount": 0,
+            "started": true,
+            "state": {
+              "running": {
+                "startedAt": "2024-08-14T12:58:18Z"
+              }
+            }
+          }
+        ],
+        "hostIP": "10.224.0.4",
+        "hostIPs": [
+          {
+            "ip": "10.224.0.4"
+          }
+        ],
+        "phase": "Running",
+        "podIP": "10.244.1.221",
+        "podIPs": [
+          {
+            "ip": "10.244.1.221"
+          }
+        ],
+        "qosClass": "BestEffort",
+        "startTime": "2024-08-14T12:58:17Z"
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": ""
+  }
+}

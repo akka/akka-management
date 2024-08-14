@@ -2,7 +2,7 @@
  * Copyright (C) 2017-2024 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka.discovery.azureapi
+package akka.discovery.azureapi.rbac.aks
 
 import akka.annotation.InternalApi
 
@@ -11,8 +11,9 @@ import scala.collection.immutable
 /**
  * INTERNAL API
  */
-@InternalApi private[azureapi] object PodList {
-  final case class Metadata(deletionTimestamp: Option[String])
+@InternalApi
+private[aks] object PodList {
+  final case class Metadata(deletionTimestamp: Option[String], labels: Map[String, String] = Map.empty)
 
   final case class ContainerPort(name: Option[String], containerPort: Int)
 
@@ -33,4 +34,5 @@ import scala.collection.immutable
 /**
  * INTERNAL API
  */
-@InternalApi private[azureapi] final case class PodList(items: immutable.Seq[PodList.Pod])
+@InternalApi
+private[aks] final case class PodList(items: immutable.Seq[PodList.Pod])

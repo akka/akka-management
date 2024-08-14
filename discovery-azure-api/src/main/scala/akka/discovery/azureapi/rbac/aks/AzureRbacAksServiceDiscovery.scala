@@ -2,13 +2,13 @@
  * Copyright (C) 2017-2024 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka.discovery.azureapi
+package akka.discovery.azureapi.rbac.aks
 
 import akka.actor.ExtendedActorSystem
 import akka.annotation.InternalApi
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.azureapi.AzureRbacAksServiceDiscovery._
-import akka.discovery.azureapi.JsonFormat._
+import AzureRbacAksServiceDiscovery._
+import JsonFormat._
 import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.dispatch.Dispatchers.DefaultBlockingDispatcherId
 import akka.event.Logging
@@ -45,7 +45,7 @@ object AzureRbacAksServiceDiscovery {
    * to do that.
    */
   @InternalApi
-  private[azureapi] def targets(
+  private[aks] def targets(
       podList: PodList,
       portName: Option[String],
       podNamespace: String,
@@ -99,7 +99,7 @@ class AzureRbacAksServiceDiscovery(implicit system: ExtendedActorSystem) extends
 
   log.debug("Settings {}", settings)
 
-  private def fetchToken: Future[AccessToken] =
+  private def fetchAccessToken: Future[AccessToken] =
     azureDefaultCredential.getToken(accessTokenRequestContext.addScopes(settings.entraServerId)).toFuture.asScala
 
   private val kubernetesSetup = {
@@ -118,9 +118,9 @@ class AzureRbacAksServiceDiscovery(implicit system: ExtendedActorSystem) extends
 
   import system.dispatcher
 
-  private def accessToken(retries: Int = 3): Future[AccessToken] = {
-    fetchToken.flatMap {
-      case token if token.isExpired && retries > 0 => accessToken(retries - 1)
+  private def fetchAccessToken(retries: Int = 3): Future[AccessToken] = {
+    fetchAccessToken.flatMap {
+      case token if token.isExpired && retries > 0 => fetchAccessToken(retries - 1)
       case token if token.isExpired =>
         Future.failed(new RuntimeException("Failed to fetch a valid token after multiple attempts"))
       case token => Future.successful(token)
@@ -133,22 +133,18 @@ class AzureRbacAksServiceDiscovery(implicit system: ExtendedActorSystem) extends
     for {
       ks <- kubernetesSetup
 
-      at <- accessToken()
+      at <- fetchAccessToken()
 
-      request <- {
-        log.info(
-          "Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}]",
-          selector,
-          ks.namespace,
-          lookup.portName
-        )
+      _ = log.info(
+        "Querying for pods with label selector: [{}]. Namespace: [{}]. Port: [{}]",
+        selector,
+        ks.namespace,
+        lookup.portName)
 
-        optionToFuture(
-          // FIXME | remove .get
-          podRequest(at.getToken, ks.namespace, selector),
-          s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})"
-        )
-      }
+      request <- optionToFuture(
+        podRequest(at.getToken, ks.namespace, selector),
+        s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})"
+      )
 
       response <- http.singleRequest(request, ks.ctx)
 
