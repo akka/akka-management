@@ -6,30 +6,30 @@ package akka.discovery.azureapi.rbac.aks
 
 import akka.actor.ExtendedActorSystem
 import akka.annotation.InternalApi
-import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import AzureRbacAksServiceDiscovery._
-import JsonFormat._
-import akka.discovery.{ Lookup, ServiceDiscovery }
+import akka.discovery.ServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.azureapi.rbac.aks.AzureRbacAksServiceDiscovery._
+import akka.discovery.azureapi.rbac.aks.JsonFormat._
+import akka.discovery.{Lookup, ServiceDiscovery}
 import akka.dispatch.Dispatchers.DefaultBlockingDispatcherId
 import akka.event.Logging
-import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
-import akka.http.scaladsl.model.{ HttpRequest, StatusCodes, Uri }
+import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import akka.http.scaladsl.model.{HttpRequest, StatusCodes, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.http.scaladsl.{ ConnectionContext, Http, HttpsConnectionContext }
+import akka.http.scaladsl.{ConnectionContext, Http, HttpsConnectionContext}
 import akka.pki.kubernetes.PemManagersProvider
-import com.azure.core.credential.{ AccessToken, TokenRequestContext }
-import com.azure.identity.{ DefaultAzureCredential, DefaultAzureCredentialBuilder }
+import com.azure.core.credential.{AccessToken, TokenRequestContext}
+import com.azure.identity.{DefaultAzureCredential, DefaultAzureCredentialBuilder}
 
 import java.net.InetAddress
-import java.nio.file.{ Files, Paths }
-import java.security.{ KeyStore, SecureRandom }
-import javax.net.ssl.{ KeyManager, KeyManagerFactory, SSLContext, TrustManager }
+import java.nio.file.{Files, Paths}
+import java.security.{KeyStore, SecureRandom}
+import javax.net.ssl.{KeyManager, KeyManagerFactory, SSLContext, TrustManager}
 import scala.collection.immutable
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.FutureConverters._
 import scala.util.Try
-import scala.util.control.{ NoStackTrace, NonFatal }
+import scala.util.control.{NoStackTrace, NonFatal}
 
 object AzureRbacAksServiceDiscovery {
   private def azureDefaultCredential: DefaultAzureCredential =
@@ -65,17 +65,15 @@ object AzureRbacAksServiceDiscovery {
         })
       ip <- itemStatus.podIP.toSeq
       // Maybe port is an Option of a port, and will be None if no portName was requested
-      maybePort <- portName match {
-        case None =>
-          List(None)
-        case Some(name) =>
-          for {
-            container <- itemSpec.containers
-            ports <- container.ports.toSeq
-            port <- ports
-            if port.name.contains(name)
-          } yield Some(port.containerPort)
+      maybePort <- portName.iterator.toSeq.flatMap { name =>
+        for {
+          container <- itemSpec.containers
+          ports <- container.ports.toSeq
+          port <- ports
+          if port.name.contains(name)
+        } yield Some(port.containerPort)
       }
+
     } yield {
       val hostOrIp = if (rawIp) ip else s"${ip.replace('.', '-')}.$podNamespace.pod.$podDomain"
       ResolvedTarget(
@@ -85,9 +83,9 @@ object AzureRbacAksServiceDiscovery {
       )
     }
 
-  final class KubernetesApiException(msg: String) extends RuntimeException(msg) with NoStackTrace
+  private final class KubernetesApiException(msg: String) extends RuntimeException(msg) with NoStackTrace
 
-  final case class KubernetesSetup(namespace: String, ctx: HttpsConnectionContext)
+  private final case class KubernetesSetup(namespace: String, ctx: HttpsConnectionContext)
 }
 
 class AzureRbacAksServiceDiscovery(implicit system: ExtendedActorSystem) extends ServiceDiscovery {
