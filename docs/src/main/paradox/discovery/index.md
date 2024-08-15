@@ -20,6 +20,7 @@ part of the build and release process.
   - [Kubernetes](kubernetes.md)
   - [Marathon](marathon.md)
   - [AWS](aws.md)
+  - [Azure](azure.md)
   - [Consul (discontinued)](consul.md)
   
 @@@

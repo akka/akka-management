@@ -18,6 +18,7 @@ Akka Management consists of multiple modules:
  * @ref[Kubernetes API](discovery/kubernetes.md)
  * @ref[Marathon API](discovery/marathon.md)
  * @ref[AWS](discovery/aws.md)
+ * @ref[Azure](discovery/azure.md)
 
 Various parts of Akka management can be used together for deploying Akka Cluster applications to Kubernetes.
 
