@@ -1,0 +1,266 @@
+{
+    "kind": "PodList",
+    "apiVersion": "v1",
+    "metadata": {
+        "selfLink": "/api/v1/namespaces/default/pods",
+        "resourceVersion": "16042"
+    },
+    "items": [
+        {
+            "metadata": {
+                "annotations": {
+                    "cloudstate.io/enabled": "true",
+                    "cloudstate.io/stateful-service-config": "ss-cfg-mesh",
+                    "cloudstate.io/stateful-store": "default-spanner-store",
+                    "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+                },
+                "creationTimestamp": "2021-04-23T08:45:58Z",
+                "generateName": "mesh-b4b946946-",
+                "labels": {
+                    "app.kubernetes.io/component": "user-function",
+                    "app.kubernetes.io/managed-by": "cloudstate-operator",
+                    "app.kubernetes.io/name": "mesh",
+                    "cloudstate.io/stateful-service": "mesh",
+                    "pod-template-hash": "b4b946946"
+                },
+                "name": "mesh-b4b946946-g8vfj",
+                "namespace": "b58dbc88-3651-4fb4-8408-60c375592d1d",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "mesh-b4b946946",
+                        "uid": "3bb114e8-8a07-449f-818b-d0fa959a8681"
+                    }
+                ],
+                "resourceVersion": "68638988",
+                "selfLink": "/api/v1/namespaces/b58dbc88-3651-4fb4-8408-60c375592d1d/pods/mesh-b4b946946-g8vfj",
+                "uid": "2ecb33a7-bac6-4a0f-8717-c3ffde85ddd9"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "PORT",
+                                "value": "8080"
+                            }
+                        ],
+                        "image": "docker.io/raboof/akkaserverless-wirelessmesh-java:349b1b7",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "user-function",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "user-port",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {
+                            "limits": {
+                                "memory": "512Mi"
+                            },
+                            "requests": {
+                                "cpu": "400m",
+                                "memory": "512Mi"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File"
+                    },
+                    {
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 5,
+                            "httpGet": {
+                                "path": "/alive",
+                                "port": 8558,
+                                "scheme": "HTTP"
+                            },
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "name": "cloudstate-sidecar",
+                        "ports": [
+                            {
+                                "containerPort": 8013,
+                                "name": "grpc-http-proxy",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9090,
+                                "name": "cs-metrics",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 5,
+                            "httpGet": {
+                                "path": "/ready",
+                                "port": 8558,
+                                "scheme": "HTTP"
+                            },
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "memory": "512Mi"
+                            },
+                            "requests": {
+                                "cpu": "400m",
+                                "memory": "512Mi"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File"
+                    },
+                    {
+                        "args": [
+                            "proxy",
+                            "sidecar"
+                        ],
+                        "name": "ppp-proxy",
+                        "readinessProbe": {
+                            "failureThreshold": 30,
+                            "httpGet": {
+                                "path": "/healthz/ready",
+                                "port": 15020,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 2,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "2",
+                                "memory": "1Gi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "privileged": false,
+                            "readOnlyRootFilesystem": true,
+                            "runAsNonRoot": true
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "gke-dev-us-east-executio-default-pool-4678c5fa-mhx9",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "cloudstate-pod-service-account",
+                "serviceAccountName": "cloudstate-pod-service-account",
+                "terminationGracePeriodSeconds": 30
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2021-04-23T08:46:00Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2021-04-23T08:45:58Z",
+                        "message": "containers with unready status: [cloudstate-sidecar]",
+                        "reason": "ContainersNotReady",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2021-04-23T08:45:58Z",
+                        "message": "containers with unready status: [cloudstate-sidecar]",
+                        "reason": "ContainersNotReady",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2021-04-23T08:45:58Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "lastState": {
+                            "terminated": {
+                                "exitCode": 0,
+                                "finishedAt": "2021-04-23T12:41:11Z",
+                                "reason": "Completed",
+                                "startedAt": "2021-04-23T12:41:04Z"
+                            }
+                        },
+                        "name": "cloudstate-sidecar",
+                        "ready": false,
+                        "restartCount": 50,
+                        "started": false,
+                        "state": {
+                            "waiting": {
+                                "message": "back-off 5m0s restarting failed container=cloudstate-sidecar pod=mesh-b4b946946-g8vfj_b58dbc88-3651-4fb4-8408-60c375592d1d(2ecb33a7-bac6-4a0f-8717-c3ffde85ddd9)",
+                                "reason": "CrashLoopBackOff"
+                            }
+                        }
+                    },
+                    {
+                        "lastState": {},
+                        "name": "ppp-proxy",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2021-04-23T08:46:01Z"
+                            }
+                        }
+                    },
+                    {
+                        "lastState": {},
+                        "name": "user-function",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2021-04-23T08:46:01Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "10.14.0.85",
+                "phase": "Running",
+                "podIP": "10.8.7.9",
+                "podIPs": [
+                    {
+                        "ip": "10.8.7.9"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2021-04-23T08:45:58Z"
+            }
+        }
+    ]
+}
