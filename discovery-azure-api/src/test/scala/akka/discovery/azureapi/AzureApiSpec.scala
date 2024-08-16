@@ -9,7 +9,7 @@ import org.scalatest.wordspec.AnyWordSpec
 
 import scala.io.Source
 
-class AzureApiSpec extends AnyWordSpec with Matchers {
+abstract class AzureApiSpec extends AnyWordSpec with Matchers {
   protected[this] def resourceAsString(name: String): String =
     Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(name)).mkString
 }

@@ -13,7 +13,6 @@ class JsonFormatSpec extends AzureApiSpec {
     val pods = resourceAsString("pods.json")
 
     "work" in {
-      println(JsonFormat.podListFormat.read(pods.parseJson))
       JsonFormat.podListFormat.read(pods.parseJson) shouldBe PodList(
         List(
           Pod(

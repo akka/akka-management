@@ -119,7 +119,7 @@ final class AzureRbacAksServiceDiscovery(implicit system: ExtendedActorSystem) e
     }
   }
 
-  log.debug("Settings {}", settings)
+  log.debug("Settings [{}]", settings)
 
   import system.dispatcher
 
@@ -129,10 +129,8 @@ final class AzureRbacAksServiceDiscovery(implicit system: ExtendedActorSystem) e
       .onErrorMap { error =>
         log.error("[{}]", error)
         new AzureIdentityException(
-          """
-          |Attempt failed while fetching access token. Check if workload identity is enabled for the cluster or not and
-          |if the pods has been injected with required AZURE environment variables
-          |"""".stripMargin)
+          "Attempt failed while fetching access token. Check if workload identity is enabled for the cluster or not and if the pods has been injected with required AZURE environment variables"
+        )
       }
       .toFuture
       .asScala
@@ -157,11 +155,9 @@ final class AzureRbacAksServiceDiscovery(implicit system: ExtendedActorSystem) e
 
           Future.failed(
             new KubernetesApiException(
-              """
-              |Forbidden when communicating with the Kubernetes API Server. Check if the managed identity has the appropriate role
-              |assigment(example: Azure Pod Reader) or if workload identity is enabled for the cluster.
-              |""".stripMargin
-            ))
+              "Forbidden when communicating with the Kubernetes API Server. Check if the managed identity has the appropriate role assigment(example: Azure Pod Reader) or if workload identity is enabled for the cluster."
+            )
+          )
         }
       case other =>
         Unmarshal(entity).to[String].flatMap { body =>
@@ -247,11 +243,11 @@ final class AzureRbacAksServiceDiscovery(implicit system: ExtendedActorSystem) e
         Some(Files.readString(file))
       } catch {
         case NonFatal(e) =>
-          log.error(e, "Error reading {} from {}", name, path)
+          log.error(e, "Error reading [{}] from [{}]", name, path)
           None
       }
     } else {
-      log.warning("Unable to read {} from {} because it doesn't exist.", name, path)
+      log.warning("Unable to read [{}] from [{}] because it doesn't exist.", name, path)
       None
     }
   }
