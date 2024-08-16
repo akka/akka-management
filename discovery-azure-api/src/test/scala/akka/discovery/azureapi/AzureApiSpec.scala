@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2017-2024 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.discovery.azureapi
 
 import org.scalatest.matchers.should.Matchers

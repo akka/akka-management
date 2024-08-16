@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2017-2024 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package docs;
 
 import akka.actor.ActorSystem;

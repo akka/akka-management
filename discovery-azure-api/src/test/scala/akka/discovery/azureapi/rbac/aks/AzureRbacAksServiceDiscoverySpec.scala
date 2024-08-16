@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2017-2024 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.discovery.azureapi.rbac.aks
 
 import akka.actor.ActorSystem
@@ -5,7 +9,7 @@ import akka.discovery.Discovery
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.discovery.azureapi.AzureApiSpec
 import akka.discovery.azureapi.rbac.aks.PodList._
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 
 import java.net.InetAddress
 
@@ -205,6 +209,8 @@ class AzureRbacAksServiceDiscoverySpec extends AzureApiSpec {
     "allow loading kubernetes-api discovery even if it is not the default" in {
       System.setProperty("AZURE_TENANT_ID", "mockmock-mock-mock-mock-mockmockmock")
       System.setProperty("AZURE_CLIENT_ID", "mockmock-mock-mock-mock-mockmockmock")
+      System.setProperty("KUBERNETES_SERVICE_HOST", "10.1.0.0")
+      System.setProperty("KUBERNETES_SERVICE_PORT", "443")
       val config: Config = ConfigFactory.load()
 
       val system = ActorSystem("default", config)
