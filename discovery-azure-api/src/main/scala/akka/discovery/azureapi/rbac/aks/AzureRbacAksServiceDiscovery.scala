@@ -84,11 +84,11 @@ object AzureRbacAksServiceDiscovery {
       )
     }
 
-  final class KubernetesApiException(msg: String) extends RuntimeException(msg) with NoStackTrace
+  private final class KubernetesApiException(msg: String) extends RuntimeException(msg) with NoStackTrace
 
-  final class AzureIdentityException(msg: String) extends RuntimeException(msg) with NoStackTrace
+  private final class AzureIdentityException(msg: String) extends RuntimeException(msg) with NoStackTrace
 
-  final case class KubernetesSetup(namespace: String, ctx: HttpsConnectionContext)
+  private final case class KubernetesSetup(namespace: String, ctx: HttpsConnectionContext)
 }
 
 /**
