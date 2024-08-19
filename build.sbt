@@ -1,5 +1,8 @@
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import sbt.Keys.parallelExecution
+import com.typesafe.tools.mima.core.ProblemFilter
+import com.typesafe.tools.mima.plugin.MimaPlugin
+import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport.*
 
 ThisBuild / resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 ThisBuild / resolvers += Resolver.jcenterRepo
@@ -79,7 +82,7 @@ lazy val `akka-discovery-azure-api` = (project in file("discovery-azure-api"))
     name := "akka-discovery-azure-api",
     organization := "com.lightbend.akka.discovery",
     libraryDependencies := Dependencies.DiscoveryAzureApi,
-    mimaPreviousArtifactsSet
+    mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(`akka-management-pki`)
 
