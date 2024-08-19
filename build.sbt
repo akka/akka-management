@@ -82,7 +82,8 @@ lazy val `akka-discovery-azure-api` = (project in file("discovery-azure-api"))
     name := "akka-discovery-azure-api",
     organization := "com.lightbend.akka.discovery",
     libraryDependencies := Dependencies.DiscoveryAzureApi,
-    mimaPreviousArtifacts := Set.empty
+        // FIXME: update once we have a release out
+        mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(`akka-management-pki`)
 
