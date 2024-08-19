@@ -1,5 +1,8 @@
-import com.typesafe.sbt.packager.docker.{ Cmd, ExecCmd }
+import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import sbt.Keys.parallelExecution
+import com.typesafe.tools.mima.core.ProblemFilter
+import com.typesafe.tools.mima.plugin.MimaPlugin
+import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport.*
 
 ThisBuild / resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 ThisBuild / resolvers += Resolver.jcenterRepo
@@ -19,6 +22,7 @@ lazy val `akka-management-root` = project
     // in AkkaManagement should also be updated
     `akka-discovery-aws-api`,
     `akka-discovery-aws-api-async`,
+    `akka-discovery-azure-api`,
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
@@ -68,6 +72,18 @@ lazy val `akka-discovery-kubernetes-api` = project
     organization := "com.lightbend.akka.discovery",
     libraryDependencies := Dependencies.DiscoveryKubernetesApi,
     mimaPreviousArtifactsSet
+  )
+  .dependsOn(`akka-management-pki`)
+
+lazy val `akka-discovery-azure-api` = (project in file("discovery-azure-api"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(com.geirsson.CiReleasePlugin)
+  .settings(
+    name := "akka-discovery-azure-api",
+    organization := "com.lightbend.akka.discovery",
+    libraryDependencies := Dependencies.DiscoveryAzureApi,
+        // FIXME: update once we have a release out
+        mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(`akka-management-pki`)
 

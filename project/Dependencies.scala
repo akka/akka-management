@@ -1,5 +1,4 @@
-import sbt._
-import Keys._
+import sbt.*
 
 object Dependencies {
 
@@ -17,6 +16,7 @@ object Dependencies {
   val ScalaTestVersion = "3.2.19"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
+  val AzureIdentityVersion = "1.13.2"
   val AwsSdkVersion = "1.12.765"
   val JacksonVersion = "2.15.4"
   val JacksonDatabindVersion = JacksonVersion
@@ -29,6 +29,16 @@ object Dependencies {
   )
 
   val DiscoveryKubernetesApi = Seq(
+    "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+    "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+  )
+
+  val DiscoveryAzureApi = Seq(
+    "com.azure" % "azure-identity" % AzureIdentityVersion,
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
