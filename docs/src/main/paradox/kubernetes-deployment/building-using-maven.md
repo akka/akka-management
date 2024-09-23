@@ -99,7 +99,7 @@ To build and publish the image run the following. The Docker username and regist
 
 Note that the registry to push to must include the username, for example `-Ddocker.registry=docker.io/youruser`.
    
-Security information (i.e. user and password) can be specified in multiple ways as described in section [docker-maven-plugin authentication](http://dmp.fabric8.io/#authentication).
+Security information (i.e. user and password) can be specified in multiple ways as described in section [docker-maven-plugin authentication](https://dmp.fabric8.io/#authentication).
 
 ```
 mvn -Ddocker.username=<user> -Ddocker.registry=<registry>/<user> package docker:push

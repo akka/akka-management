@@ -150,7 +150,7 @@ for 'hello world':
 
     kubectl expose deployment appka --type=LoadBalancer --name=appka-service
 
-You can inspect the Akka Cluster membership status with the [Cluster HTTP Management](https://doc.akka.io/libraries/akka-management/current/cluster-http-management.html).
+You can inspect the Akka Cluster membership status with the @ref:[Cluster HTTP Management](../cluster-http-management.md).
 
     curl http://127.0.0.1:8558/cluster/members/
 
