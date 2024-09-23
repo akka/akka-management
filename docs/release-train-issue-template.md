@@ -37,7 +37,7 @@ Variables to be expanded in this template:
          ```
          cd ~/www
          git status
-         git add docs/akka-management/current docs/akka-management/$VERSION$
+         git add libraries/akka-management/current libraries/akka-management/$VERSION$
          git add api/akka-management/current api/akka-management/$VERSION$
          git commit -m "Akka Management $VERSION$"
          ```
