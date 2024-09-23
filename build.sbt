@@ -366,7 +366,7 @@ lazy val docs = project
       ),
     previewPath := (Paradox / siteSubdirName).value,
     paradoxGroups := Map("Language" -> Seq("Java", "Scala")),
-    Paradox / siteSubdirName := s"docs/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
+    Paradox / siteSubdirName := s"libraries/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
     Compile / paradoxProperties ++= Map(
         "date.year" -> Common.currentYear,
         "project.url" -> "https://doc.akka.io/libraries/akka-management/current/",
