@@ -34,7 +34,7 @@ We recommend using the Eclipse Temurin 17 base image:
 dockerBaseImage := "docker.io/library/eclipse-temurin:17-jre"
 ```
 
-For a full list of Lightbend certified JDK builds and versions, see [here](https://doc.akka.io/docs/akka-dependencies/current/java-versions.html).
+For a full list of Lightbend certified JDK builds and versions, see [here](https://doc.akka.io/libraries/akka-dependencies/current/java-versions.html).
 
 ### Git hash based version numbers
 

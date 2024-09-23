@@ -8,7 +8,7 @@ Future additions may extend these concepts to other parts of Akka.
 Documentation
 -------------
 
-See [reference](https://doc.akka.io/docs/akka-management/current/) and [API](https://doc.akka.io/api/akka-management/current/akka/management/index.html)
+See [reference](https://doc.akka.io/libraries/akka-management/current/) and [API](https://doc.akka.io/api/akka-management/current/akka/management/index.html)
 
 Contributions & Maintainers
 ---------------------------

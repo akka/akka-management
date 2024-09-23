@@ -210,7 +210,7 @@ PUTs must contain resourceVersions. Response:
       .to[String]
       .map(body =>
         throw new LeaseException(
-          s"Unauthorized to communicate with Kubernetes API server. See https://doc.akka.io/docs/akka-management/current/kubernetes-lease.html#role-based-access-control for setting up access control. Body: $body"))
+          s"Unauthorized to communicate with Kubernetes API server. See https://doc.akka.io/libraries/akka-management/current/kubernetes-lease.html#role-based-access-control for setting up access control. Body: $body"))
   }
 
   private def pathForLease(name: String): Uri.Path =

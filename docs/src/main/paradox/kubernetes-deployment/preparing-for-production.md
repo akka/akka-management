@@ -73,7 +73,7 @@ Here are a few things to note:
   We will discuss how to select an appropriate version number below.
 * We've only requested minimal CPU to the pods for this service. This is suitable for a local deployment, but you may wish to increase it if you're 
   deploying to a real deployment. Note that we also haven't set a CPU limit, this is because it's 
-  [recommended that JVMs do not set a CPU limit](https://doc.akka.io/docs/akka/current/additional/deploying.html#resource-limits).
+  [recommended that JVMs do not set a CPU limit](https://doc.akka.io/libraries/akka-core/current/additional/deploying.html#resource-limits).
 * We've configured a liveness probe and readiness probe. These are provided out of the box by Akka Management and are discussed later.
 
 ## Image version number
