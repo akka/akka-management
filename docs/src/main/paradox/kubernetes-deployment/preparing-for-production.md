@@ -66,14 +66,14 @@ spec:
 Here are a few things to note:
 
 * We're using a Kubernetes deployment. Deployments are logical groupings of pods that represent a single service using the same template. 
-  They support [configurable rolling updates](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#deploymentstrategy-v1-apps), 
+  They support configurable rolling updates, 
   meaning the cluster will be gradually upgraded, rather than upgrading every node at once and incurring an outage. Be sure to consult @ref:[Kubernetes Rolling Updates](../rolling-updates.md#kubernetes-rolling-updates) for recommendations.
 * We label the pod in the `template` with `app: appka`. This must match the ActorSystem name so that @ref[Akka Bootstrap](../bootstrap/index.md) finds the other nodes in the cluster.
 * The image we're using is `akka-sample-cluster-kubernetes:latest`. This corresponds to the name and version of the service in our build. 
   We will discuss how to select an appropriate version number below.
 * We've only requested minimal CPU to the pods for this service. This is suitable for a local deployment, but you may wish to increase it if you're 
   deploying to a real deployment. Note that we also haven't set a CPU limit, this is because it's 
-  [recommended that JVMs do not set a CPU limit](https://doc.akka.io/docs/akka/current/additional/deploying.html#resource-limits).
+  [recommended that JVMs do not set a CPU limit](https://doc.akka.io/libraries/akka-core/current/additional/deploying.html#resource-limits).
 * We've configured a liveness probe and readiness probe. These are provided out of the box by Akka Management and are discussed later.
 
 ## Image version number

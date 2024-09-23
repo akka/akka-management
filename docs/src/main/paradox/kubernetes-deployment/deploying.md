@@ -61,7 +61,7 @@ make the logs quieter, but for now it will help us to understand what is happeni
 
 1  [INFO] [akka.remote.artery.tcp.ArteryTcpTransport]  - Remoting started with transport [Artery tcp]; listening on address [akka://Appka@172.17.0.6:25520] with UID [4609278524397890522] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=main, akkaSource=ArteryTcpTransport(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:51.188UTC}
    [INFO] [akka.cluster.Cluster] [] [Appka-akka.actor.default-dispatcher-3] - Cluster Node [akka://Appka@172.17.0.6:25520] - Starting up, Akka version [2.6.5] ... MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=main, akkaSource=Cluster(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:51.240UTC}
-   [INFO] [akka.cluster.Cluster] [] [Appka-akka.actor.default-dispatcher-6] - Cluster Node [akka://Appka@172.17.0.6:25520] - No seed-nodes configured, manual cluster join required, see https://doc.akka.io/docs/akka/current/typed/cluster.html#joining MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.internal-dispatcher-5, akkaSource=Cluster(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:51.619UTC}
+   [INFO] [akka.cluster.Cluster] [] [Appka-akka.actor.default-dispatcher-6] - Cluster Node [akka://Appka@172.17.0.6:25520] - No seed-nodes configured, manual cluster join required, see https://doc.akka.io/libraries/akka-core/current/typed/cluster.html#joining MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.internal-dispatcher-5, akkaSource=Cluster(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:51.619UTC}
    [INFO] [akka.cluster.bootstrap.demo.DemoApp] [] [Appka-akka.actor.default-dispatcher-6] - Started [akka://Appka], cluster.selfAddress = akka://Appka@172.17.0.6:25520) MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, akkaSource=akka://Appka/user, sourceActorSystem=Appka}
 
 2a [INFO] [akka.management.internal.HealthChecksImpl] [] [Appka-akka.actor.default-dispatcher-3] - Loading readiness checks [(cluster-membership,akka.management.cluster.scaladsl.ClusterMembershipCheck), (example-ready,akka.cluster.bootstrap.demo.DemoHealthCheck)] MDC: {akkaAddress=akka://Appka@172.17.0.6:25520, sourceThread=Appka-akka.actor.default-dispatcher-6, akkaSource=HealthChecksImpl(akka://Appka), sourceActorSystem=Appka, akkaTimestamp=10:04:53.510UTC}
@@ -150,7 +150,7 @@ for 'hello world':
 
     kubectl expose deployment appka --type=LoadBalancer --name=appka-service
 
-You can inspect the Akka Cluster membership status with the [Cluster HTTP Management](https://doc.akka.io/docs/akka-management/current/cluster-http-management.html).
+You can inspect the Akka Cluster membership status with the @ref:[Cluster HTTP Management](../cluster-http-management.md).
 
     curl http://127.0.0.1:8558/cluster/members/
 

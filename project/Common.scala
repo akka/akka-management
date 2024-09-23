@@ -71,9 +71,18 @@ object Common extends AutoPlugin {
           "-doc-version",
           version.value
         ) ++
-        // for some reason Scaladoc creates this
-        (if (scalaVersion.value.startsWith("3")) Seq.empty
-         else Seq("-skip-packages", "akka.pattern")),
+        // make use of https://github.com/scala/scala/pull/8663
+        (if (scalaBinaryVersion.value.startsWith("3")) {
+          Seq(s"-external-mappings:https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api/java.base/") // different usage in scala3
+        } else if (scalaBinaryVersion.value.startsWith("2.13")) {
+          Seq(
+            "-jdk-api-doc-base",
+            s"https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api/java.base/",
+            // for some reason Scaladoc creates this
+            "-skip-packages",
+            "akka.pattern"
+          )
+        } else Nil),
       Compile / doc / scalacOptions ++= Seq(
           "-doc-source-url", {
             val branch = if (isSnapshot.value) "master" else s"v${version.value}"

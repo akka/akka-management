@@ -6,7 +6,7 @@ Dynamic Log Levels for Logback hooks into Akka Management and provides a route w
 
 @@project-info{ projectId="loglevels-logback" }
 
-Requires @ref:[Akka Management](../akka-management.md) and that the application uses [Logback](http://logback.qos.ch) as logging backend.
+Requires @ref:[Akka Management](../akka-management.md) and that the application uses [Logback](https://logback.qos.ch) as logging backend.
 
 The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
 
@@ -71,7 +71,7 @@ curl -X PUT "http://127.0.0.1:8558/loglevel/logback?logger=com.example.MyActor&l
 
 #### Classic and Internal Akka Logger Level
 
-Internal Akka actors and classic Akka does logging through the built in API there is an [additional level of filtering](https://doc.akka.io/docs/akka/current/logging.html#slf4j) using the
+Internal Akka actors and classic Akka does logging through the built in API there is an [additional level of filtering](https://doc.akka.io/libraries/akka-core/current/logging.html#slf4j) using the
 `akka.loglevel` setting. If you have not set `akka.loglevel` to `DEBUG` (recommended) log entries from the classic logging API may never reach the logger backend at all.
 
 The current level configured with `akka.loglevel` can be inspected with a GET request to `loglevel/akka`.

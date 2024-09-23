@@ -301,7 +301,7 @@ PUTs must contain resourceVersions. Response:
       .map(body =>
         throw new UnauthorizedException(
           "Unauthorized to communicate with Kubernetes API server. See " +
-          "https://doc.akka.io/docs/akka-management/current/rolling-updates.html#role-based-access-control " +
+          "https://doc.akka.io/libraries/akka-management/current/rolling-updates.html#role-based-access-control " +
           s"for setting up access control. Body: $body"))
   }
 

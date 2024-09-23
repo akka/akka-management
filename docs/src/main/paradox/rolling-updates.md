@@ -206,7 +206,7 @@ roleRef:
 
 ## app-version from Deployment
 
-When using Cluster Sharding, it is [recommended](https://doc.akka.io/docs/akka/current/additional/rolling-updates.html#cluster-sharding) to define an increasing `akka.cluster.app-version` configuration property for each roll out. 
+When using Cluster Sharding, it is [recommended](https://doc.akka.io/libraries/akka-core/current/additional/rolling-updates.html#cluster-sharding) to define an increasing `akka.cluster.app-version` configuration property for each roll out. 
 
 This works well unless you use `kubectl rollout undo` which deploys the previous ReplicaSet configuration which contains the previous value for that config. 
 

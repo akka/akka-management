@@ -53,6 +53,6 @@ as described in the [Starting](#starting) section.
 
 ## How it works
 
-This example uses [Akka Cluster Bootstrap](https://doc.akka.io/docs/akka-management/current/bootstrap/index.html)
-to initialize the cluster, using the [Kubernetes API discovery mechanism](https://doc.akka.io/docs/akka-management/current/discovery/index.html#discovery-method-kubernetes-api) 
+This example uses [Akka Cluster Bootstrap](https://doc.akka.io/libraries/akka-management/current/bootstrap/index.html)
+to initialize the cluster, using the [Kubernetes API discovery mechanism](https://doc.akka.io/libraries/akka-management/current/discovery/index.html#discovery-method-kubernetes-api) 
 to find peer nodes.

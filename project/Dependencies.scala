@@ -2,16 +2,20 @@ import sbt.*
 
 object Dependencies {
 
+  // Java Platform version for JavaDoc creation
+  // sync with Java version in .github/workflows/release.yml#documentation
+  lazy val JavaDocLinkVersion = 17
+
   val Scala213 = "2.13.14"
   val Scala3 = "3.3.3"
   val CrossScalaVersions = Seq(Scala213, Scala3)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val AkkaVersion = "2.9.3"
-  val AkkaBinaryVersion = "2.9"
+  val AkkaBinaryVersion = VersionNumber(AkkaVersion).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val AkkaHttpVersion = "10.6.3"
-  val AkkaHttpBinaryVersion = "10.6"
+  val AkkaHttpBinaryVersion = VersionNumber(AkkaHttpVersion).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
 
   val ScalaTestVersion = "3.2.19"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
