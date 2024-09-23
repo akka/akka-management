@@ -118,7 +118,7 @@ spec:
 
 ### Role-Based Access Control
 
-If your Kubernetes cluster has [Role-Based Access Control (RBAC)](https://kubernetes.io/docs/admin/authorization/rbac/)
+If your Kubernetes cluster has [Role-Based Access Control (RBAC)](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 enabled, you'll also have to grant the Service Account that your pods run under access to list pods. The following
 configuration can be used as a starting point. It creates a `Role`, `pod-reader`, which grants access to query pod
 information. It then binds the default Service Account to the `Role` by creating a `RoleBinding`.
