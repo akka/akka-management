@@ -8,6 +8,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json._
 import AppList._
 
+@deprecated("Use another discovery method instead.", "1.6.0")
 object JsonFormat extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val taskFormat: JsonFormat[Task] = jsonFormat2(Task.apply)
   implicit val portDefinitionFormat: JsonFormat[PortDefinition] = jsonFormat2(PortDefinition.apply)
