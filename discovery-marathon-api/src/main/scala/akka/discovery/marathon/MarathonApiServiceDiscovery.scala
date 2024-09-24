@@ -23,6 +23,7 @@ import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.event.Logging
 
 @ApiMayChange
+@deprecated("Use another discovery method instead.", "1.6.0")
 object MarathonApiServiceDiscovery {
 
   /**
@@ -74,6 +75,7 @@ object MarathonApiServiceDiscovery {
  * Service discovery that uses the Marathon API.
  */
 @ApiMayChange
+@deprecated("Use another discovery method instead.", "1.6.0")
 class MarathonApiServiceDiscovery(implicit system: ActorSystem) extends ServiceDiscovery {
   import MarathonApiServiceDiscovery._
   import system.dispatcher

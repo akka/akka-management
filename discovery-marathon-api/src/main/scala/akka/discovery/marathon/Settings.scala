@@ -8,6 +8,7 @@ import akka.actor._
 import akka.annotation.ApiMayChange
 
 @ApiMayChange
+@deprecated("Use another discovery method instead.", "1.6.0")
 final class Settings(system: ExtendedActorSystem) extends Extension {
   private val marathonApi = system.settings.config.getConfig("akka.discovery.marathon-api")
 
@@ -22,6 +23,7 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
 }
 
 @ApiMayChange
+@deprecated("Use another discovery method instead.", "1.6.0")
 object Settings extends ExtensionId[Settings] with ExtensionIdProvider {
   override def get(system: ActorSystem): Settings = super.get(system)
 

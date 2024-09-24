@@ -16,7 +16,6 @@ Akka Management consists of multiple modules:
  As well as @extref:[Akka Discovery](akka:discovery/index.html) methods for:
  
  * @ref[Kubernetes API](discovery/kubernetes.md)
- * @ref[Marathon API](discovery/marathon.md)
  * @ref[AWS](discovery/aws.md)
  * @ref[Azure](discovery/azure.md)
 

@@ -30,9 +30,9 @@ between releases. Breaking API changes may be introduced without notice as we re
 A module may be dropped in any release without prior deprecation. The Lightbend subscription does not cover support
 for the following modules.
 
-* akka-discovery-marathon-api
 * akka-discovery-aws-api
 * akka-discovery-aws-api-async
+* akka-discovery-marathon-api (End of Life)
 
 License
 -------

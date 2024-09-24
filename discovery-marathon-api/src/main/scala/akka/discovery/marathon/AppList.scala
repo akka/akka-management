@@ -6,6 +6,7 @@ package akka.discovery.marathon
 
 import scala.collection.immutable.Seq
 
+@deprecated("Use another discovery method instead.", "1.6.0")
 object AppList {
   case class App(container: Option[Container], portDefinitions: Option[Seq[PortDefinition]], tasks: Option[Seq[Task]])
   case class Container(portMappings: Option[Seq[PortMapping]], docker: Option[Docker])
@@ -17,4 +18,5 @@ object AppList {
 
 import AppList._
 
+@deprecated("Use another discovery method instead.", "1.6.0")
 case class AppList(apps: Seq[App])

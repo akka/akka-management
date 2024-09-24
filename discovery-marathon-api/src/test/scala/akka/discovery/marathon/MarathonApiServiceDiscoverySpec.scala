@@ -12,6 +12,7 @@ import scala.io.Source
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
+@deprecated("Use another discovery method instead.", "1.6.0")
 class MarathonApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
   "targets" should {
     "calculate the correct list of resolved targets" in {

@@ -186,7 +186,7 @@ that your deployment is robust.
 
 Since the target environments for this module are dynamic, that is, instances can come and go, failure needs to be
 considered. The following configuration will result in your application being shut down after 30 seconds if it is unable to
-join the discovered seed nodes. In this case, the orchestrator (i.e. Kubernetes or Marathon) will restart your node
+join the discovered seed nodes. In this case, the orchestrator (i.e. Kubernetes) will restart your node
 and the operation will (presumably) eventually succeed. You'll want to specify the following in your `application.conf` file:
 
 @@snip [CompileOnly.scala](/integration-test/local/src/main/resources/application.conf) { #coorindated-shutdown }
