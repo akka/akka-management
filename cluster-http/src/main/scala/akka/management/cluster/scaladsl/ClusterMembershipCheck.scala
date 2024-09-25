@@ -10,8 +10,8 @@ import akka.cluster.{ Cluster, MemberStatus }
 import akka.util.Helpers
 import com.typesafe.config.Config
 
-import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
 
 /**
  * Internal API

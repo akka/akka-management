@@ -15,9 +15,9 @@ import akka.event.Logging
 import akka.management.{ HealthCheckSettings, InvalidHealthCheckException, NamedHealthCheck }
 import akka.management.scaladsl.HealthChecks
 import scala.collection.immutable
-import scala.collection.JavaConverters._
-import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
+import scala.jdk.FutureConverters._
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
@@ -81,7 +81,7 @@ final private[akka] class HealthChecksImpl(system: ExtendedActorSystem, settings
   }
 
   private def convertSupplierToScala(supplier: Supplier[CompletionStage[JBoolean]]): HealthCheck = { () =>
-    supplier.get().toScala.map(_.booleanValue)
+    supplier.get().asScala.map(_.booleanValue)
   }
 
   private def tryLoadScalaHealthCheck(fqcn: String): Try[HealthCheck] = {

@@ -6,7 +6,7 @@ package akka.discovery.awsapi.ecs
 
 import java.net.{ InetAddress, NetworkInterface }
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import akka.annotation.ApiMayChange
 

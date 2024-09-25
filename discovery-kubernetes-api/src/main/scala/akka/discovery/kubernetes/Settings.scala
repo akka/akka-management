@@ -9,7 +9,7 @@ import java.util.Optional
 import akka.actor._
 import com.typesafe.config.Config
 
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 
 final class Settings(system: ExtendedActorSystem) extends Extension {
 
@@ -48,7 +48,7 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
     kubernetesApi.optDefinedValue("pod-namespace")
 
   /** Java API */
-  def getPodNamespace: Optional[String] = podNamespace.asJava
+  def getPodNamespace: Optional[String] = podNamespace.toJava
 
   val podDomain: String =
     kubernetesApi.getString("pod-domain")

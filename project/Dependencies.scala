@@ -11,10 +11,10 @@ object Dependencies {
   val CrossScalaVersions = Seq(Scala213, Scala3)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaVersion = "2.9.3"
+  val AkkaVersion = "2.10.0-M1"
   val AkkaBinaryVersion = VersionNumber(AkkaVersion).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
-  val AkkaHttpVersion = "10.6.3"
+  val AkkaHttpVersion = "10.7.0-M1"
   val AkkaHttpBinaryVersion = VersionNumber(AkkaHttpVersion).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
 
   val ScalaTestVersion = "3.2.19"
@@ -22,10 +22,10 @@ object Dependencies {
 
   val AzureIdentityVersion = "1.13.2"
   val AwsSdkVersion = "1.12.770"
-  val JacksonVersion = "2.15.4"
+  val JacksonVersion = "2.17.2"
   val JacksonDatabindVersion = JacksonVersion
 
-  val Log4j2Version = "2.23.1"
+  val Log4j2Version = "2.24.0"
 
   // often called-in transitively with insecure versions of databind / core
   private val JacksonDatabind = Seq(
@@ -100,7 +100,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.13",
+    "ch.qos.logback" % "logback-classic" % "1.5.7",
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
@@ -114,7 +114,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
     "org.apache.logging.log4j" % "log4j-core" % Log4j2Version,
     "org.apache.logging.log4j" % "log4j-api" % Log4j2Version,
-    "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4j2Version,
+    "org.apache.logging.log4j" % "log4j-slf4j2-impl" % Log4j2Version,
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
@@ -188,7 +188,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
     "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.13",
+    "ch.qos.logback" % "logback-classic" % "1.5.7",
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
   )
 

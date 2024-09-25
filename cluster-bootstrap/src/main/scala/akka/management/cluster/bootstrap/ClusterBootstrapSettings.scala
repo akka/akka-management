@@ -10,10 +10,12 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
+
 import com.typesafe.config.Config
+
 import scala.concurrent.duration.{ FiniteDuration, _ }
-import scala.compat.java8.OptionConverters._
-import akka.util.JavaDurationConverters._
+import scala.jdk.DurationConverters._
+import scala.jdk.OptionConverters._
 
 final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
   import akka.management.AkkaManagementSettings._
@@ -21,7 +23,7 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
   val managementBasePath: Option[String] =
     Option(config.getString("akka.management.http.base-path")).filter(_.trim.nonEmpty)
 
-  def getManagementBasePath: Optional[String] = managementBasePath.asJava
+  def getManagementBasePath: Optional[String] = managementBasePath.toJava
 
   private val bootConfig = config.getConfig("akka.management.cluster.bootstrap")
 
@@ -84,16 +86,16 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
   }
 
   /** Java API */
-  def getContactPointDiscoveryServiceName: Optional[String] = contactPointDiscovery.serviceName.asJava
+  def getContactPointDiscoveryServiceName: Optional[String] = contactPointDiscovery.serviceName.toJava
 
   /** Java API */
-  def getContactPointDiscoveryServiceNamespace: Optional[String] = contactPointDiscovery.serviceNamespace.asJava
+  def getContactPointDiscoveryServiceNamespace: Optional[String] = contactPointDiscovery.serviceNamespace.toJava
 
   /** Java API */
-  def getContactPointDiscoveryPortName: Optional[String] = contactPointDiscovery.portName.asJava
+  def getContactPointDiscoveryPortName: Optional[String] = contactPointDiscovery.portName.toJava
 
   /** Java API */
-  def getContactPointDiscoveryProtocol: Optional[String] = contactPointDiscovery.protocol.asJava
+  def getContactPointDiscoveryProtocol: Optional[String] = contactPointDiscovery.protocol.toJava
 
   /** Java API */
   def getContactPointDiscoveryEffectiveName(system: ActorSystem): String = contactPointDiscovery.effectiveName(system)
@@ -102,10 +104,10 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
   def getContactPointDiscoveryMethod: String = contactPointDiscovery.discoveryMethod
 
   /** Java API */
-  def getContactPointDiscoveryStableMargin: java.time.Duration = contactPointDiscovery.stableMargin.asJava
+  def getContactPointDiscoveryStableMargin: java.time.Duration = contactPointDiscovery.stableMargin.toJava
 
   /** Java API */
-  def getContactPointDiscoveryInterval: java.time.Duration = contactPointDiscovery.interval.asJava
+  def getContactPointDiscoveryInterval: java.time.Duration = contactPointDiscovery.interval.toJava
 
   /** Java API */
   def getContactPointDiscoveryExponentialBackoffRandomFactor: Double =
@@ -113,13 +115,13 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
 
   /** Java API */
   def getContactPointDiscoveryExponentialBackoffMax: java.time.Duration =
-    contactPointDiscovery.exponentialBackoffMax.asJava
+    contactPointDiscovery.exponentialBackoffMax.toJava
 
   /** Java API */
   def getContactPointDiscoveryRequiredContactPointsNr: Int = contactPointDiscovery.requiredContactPointsNr
 
   /** Java API */
-  def getContactPointDiscoveryResolveTimeout: java.time.Duration = contactPointDiscovery.resolveTimeout.asJava
+  def getContactPointDiscoveryResolveTimeout: java.time.Duration = contactPointDiscovery.resolveTimeout.toJava
 
   object contactPoint {
     private val contactPointConfig = bootConfig.getConfig("contact-point")
@@ -149,7 +151,7 @@ final class ClusterBootstrapSettings(config: Config, log: LoggingAdapter) {
   def getContactPointFallbackPort: Int = contactPoint.fallbackPort
 
   /** Java API */
-  def getContactPointProbingFailureTimeout: java.time.Duration = contactPoint.probingFailureTimeout.asJava
+  def getContactPointProbingFailureTimeout: java.time.Duration = contactPoint.probingFailureTimeout.toJava
 
   object joinDecider {
     val implClass: String = bootConfig.getString("join-decider.class")

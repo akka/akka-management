@@ -7,9 +7,9 @@ package akka.management
 import java.net.InetAddress
 import java.util.Optional
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable
-import scala.compat.java8.OptionConverters._
+import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 
 import akka.annotation.InternalApi
 import com.typesafe.config.Config
@@ -82,7 +82,7 @@ final class AkkaManagementSettings(val config: Config) {
   def getHttpEffectiveBindPort: Int = Http.EffectiveBindPort
 
   /** Java API */
-  def getBasePath: Optional[String] = Http.BasePath.asJava
+  def getBasePath: Optional[String] = Http.BasePath.toJava
 
   /** Java API */
   def getHttpRouteProviders: java.util.List[NamedRouteProvider] = Http.RouteProviders.asJava

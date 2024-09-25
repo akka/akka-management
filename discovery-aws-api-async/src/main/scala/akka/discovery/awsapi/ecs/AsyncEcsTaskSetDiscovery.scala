@@ -7,11 +7,11 @@ package akka.discovery.awsapi.ecs
 import java.net.InetAddress
 import java.util.concurrent.TimeoutException
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
-import scala.compat.java8.FutureConverters.toScala
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.jdk.FutureConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 import akka.actor.ActorSystem
@@ -131,11 +131,13 @@ object AsyncEcsTaskSetDiscovery {
   private[this] def resolveTaskSet(ecsClient: EcsAsyncClient, cluster: String, taskArn: String)(
       implicit ec: ExecutionContext
   ): Future[Option[TaskSet]] =
-    toScala(
-      ecsClient.describeTasks(
+    ecsClient
+      .describeTasks(
         DescribeTasksRequest.builder().cluster(cluster).tasks(taskArn).include(TaskField.TAGS).build()
       )
-    ).map(_.tasks().asScala.headOption).map(_.map(task => TaskSet(task.startedBy())))
+      .asScala
+      .map(_.tasks().asScala.headOption)
+      .map(_.map(task => TaskSet(task.startedBy())))
 
   private[this] def listTaskArns(
       ecsClient: EcsAsyncClient,
@@ -145,8 +147,8 @@ object AsyncEcsTaskSetDiscovery {
       accumulator: Seq[String] = Seq.empty
   )(implicit ec: ExecutionContext): Future[Seq[String]] =
     for {
-      listTasksResponse <- toScala(
-        ecsClient.listTasks(
+      listTasksResponse <- ecsClient
+        .listTasks(
           ListTasksRequest
             .builder()
             .cluster(cluster)
@@ -155,7 +157,7 @@ object AsyncEcsTaskSetDiscovery {
             .desiredStatus(DesiredStatus.RUNNING)
             .build()
         )
-      )
+        .asScala
       accumulatedTasksArns = accumulator ++ listTasksResponse.taskArns().asScala
       taskArns <- listTasksResponse.nextToken() match {
         case null =>
@@ -178,11 +180,11 @@ object AsyncEcsTaskSetDiscovery {
     for {
       // Each DescribeTasksRequest can contain at most 100 task ARNs.
       describeTasksResponses <- Future.traverse(taskArns.grouped(100))(taskArnGroup =>
-        toScala(
-          ecsClient.describeTasks(
+        ecsClient
+          .describeTasks(
             DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).include(TaskField.TAGS).build()
           )
-        ))
+          .asScala)
       tasks = describeTasksResponses.flatMap(_.tasks().asScala).toList
     } yield tasks
 

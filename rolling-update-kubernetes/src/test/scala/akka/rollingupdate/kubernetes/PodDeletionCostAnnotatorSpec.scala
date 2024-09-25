@@ -4,8 +4,8 @@
 
 package akka.rollingupdate.kubernetes
 
-import scala.collection.JavaConverters._
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
 import akka.actor.ActorSystem
 import akka.actor.Address

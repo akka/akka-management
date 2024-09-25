@@ -11,7 +11,7 @@ import org.scalatest.matchers.should.Matchers
 
 class FiltersParsingTest extends AnyFunSuite with Matchers {
 
-  import scala.collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
 
   test("empty string does not break parsing") {
     val filters = ""

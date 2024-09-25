@@ -4,12 +4,12 @@
 
 package akka.rollingupdate.kubernetes
 
-import akka.util.JavaDurationConverters._
 import akka.annotation.InternalApi
 import com.typesafe.config.Config
 
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.jdk.DurationConverters._
 
 /**
  * INTERNAL API
@@ -36,7 +36,7 @@ private[kubernetes] object KubernetesSettings {
     val customResourceSettings = new CustomResourceSettings(
       enabled = config.getBoolean("custom-resource.enabled"),
       crName = crName,
-      cleanupAfter = config.getDuration("custom-resource.cleanup-after").asScala
+      cleanupAfter = config.getDuration("custom-resource.cleanup-after").toScala
     )
 
     new KubernetesSettings(
@@ -48,7 +48,7 @@ private[kubernetes] object KubernetesSettings {
       config.getString("namespace-path"),
       config.getString("pod-name"),
       config.getBoolean("secure-api-server"),
-      config.getDuration("api-service-request-timeout").asScala,
+      config.getDuration("api-service-request-timeout").toScala,
       customResourceSettings,
       config.getString("revision-annotation")
     )
