@@ -9,8 +9,9 @@ import java.util.function.Supplier
 import java.util.function.{ Function => JFunction }
 import java.util.{ Optional, List => JList }
 
-import scala.compat.java8.FunctionConverters._
-import scala.compat.java8.FutureConverters._
+import scala.jdk.FunctionConverters._
+import scala.jdk.FutureConverters._
+
 import akka.actor.ActorSystem
 import akka.actor.ExtendedActorSystem
 import akka.actor.setup.Setup
@@ -30,7 +31,7 @@ final class HealthChecks(system: ExtendedActorSystem, settings: HealthCheckSetti
    * Returns CompletionStage(result), containing the system's readiness result
    */
   def readyResult(): CompletionStage[CheckResult] =
-    delegate.readyResult().map(new CheckResult(_))(system.dispatcher).toJava
+    delegate.readyResult().map(new CheckResult(_))(system.dispatcher).asJava
 
   /**
    * Returns CompletionStage(true) if the system is ready to receive user traffic
@@ -44,7 +45,7 @@ final class HealthChecks(system: ExtendedActorSystem, settings: HealthCheckSetti
    * or is loading initial state from a database
    */
   def aliveResult(): CompletionStage[CheckResult] =
-    delegate.aliveResult().map(new CheckResult(_))(system.dispatcher).toJava
+    delegate.aliveResult().map(new CheckResult(_))(system.dispatcher).asJava
 
   /**
    * Returns CompletionStage(result) containing the system's liveness result

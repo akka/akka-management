@@ -7,10 +7,10 @@ package akka.coordination.lease.kubernetes
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.coordination.lease.TimeoutSettings
-import akka.util.JavaDurationConverters._
 import com.typesafe.config.Config
 
 import scala.concurrent.duration.{ FiniteDuration, _ }
+import scala.jdk.DurationConverters._
 
 /**
  * INTERNAL API
@@ -35,7 +35,7 @@ private[akka] object KubernetesSettings {
 
     val apiServerRequestTimeout =
       if (config.hasDefined("api-server-request-timeout"))
-        config.getDuration("api-server-request-timeout").asScala
+        config.getDuration("api-server-request-timeout").toScala
       else
         leaseTimeoutSettings.operationTimeout * 2 / 5 // 2/5 gives two API operations + a buffer
 

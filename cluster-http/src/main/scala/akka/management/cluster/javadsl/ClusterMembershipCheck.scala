@@ -8,9 +8,10 @@ import java.util.concurrent.CompletionStage
 
 import akka.management.cluster.scaladsl.{ ClusterMembershipCheck => ScalaClusterReadinessCheck }
 
-import scala.compat.java8.FutureConverters._
+import scala.concurrent.ExecutionContext
+import scala.jdk.FutureConverters._
+
 import akka.actor.ActorSystem
-import akka.dispatch.ExecutionContexts
 
 class ClusterMembershipCheck(system: ActorSystem)
     extends java.util.function.Supplier[CompletionStage[java.lang.Boolean]] {
@@ -18,6 +19,6 @@ class ClusterMembershipCheck(system: ActorSystem)
   private val delegate = new ScalaClusterReadinessCheck(system)
 
   override def get(): CompletionStage[java.lang.Boolean] = {
-    delegate.apply().map(Boolean.box)(ExecutionContexts.parasitic).toJava
+    delegate.apply().map(Boolean.box)(ExecutionContext.parasitic).asJava
   }
 }

@@ -20,10 +20,10 @@ import com.amazonaws.retry.PredefinedRetryPolicies
 import com.amazonaws.services.ec2.model.{ DescribeInstancesRequest, Filter, Reservation }
 import com.amazonaws.services.ec2.{ AmazonEC2, AmazonEC2ClientBuilder }
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.jdk.CollectionConverters._
 import scala.util.{ Failure, Success, Try }
 
 /** INTERNAL API */

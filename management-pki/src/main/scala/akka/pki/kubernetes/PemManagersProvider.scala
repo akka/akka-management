@@ -4,7 +4,6 @@
 
 package akka.pki.kubernetes
 
-import collection.JavaConverters._
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.charset.Charset
@@ -13,7 +12,10 @@ import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.cert.Certificate
 import java.security.cert.CertificateFactory
+
 import scala.concurrent.blocking
+import scala.jdk.CollectionConverters._
+
 import akka.annotation.InternalApi
 import akka.pki.pem.DERPrivateKeyLoader
 import akka.pki.pem.PEMDecoder

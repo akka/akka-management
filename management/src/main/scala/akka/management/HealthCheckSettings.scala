@@ -5,11 +5,11 @@
 package akka.management
 
 import com.typesafe.config.Config
-import akka.util.JavaDurationConverters._
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.concurrent.duration.FiniteDuration
+import scala.jdk.CollectionConverters._
+import scala.jdk.DurationConverters._
 
 final case class NamedHealthCheck(name: String, fullyQualifiedClassName: String)
 
@@ -42,7 +42,7 @@ object HealthCheckSettings {
         .toList,
       config.getString("readiness-path"),
       config.getString("liveness-path"),
-      config.getDuration("check-timeout").asScala
+      config.getDuration("check-timeout").toScala
     )
   }
 
@@ -65,7 +65,7 @@ object HealthCheckSettings {
       livenessChecks.asScala.toList,
       readinessPath,
       livenessPath,
-      checkDuration.asScala
+      checkDuration.toScala
     )
 }
 
@@ -96,5 +96,5 @@ final class HealthCheckSettings(
   /**
    * Java API
    */
-  def getCheckTimeout(): java.time.Duration = checkTimeout.asJava
+  def getCheckTimeout(): java.time.Duration = checkTimeout.toJava
 }

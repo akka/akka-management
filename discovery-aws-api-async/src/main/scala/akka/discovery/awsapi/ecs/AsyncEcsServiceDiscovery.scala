@@ -7,11 +7,11 @@ package akka.discovery.awsapi.ecs
 import java.net.InetAddress
 import java.util.concurrent.TimeoutException
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
-import scala.compat.java8.FutureConverters.toScala
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.jdk.CollectionConverters._
+import scala.jdk.FutureConverters._
 import scala.util.Try
 
 import akka.actor.ActorSystem
@@ -98,8 +98,8 @@ object AsyncEcsServiceDiscovery {
       accumulator: Seq[String] = Seq.empty
   )(implicit ec: ExecutionContext): Future[Seq[String]] =
     for {
-      listTasksResponse <- toScala(
-        ecsClient.listTasks(
+      listTasksResponse <- ecsClient
+        .listTasks(
           ListTasksRequest
             .builder()
             .cluster(cluster)
@@ -108,7 +108,7 @@ object AsyncEcsServiceDiscovery {
             .desiredStatus(DesiredStatus.RUNNING)
             .build()
         )
-      )
+        .asScala
       accumulatedTasksArns = accumulator ++ listTasksResponse.taskArns().asScala
       taskArns <- listTasksResponse.nextToken() match {
         case null =>
@@ -131,11 +131,11 @@ object AsyncEcsServiceDiscovery {
     for {
       // Each DescribeTasksRequest can contain at most 100 task ARNs.
       describeTasksResponses <- Future.traverse(taskArns.grouped(100))(taskArnGroup =>
-        toScala(
-          ecsClient.describeTasks(
+        ecsClient
+          .describeTasks(
             DescribeTasksRequest.builder().cluster(cluster).tasks(taskArnGroup.asJava).include(TaskField.TAGS).build()
           )
-        ))
+          .asScala)
       tasks = describeTasksResponses.flatMap(_.tasks().asScala).toList
     } yield tasks
 

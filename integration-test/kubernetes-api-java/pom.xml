@@ -17,8 +17,8 @@
   <properties>
     <encoding>UTF-8</encoding>
     <maven.compiler.release>11</maven.compiler.release>
-    <akka.version>2.9.3</akka.version>
-    <akka.http.version>10.6.3</akka.http.version>
+    <akka.version>2.10.0-M1</akka.version>
+    <akka.http.version>10.7.0-M1</akka.http.version>
     <akka-management.version>1.5.2</akka-management.version>
     <scala.binary.version>2.13</scala.binary.version>
   </properties>
@@ -50,7 +50,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.13</version>
+      <version>1.5.7</version>
     </dependency>
     <dependency>
       <groupId>com.lightbend.akka.management</groupId>

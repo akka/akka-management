@@ -59,7 +59,7 @@ class IntegrationTest
     with SpanSugar
     with Matchers {
 
-  import collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
 
   private val buildId: String = System.getenv("BUILD_ID")
   assert(buildId != null, "BUILD_ID environment variable has to be defined")

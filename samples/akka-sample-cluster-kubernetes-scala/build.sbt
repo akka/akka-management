@@ -3,8 +3,8 @@ ThisBuild / organization := "com.lightbend"
 name := "akka-sample-cluster-kubernetes"
 
 scalaVersion := "2.13.14"
-lazy val akkaHttpVersion = "10.6.3"
-lazy val akkaVersion = "2.9.3"
+lazy val akkaHttpVersion = "10.7.0-M1"
+lazy val akkaVersion = "2.10.0-M1"
 lazy val akkaManagementVersion = "1.5.3"
 
 // make version compatible with docker for publishing
@@ -34,7 +34,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream-typed" % akkaVersion,
     "com.typesafe.akka" %% "akka-discovery" % akkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.2.13",
+    "ch.qos.logback" % "logback-classic" % "1.5.7",
     "com.lightbend.akka.discovery" %% "akka-discovery-kubernetes-api" % akkaManagementVersion,
     "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % akkaManagementVersion,
     "com.lightbend.akka.management" %% "akka-management-cluster-http" % akkaManagementVersion,
