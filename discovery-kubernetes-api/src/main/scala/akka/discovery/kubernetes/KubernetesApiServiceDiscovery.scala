@@ -221,7 +221,7 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
       port <- Try(portStr.toInt).toOption
     } yield {
       val path = Uri.Path.Empty / "api" / "v1" / "namespaces" / namespace / "pods"
-      val query = Uri.Query("labelSelector" -> labelSelector)
+      val query = Uri.Query("labelSelector" -> labelSelector, "fieldSelection" -> "status.phase==Running")
       val uri = Uri.from(scheme = "https", host = host, port = port).withPath(path).withQuery(query)
 
       HttpRequest(uri = uri, headers = List(Authorization(OAuth2BearerToken(token))))
