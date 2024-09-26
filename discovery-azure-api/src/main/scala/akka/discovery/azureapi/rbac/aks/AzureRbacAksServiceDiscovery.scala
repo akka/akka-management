@@ -185,7 +185,7 @@ final class AzureRbacAksServiceDiscovery(implicit system: ExtendedActorSystem) e
     for {
       ks <- kubernetesSetup
       token <- fetchAccessToken.map(_.getToken)
-      request <- podRequest(token, ks.namespace, selector, true)
+      request <- podRequest(token, ks.namespace, selector)
       pods <- pods(ks.ctx, request, resolveTimeout)
     } yield {
       val addresses =
