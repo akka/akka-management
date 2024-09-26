@@ -209,7 +209,7 @@ final class AzureRbacAksServiceDiscovery(implicit system: ExtendedActorSystem) e
     val host = settings.apiServiceHost
     val port = settings.apiServicePort
     val path = Uri.Path.Empty / "api" / "v1" / "namespaces" / namespace / "pods"
-    val query = Uri.Query("labelSelector" -> labelSelector)
+    val query = Uri.Query("labelSelector" -> labelSelector, "fieldSelector" -> "status.phase==Running")
     val uri = Uri.from(scheme = "https", host = host, port = port).withPath(path).withQuery(query)
 
     Future(HttpRequest(uri = uri, headers = List(Authorization(OAuth2BearerToken(token)))))
