@@ -15,7 +15,9 @@ object Dependencies {
   val AkkaBinaryVersion = VersionNumber(AkkaVersion).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val AkkaHttpVersion = "10.7.0-M1"
-  val AkkaHttpBinaryVersion = VersionNumber(AkkaHttpVersion).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
+  val AkkaHttpBinaryVersion = VersionNumber(AkkaHttpVersion).numbers match {
+    case Seq(major, minor, _*) => s"$major.$minor"
+  }
 
   val ScalaTestVersion = "3.2.19"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
@@ -128,7 +130,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http-core" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
-    "org.mockito" % "mockito-core" % "5.13.0" % Test,
+    "org.mockito" % "mockito-core" % "5.14.0" % Test,
     "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
     "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
