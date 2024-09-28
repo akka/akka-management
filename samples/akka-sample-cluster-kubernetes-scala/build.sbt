@@ -2,7 +2,7 @@ ThisBuild / organization := "com.lightbend"
 
 name := "akka-sample-cluster-kubernetes"
 
-scalaVersion := "2.13.14"
+scalaVersion := "2.13.15"
 lazy val akkaHttpVersion = "10.6.3"
 lazy val akkaVersion = "2.9.3"
 lazy val akkaManagementVersion = "1.5.3"
