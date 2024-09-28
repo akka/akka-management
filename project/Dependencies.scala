@@ -15,13 +15,15 @@ object Dependencies {
   val AkkaBinaryVersion = VersionNumber(AkkaVersion).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val AkkaHttpVersion = "10.7.0-M1"
-  val AkkaHttpBinaryVersion = VersionNumber(AkkaHttpVersion).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
+  val AkkaHttpBinaryVersion = VersionNumber(AkkaHttpVersion).numbers match {
+    case Seq(major, minor, _*) => s"$major.$minor"
+  }
 
   val ScalaTestVersion = "3.2.19"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
   val AzureIdentityVersion = "1.13.2"
-  val AwsSdkVersion = "1.12.770"
+  val AwsSdkVersion = "1.12.772"
   val JacksonVersion = "2.17.2"
   val JacksonDatabindVersion = JacksonVersion
 
