@@ -6,7 +6,7 @@ object Dependencies {
   // sync with Java version in .github/workflows/release.yml#documentation
   lazy val JavaDocLinkVersion = 17
 
-  val Scala213 = "2.13.14"
+  val Scala213 = "2.13.15"
   val Scala3 = "3.3.3"
   val CrossScalaVersions = Seq(Scala213, Scala3)
 
@@ -15,7 +15,9 @@ object Dependencies {
   val AkkaBinaryVersion = VersionNumber(AkkaVersion).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
   val AkkaHttpVersion = "10.7.0-M1"
-  val AkkaHttpBinaryVersion = VersionNumber(AkkaHttpVersion).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
+  val AkkaHttpBinaryVersion = VersionNumber(AkkaHttpVersion).numbers match {
+    case Seq(major, minor, _*) => s"$major.$minor"
+  }
 
   val ScalaTestVersion = "3.2.19"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
