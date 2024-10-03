@@ -97,7 +97,7 @@ that is mounted to each Kubernetes container. The namespace can be overridden wi
 ### Cluster HTTP
 
 The `cluster-http` module now only exposes read only routes by default. To enable destructive operations such as downing members
-set `akka.management.http.route-providers-read-only` to `false.
+set `akka.management.http.route-providers-read-only` to `false`.
 
 
 
