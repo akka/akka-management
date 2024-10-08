@@ -26,7 +26,7 @@ object Common extends AutoPlugin {
       developers += Developer(
           "contributors",
           "Contributors",
-          "https://gitter.im/akka/dev",
+          "",
           url("https://github.com/akka/akka-management/graphs/contributors")
         ),
       releaseNotesURL := (
@@ -37,7 +37,7 @@ object Common extends AutoPlugin {
         val tagOrBranch =
           if (version.value.endsWith("SNAPSHOT")) "main"
           else "v" + version.value
-        Seq(("BUSL-1.1", url(s"https://raw.githubusercontent.com/akka/akka-management/${tagOrBranch}/LICENSE")))
+        Seq(("BUSL-1.1", url(s"https://github.com/akka/akka-management/blob/${tagOrBranch}/LICENSE")))
       },
       description := "Akka Management is a suite of tools for operating Akka Clusters.",
       headerLicense := Some(
@@ -69,7 +69,15 @@ object Common extends AutoPlugin {
           "-doc-title",
           "Akka Management",
           "-doc-version",
-          version.value
+          version.value,
+          "-doc-source-url", {
+            val branch = if (isSnapshot.value) "main" else s"v${version.value}"
+            s"https://github.com/akka/akka-management/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
+          },
+          "-sourcepath",
+          (ThisBuild / baseDirectory).value.toString,
+          "-doc-canonical-base-url",
+          "https://doc.akka.io/api/akka-management/current/"
         ) ++
         // make use of https://github.com/scala/scala/pull/8663
         (if (scalaBinaryVersion.value.startsWith("3")) {
@@ -83,14 +91,6 @@ object Common extends AutoPlugin {
             "akka.pattern"
           )
         } else Nil),
-      Compile / doc / scalacOptions ++= Seq(
-          "-doc-source-url", {
-            val branch = if (isSnapshot.value) "master" else s"v${version.value}"
-            s"https://github.com/akka/akka-management/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
-          },
-          "-doc-canonical-base-url",
-          "https://doc.akka.io/api/akka-management/current/"
-        ),
       autoAPIMappings := true,
       // show full stack traces and test case durations
       Test / testOptions += Tests.Argument("-oDF"),
