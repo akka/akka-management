@@ -14,4 +14,4 @@ libraryDependencies += "com.lightbend.akka.management" %% "akka-management-clust
 libraryDependencies += "com.lightbend.akka.management" %% "akka-management-cluster-http" % akkaManagementVersion(
   version.value)
 
-libraryDependencies += "com.typesafe.akka" %% "akka-discovery" % "2.10.0-M1"
+libraryDependencies += "com.typesafe.akka" %% "akka-discovery" % "2.10.0"

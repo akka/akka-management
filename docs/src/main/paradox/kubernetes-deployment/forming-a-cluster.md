@@ -14,7 +14,7 @@ discover this automatically using the Kubernetes API. The process is roughly as 
 5. The pod that is decided to start the cluster forms a cluster with itself.
 6. The remaining pods poll that pod until it reports that it has formed a cluster, they then join it.
 
-For a much more detailed description of this process, see the [Akka Cluster Bootstrap documentation](https://developer.lightbend.com/docs/akka-management/current/bootstrap/details.html).
+For a much more detailed description of this process, see the [Akka Cluster Bootstrap documentation](https://doc.akka.io/docs/akka-management/current/bootstrap/details.html).
 
 ## Bootstrap and Management dependencies
 

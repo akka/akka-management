@@ -10,9 +10,9 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <akka.version>2.10.0-M1</akka.version>
+    <akka.version>2.10.0</akka.version>
     <akka-management.version>1.5.3</akka-management.version>
-    <akka-http.version>10.7.0-M1</akka-http.version>
+    <akka-http.version>10.7.0</akka-http.version>
     <scala.binary.version>2.13</scala.binary.version>
     <version.number>${git.commit.time}-${git.commit.id.abbrev}</version.number>
   </properties>
