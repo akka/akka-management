@@ -3,7 +3,7 @@ resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.10.4")
 
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.10.0")
-addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.3")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.4")
 addSbtPlugin("com.github.sbt" % "sbt-dynver" % "5.1.0")
 addSbtPlugin("io.akka" % "sbt-paradox-akka" % "24.10.6")
 addSbtPlugin("com.github.sbt" % "sbt-unidoc" % "0.5.0")
