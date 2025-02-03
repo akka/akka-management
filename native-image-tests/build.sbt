@@ -2,7 +2,7 @@ name := "native-image-tests"
 
 version := "1.0"
 
-scalaVersion := "2.13.15"
+scalaVersion := "2.13.16"
 
 resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
