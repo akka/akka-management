@@ -7,7 +7,7 @@ object Dependencies {
   lazy val JavaDocLinkVersion = 17
 
   val Scala213 = "2.13.15"
-  val Scala3 = "3.3.4"
+  val Scala3 = "3.3.5"
   val CrossScalaVersions = Seq(Scala213, Scala3)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
