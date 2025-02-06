@@ -25,6 +25,7 @@ import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.discovery._
 import akka.discovery.kubernetes.JsonFormat._
 import akka.dispatch.Dispatchers.DefaultBlockingDispatcherId
+import akka.event.LoggingAdapter
 import akka.event.Logging
 import akka.http.scaladsl.HttpsConnectionContext
 import akka.http.scaladsl._
@@ -53,13 +54,20 @@ object KubernetesApiServiceDiscovery {
       podNamespace: String,
       podDomain: String,
       rawIp: Boolean,
-      containerName: Option[String]): immutable.Seq[ResolvedTarget] =
+      containerName: Option[String],
+      onlyReady: Boolean): immutable.Seq[ResolvedTarget] = {
+
+    val readyFilter: PodList.PodStatus => Boolean =
+      if (onlyReady) _.conditions.iterator.flatten.exists(_.isAbleToServeRequests)
+      else _ => true
+
     for {
       item <- podList.items
       if item.metadata.flatMap(_.deletionTimestamp).isEmpty
       itemSpec <- item.spec.toSeq
       itemStatus <- item.status.toSeq
       if itemStatus.phase.contains("Running")
+      if readyFilter(itemStatus)
       if containerName.forall(name =>
         itemStatus.containerStatuses match {
           case Some(statuses) => statuses.filter(_.name == name).exists(!_.state.contains("waiting"))
@@ -86,8 +94,12 @@ object KubernetesApiServiceDiscovery {
         address = Some(InetAddress.getByName(ip))
       )
     }
+  }
 
   class KubernetesApiException(msg: String) extends RuntimeException(msg) with NoStackTrace
+}
+
+object BaseKubernetesApiServiceDiscovery {
 
   private final case class KubernetesSetup(
       podNamespace: String,
@@ -97,19 +109,21 @@ object KubernetesApiServiceDiscovery {
 }
 
 /**
- * An alternative implementation that uses the Kubernetes API. The main advantage of this method is that it allows
- * you to define readiness/health checks that don't affect the bootstrap mechanism.
+ * Discovery implementation that uses the Kubernetes API.
+ *
  */
-class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends ServiceDiscovery {
+sealed abstract class BaseKubernetesApiServiceDiscovery()(implicit system: ActorSystem) extends ServiceDiscovery {
 
-  import KubernetesApiServiceDiscovery.KubernetesSetup
+  import BaseKubernetesApiServiceDiscovery.KubernetesSetup
   import akka.discovery.kubernetes.KubernetesApiServiceDiscovery._
 
   private val http = Http()
 
   private val settings = Settings(system)
 
-  private val log = Logging(system, classOf[KubernetesApiServiceDiscovery])
+  protected val log: LoggingAdapter = Logging(system, getClass)
+
+  protected def onlyDiscoverReady: Boolean
 
   log.debug("Settings {}", settings)
 
@@ -193,7 +207,14 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
 
     } yield {
       val addresses =
-        targets(podList, query.portName, setup.podNamespace, settings.podDomain, settings.rawIp, settings.containerName)
+        targets(
+          podList,
+          query.portName,
+          setup.podNamespace,
+          settings.podDomain,
+          settings.rawIp,
+          settings.containerName,
+          onlyDiscoverReady)
       if (addresses.isEmpty && podList.items.nonEmpty) {
         if (log.isInfoEnabled) {
           val containerPortNames = podList.items.flatMap(_.spec).flatMap(_.containers).flatMap(_.ports).flatten.toSet
@@ -264,4 +285,22 @@ class KubernetesApiServiceDiscovery(implicit system: ActorSystem) extends Servic
     }
   }
 
+}
+
+/**
+ * An implementation which will discover Kubernetes pods even if they are not ready to serve external traffic.
+ * This discovery method is suitable for bootstrapping a cluster, even if readiness/health checks will not pass
+ * until the cluster is bootstrapped.
+ *
+ * If used to discover external Kubernetes services, not all pods discovered will be able to serve traffic.
+ */
+class KubernetesApiServiceDiscovery(system: ActorSystem) extends BaseKubernetesApiServiceDiscovery()(system) {
+  override final protected def onlyDiscoverReady: Boolean = false
+}
+
+/**
+ * An implementation which will discover Kubernetes pods only if they are ready to serve external traffic.
+ */
+class ExternalKubernetesApiServiceDiscovery(system: ActorSystem) extends BaseKubernetesApiServiceDiscovery()(system) {
+  override final protected def onlyDiscoverReady: Boolean = true
 }
