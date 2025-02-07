@@ -388,6 +388,15 @@ class KubernetesApiServiceDiscoverySpec extends AnyWordSpec with Matchers {
       discovery shouldBe a[KubernetesApiServiceDiscovery]
       system.terminate()
     }
+
+    "allow loading kubernetes-api-for-client discovery even if it is not the default" in {
+      val system = ActorSystem()
+      //#kubernetes-api-for-client-discovery
+      val discovery = Discovery(system).loadServiceDiscovery("kubernetes-api-for-client")
+      //#kubernetes-api-for-client-discovery
+      discovery shouldBe a[ExternalKubernetesApiServiceDiscovery]
+      system.terminate()
+    }
   }
 
   private def resourceAsString(name: String): String =

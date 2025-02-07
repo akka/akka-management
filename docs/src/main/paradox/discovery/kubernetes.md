@@ -2,7 +2,12 @@
 
 If you want to use Kubernetes for @ref[Cluster Bootstrap](../bootstrap/index.md), please follow the @ref[Cluster Bootstrap Kubernetes API](../bootstrap/kubernetes-api.md) documentation that is tailored for that use case.
 
-The typical way to consume a service in Kubernetes is to discover it through DNS: this will take into account liveness/readiness checks, and depending on the configuration take care of load balancing (removing the need for client-side load balancing). For this reason, for general usage the @extref:[`akka-dns`](akka:discovery/index.html#discovery-method-dns) implementation is usually a better fit for discovering services in Kubernetes. However, in some cases, such as for @ref[Cluster Bootstrap](../bootstrap/index.md), it is desirable to connect to the pods directly, bypassing any liveness/readiness checks or load balancing. For such situations we provide a discovery implementation that uses the Kubernetes API.
+The typical way to consume a service in Kubernetes is to discover it through DNS: this will take into account liveness/readiness checks, and depending on the configuration take care of load balancing (removing the need for client-side load balancing). For this reason, for general usage the @extref:[`akka-dns`](akka:discovery/index.html#discovery-method-dns) implementation is usually a better fit for discovering services in Kubernetes.
+
+However, in some cases, such as for @ref[Cluster Bootstrap](../bootstrap/index.md), it is desirable to connect to the pods directly, bypassing any liveness/readiness checks or load balancing. For such situations we provide a discovery implementation that uses the Kubernetes API.
+
+In even fewer cases, it may be desirable to use the the Kubernetes API to discover other services to consume and
+perform client-side load balancing.  For such situations, we also provide a @ref[variant implementation, which is not suitable for use with cluster bootstrap](#using-the-kubernetes-api-to-support-client-side-load-balancing).
 
 ## Project Info
 
@@ -127,3 +132,27 @@ Adjust as necessary.
 > Using Google Kubernetes Engine? Your user will need permission to grant roles. See [Google's Documentation](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control#prerequisites_for_using_role-based_access_control) for more information.
 
 @@snip [akka-cluster.yml](/integration-test/kubernetes-api/kubernetes/akka-cluster.yml) { #rbac }
+
+### Using the Kubernetes API to support client-side load balancing
+
+The primary (`kubernetes-api`) discovery mechanism is intended to support use-cases like Cluster Bootstrap
+(especially when, as is typical, a service is not able to serve traffic until the cluster has bootstrapped).
+This intent implies that the `kubernetes-api` discovery mechanism is unsuitable for client-side load balancing.  For
+situations where the Kubernetes API would be preferable to DNS-based discovery (e.g. if it's impractical to
+configure DNS for the Kubernetes cluster to support client-side load balancing), the `kubernetes-api-for-client`
+discovery mechanism is available.  Unlike `kubernetes-api`, this mechanism is suitable for use as the default discovery
+mechanism (though unsuitable for use with Cluster Bootstrap):
+
+```
+# in application.conf, for example
+akka.management.cluster.bootstrap.contact-point-discovery.discovery-method = kubernetes-api
+akka.discovery.method = kubernetes-api-for-client
+```
+
+Or to programmatically load:
+
+Scala
+: @@snip [KubernetesApiServiceDiscoverySpec.scala](/discovery-kubernetes-api/src/test/scala/akka/discovery/kubernetes/KubernetesApiServiceDiscoverySpec.scala) { #kubernetes-api-for-client-discovery }
+
+Java
+: @@snip [KubernetesApiDiscoveryDocTest.java](/discovery-kubernetes-api/src/test/java/docs/KubernetesApiDiscoveryDocsTest.java) { #kubernetes-api-for-client-discovery }
