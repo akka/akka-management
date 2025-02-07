@@ -20,6 +20,7 @@ import scala.util.control.NonFatal
 
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
+import akka.annotation.DoNotInherit
 import akka.discovery.ServiceDiscovery.Resolved
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.discovery._
@@ -111,7 +112,9 @@ object BaseKubernetesApiServiceDiscovery {
 /**
  * Discovery implementation that uses the Kubernetes API.
  *
+ * Not for user extension
  */
+@DoNotInherit
 sealed abstract class BaseKubernetesApiServiceDiscovery(protected val log: LoggingAdapter)(implicit system: ActorSystem)
     extends ServiceDiscovery {
 
