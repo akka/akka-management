@@ -112,7 +112,8 @@ object BaseKubernetesApiServiceDiscovery {
  * Discovery implementation that uses the Kubernetes API.
  *
  */
-sealed abstract class BaseKubernetesApiServiceDiscovery()(implicit system: ActorSystem) extends ServiceDiscovery {
+sealed abstract class BaseKubernetesApiServiceDiscovery(protected val log: LoggingAdapter)(implicit system: ActorSystem)
+    extends ServiceDiscovery {
 
   import BaseKubernetesApiServiceDiscovery.KubernetesSetup
   import akka.discovery.kubernetes.KubernetesApiServiceDiscovery._
@@ -120,8 +121,6 @@ sealed abstract class BaseKubernetesApiServiceDiscovery()(implicit system: Actor
   private val http = Http()
 
   private val settings = Settings(system)
-
-  protected val log: LoggingAdapter
 
   protected def onlyDiscoverReady: Boolean
 
@@ -294,15 +293,17 @@ sealed abstract class BaseKubernetesApiServiceDiscovery()(implicit system: Actor
  *
  * If used to discover external Kubernetes services, not all pods discovered will be able to serve traffic.
  */
-class KubernetesApiServiceDiscovery(system: ActorSystem) extends BaseKubernetesApiServiceDiscovery()(system) {
+class KubernetesApiServiceDiscovery(system: ActorSystem)
+    extends BaseKubernetesApiServiceDiscovery(Logging(system, classOf[KubernetesApiServiceDiscovery]))(system) {
   override final protected def onlyDiscoverReady: Boolean = false
-  override final protected val log = Logging(system, classOf[KubernetesApiServiceDiscovery])
 }
 
 /**
  * An implementation which will discover Kubernetes pods only if they are ready to serve external traffic.
+ *
+ * NOT SUITABLE FOR CLUSTER BOOTSTRAP!
  */
-class ExternalKubernetesApiServiceDiscovery(system: ActorSystem) extends BaseKubernetesApiServiceDiscovery()(system) {
+class ExternalKubernetesApiServiceDiscovery(system: ActorSystem)
+    extends BaseKubernetesApiServiceDiscovery(Logging(system, classOf[ExternalKubernetesApiServiceDiscovery]))(system) {
   override final protected def onlyDiscoverReady: Boolean = true
-  override final protected val log = Logging(system, classOf[ExternalKubernetesApiServiceDiscovery])
 }
