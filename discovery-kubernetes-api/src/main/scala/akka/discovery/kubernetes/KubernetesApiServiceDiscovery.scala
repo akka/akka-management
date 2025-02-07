@@ -121,7 +121,7 @@ sealed abstract class BaseKubernetesApiServiceDiscovery()(implicit system: Actor
 
   private val settings = Settings(system)
 
-  protected val log: LoggingAdapter = Logging(system, getClass)
+  protected val log: LoggingAdapter
 
   protected def onlyDiscoverReady: Boolean
 
@@ -296,6 +296,7 @@ sealed abstract class BaseKubernetesApiServiceDiscovery()(implicit system: Actor
  */
 class KubernetesApiServiceDiscovery(system: ActorSystem) extends BaseKubernetesApiServiceDiscovery()(system) {
   override final protected def onlyDiscoverReady: Boolean = false
+  override final protected val log = Logging(system, classOf[KubernetesApiServiceDiscovery])
 }
 
 /**
@@ -303,4 +304,5 @@ class KubernetesApiServiceDiscovery(system: ActorSystem) extends BaseKubernetesA
  */
 class ExternalKubernetesApiServiceDiscovery(system: ActorSystem) extends BaseKubernetesApiServiceDiscovery()(system) {
   override final protected def onlyDiscoverReady: Boolean = true
+  override final protected val log = Logging(system, classOf[ExternalKubernetesApiServiceDiscovery])
 }
