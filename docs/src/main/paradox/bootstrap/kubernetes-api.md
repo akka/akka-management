@@ -26,6 +26,16 @@ The following configuration is required:
 
 @@snip [akka-cluster.yml](/integration-test/kubernetes-api/src/main/resources/application.conf) { #discovery-config }
 
+Note that `kubernetes-api` is unsuitable as the default `akka.discovery.method`.  For most cases, the most reasonable
+(and most idiomatic in Kubernetes) choice for discovering other services to consume is to use DNS:
+
+```
+akka.discovery.method = akka-dns
+```
+
+In some cases, @ref:[`kubernetes-api-for-client`](../discovery/kubernetes.md#using-the-kubernetes-api-to-support-client-side-load-balancing)
+may be a more suitable default `akka.discovery.method`.
+
 The lookup needs to know which namespace to look in. By default, this will be detected by reading the namespace
 from the service account secret, in `/var/run/secrets/kubernetes.io/serviceaccount/namespace`, but can be overridden by
 setting `akka.discovery.kubernetes-api.pod-namespace` or by providing `KUBERNETES_NAMESPACE` environment variable.

@@ -15,4 +15,11 @@ public class KubernetesApiDiscoveryDocsTest {
     ServiceDiscovery discovery = Discovery.get(system).loadServiceDiscovery("kubernetes-api");
     //#kubernetes-api-discovery
   }
+
+  public void loadExternalKubernetesApiDiscovery() {
+    ActorSystem system = ActorSystem.create();
+    //#kubernetes-api-for-client-discovery
+    ServiceDiscovery discovery = Discovery.get(system).loadServiceDiscovery("kubernetes-api-for-client");
+    //#kubernetes-api-for-client-discovery
+  }
 }
