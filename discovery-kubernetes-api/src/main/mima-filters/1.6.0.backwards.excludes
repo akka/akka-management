@@ -1,0 +1,11 @@
+ProblemFilters.exclude[DirectAbstractMethodProblem]("akka.discovery.ServiceDiscovery.lookup")
+
+# private class changed enclosing object
+ProblemFilters.exclude[MissingClassProblem]("akka.discovery.kubernetes.KubernetesApiServiceDiscovery$KubernetesSetup")
+ProblemFilters.exclude[MissingClassProblem]("akka.discovery.kubernetes.KubernetesApiServiceDiscovery$KubernetesSetup$")
+
+# InternalAPI
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.discovery.kubernetes.PodList#PodStatus.copy")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.discovery.kubernetes.PodList#PodStatus.this")
+ProblemFilters.exclude[MissingTypesProblem]("akka.discovery.kubernetes.PodList$PodStatus$")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.discovery.kubernetes.PodList#PodStatus.apply")
