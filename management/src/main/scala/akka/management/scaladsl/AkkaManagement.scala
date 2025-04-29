@@ -4,14 +4,11 @@
 
 package akka.management.scaladsl
 
-import java.util.Optional
 import java.util.concurrent.atomic.AtomicReference
 
 import scala.collection.immutable
 import scala.concurrent.Future
 import scala.concurrent.Promise
-import scala.jdk.FutureConverters._
-import scala.jdk.OptionConverters._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.control.NonFatal
@@ -24,7 +21,6 @@ import akka.actor.Extension
 import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.event.Logging
-import akka.http.javadsl.server.directives.SecurityDirectives.ProvidedCredentials
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Directive
@@ -34,7 +30,6 @@ import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.server.Directives.rawPathPrefix
 import akka.http.scaladsl.server.PathMatchers
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.settings.ServerSettings
 import akka.management.AkkaManagementSettings
 import akka.management.ManagementLogMarker
@@ -184,23 +179,10 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
     def wrapWithAuthenticatorIfPresent(inner: Route): Route = {
       val providerSettingsImpl = providerSettings.asInstanceOf[ManagementRouteProviderSettingsImpl]
-      (providerSettingsImpl.scaladslAuth, providerSettingsImpl.javadslAuth) match {
-        case (None, None) =>
-          inner
-
-        case (Some(asyncAuthenticator), None) =>
-          authenticateBasicAsync[String](realm = "secured", asyncAuthenticator)(_ => inner)
-
-        case (None, Some(auth)) =>
-          def credsToJava(cred: Credentials): Optional[ProvidedCredentials] = cred match {
-            case provided: Credentials.Provided => Optional.of(ProvidedCredentials(provided))
-            case _                              => Optional.empty()
-          }
-          authenticateBasicAsync(realm = "secured", c => auth.apply(credsToJava(c)).asScala.map(_.toScala)).optional
-            .apply(_ => inner)
-
-        case (Some(_), Some(_)) =>
-          throw new IllegalStateException("Unexpected that both scaladsl and javadsl auth were defined")
+      providerSettingsImpl.asyncAuthenticator match {
+        case None => inner
+        case Some(authenticator) =>
+          authenticateBasicAsync[String](realm = "secured", authenticator)(_ => inner)
       }
     }
 

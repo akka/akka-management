@@ -7,14 +7,18 @@ package akka.management.scaladsl
 import java.util.Optional
 import java.util.concurrent.CompletionStage
 import java.util.function.{ Function => JFunction }
-
 import akka.annotation.DoNotInherit
 import akka.annotation.InternalApi
 import akka.http.javadsl.server.directives.SecurityDirectives.ProvidedCredentials
 import akka.http.scaladsl.HttpsConnectionContext
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Directives.AsyncAuthenticator
+import akka.http.scaladsl.server.directives.Credentials
 import akka.management.javadsl
+
+import scala.concurrent.ExecutionContext
+import scala.jdk.OptionConverters._
+import scala.jdk.FutureConverters._
 
 object ManagementRouteProviderSettings {
   def apply(selfBaseUri: Uri, readOnly: Boolean): ManagementRouteProviderSettings = {
@@ -84,6 +88,23 @@ object ManagementRouteProviderSettings {
     }
 
   override def withReadOnly(readOnly: Boolean): ManagementRouteProviderSettings = copy(readOnly = readOnly)
+
+  def asyncAuthenticator: Option[AsyncAuthenticator[String]] =
+    (scaladslAuth, javadslAuth) match {
+      case (None, None)            => None
+      case (scala @ Some(_), None) => scala
+      case (None, Some(javaAuthenticator)) =>
+        Some({ (scalaCredentials: Credentials) =>
+          val javaCredentials: Optional[ProvidedCredentials] = scalaCredentials match {
+            case provided: Credentials.Provided => Optional.of(ProvidedCredentials(provided))
+            case _                              => Optional.empty()
+          }
+          javaAuthenticator.apply(javaCredentials).asScala.map(_.toScala)(ExecutionContext.parasitic)
+        })
+
+      case (Some(_), Some(_)) =>
+        throw new IllegalStateException("Unexpected that both scaladsl and javadsl auth were defined")
+    }
 
   def asJava: javadsl.ManagementRouteProviderSettingsImpl =
     javadsl.ManagementRouteProviderSettingsImpl(
