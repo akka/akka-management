@@ -16,10 +16,9 @@ import akka.http.scaladsl.server.Directives.AsyncAuthenticator
 import akka.http.scaladsl.server.directives.Credentials
 import akka.management.javadsl
 
-import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.jdk.OptionConverters.RichOptional
+import scala.jdk.OptionConverters._
+import scala.jdk.FutureConverters._
 
 object ManagementRouteProviderSettings {
   def apply(selfBaseUri: Uri, readOnly: Boolean): ManagementRouteProviderSettings = {
@@ -100,7 +99,7 @@ object ManagementRouteProviderSettings {
             case provided: Credentials.Provided => Optional.of(ProvidedCredentials(provided))
             case _                              => Optional.empty()
           }
-          javaAuthenticator.apply(javaCredentials).toScala.map(_.toScala)(ExecutionContext.parasitic)
+          javaAuthenticator.apply(javaCredentials).asScala.map(_.toScala)(ExecutionContext.parasitic)
         })
 
       case (Some(_), Some(_)) =>
