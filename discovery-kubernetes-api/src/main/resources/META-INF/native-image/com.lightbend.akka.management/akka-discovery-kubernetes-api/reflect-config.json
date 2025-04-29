@@ -21,6 +21,11 @@
     "queryAllPublicMethods": true
   },
   {
+    "name": "akka.discovery.kubernetes.PodList.PodCondition",
+    "allDeclaredFields": true,
+    "queryAllPublicMethods": true
+  },
+  {
     "name": "akka.discovery.kubernetes.PodList.PodSpec",
     "allDeclaredFields": true,
     "queryAllPublicMethods": true
