@@ -184,23 +184,10 @@ final class AkkaManagement(implicit private[akka] val system: ExtendedActorSyste
 
     def wrapWithAuthenticatorIfPresent(inner: Route): Route = {
       val providerSettingsImpl = providerSettings.asInstanceOf[ManagementRouteProviderSettingsImpl]
-      (providerSettingsImpl.scaladslAuth, providerSettingsImpl.javadslAuth) match {
-        case (None, None) =>
-          inner
-
-        case (Some(asyncAuthenticator), None) =>
-          authenticateBasicAsync[String](realm = "secured", asyncAuthenticator)(_ => inner)
-
-        case (None, Some(auth)) =>
-          def credsToJava(cred: Credentials): Optional[ProvidedCredentials] = cred match {
-            case provided: Credentials.Provided => Optional.of(ProvidedCredentials(provided))
-            case _                              => Optional.empty()
-          }
-          authenticateBasicAsync(realm = "secured", c => auth.apply(credsToJava(c)).asScala.map(_.toScala)).optional
-            .apply(_ => inner)
-
-        case (Some(_), Some(_)) =>
-          throw new IllegalStateException("Unexpected that both scaladsl and javadsl auth were defined")
+      providerSettingsImpl.asyncAuthenticator match {
+        case None => inner
+        case Some(authenticator) =>
+          authenticateBasicAsync[String](realm = "secured", authenticator)(_ => inner)
       }
     }
 
