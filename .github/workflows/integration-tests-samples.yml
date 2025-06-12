@@ -43,6 +43,13 @@ jobs:
         with:
           jvm: temurin:1.17.0
 
+      - name: Set  up Akka resolver
+        run: |-
+          mkdir ~/.sbt
+          printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
+        env:
+          CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
+
       - name: Setup Minikube
         # https://github.com/manusa/actions-setup-minikube/releases
         # v2.7.1

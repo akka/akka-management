@@ -46,6 +46,13 @@ jobs:
         with:
           jvm: temurin:1.11.0.17
 
+      - name: Set  up Akka resolver
+        run: |-
+          mkdir ~/.sbt
+          printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
+        env:
+          CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
+
       - name: Publish artifacts for all Scala versions
         env:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
@@ -73,6 +80,13 @@ jobs:
         uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
           jvm: temurin:1.17.0
+
+      - name: Set  up Akka resolver
+        run: |-
+          mkdir ~/.sbt
+          printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
+        env:
+          CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
 
       - name: Publish
         run: |-

@@ -39,6 +39,13 @@ jobs:
           jvm: temurin:1.17.0.5
           apps: cs
 
+      - name: Set  up Akka resolver
+        run: |-
+          mkdir ~/.sbt
+          printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
+        env:
+          CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
+
       - name: sbt site
         run: sbt docs/makeSite
 

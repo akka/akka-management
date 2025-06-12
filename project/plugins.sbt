@@ -1,4 +1,5 @@
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+resolvers += "lightbend-akka" at "https://dl.cloudsmith.io/basic/lightbend/akka/maven/"
+credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.1")
 
