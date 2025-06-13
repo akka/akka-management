@@ -11,6 +11,9 @@ on:
     - cron: '0 2 * * *'  # every day 2am
   workflow_dispatch:
 
+env:
+  CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
+
 permissions:
   contents: read
 
@@ -48,8 +51,6 @@ jobs:
         run: |-
           mkdir ~/.sbt
           printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
-        env:
-          CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
 
       - name: Setup Minikube
         # https://github.com/manusa/actions-setup-minikube/releases

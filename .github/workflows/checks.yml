@@ -8,6 +8,9 @@ on:
       - release-*
     tags-ignore: [ v.* ]
 
+env:
+  CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
+
 permissions:
   contents: read
 
@@ -46,8 +49,6 @@ jobs:
         run: |-
           mkdir ~/.sbt
           printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
-        env:
-          CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
 
       - name: Code style check, compilation and binary-compatibility check
         run: |-
@@ -89,8 +90,6 @@ jobs:
         run: |-
           mkdir ~/.sbt
           printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
-        env:
-          CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
 
       - name: Create all API docs for artifacts/website and all reference docs
         run: sbt "unidoc; docs/paradox"
