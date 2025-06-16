@@ -4,7 +4,6 @@ import com.typesafe.tools.mima.core.ProblemFilter
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport.*
 
-ThisBuild / resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 ThisBuild / resolvers += Resolver.jcenterRepo
 // append -SNAPSHOT to version when isSnapshot
 ThisBuild / dynverSonatypeSnapshots := true
