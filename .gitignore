@@ -25,3 +25,8 @@ metals.sbt
 
 # Bloop
 .bloop
+
+# to not share individual tokens
+akka.sbt
+project/akka.sbt
+integration-test/kubernetes-dns/build.sbt

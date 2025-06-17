@@ -49,7 +49,7 @@ jobs:
         with:
           jvm: temurin:1.11.0.17
 
-      - name: Set  up Akka resolver
+      - name: Set up Akka resolver
         run: |-
           mkdir ~/.sbt
           printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
@@ -82,7 +82,7 @@ jobs:
         with:
           jvm: temurin:1.17.0
 
-      - name: Set  up Akka resolver
+      - name: Set up Akka resolver
         run: |-
           mkdir ~/.sbt
           printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials

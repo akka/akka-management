@@ -1,7 +1,5 @@
 enablePlugins(JavaAppPackaging)
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
-
 name := "bootstrap-demo-dns-api"
 
 scalaVersion := "2.13.15"
