@@ -29,3 +29,4 @@ metals.sbt
 # to not share individual tokens
 akka.sbt
 project/akka.sbt
+integration-test/kubernetes-dns/build.sbt
