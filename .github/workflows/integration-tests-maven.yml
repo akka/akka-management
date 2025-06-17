@@ -10,7 +10,7 @@ on:
     # Different than its sibilings, we don't configure this workflow to run as a cron job.
 
 env:
-  CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS_MVN }}
+  CLOUDSMITH_MACHINE_AKKA_CREDS_MVN: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS_MVN }}
 
 permissions:
   contents: read
