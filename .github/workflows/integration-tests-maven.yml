@@ -10,7 +10,7 @@ on:
     # Different than its sibilings, we don't configure this workflow to run as a cron job.
 
 env:
-  CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
+  CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS_MVN }}
 
 permissions:
   contents: read
@@ -45,10 +45,10 @@ jobs:
         with:
           jvm: temurin:1.11.0
 
-      - name: Set  up Akka resolver
+      - name: Set up Akka resolver
         run: |-
-          mkdir ~/.sbt
-          printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
+          mkdir ~/.m2
+          printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS_MVN" > ~/.m2/settings.xml
 
       - name: Setup Minikube
         # https://github.com/manusa/actions-setup-minikube/releases
