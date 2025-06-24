@@ -35,8 +35,6 @@ Add `akka-management-cluster-bootstrap` and one or more discovery mechanisms to 
 For example, you might choose to use the @extref:[DNS discovery](akka:discovery/index.html#discovery-method-dns)
 and bootstrap extensions.
 
-The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
-
 @@@note
 The Akka dependencies are available from Akka’s secure library repository. To access them you need to use a secure, tokenized URL as specified at https://account.akka.io/token.
 @@@

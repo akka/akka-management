@@ -24,8 +24,6 @@ Add the following dependencies to your application:
 * @ref[Akka Discovery Kubernetes](../discovery/kubernetes.md): This provides a discovery mechanism that queries the Kubernetes API
 * @ref[Akka Bootstrap](../bootstrap/index.md): This bootstraps the cluster from nodes discovered via the Kubernetes API
 
-The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
-
 @@@note
 The Akka dependencies are available from Akka’s secure library repository. To access them you need to use a secure, tokenized URL as specified at https://account.akka.io/token.
 @@@

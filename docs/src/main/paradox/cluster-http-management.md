@@ -16,8 +16,6 @@ The operations exposed are comparable to the Command Line Management tool or the
 The Akka Cluster HTTP Management is a separate jar file.
 Make sure to include it along with the core akka-management library in your project.
 
-The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
-
 @@@note
 The Akka dependencies are available from Akka’s secure library repository. To access them you need to use a secure, tokenized URL as specified at https://account.akka.io/token.
 @@@
