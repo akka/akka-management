@@ -2,8 +2,6 @@
 
 set -exu
 
-sbt publishM2
-
 VERSION=`sbt publishM2 | grep akka-management-cluster-bootstrap_2.13 | tail -1 | cut -d "/" -f 11`
 
 cd integration-test/kubernetes-api-java
