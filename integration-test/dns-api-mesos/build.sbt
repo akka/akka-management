@@ -1,5 +1,8 @@
 enablePlugins(JavaAppPackaging)
 
+ThisBuild / resolvers += "lightbend-akka".at("https://dl.cloudsmith.io/basic/lightbend/akka/maven/")
+ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+
 name := "bootstrap-demo-dns-api"
 
 scalaVersion := "2.13.15"
