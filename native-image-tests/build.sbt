@@ -4,7 +4,9 @@ version := "1.0"
 
 scalaVersion := "2.13.15"
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+ThisBuild / resolvers += "lightbend-akka".at("https://dl.cloudsmith.io/basic/lightbend/akka/maven/")
+ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+
 
 lazy val akkaVersion = sys.props.getOrElse("akka.version", "2.10.5")
 lazy val akkaHttpVersion = sys.props.getOrElse("akka.http.version", "10.7.1")

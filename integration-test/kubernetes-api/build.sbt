@@ -2,7 +2,8 @@ import com.typesafe.sbt.packager.docker._
 
 enablePlugins(JavaServerAppPackaging)
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+ThisBuild / resolvers += "lightbend-akka".at("https://dl.cloudsmith.io/basic/lightbend/akka/maven/")
+ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 
 version := "1.3.3.7" // we hard-code the version here, it could be anything really
 
