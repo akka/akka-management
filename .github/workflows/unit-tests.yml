@@ -55,7 +55,7 @@ jobs:
           # FIXME default index not giving us access to JDK 21 (yet)
           jvm-index: https://raw.githubusercontent.com/coursier/jvm-index/32d659500e6c65efb9eee91718a0fb0e797ad4ee/index.json
 
-      - name: Set  up Akka resolver
+      - name: Set up Akka resolver
         run: |-
           mkdir ~/.sbt
           printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
