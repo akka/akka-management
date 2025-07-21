@@ -11,7 +11,7 @@ permissions:
 jobs:
   fossa:
     name: Fossa
-    runs-on: Akka-Default
+    runs-on: Akka-Default-Latest
     if: github.repository == 'akka/akka-management'
     steps:
       - name: Checkout
