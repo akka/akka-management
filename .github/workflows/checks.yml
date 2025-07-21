@@ -14,7 +14,7 @@ permissions:
 jobs:
   check-code-style:
     name: Check Code Style
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -51,7 +51,7 @@ jobs:
 
   check-docs:
     name: Check Docs
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases

@@ -16,7 +16,7 @@ permissions:
 jobs:
    integration-test:
     name: Integration Tests for akka-sample-cluster-kubernetes-scala
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
