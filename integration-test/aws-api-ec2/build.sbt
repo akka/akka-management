@@ -1,7 +1,6 @@
 enablePlugins(JavaAppPackaging)
 
-ThisBuild / resolvers += "lightbend-akka".at("https://dl.cloudsmith.io/basic/lightbend/akka/maven/")
-ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+ThisBuild / resolvers += "lightbend-akka".at("https://repo.akka.io/maven/github_actions")
 
 Universal / packageName := "app" // should produce app.zip
 

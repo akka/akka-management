@@ -8,9 +8,6 @@ on:
       - release-*
     tags-ignore: [ v.* ]
 
-env:
-  CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
-
 permissions:
   contents: read
 
@@ -44,11 +41,6 @@ jobs:
         uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
           jvm: temurin:1.11.0
-
-      - name: Set up Akka resolver
-        run: |-
-          mkdir ~/.sbt
-          printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
 
       - name: Code style check, compilation and binary-compatibility check
         run: |-
@@ -85,11 +77,6 @@ jobs:
         uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
           jvm: temurin:1.17.0
-
-      - name: Set up Akka resolver
-        run: |-
-          mkdir ~/.sbt
-          printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials
 
       - name: Create all API docs for artifacts/website and all reference docs
         run: sbt "unidoc; docs/paradox"
