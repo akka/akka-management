@@ -24,8 +24,7 @@ dockerUsername := sys.props.get("docker.username")
 dockerRepository := sys.props.get("docker.registry")
 dockerBaseImage := "adoptopenjdk:11-jre-hotspot"
 
-ThisBuild / resolvers += "lightbend-akka".at("https://dl.cloudsmith.io/basic/lightbend/akka/maven/")
-ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+ThisBuild / resolvers += "lightbend-akka".at("https://repo.akka.io/maven/github_actions")
 
 libraryDependencies ++= {
   Seq(

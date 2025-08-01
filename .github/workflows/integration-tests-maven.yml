@@ -9,17 +9,13 @@ on:
     tags-ignore: [ v.* ]
     # Different than its sibilings, we don't configure this workflow to run as a cron job.
 
-env:
-  CLOUDSMITH_MACHINE_AKKA_CREDS_MVN: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS_MVN }}
-  CLOUDSMITH_MACHINE_AKKA_CREDS: ${{ secrets.CLOUDSMITH_MACHINE_AKKA_CREDS }}
-
 permissions:
   contents: read
 
 jobs:
    integration-test:
     name: Integration Tests for Kubernetes API with Maven
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -45,13 +41,6 @@ jobs:
         uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
           jvm: temurin:1.11.0
-
-      - name: Set up Akka resolver
-        run: |-
-          mkdir ~/.m2
-          printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS_MVN" > ~/.m2/settings.xml
-          mkdir ~/.sbt
-          printf "%s" "$CLOUDSMITH_MACHINE_AKKA_CREDS" > ~/.sbt/.credentials          
 
       - name: Setup Minikube
         # https://github.com/manusa/actions-setup-minikube/releases
