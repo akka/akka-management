@@ -1,3 +1,5 @@
+resolvers += "Akka library repository".at("https://repo.akka.io/maven/github_actions")
+
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.1")
 
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.10.0")

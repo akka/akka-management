@@ -19,14 +19,16 @@
 
   <repositories>
     <repository>
-      <id>private-akka</id>
-      <url>https://dl.cloudsmith.io/basic/lightbend/akka/maven/</url>
+      <id>akka-repository</id>
+      <name>Akka library repository</name>
+      <url>https://repo.akka.io/maven/github_actions</url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
-      <id>private-akka</id>
-      <url>https://dl.cloudsmith.io/basic/lightbend/akka/maven/</url>
+      <id>akka-repository</id>
+      <name>Akka library repository</name>
+      <url>https://repo.akka.io/maven/github_actions</url>
     </pluginRepository>
   </pluginRepositories>
 
