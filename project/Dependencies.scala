@@ -22,7 +22,7 @@ object Dependencies {
   val ScalaTestVersion = "3.2.19"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
-  val AzureIdentityVersion = "1.16.0"
+  val AzureIdentityVersion = "1.16.2"
   val AwsSdkVersion = "1.12.785"
 
   val JacksonVersion = "2.18.3"
@@ -77,7 +77,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
       "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-      ("software.amazon.awssdk" % "ecs" % "2.31.39").exclude("software.amazon.awssdk", "apache-client"),
+      ("software.amazon.awssdk" % "ecs" % "2.31.60").exclude("software.amazon.awssdk", "apache-client"),
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
     ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
@@ -131,7 +131,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http-core" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
-    "org.mockito" % "mockito-core" % "5.17.0" % Test,
+    "org.mockito" % "mockito-core" % "5.18.0" % Test,
     "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
     "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,

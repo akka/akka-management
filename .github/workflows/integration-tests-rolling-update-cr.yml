@@ -17,7 +17,7 @@ permissions:
 jobs:
    integration-test:
     name: Integration Tests for Rolling Update CR Kubernetes
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases

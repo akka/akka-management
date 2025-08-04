@@ -14,7 +14,7 @@ permissions:
 jobs:
   check-code-style:
     name: Check Code Style
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -43,14 +43,15 @@ jobs:
           jvm: temurin:1.11.0
 
       - name: Code style check, compilation and binary-compatibility check
-        run: sbt "scalafmtCheckAll;headerCheckAll;+Test/compile;mimaReportBinaryIssues"
+        run: |-
+          sbt "scalafmtCheckAll;headerCheckAll;+Test/compile;mimaReportBinaryIssues"
 
       - name: Code style check, compilation for integration tests
         run: sbt "akka-management-integration/scalafmtCheckAll;akka-management-integration/headerCheckAll;+akka-management-integration/Test/compile"
 
   check-docs:
     name: Check Docs
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases

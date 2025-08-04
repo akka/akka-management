@@ -1,4 +1,4 @@
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+resolvers += "Akka library repository".at("https://repo.akka.io/maven/github_actions")
 
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.1")
 

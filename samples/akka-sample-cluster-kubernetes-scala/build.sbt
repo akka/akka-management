@@ -24,7 +24,7 @@ dockerUsername := sys.props.get("docker.username")
 dockerRepository := sys.props.get("docker.registry")
 dockerBaseImage := "adoptopenjdk:11-jre-hotspot"
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+ThisBuild / resolvers += "lightbend-akka".at("https://repo.akka.io/maven/github_actions")
 
 libraryDependencies ++= {
   Seq(
