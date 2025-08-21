@@ -6,7 +6,6 @@ package akka.rollingupdate.kubernetes
 
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
-
 import akka.actor.ActorSystem
 import akka.actor.Address
 import akka.cluster.Cluster
@@ -39,6 +38,8 @@ import org.scalatest.time.Millis
 import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpecLike
+
+import scala.concurrent.Future
 
 object PodDeletionCostAnnotatorSpec {
   val config = ConfigFactory.parseString("""
@@ -84,6 +85,7 @@ class PodDeletionCostAnnotatorSpec
       apiTokenPath = "",
       apiServiceHost = "localhost",
       apiServicePort = wireMockServer.port(),
+      apiTokenTtl = 500.millis,
       namespace = Some(namespace),
       namespacePath = "",
       podName = podName,
@@ -99,7 +101,7 @@ class PodDeletionCostAnnotatorSpec
       system,
       settings(podName1),
       namespace,
-      apiToken = "apiToken",
+      () => Future.successful("apiToken"),
       clientHttpsConnectionContext = None)
 
   private def annotatorProps(pod: String) =

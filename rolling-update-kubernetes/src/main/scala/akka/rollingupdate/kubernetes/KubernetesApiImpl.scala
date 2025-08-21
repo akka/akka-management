@@ -35,10 +35,12 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.KeyStore
 import java.security.SecureRandom
+import java.util.concurrent.atomic.AtomicReference
 import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
+import scala.concurrent.duration.Deadline
 import scala.util.control.NonFatal
 
 /**
@@ -48,7 +50,7 @@ import scala.util.control.NonFatal
     system: ActorSystem,
     settings: KubernetesSettings,
     override val namespace: String,
-    apiToken: String,
+    loadApiToken: () => Future[String],
     clientHttpsConnectionContext: Option[HttpsConnectionContext])
     extends KubernetesApi
     with KubernetesJsonSupport {
@@ -57,12 +59,13 @@ import scala.util.control.NonFatal
 
   override val revisionAnnotation = settings.revisionAnnotation
 
+  private val apiToken = new AtomicReference[Option[(String, Deadline)]](None)
+
   private implicit val sys: ActorSystem = system
   private val log = Logging(system, classOf[KubernetesApiImpl])
   private val http = Http()(system)
 
   private val scheme = if (settings.secure) "https" else "http"
-  private lazy val headers = if (settings.secure) immutable.Seq(Authorization(OAuth2BearerToken(apiToken))) else Nil
 
   log.debug("kubernetes access namespace: {}. Secure: {}", namespace, settings.secure)
 
@@ -70,12 +73,10 @@ import scala.util.control.NonFatal
     val path = Uri.Path.Empty / "api" / "v1" / "namespaces" / namespace / "pods" / podName
     val scheme = if (settings.secure) "https" else "http"
     val uri = Uri.from(scheme, host = settings.apiServiceHost, port = settings.apiServicePort).withPath(path)
-    val headers = if (settings.secure) immutable.Seq(Authorization(OAuth2BearerToken(apiToken))) else Nil
 
     val httpRequest = HttpRequest(
       method = PATCH,
       uri = uri,
-      headers = headers,
       entity = HttpEntity(
         MediaTypes.`application/merge-patch+json`,
         ByteString(
@@ -315,19 +316,37 @@ PUTs must contain resourceVersions. Response:
       method: HttpMethod = HttpMethods.GET,
       entity: RequestEntity = HttpEntity.Empty): HttpRequest = {
     val uri = Uri.from(scheme = scheme, host = settings.apiServiceHost, port = settings.apiServicePort).withPath(path)
-    HttpRequest(uri = uri, headers = headers, method = method, entity = entity)
+    HttpRequest(uri = uri, method = method, entity = entity)
   }
 
-  private def makeRequest(request: HttpRequest, timeoutMsg: String): Future[HttpResponse] = {
-    val response = {
-      clientHttpsConnectionContext match {
+  private def addHeadersToRequest(request: HttpRequest): Future[HttpRequest] = {
+    def requestWithToken(token: String) = request.addHeader(Authorization(OAuth2BearerToken(token)))
+
+    if (settings.secure || settings.insecureTokens) {
+      apiToken.get() match {
+        case Some((token, deadline)) if deadline.hasTimeLeft() =>
+          Future.successful(requestWithToken(token))
+        case _ =>
+          loadApiToken().map { token =>
+            apiToken.set(Some((token, settings.apiTokenTtl.fromNow)))
+            requestWithToken(token)
+          }
+      }
+    } else {
+      Future.successful(request)
+    }
+  }
+
+  private def makeRequest(rawRequest: HttpRequest, timeoutMsg: String): Future[HttpResponse] = {
+    val strictResponse = for {
+      request <- addHeadersToRequest(rawRequest)
+      response <- clientHttpsConnectionContext match {
         case None                         => http.singleRequest(request)
         case Some(httpsConnectionContext) => http.singleRequest(request, httpsConnectionContext)
       }
-    }
-
-    // make sure we always consume response body (in case of timeout)
-    val strictResponse = response.flatMap(_.toStrict(settings.bodyReadTimeout))
+      // make sure we always consume response body (in case of timeout)
+      strict <- response.toStrict(settings.bodyReadTimeout)
+    } yield strict
 
     val timeout = after(settings.apiServiceRequestTimeout, using = system.scheduler)(
       Future.failed(new PodCostTimeoutException(s"$timeoutMsg. Is the API server up?")))
@@ -440,10 +459,12 @@ PUTs must contain resourceVersions. Response:
 @InternalApi private[akka] object KubernetesApiImpl {
   def apply(log: LoggingAdapter, k8sSettings: KubernetesSettings)(implicit system: ActorSystem) = {
     implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
+    def loadApiToken =
+      () =>
+        Future {
+          readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token", log).getOrElse("")
+        }
     for {
-      apiToken: String <- Future {
-        readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token", log).getOrElse("")
-      }
       podNamespace: String <- Future {
         k8sSettings.namespace
           .orElse(readConfigVarFromFilesystem(k8sSettings.namespacePath, "namespace", log))
@@ -451,7 +472,7 @@ PUTs must contain resourceVersions. Response:
       }
       httpsContext <- Future(clientHttpsConnectionContext(k8sSettings))
     } yield {
-      new KubernetesApiImpl(system, k8sSettings, podNamespace, apiToken, httpsContext)
+      new KubernetesApiImpl(system, k8sSettings, podNamespace, loadApiToken, httpsContext)
     }
   }
 

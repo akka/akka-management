@@ -58,7 +58,7 @@ class LeaseContentionSpec
     system,
     KubernetesSettings(system, TimeoutSettings(system.settings.config.getConfig("akka.coordination.lease.kubernetes"))),
     "lease",
-    "token",
+    () => Future.successful("token"),
     None)
 
   val lease1 = "contended-lease"

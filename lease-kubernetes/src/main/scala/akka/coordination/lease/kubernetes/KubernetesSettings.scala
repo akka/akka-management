@@ -48,10 +48,12 @@ private[akka] object KubernetesSettings {
       config.getString("api-token-path"),
       config.getString("api-service-host"),
       config.getInt("api-service-port"),
+      config.getDuration("api-token-reload-interval").toScala,
       config.optDefinedValue("namespace"),
       config.getString("namespace-path"),
       apiServerRequestTimeout,
       secure = config.getBoolean("secure-api-server"),
+      insecureTokens = false,
       apiServerRequestTimeout / 2,
       config.getBoolean("allow-lease-name-truncation"))
 
@@ -67,9 +69,12 @@ private[akka] class KubernetesSettings(
     val apiTokenPath: String,
     val apiServerHost: String,
     val apiServerPort: Int,
+    val apiTokenTtl: FiniteDuration,
     val namespace: Option[String],
     val namespacePath: String,
     val apiServerRequestTimeout: FiniteDuration,
     val secure: Boolean = true,
+    // Note: for token testability
+    val insecureTokens: Boolean = false,
     val bodyReadTimeout: FiniteDuration = 1.second,
     val allowLeaseNameTruncation: Boolean = false)

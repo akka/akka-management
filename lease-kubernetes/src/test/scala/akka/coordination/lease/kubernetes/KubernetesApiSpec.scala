@@ -21,6 +21,9 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
+import java.util.concurrent.atomic.AtomicReference
+import scala.concurrent.Future
+
 class KubernetesApiSpec
     extends TestKit(
       ActorSystem(
@@ -44,16 +47,19 @@ class KubernetesApiSpec
     "",
     "localhost",
     wireMockServer.port(),
+    500.millis,
     namespace = Some("lease"),
     "",
     apiServerRequestTimeout = 800.millis,
-    false)
+    secure = false,
+    insecureTokens = true
+  )
 
   WireMock.configureFor(settings.apiServerPort)
 
   implicit val patience: PatienceConfig = PatienceConfig(testKitSettings.DefaultTimeout.duration)
 
-  val underTest = new KubernetesApiImpl(system, settings, "lease", "token", None)
+  val underTest = new KubernetesApiImpl(system, settings, "lease", () => Future.successful("token"), None)
   val leaseName = "lease-1"
   val client1 = "client-1"
   val client2 = "client-2"
@@ -70,24 +76,11 @@ class KubernetesApiSpec
     "be able to be created" in {
       val version = "1234"
       stubFor(
-        post(urlEqualTo("/apis/akka.io/v1/namespaces/lease/leases/lease-1"))
-          .willReturn(aResponse().withStatus(201).withHeader("Content-Type", "application/json").withBody(s"""
-               |{
-               |    "apiVersion": "akka.io/v1",
-               |    "kind": "Lease",
-               |    "metadata": {
-               |        "name": "lease-1",
-               |        "namespace": "akka-lease-tests",
-               |        "resourceVersion": "$version",
-               |        "selfLink": "/apis/akka.io/v1/namespaces/akka-lease-tests/leases/lease-1",
-               |        "uid": "c369949e-296c-11e9-9c62-16f8dd5735ba"
-               |    },
-               |    "spec": {
-               |        "owner": "",
-               |        "time": 1549439255948
-               |    }
-               |}
-            """.stripMargin)))
+        post(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$leaseName")).willReturn(
+          aResponse()
+            .withStatus(201)
+            .withHeader("Content-Type", "application/json")
+            .withBody(leaseBody(leaseName, version, "", System.currentTimeMillis()))))
 
       underTest.removeLease(leaseName).futureValue shouldEqual Done
       val leaseRecord = underTest.readOrCreateLeaseResource(leaseName).futureValue
@@ -103,24 +96,11 @@ class KubernetesApiSpec
       val updatedVersion = "3"
       val timestamp = System.currentTimeMillis()
       stubFor(
-        put(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
-          .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(s"""
-               |{
-               |    "apiVersion": "akka.io/v1",
-               |    "kind": "Lease",
-               |    "metadata": {
-               |        "name": "lease-1",
-               |        "namespace": "akka-lease-tests",
-               |        "resourceVersion": "$updatedVersion",
-               |        "selfLink": "/apis/akka.io/v1/namespaces/akka-lease-tests/leases/$lease",
-               |        "uid": "c369949e-296c-11e9-9c62-16f8dd5735ba"
-               |    },
-               |    "spec": {
-               |        "owner": "$owner",
-               |        "time": $timestamp
-               |    }
-               |}
-            """.stripMargin)))
+        put(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$leaseName")).willReturn(
+          aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(leaseBody(leaseName, updatedVersion, owner, timestamp))))
 
       val response = underTest.updateLeaseResource(lease, owner, version, timestamp).futureValue
       response shouldEqual Right(LeaseResource(Some(owner), updatedVersion, timestamp))
@@ -141,23 +121,10 @@ class KubernetesApiSpec
       // Read to get version
       stubFor(
         get(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease")).willReturn(
-          aResponse().withStatus(StatusCodes.OK.intValue).withHeader("Content-Type", "application/json").withBody(s"""
-               |{
-               |    "apiVersion": "akka.io/v1",
-               |    "kind": "Lease",
-               |    "metadata": {
-               |        "name": "lease-1",
-               |        "namespace": "akka-lease-tests",
-               |        "resourceVersion": "$updatedVersion",
-               |        "selfLink": "/apis/akka.io/v1/namespaces/akka-lease-tests/leases/$lease",
-               |        "uid": "c369949e-296c-11e9-9c62-16f8dd5735ba"
-               |    },
-               |    "spec": {
-               |        "owner": "$conflictedOwner",
-               |        "time": $timestamp
-               |    }
-               |}
-            """.stripMargin)))
+          aResponse()
+            .withStatus(StatusCodes.OK.intValue)
+            .withHeader("Content-Type", "application/json")
+            .withBody(leaseBody(lease, updatedVersion, conflictedOwner, timestamp))))
 
       val response = underTest.updateLeaseResource(lease, owner, version, timestamp).futureValue
       response shouldEqual Left(LeaseResource(Some(conflictedOwner), updatedVersion, timestamp))
@@ -185,23 +152,7 @@ class KubernetesApiSpec
             .withFixedDelay((settings.apiServerRequestTimeout * 2).toMillis.toInt) // Oh noes
             .withStatus(StatusCodes.OK.intValue)
             .withHeader("Content-Type", "application/json")
-            .withBody(s"""
-               |{
-               |    "apiVersion": "akka.io/v1",
-               |    "kind": "Lease",
-               |    "metadata": {
-               |        "name": "lease-1",
-               |        "namespace": "akka-lease-tests",
-               |        "resourceVersion": "$version",
-               |        "selfLink": "/apis/akka.io/v1/namespaces/akka-lease-tests/leases/$lease",
-               |        "uid": "c369949e-296c-11e9-9c62-16f8dd5735ba"
-               |    },
-               |    "spec": {
-               |        "owner": "$owner",
-               |        "time": $timestamp
-               |    }
-               |}
-            """.stripMargin)))
+            .withBody(leaseBody(lease, version, owner, timestamp))))
 
       underTest
         .readOrCreateLeaseResource(lease)
@@ -256,6 +207,66 @@ class KubernetesApiSpec
       underTest.removeLease(lease).failed.futureValue.getMessage shouldEqual
       s"Timed out removing lease [$lease]. It is not known if the remove happened. Is the API server up?"
     }
+
+    "support reloading tokens" in {
+      val firstToken = "first-token"
+      val firstVersion = "1234"
+      val secondToken = "second-token"
+      val secondVersion = "5678"
+
+      val token = new AtomicReference[String](firstToken)
+      val api = new KubernetesApiImpl(system, settings, "lease", () => Future.successful(token.get), None)
+      val lease = "lease-1"
+
+      // Two stubs, if the first token is present, we return the first version, if the second token is presented,
+      // we return the second version
+      stubFor(
+        get(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
+          .withHeader("Authorization", equalTo(s"Bearer $firstToken"))
+          .willReturn(
+            aResponse()
+              .withStatus(200)
+              .withHeader("Content-Type", "application/json")
+              .withBody(leaseBody(lease, firstVersion, "client", System.currentTimeMillis()))))
+      stubFor(
+        get(urlEqualTo(s"/apis/akka.io/v1/namespaces/lease/leases/$lease"))
+          .withHeader("Authorization", equalTo(s"Bearer $secondToken"))
+          .willReturn(
+            aResponse()
+              .withStatus(200)
+              .withHeader("Content-Type", "application/json")
+              .withBody(leaseBody(lease, secondVersion, "client", System.currentTimeMillis()))))
+
+      api.readOrCreateLeaseResource(lease).futureValue.version should ===(firstVersion)
+      // Update the token
+      token.set("second-token")
+      // If we do a read immediately now, it should still use the first token, since it should be cached because we've
+      // configured the cache to be for 500ms
+      api.readOrCreateLeaseResource(lease).futureValue.version should ===(firstVersion)
+      // Now wait 600ms, and it should use the second token
+      Thread.sleep(600)
+      api.readOrCreateLeaseResource(lease).futureValue.version should ===(secondVersion)
+
+    }
   }
+
+  private def leaseBody(leaseId: String, version: String, owner: String, timestamp: Long) =
+    s"""
+       |{
+       |    "apiVersion": "akka.io/v1",
+       |    "kind": "Lease",
+       |    "metadata": {
+       |        "name": "$leaseId",
+       |        "namespace": "lease",
+       |        "resourceVersion": "$version",
+       |        "selfLink": "/apis/akka.io/v1/namespaces/lease/leases/$leaseId",
+       |        "uid": "c369949e-296c-11e9-9c62-16f8dd5735ba"
+       |    },
+       |    "spec": {
+       |        "owner": "$owner",
+       |        "time": $timestamp
+       |    }
+       |}
+    """.stripMargin
 
 }

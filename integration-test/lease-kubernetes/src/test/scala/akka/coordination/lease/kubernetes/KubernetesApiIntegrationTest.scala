@@ -14,7 +14,7 @@ import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
 /**
@@ -48,13 +48,14 @@ class KubernetesApiIntegrationTest
     "",
     "localhost",
     8080,
+    10.minutes,
     namespace = Some("lease"),
     "",
     apiServerRequestTimeout = 1.second,
     false
   )
 
-  val underTest = new KubernetesApiImpl(system, settings, "lease", "token", None)
+  val underTest = new KubernetesApiImpl(system, settings, "lease", () => Future.successful("token"), None)
   val leaseName = "lease-1"
   val client1 = "client-1"
   val client2 = "client-2"
