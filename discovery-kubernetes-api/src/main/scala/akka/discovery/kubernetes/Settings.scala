@@ -5,10 +5,11 @@
 package akka.discovery.kubernetes
 
 import java.util.Optional
-
 import akka.actor._
 import com.typesafe.config.Config
 
+import scala.concurrent.duration.FiniteDuration
+import scala.jdk.DurationConverters._
 import scala.jdk.OptionConverters._
 
 final class Settings(system: ExtendedActorSystem) extends Extension {
@@ -39,6 +40,9 @@ final class Settings(system: ExtendedActorSystem) extends Extension {
 
   val apiServicePortEnvName: String =
     kubernetesApi.getString("api-service-port-env-name")
+
+  val apiTokenTtl: FiniteDuration =
+    kubernetesApi.getDuration("api-token-reload-interval").toScala
 
   val podNamespacePath: String =
     kubernetesApi.getString("pod-namespace-path")

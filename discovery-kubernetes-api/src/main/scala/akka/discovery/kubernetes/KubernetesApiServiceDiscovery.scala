@@ -9,15 +9,13 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.KeyStore
 import java.security.SecureRandom
-
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{ Deadline, FiniteDuration }
 import scala.util.Try
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
-
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.annotation.DoNotInherit
@@ -35,6 +33,8 @@ import akka.http.scaladsl.model.headers.Authorization
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.pki.kubernetes.PemManagersProvider
+
+import java.util.concurrent.atomic.AtomicReference
 import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
@@ -104,6 +104,7 @@ object BaseKubernetesApiServiceDiscovery {
 
   private final case class KubernetesSetup(
       podNamespace: String,
+      // Unused, but kept around because apparently this is a public class and so this avoids bincompat issues
       apiToken: String,
       clientHttpsConnectionContext: HttpsConnectionContext)
 
@@ -125,16 +126,26 @@ sealed abstract class BaseKubernetesApiServiceDiscovery(protected val log: Loggi
 
   private val settings = Settings(system)
 
+  private object Dispatchers {
+    implicit val blocking: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
+  }
+
   protected def onlyDiscoverReady: Boolean
 
   log.debug("Settings {}", settings)
 
+  private val apiToken = new AtomicReference[Option[(String, Deadline)]](None)
+
+  private def loadApiToken(): Future[String] = {
+    import Dispatchers.blocking
+    Future {
+      readConfigVarFromFilesystem(settings.apiTokenPath, "api-token").getOrElse("")
+    }
+  }
+
   private val kubernetesSetup: Future[KubernetesSetup] = {
-    implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
+    import Dispatchers.blocking
     for {
-      apiToken: String <- Future {
-        readConfigVarFromFilesystem(settings.apiTokenPath, "api-token").getOrElse("")
-      }
       namespace: String <- Future {
         settings.podNamespace
           .orElse(readConfigVarFromFilesystem(settings.podNamespacePath, "pod-namespace"))
@@ -142,17 +153,30 @@ sealed abstract class BaseKubernetesApiServiceDiscovery(protected val log: Loggi
       }
       httpsContext <- Future(clientHttpsConnectionContext())
     } yield {
-      KubernetesSetup(namespace, apiToken, httpsContext)
+      KubernetesSetup(namespace, "", httpsContext)
     }
   }
 
   import system.dispatcher
+
+  private def getApiToken(): Future[String] = {
+    apiToken.get() match {
+      case Some((token, deadline)) if deadline.hasTimeLeft() =>
+        Future.successful(token)
+      case _ =>
+        loadApiToken().map { token =>
+          apiToken.set(Some((token, settings.apiTokenTtl.fromNow)))
+          token
+        }
+    }
+  }
 
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     val labelSelector = settings.podLabelSelector(query.serviceName)
 
     for {
       setup <- kubernetesSetup
+      apiToken <- getApiToken()
 
       request <- {
         log.info(
@@ -162,7 +186,7 @@ sealed abstract class BaseKubernetesApiServiceDiscovery(protected val log: Loggi
           query.portName)
 
         optionToFuture(
-          podRequest(setup.apiToken, setup.podNamespace, labelSelector),
+          podRequest(apiToken, setup.podNamespace, labelSelector),
           s"Unable to form request; check Kubernetes environment (expecting env vars ${settings.apiServiceHostEnvName}, ${settings.apiServicePortEnvName})"
         )
       }

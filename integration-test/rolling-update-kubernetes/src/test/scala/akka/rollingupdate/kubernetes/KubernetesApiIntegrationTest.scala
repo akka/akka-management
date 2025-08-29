@@ -4,9 +4,8 @@
 
 package akka.rollingupdate.kubernetes
 
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
-
 import akka.Done
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
@@ -54,6 +53,7 @@ class KubernetesApiIntegrationTest
     "",
     "localhost",
     8080,
+    10.minutes,
     namespace = Some("rolling"),
     "",
     podName = "pod1",
@@ -68,7 +68,12 @@ class KubernetesApiIntegrationTest
   )
 
   private val underTest =
-    new KubernetesApiImpl(system, settings, settings.namespace.get, apiToken = "", clientHttpsConnectionContext = None)
+    new KubernetesApiImpl(
+      system,
+      settings,
+      settings.namespace.get,
+      () => Future.successful(""),
+      clientHttpsConnectionContext = None)
   private val crName = KubernetesApi.makeDNS1039Compatible(system.name)
   private val podName1 = "pod1"
   private val podName2 = "pod2"

@@ -4,9 +4,7 @@
 
 package akka.coordination.lease.kubernetes.internal
 
-import scala.collection.immutable
 import scala.concurrent.Future
-
 import akka.Done
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
@@ -25,6 +23,9 @@ import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.pattern.after
 
+import java.util.concurrent.atomic.AtomicReference
+import scala.concurrent.duration.Deadline
+
 /**
  * Could be shared between leases: https://github.com/akka/akka-management/issues/680
  * INTERNAL API
@@ -33,19 +34,20 @@ import akka.pattern.after
     system: ActorSystem,
     settings: KubernetesSettings,
     namespace: String,
-    apiToken: String,
+    loadApiToken: () => Future[String],
     clientHttpsConnectionContext: Option[HttpsConnectionContext]
 ) extends KubernetesApi
     with KubernetesJsonSupport {
 
   import system.dispatcher
 
+  private val apiToken = new AtomicReference[Option[(String, Deadline)]](None)
+
   private implicit val sys: ActorSystem = system
   private val log = Logging(system, classOf[KubernetesApiImpl])
   private val http = Http()(system)
 
   private val scheme = if (settings.secure) "https" else "http"
-  private lazy val headers = if (settings.secure) immutable.Seq(Authorization(OAuth2BearerToken(apiToken))) else Nil
 
   log.debug("kubernetes access namespace: {}. Secure: {}", namespace, settings.secure)
 
@@ -223,19 +225,36 @@ PUTs must contain resourceVersions. Response:
       method: HttpMethod = HttpMethods.GET,
       entity: RequestEntity = HttpEntity.Empty) = {
     val uri = Uri.from(scheme = scheme, host = settings.apiServerHost, port = settings.apiServerPort).withPath(path)
-    HttpRequest(uri = uri, headers = headers, method = method, entity = entity)
+    HttpRequest(uri = uri, method = method, entity = entity)
   }
 
-  private def makeRequest(request: HttpRequest, timeoutMsg: String): Future[HttpResponse] = {
-    val response = {
-      clientHttpsConnectionContext match {
+  private def addHeadersToRequest(request: HttpRequest): Future[HttpRequest] = {
+    def requestWithToken(token: String) = request.addHeader(Authorization(OAuth2BearerToken(token)))
+    if (settings.secure || settings.insecureTokens) {
+      apiToken.get() match {
+        case Some((token, deadline)) if deadline.hasTimeLeft() =>
+          Future.successful(requestWithToken(token))
+        case _ =>
+          loadApiToken().map { token =>
+            apiToken.set(Some((token, settings.apiTokenTtl.fromNow)))
+            requestWithToken(token)
+          }
+      }
+    } else {
+      Future.successful(request)
+    }
+  }
+
+  private def makeRequest(rawRequest: HttpRequest, timeoutMsg: String): Future[HttpResponse] = {
+    val strictResponse = for {
+      request <- addHeadersToRequest(rawRequest)
+      response <- clientHttpsConnectionContext match {
         case None                         => http.singleRequest(request)
         case Some(httpsConnectionContext) => http.singleRequest(request, httpsConnectionContext)
       }
-    }
-
-    // make sure we always consume response body (in case of timeout)
-    val strictResponse = response.flatMap(_.toStrict(settings.bodyReadTimeout))
+      // make sure we always consume response body (in case of timeout)
+      strict <- response.toStrict(settings.bodyReadTimeout)
+    } yield strict
 
     val timeout = after(settings.apiServerRequestTimeout, using = system.scheduler)(
       Future.failed(new LeaseTimeoutException(s"$timeoutMsg. Is the API server up?")))

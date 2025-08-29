@@ -8,7 +8,6 @@ import akka.annotation.InternalApi
 import com.typesafe.config.Config
 
 import scala.concurrent.duration._
-import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.jdk.DurationConverters._
 
 /**
@@ -44,6 +43,7 @@ private[kubernetes] object KubernetesSettings {
       config.getString("api-token-path"),
       config.getString("api-service-host"),
       config.getInt("api-service-port"),
+      config.getDuration("api-token-reload-interval").toScala,
       config.optDefinedValue("namespace"),
       config.getString("namespace-path"),
       config.getString("pod-name"),
@@ -64,6 +64,7 @@ private[kubernetes] class KubernetesSettings(
     val apiTokenPath: String,
     val apiServiceHost: String,
     val apiServicePort: Int,
+    val apiTokenTtl: FiniteDuration,
     val namespace: Option[String],
     val namespacePath: String,
     val podName: String,
@@ -71,7 +72,9 @@ private[kubernetes] class KubernetesSettings(
     val apiServiceRequestTimeout: FiniteDuration,
     val customResourceSettings: CustomResourceSettings,
     val revisionAnnotation: String,
-    val bodyReadTimeout: FiniteDuration = 1.second
+    val bodyReadTimeout: FiniteDuration = 1.second,
+    // Note: for token testability
+    val insecureTokens: Boolean = false
 )
 
 /**

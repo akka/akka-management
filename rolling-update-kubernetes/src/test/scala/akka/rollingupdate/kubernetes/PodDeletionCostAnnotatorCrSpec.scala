@@ -110,6 +110,7 @@ class PodDeletionCostAnnotatorCrSpec
       apiTokenPath = "",
       apiServiceHost = "localhost",
       apiServicePort = 0,
+      apiTokenTtl = 500.millis,
       namespace = Some(namespace),
       namespacePath = "",
       podName = podName,

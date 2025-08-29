@@ -87,13 +87,20 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
 
   private val k8sSettings = KubernetesSettings(settings.leaseConfig, settings.timeoutSettings)
   private val leaseName = makeDNS1039Compatible(settings.leaseName, k8sSettings.allowLeaseNameTruncation)
+  private object Dispatchers {
+    implicit val blocking: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
+  }
+
+  private def k8sApiToken(): Future[String] = {
+    import Dispatchers.blocking
+    Future {
+      readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("")
+    }
+  }
 
   private val k8sApi: Future[KubernetesApi] = {
-    implicit val blockingDispatcher: ExecutionContext = system.dispatchers.lookup(DefaultBlockingDispatcherId)
+    import Dispatchers.blocking
     for {
-      apiToken: String <- Future {
-        readConfigVarFromFilesystem(k8sSettings.apiTokenPath, "api-token").getOrElse("")
-      }
       namespace: String <- Future {
         k8sSettings.namespace
           .orElse(readConfigVarFromFilesystem(k8sSettings.namespacePath, "namespace"))
@@ -101,7 +108,7 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
       }
       httpsContext <- Future(clientHttpsConnectionContext())
     } yield {
-      new KubernetesApiImpl(system, k8sSettings, namespace, apiToken, httpsContext)
+      new KubernetesApiImpl(system, k8sSettings, namespace, k8sApiToken, httpsContext)
     }
   }
   private implicit val timeout: Timeout = Timeout(settings.timeoutSettings.operationTimeout)

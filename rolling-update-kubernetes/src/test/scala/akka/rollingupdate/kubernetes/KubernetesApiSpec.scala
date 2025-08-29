@@ -10,10 +10,7 @@ import akka.testkit.ImplicitSender
 import akka.testkit.TestKit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.get
-import com.github.tomakehurst.wiremock.client.WireMock.stubFor
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.{ aResponse, equalTo, get, stubFor, urlEqualTo }
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
@@ -31,6 +28,8 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.BeforeAndAfterEach
 
+import java.util.concurrent.atomic.AtomicReference
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 object KubernetesApiSpec {
@@ -78,13 +77,15 @@ class KubernetesApiSpec
       apiTokenPath = "",
       apiServiceHost = "localhost",
       apiServicePort = wireMockServer.port(),
+      apiTokenTtl = 500.millis,
       namespace = Some(namespace),
       namespacePath = "",
       podName = podName,
       secure = false,
       apiServiceRequestTimeout = 2.seconds,
       customResourceSettings = new CustomResourceSettings(enabled = false, crName = None, 60.seconds),
-      revisionAnnotation = "deployment.kubernetes.io/revision"
+      revisionAnnotation = "deployment.kubernetes.io/revision",
+      insecureTokens = true
     )
   }
 
@@ -93,7 +94,7 @@ class KubernetesApiSpec
       system,
       settings(podName1),
       namespace,
-      apiToken = "apiToken",
+      () => Future.successful("apiToken"),
       clientHttpsConnectionContext = None)
 
   override implicit val patienceConfig: PatienceConfig =
@@ -128,14 +129,16 @@ class KubernetesApiSpec
       |  }
       |}""".stripMargin
 
-  private val defaultReplicaResponseJson =
-    """{
+  private def replicaResponseJson(revision: String): String =
+    s"""{
       | "metadata": {
       |   "annotations": {
-      |     "deployment.kubernetes.io/revision": "1"
+      |     "deployment.kubernetes.io/revision": "$revision"
       |   }
       |  }
       |}""".stripMargin
+
+  private val defaultReplicaResponseJson = replicaResponseJson("1")
 
   private def stubPodResponse(json: String = defaultPodResponseJson, state: String = Scenario.STARTED) =
     stubFor(
@@ -179,6 +182,7 @@ class KubernetesApiSpec
           apiTokenPath = base.apiTokenPath,
           apiServiceHost = base.apiServiceHost,
           apiServicePort = base.apiServicePort,
+          apiTokenTtl = 500.millis,
           namespace = base.namespace,
           namespacePath = base.namespacePath,
           podName = base.podName,
@@ -194,7 +198,7 @@ class KubernetesApiSpec
           system,
           customSettings,
           namespace,
-          apiToken = "apiToken",
+          () => Future.successful("apiToken"),
           clientHttpsConnectionContext = None)
 
       EventFilter
@@ -265,5 +269,47 @@ class KubernetesApiSpec
           kubernetesApi.readRevision().futureValue should be("1")
         })
     }
+
+    "support reloading tokens" in {
+      val firstToken = "first-token"
+      val firstVersion = "1"
+      val secondToken = "second-token"
+      val secondVersion = "2"
+
+      val token = new AtomicReference[String](firstToken)
+      val api = new KubernetesApiImpl(system, settings(podName1), namespace, () => Future.successful(token.get), None)
+
+      stubPodResponse()
+
+      // Two stubs, if the first token is present, we return the first version, if the second token is presented,
+      // we return the second version
+      stubFor(
+        getReplicaSet("parent-replicaset-id")
+          .withHeader("Authorization", equalTo(s"Bearer $firstToken"))
+          .willReturn(
+            aResponse()
+              .withStatus(200)
+              .withHeader("Content-Type", "application/json")
+              .withBody(replicaResponseJson(firstVersion))))
+      stubFor(
+        getReplicaSet("parent-replicaset-id")
+          .withHeader("Authorization", equalTo(s"Bearer $secondToken"))
+          .willReturn(
+            aResponse()
+              .withStatus(200)
+              .withHeader("Content-Type", "application/json")
+              .withBody(replicaResponseJson(secondVersion))))
+
+      api.readRevision().futureValue should ===(firstVersion)
+      // Update the token
+      token.set("second-token")
+      // If we do a read immediately now, it should still use the first token, since it should be cached because we've
+      // configured the cache to be for 500ms
+      api.readRevision().futureValue should ===(firstVersion)
+      // Now wait 600ms, and it should use the second token
+      Thread.sleep(600)
+      api.readRevision().futureValue should ===(secondVersion)
+    }
+
   }
 }
