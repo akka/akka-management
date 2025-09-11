@@ -70,7 +70,7 @@ lazy val `akka-discovery-kubernetes-api` = project
   .settings(
     name := "akka-discovery-kubernetes-api",
     organization := "com.lightbend.akka.discovery",
-    AutomaticModuleName.settings("akka.discovery.kubernetes-api"),
+    AutomaticModuleName.settings("akka.discovery.kubernetesapi"),
     libraryDependencies := Dependencies.DiscoveryKubernetesApi,
     mimaPreviousArtifactsSet
   )
@@ -82,7 +82,7 @@ lazy val `akka-discovery-azure-api` = (project in file("discovery-azure-api"))
   .settings(
     name := "akka-discovery-azure-api",
     organization := "com.lightbend.akka.discovery",
-    AutomaticModuleName.settings("akka.discovery.azure-api"),
+    AutomaticModuleName.settings("akka.discovery.azureapi"),
     libraryDependencies := Dependencies.DiscoveryAzureApi,
     // FIXME: update once we have a release out
     mimaPreviousArtifacts := Set.empty
@@ -96,7 +96,7 @@ lazy val `akka-discovery-marathon-api` = project
   .settings(
     name := "akka-discovery-marathon-api",
     organization := "com.lightbend.akka.discovery",
-    AutomaticModuleName.settings("akka.discovery.marathon-api"),
+    AutomaticModuleName.settings("akka.discovery.marathonapi"),
     libraryDependencies := Dependencies.DiscoveryMarathonApi,
     mimaPreviousArtifactsSet
   )
@@ -108,7 +108,7 @@ lazy val `akka-discovery-aws-api` = project
   .settings(
     name := "akka-discovery-aws-api",
     organization := "com.lightbend.akka.discovery",
-    AutomaticModuleName.settings("akka.discovery.aws-api"),
+    AutomaticModuleName.settings("akka.discovery.awsapi"),
     libraryDependencies := Dependencies.DiscoveryAwsApi,
     mimaPreviousArtifactsSet
   )
@@ -120,7 +120,7 @@ lazy val `akka-discovery-aws-api-async` = project
   .settings(
     name := "akka-discovery-aws-api-async",
     organization := "com.lightbend.akka.discovery",
-    AutomaticModuleName.settings("akka.discovery.aws-async-api"),
+    AutomaticModuleName.settings("akka.discovery.awsasyncapi"),
     libraryDependencies := Dependencies.DiscoveryAwsApiAsync,
     mimaPreviousArtifactsSet
   )
@@ -202,7 +202,7 @@ lazy val `rolling-update-kubernetes` = project
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-rolling-update-kubernetes",
-    AutomaticModuleName.settings("akka.management.rolling-update-kubernetes"),
+    AutomaticModuleName.settings("akka.management.rollingupdate.kubernetes"),
     libraryDependencies := Dependencies.RollingUpdateKubernetes,
     mimaPreviousArtifacts := Set.empty
   )
