@@ -24,6 +24,7 @@ jobs:
           - { jdkVersion: "1.11.0", jvmName: "temurin:1.11.0", extraOpts: '-J-XX:+UnlockExperimentalVMOptions -J-XX:+UseJVMCICompiler' }
           - { jdkVersion: "1.17.0", jvmName: "temurin:1.17.0", extraOpts: '' }
           - { jdkVersion: "1.21.0", jvmName: "temurin:1.21", extraOpts: '' }
+          - { jdkVersion: "1.25.0", jvmName: "temurin:1.25", extraOpts: '' }
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -49,8 +50,6 @@ jobs:
         uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
           jvm: ${{ matrix.jvmName }}
-          # FIXME default index not giving us access to JDK 21 (yet)
-          jvm-index: https://raw.githubusercontent.com/coursier/jvm-index/32d659500e6c65efb9eee91718a0fb0e797ad4ee/index.json
 
       # hack to solve "Cannot assign requested address" issue - https://github.community/t/github-action-and-oserror-errno-99-cannot-assign-requested-address/173973/1
       - name: Add the current IP address, long hostname and short hostname record to /etc/hosts file
