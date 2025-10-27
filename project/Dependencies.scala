@@ -6,8 +6,8 @@ object Dependencies {
   // sync with Java version in .github/workflows/release.yml#documentation
   lazy val JavaDocLinkVersion = 17
 
-  val Scala213 = "2.13.15"
-  val Scala3 = "3.3.4"
+  val Scala213 = "2.13.17"
+  val Scala3 = "3.3.7"
   val CrossScalaVersions = Seq(Scala213, Scala3)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
