@@ -81,11 +81,11 @@ object Common extends AutoPlugin {
         ) ++
         // make use of https://github.com/scala/scala/pull/8663
         (if (scalaBinaryVersion.value.startsWith("3")) {
-          Seq(s"-external-mappings:https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api/java.base/") // different usage in scala3
+          Seq(s"-external-mappings:https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api") // different usage in scala3
         } else if (scalaBinaryVersion.value.startsWith("2.13")) {
           Seq(
             "-jdk-api-doc-base",
-            s"https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api/java.base/",
+            s"https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api",
             // for some reason Scaladoc creates this
             "-skip-packages",
             "akka.pattern"
