@@ -2,9 +2,9 @@ ThisBuild / organization := "com.lightbend"
 
 name := "akka-sample-cluster-kubernetes"
 
-scalaVersion := "2.13.15"
-lazy val akkaHttpVersion = "10.7.1"
-lazy val akkaVersion = "2.10.5"
+scalaVersion := "2.13.17"
+lazy val akkaHttpVersion = "10.7.3"
+lazy val akkaVersion = "2.10.11"
 lazy val akkaManagementVersion = "1.6.3"
 
 // make version compatible with docker for publishing
