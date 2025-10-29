@@ -1,9 +1,9 @@
-import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys._
-import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
-import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
-import de.heikoseeberger.sbtheader._
-import sbt.Keys._
-import sbt._
+import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys.*
+import org.scalafmt.sbt.ScalafmtPlugin.autoImport.*
+import sbt.Keys.*
+import sbt.*
+import sbtheader.HeaderPlugin
+import sbtheader.HeaderPlugin.autoImport._
 import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object Common extends AutoPlugin {
@@ -11,13 +11,13 @@ object Common extends AutoPlugin {
   override def trigger = allRequirements
   override def requires = plugins.JvmPlugin && HeaderPlugin
 
-  val currentYear = "2024"
+  val currentYear = "2025"
 
   override lazy val projectSettings =
     Seq(
       organization := "com.lightbend.akka.management",
       organizationName := "Lightbend Inc.",
-      organizationHomepage := Some(url("https://www.lightbend.com/")),
+      organizationHomepage := Some(url("https://www.akka.io/")),
       startYear := Some(2017),
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(
@@ -40,8 +40,7 @@ object Common extends AutoPlugin {
         Seq(("BUSL-1.1", url(s"https://github.com/akka/akka-management/blob/${tagOrBranch}/LICENSE")))
       },
       description := "Akka Management is a suite of tools for operating Akka Clusters.",
-      headerLicense := Some(
-          HeaderLicense.Custom(s"Copyright (C) 2017-$currentYear Lightbend Inc. <https://www.lightbend.com>")),
+      headerLicense := Some(HeaderLicense.Custom(s"Copyright (C) 2017-$currentYear Lightbend Inc. <https://akka.io>")),
       crossScalaVersions := Dependencies.CrossScalaVersions,
       projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
       crossVersion := CrossVersion.binary,
@@ -81,16 +80,16 @@ object Common extends AutoPlugin {
         ) ++
         // make use of https://github.com/scala/scala/pull/8663
         (if (scalaBinaryVersion.value.startsWith("3")) {
-          Seq(s"-external-mappings:https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api") // different usage in scala3
-        } else if (scalaBinaryVersion.value.startsWith("2.13")) {
-          Seq(
-            "-jdk-api-doc-base",
-            s"https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api",
-            // for some reason Scaladoc creates this
-            "-skip-packages",
-            "akka.pattern"
-          )
-        } else Nil),
+           Seq(s"-external-mappings:https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api") // different usage in scala3
+         } else if (scalaBinaryVersion.value.startsWith("2.13")) {
+           Seq(
+             "-jdk-api-doc-base",
+             s"https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api",
+             // for some reason Scaladoc creates this
+             "-skip-packages",
+             "akka.pattern"
+           )
+         } else Nil),
       autoAPIMappings := true,
       // show full stack traces and test case durations
       Test / testOptions += Tests.Argument("-oDF"),
