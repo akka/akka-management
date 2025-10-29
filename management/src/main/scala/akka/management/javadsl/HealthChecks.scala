@@ -37,21 +37,21 @@ final class HealthChecks(system: ExtendedActorSystem, settings: HealthCheckSetti
    * Returns CompletionStage(true) if the system is ready to receive user traffic
    */
   def ready(): CompletionStage[java.lang.Boolean] =
-    readyResult().thenApply(((r: CheckResult) => r.isSuccess).asJava)
+    readyResult().thenApplyAsync(((r: CheckResult) => r.isSuccess).asJava, system.dispatcher)
+
+  /**
+   * Returns CompletionStage(result) containing the system's liveness result
+   */
+  def aliveResult(): CompletionStage[CheckResult] =
+    delegate.aliveResult().map(new CheckResult(_))(system.dispatcher).asJava
 
   /**
    * Returns CompletionStage(true) to indicate that the process is alive but does not
    * mean that it is ready to receive traffic e.g. is has not joined the cluster
    * or is loading initial state from a database
    */
-  def aliveResult(): CompletionStage[CheckResult] =
-    delegate.aliveResult().map(new CheckResult(_))(system.dispatcher).asJava
-
-  /**
-   * Returns CompletionStage(result) containing the system's liveness result
-   */
   def alive(): CompletionStage[java.lang.Boolean] =
-    aliveResult().thenApply(((r: CheckResult) => r.isSuccess).asJava)
+    aliveResult().thenApplyAsync(((r: CheckResult) => r.isSuccess).asJava, system.dispatcher)
 }
 
 object ReadinessCheckSetup {
