@@ -2,13 +2,12 @@ name := "native-image-tests"
 
 version := "1.0"
 
-scalaVersion := "2.13.15"
+scalaVersion := "2.13.17"
 
 ThisBuild / resolvers += "lightbend-akka".at("https://repo.akka.io/maven/github_actions")
 
-
-lazy val akkaVersion = sys.props.getOrElse("akka.version", "2.10.5")
-lazy val akkaHttpVersion = sys.props.getOrElse("akka.http.version", "10.7.1")
+lazy val akkaVersion = sys.props.getOrElse("akka.version", "2.10.11")
+lazy val akkaHttpVersion = sys.props.getOrElse("akka.http.version", "10.7.3")
 
 // Note: this default isn't really used anywhere so not important to bump
 lazy val akkaManagementVersion = sys.props.getOrElse("akka.management.version", "1.5.2")
