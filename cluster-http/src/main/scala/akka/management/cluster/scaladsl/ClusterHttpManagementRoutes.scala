@@ -234,7 +234,9 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
               .ask(ShardRegion.GetShardRegionStats)
               .mapTo[ShardRegion.ShardRegionStats]
               .map { shardRegionStats =>
-                ShardDetails(shardRegionStats.stats.map(s => ShardRegionInfo(s._1, s._2)).toVector)
+                ShardDetails(
+                  regions = shardRegionStats.stats.map(s => ShardRegionInfo(s._1, s._2)).toVector,
+                  failed = shardRegionStats.failed)
               }
           } catch {
             case _: AskTimeoutException =>
@@ -243,6 +245,68 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
             case _: IllegalArgumentException => // Akka 2.5
               StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
             case _: IllegalStateException => // Akka 2.6
+              StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
+          }
+        }
+      }
+    }
+
+  private def routeGetClusterShardingStats(cluster: Cluster, shardRegionName: String) =
+    get {
+      extractExecutionContext { implicit executor =>
+        complete {
+          implicit val timeout: Timeout = Timeout(10.seconds)
+          try {
+            ClusterSharding(cluster.system)
+              .shardRegion(shardRegionName)
+              .ask(ShardRegion.GetClusterShardingStats(timeout.duration))
+              .mapTo[ShardRegion.ClusterShardingStats]
+              .map { clusterStats =>
+                val regions = clusterStats.regions.map {
+                  case (address, stats) =>
+                    address.toString -> ClusterShardingNodeStats(
+                      shards = stats.stats.map(s => ShardRegionInfo(s._1, s._2)).toVector,
+                      failed = stats.failed)
+                }
+                val totalEntities = clusterStats.regions.values.flatMap(_.stats.values).sum
+                val totalShards = clusterStats.regions.values.flatMap(_.stats.keys).size
+                ClusterShardingStatsResponse(regions, totalEntities, totalShards)
+              }
+          } catch {
+            case _: AskTimeoutException =>
+              StatusCodes.GatewayTimeout -> ClusterHttpManagementMessage(
+                s"Cluster-wide stats for $shardRegionName timed out")
+            case _: IllegalArgumentException =>
+              StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
+            case _: IllegalStateException =>
+              StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
+          }
+        }
+      }
+    }
+
+  private def routeGetShardRegionState(cluster: Cluster, shardRegionName: String) =
+    get {
+      extractExecutionContext { implicit executor =>
+        complete {
+          implicit val timeout: Timeout = Timeout(5.seconds)
+          try {
+            ClusterSharding(cluster.system)
+              .shardRegion(shardRegionName)
+              .ask(ShardRegion.GetShardRegionState)
+              .mapTo[ShardRegion.CurrentShardRegionState]
+              .map { state =>
+                ShardRegionStateResponse(
+                  shards = state.shards.map(s => ShardStateInfo(s.shardId, s.entityIds)).toVector,
+                  failed = state.failed)
+              }
+          } catch {
+            case _: AskTimeoutException =>
+              StatusCodes.NotFound -> ClusterHttpManagementMessage(
+                s"Shard Region $shardRegionName not responding, may have been terminated")
+            case _: IllegalArgumentException =>
+              StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
+            case _: IllegalStateException =>
               StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
           }
         }
@@ -280,8 +344,18 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         path("shards") {
           routeGetShardTypeNames(cluster)
         },
-        pathPrefix("shards" / Remaining) { shardRegionName =>
-          routeGetShardInfo(cluster, shardRegionName)
+        pathPrefix("shards") {
+          concat(
+            path(Segment / "stats") { shardRegionName =>
+              routeGetClusterShardingStats(cluster, shardRegionName)
+            },
+            path(Segment / "state") { shardRegionName =>
+              routeGetShardRegionState(cluster, shardRegionName)
+            },
+            path(Remaining) { shardRegionName =>
+              routeGetShardInfo(cluster, shardRegionName)
+            }
+          )
         }
       )
     }
@@ -318,8 +392,21 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       pathPrefix("cluster" / "domain-events") {
         routeGetClusterDomainEvents(cluster)
       },
-      pathPrefix("cluster" / "shards" / Remaining) { shardRegionName =>
-        routeGetShardInfo(cluster, shardRegionName)
+      path("cluster" / "shards") {
+        routeGetShardTypeNames(cluster)
+      },
+      pathPrefix("cluster" / "shards") {
+        concat(
+          path(Segment / "stats") { shardRegionName =>
+            routeGetClusterShardingStats(cluster, shardRegionName)
+          },
+          path(Segment / "state") { shardRegionName =>
+            routeGetShardRegionState(cluster, shardRegionName)
+          },
+          path(Remaining) { shardRegionName =>
+            routeGetShardInfo(cluster, shardRegionName)
+          }
+        )
       }
     )
   }
