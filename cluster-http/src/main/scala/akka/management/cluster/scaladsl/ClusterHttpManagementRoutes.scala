@@ -285,34 +285,6 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
       }
     }
 
-  private def routeGetShardRegionState(cluster: Cluster, shardRegionName: String) =
-    get {
-      extractExecutionContext { implicit executor =>
-        complete {
-          implicit val timeout: Timeout = Timeout(5.seconds)
-          try {
-            ClusterSharding(cluster.system)
-              .shardRegion(shardRegionName)
-              .ask(ShardRegion.GetShardRegionState)
-              .mapTo[ShardRegion.CurrentShardRegionState]
-              .map { state =>
-                ShardRegionStateResponse(
-                  shards = state.shards.map(s => ShardStateInfo(s.shardId, s.entityIds)).toVector,
-                  failed = state.failed)
-              }
-          } catch {
-            case _: AskTimeoutException =>
-              StatusCodes.NotFound -> ClusterHttpManagementMessage(
-                s"Shard Region $shardRegionName not responding, may have been terminated")
-            case _: IllegalArgumentException =>
-              StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
-            case _: IllegalStateException =>
-              StatusCodes.NotFound -> ClusterHttpManagementMessage(s"Shard Region $shardRegionName is not started")
-          }
-        }
-      }
-    }
-
   /**
    * Creates an instance of [[ClusterHttpManagementRoutes]] to manage the cluster for the given
    * typed or classic actor system instance. This version does not provide Basic Authentication.
@@ -348,9 +320,6 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
           concat(
             path(Segment / "stats") { shardRegionName =>
               routeGetClusterShardingStats(cluster, shardRegionName)
-            },
-            path(Segment / "state") { shardRegionName =>
-              routeGetShardRegionState(cluster, shardRegionName)
             },
             path(Remaining) { shardRegionName =>
               routeGetShardInfo(cluster, shardRegionName)
@@ -399,9 +368,6 @@ object ClusterHttpManagementRoutes extends ClusterHttpManagementJsonProtocol {
         concat(
           path(Segment / "stats") { shardRegionName =>
             routeGetClusterShardingStats(cluster, shardRegionName)
-          },
-          path(Segment / "state") { shardRegionName =>
-            routeGetShardRegionState(cluster, shardRegionName)
           },
           path(Remaining) { shardRegionName =>
             routeGetShardInfo(cluster, shardRegionName)

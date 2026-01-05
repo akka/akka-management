@@ -63,15 +63,5 @@
     "name": "akka.management.cluster.ClusterShardingStatsResponse",
     "allDeclaredFields": true,
     "queryAllPublicMethods": true
-  },
-  {
-    "name": "akka.management.cluster.ShardStateInfo",
-    "allDeclaredFields": true,
-    "queryAllPublicMethods": true
-  },
-  {
-    "name": "akka.management.cluster.ShardRegionStateResponse",
-    "allDeclaredFields": true,
-    "queryAllPublicMethods": true
   }
 ]

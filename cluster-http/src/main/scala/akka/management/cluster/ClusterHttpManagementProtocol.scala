@@ -32,8 +32,6 @@ final case class ClusterShardingStatsResponse(
     regions: Map[String, ClusterShardingNodeStats],
     totalEntities: Int,
     totalShards: Int)
-final case class ShardStateInfo(shardId: String, entityIds: immutable.Set[String])
-final case class ShardRegionStateResponse(shards: immutable.Seq[ShardStateInfo], failed: immutable.Set[String])
 
 /** INTERNAL API */
 @InternalApi private[akka] sealed trait ClusterHttpManagementMemberOperation
@@ -68,7 +66,4 @@ trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJso
     jsonFormat2(ClusterShardingNodeStats.apply)
   implicit val clusterShardingStatsResponseFormat: RootJsonFormat[ClusterShardingStatsResponse] =
     jsonFormat3(ClusterShardingStatsResponse.apply)
-  implicit val shardStateInfoFormat: RootJsonFormat[ShardStateInfo] = jsonFormat2(ShardStateInfo.apply)
-  implicit val shardRegionStateResponseFormat: RootJsonFormat[ShardRegionStateResponse] =
-    jsonFormat2(ShardRegionStateResponse.apply)
 }
