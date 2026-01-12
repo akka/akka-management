@@ -49,9 +49,9 @@ object Publish extends AutoPlugin {
       publishSigned := publishSigned.dependsOn(beforePublishTask).value,
       publishTo :=
         (if (isSnapshot.value)
-           Some("Cloudsmith API".at("https://maven.cloudsmith.io/lightbend/akka-snapshots/"))
-         else
-           Some("Cloudsmith API".at("https://maven.cloudsmith.io/lightbend/akka/"))),
+          Some("Cloudsmith API".at("https://maven.cloudsmith.io/lightbend/akka-snapshots/"))
+        else
+          Some("Cloudsmith API".at("https://maven.cloudsmith.io/lightbend/akka/"))),
       credentials ++= cloudsmithCredentials(validate = false)
     )
 
