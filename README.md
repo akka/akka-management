@@ -2,7 +2,6 @@ Akka
 ====
 *Akka is a powerful platform that simplifies building and operating highly responsive, resilient, and scalable services.*
 
-
 The platform consists of
 * the [**Akka SDK**](https://doc.akka.io/) for straightforward, rapid development with AI assist and automatic clustering. Services built with the Akka SDK are automatically clustered and can be deployed on any infrastructure.
 * and [**Akka Automated Operations**](https://doc.akka.io/operations/akka-platform.html), a managed solution that handles everything for Akka SDK services from auto-elasticity to multi-region high availability running safely within your VPC.
