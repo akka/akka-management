@@ -135,7 +135,7 @@
             <image>
               <name>integration-test-kubernetes-api:1.3.3.7</name>
               <build>
-                <from>openjdk:8-jre-alpine</from>
+                <from>eclipse-temurin:8-jre-alpine</from>
                 <ports>
                   <port>8080</port>
                   <port>8558</port>
