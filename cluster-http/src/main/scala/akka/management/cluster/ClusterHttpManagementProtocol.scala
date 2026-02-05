@@ -26,7 +26,12 @@ final case class ClusterMembers(
 final case class ClusterHttpManagementMessage(message: String)
 final case class ShardEntityTypeKeys(entityTypeKeys: immutable.Set[String])
 final case class ShardRegionInfo(shardId: String, numEntities: Int)
-final case class ShardDetails(regions: immutable.Seq[ShardRegionInfo])
+final case class ShardDetails(regions: immutable.Seq[ShardRegionInfo], failed: immutable.Set[String] = Set.empty)
+final case class ClusterShardingNodeStats(shards: immutable.Seq[ShardRegionInfo], failed: immutable.Set[String])
+final case class ClusterShardingStatsResponse(
+    regions: Map[String, ClusterShardingNodeStats],
+    totalEntities: Int,
+    totalShards: Int)
 
 /** INTERNAL API */
 @InternalApi private[akka] sealed trait ClusterHttpManagementMemberOperation
@@ -56,5 +61,9 @@ trait ClusterHttpManagementJsonProtocol extends SprayJsonSupport with DefaultJso
     jsonFormat1(ClusterHttpManagementMessage.apply)
   implicit val shardEntityTypeKeysFormat: RootJsonFormat[ShardEntityTypeKeys] = jsonFormat1(ShardEntityTypeKeys.apply)
   implicit val shardRegionInfoFormat: RootJsonFormat[ShardRegionInfo] = jsonFormat2(ShardRegionInfo.apply)
-  implicit val shardDetailsFormat: RootJsonFormat[ShardDetails] = jsonFormat1(ShardDetails.apply)
+  implicit val shardDetailsFormat: RootJsonFormat[ShardDetails] = jsonFormat2(ShardDetails.apply)
+  implicit val clusterShardingNodeStatsFormat: RootJsonFormat[ClusterShardingNodeStats] =
+    jsonFormat2(ClusterShardingNodeStats.apply)
+  implicit val clusterShardingStatsResponseFormat: RootJsonFormat[ClusterShardingStatsResponse] =
+    jsonFormat3(ClusterShardingStatsResponse.apply)
 }

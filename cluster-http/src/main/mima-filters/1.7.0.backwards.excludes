@@ -1,0 +1,13 @@
+# Adding new JSON formatters to ClusterHttpManagementJsonProtocol trait
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.management.cluster.ClusterHttpManagementJsonProtocol.clusterShardingNodeStatsFormat")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.management.cluster.ClusterHttpManagementJsonProtocol.akka$management$cluster$ClusterHttpManagementJsonProtocol$_setter_$clusterShardingNodeStatsFormat_=")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.management.cluster.ClusterHttpManagementJsonProtocol.clusterShardingStatsResponseFormat")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.management.cluster.ClusterHttpManagementJsonProtocol.akka$management$cluster$ClusterHttpManagementJsonProtocol$_setter_$clusterShardingStatsResponseFormat_=")
+
+# ShardDetails case class changed from 1 parameter to 2 parameters (added 'failed' field)
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.management.cluster.ShardDetails.apply")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.management.cluster.ShardDetails.andThen")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.management.cluster.ShardDetails.compose")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.management.cluster.ShardDetails.copy")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.management.cluster.ShardDetails.this")
+ProblemFilters.exclude[MissingTypesProblem]("akka.management.cluster.ShardDetails$")
