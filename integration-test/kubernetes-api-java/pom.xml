@@ -144,13 +144,13 @@
       <plugin>
         <groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
-        <version>0.27.2</version>
+        <version>0.48.1</version>
         <configuration>
           <images>
             <image>
               <name>integration-test-kubernetes-api:1.3.3.7</name>
               <build>
-                <from>docker.io/library/eclipse-temurin:17.0.18_8-jre</from>
+                <from>docker.io/library/eclipse-temurin:17.0.8.1_1-jre</from>
                 <ports>
                   <port>8080</port>
                   <port>8558</port>
