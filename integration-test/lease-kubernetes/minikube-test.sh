@@ -31,7 +31,7 @@ do
   echo "Checking for job completion"
   # format is: wait for 1/1
   # lease-test   1/1           10s        2m32s
-  [ `kubectl get jobs | grep $JOB_NAME | awk '{print $2}'` == "1/1" ] && break
+  [ `kubectl get jobs | grep $JOB_NAME | awk '{print $3}'` == "1/1" ] && break
   sleep 5
 done
 
