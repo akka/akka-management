@@ -48,8 +48,8 @@ jobs:
         # v2.7.1
         uses: manusa/actions-setup-minikube@4582844dcacbf482729f8d7ef696f515d2141bb9
         with:
-          minikube version: 'v1.32.0'
-          kubernetes version: 'v1.28.4'
+          minikube version: 'v1.38.0'
+          kubernetes version: 'v1.35.0'
           driver: docker
           start args: '--addons=ingress'
 
