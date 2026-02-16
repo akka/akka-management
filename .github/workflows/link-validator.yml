@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
   schedule:
-    - cron:  '0 6 * * 1'
+    - cron:  '0 5 1 * *'
 
 permissions:
   contents: read
@@ -14,10 +14,22 @@ jobs:
     runs-on: Akka-Default
     if: github.repository == 'akka/akka-management'
     steps:
+      - name: Checkout Global Scripts
+        # This MUST be before the main checkout or else the dynver will not work
+        uses: actions/checkout@v6
+        with:
+          repository: akka/github-actions-scripts
+          path: scripts
+          fetch-depth: 0
+
+      - name: Setup global resolver
+        run: |
+          chmod +x ./scripts/setup_global_resolver.sh
+          ./scripts/setup_global_resolver.sh
+
       - name: Checkout
         # https://github.com/actions/checkout/releases
-        # v4.1.1
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@v6
         with:
           # See https://github.com/actions/checkout/issues/299#issuecomment-677674415
           ref: ${{ github.event.pull_request.head.sha }}
@@ -28,13 +40,13 @@ jobs:
 
       - name: Cache Coursier cache
         # https://github.com/coursier/cache-action/releases
-        # v6.4.5
-        uses: coursier/cache-action@1ff273bff02a8787bc9f1877d347948af647956d
+        # v8.0.0
+        uses: coursier/cache-action@c5ca79321d170b8a18c288d9cadc2a6037166d0f
 
       - name: Set up JDK 25
         # https://github.com/coursier/setup-action/releases
-        # v1.3.5
-        uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
+        # v2.0.2
+        uses: coursier/setup-action@f7be3eb3dcef84a4e16fc8cd75c87beb2e5cbcc9
         with:
           jvm: temurin:1.25
           apps: cs
@@ -43,7 +55,10 @@ jobs:
         run: sbt docs/makeSite
 
       - name: Run Link Validator
-        run: cs launch net.runne::site-link-validator:0.2.5 -- scripts/link-validator.conf
+        run: |
+          VERSION=$(ls docs/target/site/libraries/akka-management)
+          sed -e "s/snapshot/$VERSION/" scripts/link-validator.conf > /tmp/link-validator.conf
+          cs launch net.runne::site-link-validator:0.2.5 -- /tmp/link-validator.conf
 
       - name: Email on failure
         if: ${{ failure() }}

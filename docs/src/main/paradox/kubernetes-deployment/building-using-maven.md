@@ -1,6 +1,6 @@
 # Building using Maven
 
-There are a number of Maven plugins available for building and deploying Docker images. We're going to use [Fabric8](https://maven.fabric8.io/).
+There are a number of Maven plugins available for building and deploying Docker images. We're going to use [Fabric8](https://fabric8.io/).
 ### Git hash based version numbers
     
 There are a number of Maven plugins available for interacting with git, we recommend the 
