@@ -1,7 +1,5 @@
 enablePlugins(JavaAppPackaging)
 
-ThisBuild / resolvers += "lightbend-akka".at("https://repo.akka.io/maven/github_actions")
-
 name := "bootstrap-demo-dns-api"
 
 scalaVersion := "2.13.14"

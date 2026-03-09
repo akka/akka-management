@@ -1,7 +1,6 @@
 import com.typesafe.sbt.packager.docker.{ Cmd, ExecCmd }
 import sbt.Keys.parallelExecution
 
-ThisBuild / resolvers += "Akka library repository".at("https://repo.akka.io/maven/github_actions")
 ThisBuild / resolvers += Resolver.jcenterRepo
 // append -SNAPSHOT to version when isSnapshot
 ThisBuild / dynverSonatypeSnapshots := true
