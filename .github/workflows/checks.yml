@@ -42,6 +42,9 @@ jobs:
         with:
           jvm: temurin:1.11.0
 
+      - name: Run akka/github-actions-scripts
+        uses: akka/github-actions-scripts/setup_global_resolver@main
+
       - name: Code style check, compilation and binary-compatibility check
         run: |-
           sbt "scalafmtCheckAll;headerCheckAll;+Test/compile;mimaReportBinaryIssues"
@@ -77,6 +80,9 @@ jobs:
         uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
           jvm: temurin:1.17.0
+
+      - name: Run akka/github-actions-scripts
+        uses: akka/github-actions-scripts/setup_global_resolver@main
 
       - name: Create all API docs for artifacts/website and all reference docs
         run: sbt "unidoc; docs/paradox"
