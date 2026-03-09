@@ -10,27 +10,12 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <akka.version>2.9.3</akka.version>
-    <akka-management.version>1.5.3</akka-management.version>
-    <akka-http.version>10.6.3</akka-http.version>
+    <akka.version>2.10.11</akka.version>
+    <akka-management.version>1.6.4</akka-management.version>
+    <akka-http.version>10.7.3</akka-http.version>
     <scala.binary.version>2.13</scala.binary.version>
     <version.number>${git.commit.time}-${git.commit.id.abbrev}</version.number>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>akka-repository</id>
-      <name>Akka library repository</name>
-      <url>https://repo.akka.io/maven</url>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>akka-repository</id>
-      <name>Akka library repository</name>
-      <url>https://repo.akka.io/maven</url>
-    </pluginRepository>
-  </pluginRepositories>
 
   <dependencies>
     <dependency>
@@ -71,7 +56,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.13</version>
+      <version>1.5.18</version>
     </dependency>
     <dependency>
       <groupId>com.lightbend.akka.management</groupId>

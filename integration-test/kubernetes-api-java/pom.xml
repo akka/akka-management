@@ -17,19 +17,11 @@
   <properties>
     <encoding>UTF-8</encoding>
     <maven.compiler.release>11</maven.compiler.release>
-    <akka.version>2.9.3</akka.version>
-    <akka.http.version>10.6.3</akka.http.version>
+    <akka.version>2.10.5</akka.version>
+    <akka.http.version>10.7.1</akka.http.version>
     <akka-management.version>1.5.2</akka-management.version>
     <scala.binary.version>2.13</scala.binary.version>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>akka-repository</id>
-      <name>Akka library repository</name>
-      <url>https://repo.akka.io/maven</url>
-    </repository>
-  </repositories>
 
   <dependencies>
     <dependency>
@@ -50,7 +42,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.13</version>
+      <version>1.5.18</version>
     </dependency>
     <dependency>
       <groupId>com.lightbend.akka.management</groupId>
@@ -144,7 +136,7 @@
       <plugin>
         <groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
-        <version>0.27.2</version>
+        <version>0.38.0</version>
         <configuration>
           <images>
             <image>
