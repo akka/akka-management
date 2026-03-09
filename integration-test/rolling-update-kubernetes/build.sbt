@@ -1,7 +1,5 @@
 enablePlugins(JavaAppPackaging, DockerPlugin)
 
-ThisBuild / resolvers += "lightbend-akka".at("https://repo.akka.io/maven/github_actions")
-
 version := "1.3.3.7" // we hard-code the version here, it could be anything really
 
 dockerExposedPorts := Seq(8080, 8558, 2552)

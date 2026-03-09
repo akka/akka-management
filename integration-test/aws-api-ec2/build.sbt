@@ -1,7 +1,5 @@
 enablePlugins(JavaAppPackaging)
 
-ThisBuild / resolvers += "lightbend-akka".at("https://repo.akka.io/maven/github_actions")
-
 Universal / packageName := "app" // should produce app.zip
 
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-cloudformation" % "1.12.635" % Test

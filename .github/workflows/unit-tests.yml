@@ -51,6 +51,9 @@ jobs:
         with:
           jvm: ${{ matrix.jvmName }}
 
+      - name: Run akka/github-actions-scripts
+        uses: akka/github-actions-scripts/setup_global_resolver@main
+
       # hack to solve "Cannot assign requested address" issue - https://github.community/t/github-action-and-oserror-errno-99-cannot-assign-requested-address/173973/1
       - name: Add the current IP address, long hostname and short hostname record to /etc/hosts file
         run: |
