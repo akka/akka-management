@@ -79,4 +79,4 @@ private[akka] class KubernetesSettings(
     val insecureTokens: Boolean = false,
     val bodyReadTimeout: FiniteDuration = 1.second,
     val allowLeaseNameTruncation: Boolean = false,
-    val heartbeatFailFastOnError: Boolean = false)
+    val heartbeatFailFastOnError: Boolean = true)

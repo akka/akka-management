@@ -76,7 +76,7 @@ private[akka] object LeaseActor {
       settings: LeaseSettings,
       leaseName: String,
       granted: AtomicBoolean,
-      heartbeatFailFastOnError: Boolean = false): Props = {
+      heartbeatFailFastOnError: Boolean = true): Props = {
     Props(new LeaseActor(k8sApi, settings, leaseName, granted, heartbeatFailFastOnError))
   }
 
@@ -91,7 +91,7 @@ private[akka] class LeaseActor(
     settings: LeaseSettings,
     leaseName: String,
     granted: AtomicBoolean,
-    heartbeatFailFastOnError: Boolean = false)
+    heartbeatFailFastOnError: Boolean = true)
     extends LoggingFSM[LeaseActor.State, LeaseActor.Data] {
 
   import akka.coordination.lease.kubernetes.LeaseActor._

@@ -241,7 +241,7 @@ class LeaseActorSpec
       }
     }
 
-    "heartbeat fail should set granted to false" in new FailFastTest {
+    "heartbeat fail should set granted to false" in new Test {
       val k8sApiFailure = new LeaseException("Failed to communicate with API server")
       acquireLease()
       expectHeartBeat()
@@ -255,7 +255,7 @@ class LeaseActorSpec
       }
     }
 
-    "heartbeat fail should call lease lost callback" in new FailFastTest {
+    "heartbeat fail should call lease lost callback" in new Test {
       val k8sApiFailure = new LeaseException("Failed to communicate with API server")
       @volatile var callbackCalled: Option[Throwable] = _
       acquireLease(reason => callbackCalled = reason)
@@ -270,7 +270,7 @@ class LeaseActorSpec
       }
     }
 
-    "heartbeat failure should retry and keep lease when timeout is far enough off" in new Test {
+    "heartbeat failure should retry and keep lease when timeout is far enough off" in new RetryTest {
       acquireLease()
       expectHeartBeat()
       granted.get() shouldEqual true
@@ -284,7 +284,7 @@ class LeaseActorSpec
       granted.get() shouldEqual true
     }
 
-    "heartbeat failure should release lease when heartbeat-fail-fast-on-error is enabled" in new FailFastTest {
+    "heartbeat failure should release lease when heartbeat-fail-fast-on-error is enabled" in new Test {
       acquireLease()
       expectHeartBeat()
       granted.get() shouldEqual true
@@ -304,7 +304,7 @@ class LeaseActorSpec
       acquireLease()
     }
 
-    "lock should be acquireable after heart beat fail" in new FailFastTest {
+    "lock should be acquireable after heart beat fail" in new Test {
       acquireLease()
       expectHeartBeat()
       heartBeatFailure()
@@ -415,7 +415,7 @@ class LeaseActorSpec
     val updateProbe = TestProbe()
     val mockKubernetesApi = new MockKubernetesApi(system, leaseProbe.ref, updateProbe.ref)
     val granted = new AtomicBoolean(false)
-    def heartbeatFailFastOnError: Boolean = false
+    def heartbeatFailFastOnError: Boolean = true
     val underTest = system.actorOf(
       LeaseActor.props(mockKubernetesApi, leaseSettings, leaseSettings.leaseName, granted, heartbeatFailFastOnError))
     val senderProbe = TestProbe()
@@ -507,7 +507,7 @@ class LeaseActorSpec
 
   }
 
-  trait FailFastTest extends Test {
-    override def heartbeatFailFastOnError: Boolean = true
+  trait RetryTest extends Test {
+    override def heartbeatFailFastOnError: Boolean = false
   }
 }
