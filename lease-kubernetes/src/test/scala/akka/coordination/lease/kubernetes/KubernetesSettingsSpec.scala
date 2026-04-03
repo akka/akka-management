@@ -40,6 +40,12 @@ class KubernetesSettingsSpec extends AnyWordSpec with Matchers {
         """.stripMargin).apiServerRequestTimeout
       }.getMessage shouldEqual "requirement failed: 'api-server-request-timeout can not be less than 'lease-operation-timeout'"
     }
+    "default heartbeat-fail-fast-on-error is false" in {
+      conf("").heartbeatFailFastOnError shouldEqual false
+    }
+    "allow overriding heartbeat-fail-fast-on-error" in {
+      conf("heartbeat-fail-fast-on-error = true").heartbeatFailFastOnError shouldEqual true
+    }
   }
 
 }

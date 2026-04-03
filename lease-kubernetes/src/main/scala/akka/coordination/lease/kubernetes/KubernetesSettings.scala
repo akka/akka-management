@@ -55,7 +55,8 @@ private[akka] object KubernetesSettings {
       secure = config.getBoolean("secure-api-server"),
       insecureTokens = false,
       apiServerRequestTimeout / 2,
-      config.getBoolean("allow-lease-name-truncation"))
+      config.getBoolean("allow-lease-name-truncation"),
+      config.getBoolean("heartbeat-fail-fast-on-error"))
 
   }
 }
@@ -77,4 +78,5 @@ private[akka] class KubernetesSettings(
     // Note: for token testability
     val insecureTokens: Boolean = false,
     val bodyReadTimeout: FiniteDuration = 1.second,
-    val allowLeaseNameTruncation: Boolean = false)
+    val allowLeaseNameTruncation: Boolean = false,
+    val heartbeatFailFastOnError: Boolean = false)

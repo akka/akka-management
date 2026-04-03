@@ -241,7 +241,7 @@ class LeaseActorSpec
       }
     }
 
-    "heartbeat fail should set granted to false" in new Test {
+    "heartbeat fail should set granted to false" in new FailFastTest {
       val k8sApiFailure = new LeaseException("Failed to communicate with API server")
       acquireLease()
       expectHeartBeat()
@@ -255,7 +255,7 @@ class LeaseActorSpec
       }
     }
 
-    "heartbeat fail should call lease lost callback" in new Test {
+    "heartbeat fail should call lease lost callback" in new FailFastTest {
       val k8sApiFailure = new LeaseException("Failed to communicate with API server")
       @volatile var callbackCalled: Option[Throwable] = _
       acquireLease(reason => callbackCalled = reason)
@@ -270,6 +270,33 @@ class LeaseActorSpec
       }
     }
 
+    "heartbeat failure should retry and keep lease when timeout is far enough off" in new Test {
+      acquireLease()
+      expectHeartBeat()
+      granted.get() shouldEqual true
+
+      // Heartbeat fails transiently - actor should retry rather than release
+      updateProbe.expectMsg((ownerName, currentVersion))
+      updateProbe.reply(Failure(new LeaseException("Transient API failure")))
+
+      // A new heartbeat should be sent with the same version (K8s state didn't change)
+      updateProbe.expectMsg(leaseSettings.timeoutSettings.heartbeatInterval * 3, (ownerName, currentVersion))
+      granted.get() shouldEqual true
+    }
+
+    "heartbeat failure should release lease when heartbeat-fail-fast-on-error is enabled" in new FailFastTest {
+      acquireLease()
+      expectHeartBeat()
+      granted.get() shouldEqual true
+
+      updateProbe.expectMsg((ownerName, currentVersion))
+      incrementVersion()
+      updateProbe.reply(Failure(new LeaseException("API failure")))
+      awaitAssert {
+        granted.get() shouldEqual false
+      }
+    }
+
     "lock should be acquireable after heart beat conflict" in new Test {
       acquireLease()
       expectHeartBeat()
@@ -277,7 +304,7 @@ class LeaseActorSpec
       acquireLease()
     }
 
-    "lock should be acquireable after heart beat fail" in new Test {
+    "lock should be acquireable after heart beat fail" in new FailFastTest {
       acquireLease()
       expectHeartBeat()
       heartBeatFailure()
@@ -388,7 +415,9 @@ class LeaseActorSpec
     val updateProbe = TestProbe()
     val mockKubernetesApi = new MockKubernetesApi(system, leaseProbe.ref, updateProbe.ref)
     val granted = new AtomicBoolean(false)
-    val underTest = system.actorOf(LeaseActor.props(mockKubernetesApi, leaseSettings, leaseSettings.leaseName, granted))
+    def heartbeatFailFastOnError: Boolean = false
+    val underTest = system.actorOf(
+      LeaseActor.props(mockKubernetesApi, leaseSettings, leaseSettings.leaseName, granted, heartbeatFailFastOnError))
     val senderProbe = TestProbe()
     implicit val sender: ActorRef = senderProbe.ref
 
@@ -476,5 +505,9 @@ class LeaseActorSpec
       }
     }
 
+  }
+
+  trait FailFastTest extends Test {
+    override def heartbeatFailFastOnError: Boolean = true
   }
 }

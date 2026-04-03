@@ -125,7 +125,7 @@ class KubernetesLease private[akka] (system: ExtendedActorSystem, leaseTaken: At
         leaseName,
         settings.ownerName)
       system.systemActorOf(
-        LeaseActor.props(api, settings, leaseName, leaseTaken),
+        LeaseActor.props(api, settings, leaseName, leaseTaken, k8sSettings.heartbeatFailFastOnError),
         s"kubernetesLease${KubernetesLease.leaseCounter.incrementAndGet}"
       )
     }
