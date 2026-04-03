@@ -155,4 +155,8 @@ Q. What happens if the node that holds the lease crashes?
 
 A. Each lease has a Time To Live (TTL) that is set `akka.coordination.lease.kubernetes.heartbeat-timeout` which defaults to 120s. A lease holder updates the lease every `1/10` of the timeout to keep the lease. If the TTL passes without
    the lease being updated another node is allowed to take the lease. For ultimate safety this timeout can be set very high but then an operator would need to come and clear the lease if a lease owner crashes with the lease taken.
+
+Q. What happens if the Kubernetes API server has a transient failure during a heartbeat?
+
+A. By default (`heartbeat-fail-fast-on-error = true`) the lease is immediately released and the lease-lost callback is invoked, even if the lease timeout is far from expiry. This can cause unnecessary leadership changes during brief network hiccups or API server restarts. Setting `heartbeat-fail-fast-on-error = false` changes this behaviour so that the heartbeat is retried at the normal interval as long as the lease has not yet timed out, preventing transient failures from needlessly dropping the lease.
    
