@@ -1,0 +1,7 @@
+# internals, heartbeat retry on transient API failure
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor#GrantedVersion.copy")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor#GrantedVersion.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor#GrantedVersion.apply")
+ProblemFilters.exclude[MissingTypesProblem]("akka.coordination.lease.kubernetes.LeaseActor$GrantedVersion$")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor.props")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor.this")
