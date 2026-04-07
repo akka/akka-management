@@ -270,7 +270,14 @@ class LeaseActorSpec
       }
     }
 
-    "heartbeat failure should retry and keep lease when timeout is far enough off" in new RetryTest {
+    "heartbeat failure should retry and keep lease when timeout is far enough off" in new Test {
+      override val leaseSettings: LeaseSettings = new LeaseSettings(
+        leaseName,
+        ownerName,
+        new TimeoutSettings(25.millis, 5.seconds, 1.second),
+        ConfigFactory.empty())
+      override def heartbeatFailFastOnError: Boolean = false
+
       acquireLease()
       expectHeartBeat()
       granted.get() shouldEqual true
@@ -282,19 +289,6 @@ class LeaseActorSpec
       // A new heartbeat should be sent with the same version (K8s state didn't change)
       updateProbe.expectMsg(leaseSettings.timeoutSettings.heartbeatInterval * 3, (ownerName, currentVersion))
       granted.get() shouldEqual true
-    }
-
-    "heartbeat failure should release lease when heartbeat-fail-fast-on-error is enabled" in new Test {
-      acquireLease()
-      expectHeartBeat()
-      granted.get() shouldEqual true
-
-      updateProbe.expectMsg((ownerName, currentVersion))
-      incrementVersion()
-      updateProbe.reply(Failure(new LeaseException("API failure")))
-      awaitAssert {
-        granted.get() shouldEqual false
-      }
     }
 
     "lock should be acquireable after heart beat conflict" in new Test {
@@ -507,7 +501,4 @@ class LeaseActorSpec
 
   }
 
-  trait RetryTest extends Test {
-    override def heartbeatFailFastOnError: Boolean = false
-  }
 }

@@ -53,7 +53,7 @@ private[akka] object LeaseActor {
   case class GrantedVersion(
       version: String,
       leaseLostCallback: Option[Throwable] => Unit,
-      lastHeartbeatTime: Long = System.currentTimeMillis())
+      lastHeartbeatTime: Long = System.nanoTime())
       extends Data
 
   sealed trait Command
@@ -76,7 +76,7 @@ private[akka] object LeaseActor {
       settings: LeaseSettings,
       leaseName: String,
       granted: AtomicBoolean,
-      heartbeatFailFastOnError: Boolean = true): Props = {
+      heartbeatFailFastOnError: Boolean): Props = {
     Props(new LeaseActor(k8sApi, settings, leaseName, granted, heartbeatFailFastOnError))
   }
 
@@ -91,7 +91,7 @@ private[akka] class LeaseActor(
     settings: LeaseSettings,
     leaseName: String,
     granted: AtomicBoolean,
-    heartbeatFailFastOnError: Boolean = true)
+    heartbeatFailFastOnError: Boolean)
     extends LoggingFSM[LeaseActor.State, LeaseActor.Data] {
 
   import akka.coordination.lease.kubernetes.LeaseActor._
@@ -197,14 +197,17 @@ private[akka] class LeaseActor(
         "response from API server has different owner for success: " + resource)
       log.debug("Heartbeat: lease time updated: Version {}", resource.version)
       startSingleTimer("heartbeat", Heartbeat, settings.timeoutSettings.heartbeatInterval)
-      stay().using(gv.copy(version = resource.version, lastHeartbeatTime = System.currentTimeMillis()))
+      stay().using(gv.copy(version = resource.version, lastHeartbeatTime = System.nanoTime()))
     case Event(WriteResponse(Left(lr @ _)), GrantedVersion(_, leaseLost, _)) =>
       log.warning("Conflict during heartbeat to lease {}. Lease assumed to be released.", lr)
       granted.set(false)
       executeLeaseLockCallback(leaseLost, None)
       goto(Idle).using(ReadRequired)
     case Event(Failure(t), gv @ GrantedVersion(_, leaseLost, lastHeartbeatTime)) =>
-      if (!heartbeatFailFastOnError && !hasLeaseTimedOut(lastHeartbeatTime)) {
+      val elapsed = System.nanoTime() - lastHeartbeatTime
+      val retryWindowNanos =
+        (settings.timeoutSettings.heartbeatTimeout - 2 * settings.timeoutSettings.heartbeatInterval).toNanos
+      if (!heartbeatFailFastOnError && elapsed < retryWindowNanos) {
         log.warning(
           "Failure during heartbeat to lease: [{}]. Lease timeout is far enough off, retrying heartbeat.",
           t.getMessage)

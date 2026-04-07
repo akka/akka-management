@@ -158,5 +158,9 @@ A. Each lease has a Time To Live (TTL) that is set `akka.coordination.lease.kube
 
 Q. What happens if the Kubernetes API server has a transient failure during a heartbeat?
 
-A. By default (`heartbeat-fail-fast-on-error = true`) the lease is immediately released and the lease-lost callback is invoked, even if the lease timeout is far from expiry. This can cause unnecessary leadership changes during brief network hiccups or API server restarts. Setting `heartbeat-fail-fast-on-error = false` changes this behaviour so that the heartbeat is retried at the normal interval as long as the lease has not yet timed out, preventing transient failures from needlessly dropping the lease.
+A. By default (`heartbeat-fail-fast-on-error = true`) the lease is immediately released and the lease-lost callback is invoked, even if the lease timeout is far from expiry. This can cause unnecessary leadership changes during brief network hiccups or API server restarts. Setting `heartbeat-fail-fast-on-error = false` changes this behaviour so that the heartbeat is retried at the normal interval until `heartbeat-timeout - 2 * heartbeat-interval` has elapsed since the last successful heartbeat, before releasing the lease if still failing.
+
+   **Important trade-offs when using `false`:** With the default settings (timeout 120s, interval 12s) the retry window is ~96 seconds. During that window the local node continues to believe it holds the lease while writes to the API server are failing. If other nodes can still reach the API server they may observe the lease as expired and take it, resulting in multiple nodes simultaneously believing they hold the lease. The default `true` setting embodies a deliberate "if in doubt, drop it" safety principle that is especially important for Split Brain Resolver, Cluster Singleton, and Cluster Sharding, where holding a stale lease can cause split-brain scenarios. @@@ warning
+   Setting `heartbeat-fail-fast-on-error = false` trades that safety margin for availability and should only be used if the implications are well understood.
+   @@@
    
