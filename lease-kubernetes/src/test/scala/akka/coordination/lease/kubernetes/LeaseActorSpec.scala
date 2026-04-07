@@ -271,7 +271,7 @@ class LeaseActorSpec
     }
 
     "heartbeat failure should retry and keep lease when timeout is far enough off" in new Test {
-      override val leaseSettings: LeaseSettings = new LeaseSettings(
+      override def leaseSettings: LeaseSettings = new LeaseSettings(
         leaseName,
         ownerName,
         new TimeoutSettings(25.millis, 5.seconds, 1.second),
@@ -396,7 +396,7 @@ class LeaseActorSpec
 
   trait Test {
     val ownerName = "owner1"
-    val leaseSettings: LeaseSettings = new LeaseSettings(
+    def leaseSettings: LeaseSettings = new LeaseSettings(
       leaseName,
       ownerName,
       new TimeoutSettings(25.millis, 250.millis, 1.second),
