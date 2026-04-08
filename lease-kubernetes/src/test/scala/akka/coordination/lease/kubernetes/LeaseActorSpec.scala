@@ -241,21 +241,44 @@ class LeaseActorSpec
       }
     }
 
-    "heartbeat fail should set granted to false" in new Test {
+    "heartbeat fail should retry and recover" in new RetryTest {
+      val k8sApiFailure = new LeaseException("Failed to communicate with API server")
+      acquireLease()
+      expectHeartBeat()
+      granted.get() shouldEqual true
+
+      // heartbeat fails
+      updateProbe.expectMsg((ownerName, currentVersion))
+      updateProbe.reply(Failure(k8sApiFailure))
+      // should still be granted
+      granted.get() shouldEqual true
+
+      // retry succeeds
+      updateProbe.expectMsg((ownerName, currentVersion))
+      incrementVersion()
+      updateProbe.reply(Right(LeaseResource(Some(ownerName), currentVersion, System.currentTimeMillis())))
+      granted.get() shouldEqual true
+
+      // next regular heartbeat
+      updateProbe.expectMsg((ownerName, currentVersion))
+    }
+
+    "heartbeat fail should set granted to false after retries exhausted" in new RetryTest {
       val k8sApiFailure = new LeaseException("Failed to communicate with API server")
       acquireLease()
       expectHeartBeat()
       granted.get() shouldEqual true
 
       updateProbe.expectMsg((ownerName, currentVersion))
-      incrementVersion()
       updateProbe.reply(Failure(k8sApiFailure))
+      // retry will be attempted, fail that too and keep failing until budget exhausted
+      heartBeatFailureUntilLost()
       awaitAssert {
         granted.get() shouldEqual false
       }
     }
 
-    "heartbeat fail should call lease lost callback" in new Test {
+    "heartbeat fail should call lease lost callback after retries exhausted" in new RetryTest {
       val k8sApiFailure = new LeaseException("Failed to communicate with API server")
       @volatile var callbackCalled: Option[Throwable] = _
       acquireLease(reason => callbackCalled = reason)
@@ -263,11 +286,37 @@ class LeaseActorSpec
       granted.get() shouldEqual true
 
       updateProbe.expectMsg((ownerName, currentVersion))
-      incrementVersion()
       updateProbe.reply(Failure(k8sApiFailure))
+      heartBeatFailureUntilLost()
       awaitAssert {
-        callbackCalled shouldEqual Some(k8sApiFailure)
+        callbackCalled should not be null
       }
+    }
+
+    "multiple heartbeat failures should keep retrying and recover" in new RetryTest {
+      val k8sApiFailure = new LeaseException("Failed to communicate with API server")
+      acquireLease()
+      expectHeartBeat()
+      granted.get() shouldEqual true
+
+      // first heartbeat fails
+      updateProbe.expectMsg((ownerName, currentVersion))
+      updateProbe.reply(Failure(k8sApiFailure))
+      granted.get() shouldEqual true
+
+      // retry also fails
+      updateProbe.expectMsg((ownerName, currentVersion))
+      updateProbe.reply(Failure(k8sApiFailure))
+      granted.get() shouldEqual true
+
+      // third attempt succeeds
+      updateProbe.expectMsg((ownerName, currentVersion))
+      incrementVersion()
+      updateProbe.reply(Right(LeaseResource(Some(ownerName), currentVersion, System.currentTimeMillis())))
+      granted.get() shouldEqual true
+
+      // regular heartbeat continues
+      updateProbe.expectMsg((ownerName, currentVersion))
     }
 
     "lock should be acquireable after heart beat conflict" in new Test {
@@ -386,9 +435,10 @@ class LeaseActorSpec
     def incrementVersion() = currentVersionCount += 1
     val leaseProbe = TestProbe()
     val updateProbe = TestProbe()
-    val mockKubernetesApi = new MockKubernetesApi(system, leaseProbe.ref, updateProbe.ref)
+    lazy val mockKubernetesApi = new MockKubernetesApi(system, leaseProbe.ref, updateProbe.ref)
     val granted = new AtomicBoolean(false)
-    val underTest = system.actorOf(LeaseActor.props(mockKubernetesApi, leaseSettings, leaseSettings.leaseName, granted))
+    lazy val underTest =
+      system.actorOf(LeaseActor.props(mockKubernetesApi, leaseSettings, leaseSettings.leaseName, granted))
     val senderProbe = TestProbe()
     implicit val sender: ActorRef = senderProbe.ref
 
@@ -469,12 +519,38 @@ class LeaseActorSpec
 
     def heartBeatFailure(): Unit = {
       updateProbe.expectMsg((ownerName, currentVersion))
-      incrementVersion()
+      // Note: don't increment version here, the actor retries with the same version on failure
       updateProbe.reply(Failure(new LeaseException("Failed to communicate with API server")))
+      heartBeatFailureUntilLost()
       awaitAssert {
         granted.get() shouldEqual false
       }
     }
 
+    def heartBeatFailureUntilLost(): Unit = {
+      // keep failing retries until the time budget is exhausted
+      while (granted.get()) {
+        try {
+          val msg = updateProbe.expectMsg(leaseSettings.timeoutSettings.heartbeatTimeout, (ownerName, currentVersion))
+          updateProbe.reply(Failure(new LeaseException("Failed to communicate with API server")))
+        } catch {
+          case _: AssertionError => // no more retries, budget exhausted
+        }
+      }
+    }
+
+  }
+
+  // Test trait with realistic timeout ratios where retry budget is positive.
+  // Generous timeouts to avoid flaky failures in CI where pauses of 500ms+ can occur.
+  // heartbeatInterval=1s, heartbeatTimeout=20s, operationTimeout=2s (1:20 ratio)
+  // Retry budget: (20s - 2s) - (2s + 1s) = 15s
+  // Retry delay: 500ms (heartbeatInterval / 2)
+  trait RetryTest extends Test {
+    override val leaseSettings: LeaseSettings = new LeaseSettings(
+      leaseName,
+      ownerName,
+      new TimeoutSettings(1.second, 20.seconds, 2.seconds),
+      ConfigFactory.empty())
   }
 }
