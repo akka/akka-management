@@ -1,0 +1,9 @@
+# internals, acquire retry on transient API failure
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor#OperationInProgress.copy")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor#OperationInProgress.this")
+ProblemFilters.exclude[MissingTypesProblem]("akka.coordination.lease.kubernetes.LeaseActor$OperationInProgress$")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor#OperationInProgress.apply")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor#PendingReadData.copy")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor#PendingReadData.this")
+ProblemFilters.exclude[MissingTypesProblem]("akka.coordination.lease.kubernetes.LeaseActor$PendingReadData$")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.coordination.lease.kubernetes.LeaseActor#PendingReadData.apply")

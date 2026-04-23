@@ -40,14 +40,20 @@ private[akka] object LeaseActor {
     def replyTo: ActorRef
   }
   // Awaiting a read to try and get the lease
-  case class PendingReadData(replyTo: ActorRef, leaseLostCallback: Option[Throwable] => Unit)
+  case class PendingReadData(
+      replyTo: ActorRef,
+      leaseLostCallback: Option[Throwable] => Unit,
+      acquireStartTime: Long = System.nanoTime(),
+      retryCount: Int = 0)
       extends Data
       with ReplyRequired
   case class OperationInProgress(
       replyTo: ActorRef,
       version: String,
       leaseLostCallback: Option[Throwable] => Unit,
-      operationStartTime: Long = System.nanoTime())
+      operationStartTime: Long = System.nanoTime(),
+      acquireStartTime: Long = System.nanoTime(),
+      retryCount: Int = 0)
       extends Data
       with ReplyRequired
   case class GrantedVersion(
@@ -66,6 +72,7 @@ private[akka] object LeaseActor {
   private case class WriteResponse(response: Either[LeaseResource, LeaseResource]) extends Command
   private case object Heartbeat extends Command
   private case class HeartbeatRetry(retryCount: Int) extends Command
+  private case class AcquireRetry(retryCount: Int) extends Command
 
   sealed trait Response
   case object LeaseAcquired extends Response
@@ -112,9 +119,9 @@ private[akka] class LeaseActor(
 
   when(PendingRead) {
     // Lock not taken
-    case Event(ReadResponse(LeaseResource(None, version, _)), PendingReadData(who, leaseLost)) =>
-      tryGetLease(version, who, leaseLost)
-    case Event(ReadResponse(LeaseResource(Some(currentOwner), version, time)), PendingReadData(who, leaseLost))
+    case Event(ReadResponse(LeaseResource(None, version, _)), prd: PendingReadData) =>
+      tryGetLease(version, prd.replyTo, prd.leaseLostCallback, prd.acquireStartTime)
+    case Event(ReadResponse(LeaseResource(Some(currentOwner), version, time)), prd: PendingReadData)
         if currentOwner == ownerName =>
       // We have the lock from a different incarnation
       if (hasLeaseTimedOut(time)) {
@@ -125,7 +132,7 @@ private[akka] class LeaseActor(
           ownerName,
           time
         )
-        tryGetLease(version, who, leaseLost)
+        tryGetLease(version, prd.replyTo, prd.leaseLostCallback, prd.acquireStartTime)
       } else {
         log.warning(
           "Lease {} requested by client {} is already owned by client. Previous lease was not released due to ungraceful shutdown. " +
@@ -133,53 +140,110 @@ private[akka] class LeaseActor(
           leaseName,
           ownerName
         )
-        who ! LeaseAcquired
-        goto(Granted).using(GrantedVersion(version, leaseLost))
+        prd.replyTo ! LeaseAcquired
+        goto(Granted).using(GrantedVersion(version, prd.leaseLostCallback))
       }
-    case Event(ReadResponse(LeaseResource(Some(currentOwner), version, time)), PendingReadData(who, leaseLost)) =>
+    case Event(ReadResponse(LeaseResource(Some(currentOwner), version, time)), prd: PendingReadData) =>
       if (hasLeaseTimedOut(time)) {
         log.warning(
           "Lease {} has reached TTL. Owner {} has failed to heartbeat, have they crashed?. Allowing {} to try and take lease",
           leaseName,
           currentOwner,
           ownerName)
-        tryGetLease(version, who, leaseLost)
+        tryGetLease(version, prd.replyTo, prd.leaseLostCallback, prd.acquireStartTime)
       } else {
-        who ! LeaseTaken
+        prd.replyTo ! LeaseTaken
         // Even though we have a version there is no benefit to storing it as we can't update a lease that has a client
         goto(Idle).using(ReadRequired)
       }
+    case Event(Failure(t), prd: PendingReadData) =>
+      val nextRetry = prd.retryCount + 1
+      val delay = acquireRetryDelay(nextRetry)
+      if (canRetryWithin(prd.acquireStartTime, delay)) {
+        val elapsed = (System.nanoTime() - prd.acquireStartTime).nanos
+        log.warning(
+          "Failure during lease read: [{}]. Time since acquire started [{}]. Scheduling retry [{}] in [{}].",
+          t.getMessage,
+          elapsed.pretty,
+          nextRetry,
+          delay.pretty
+        )
+        startSingleTimer("acquire-retry", AcquireRetry(nextRetry), delay)
+        stay().using(prd.copy(retryCount = nextRetry))
+      } else {
+        val elapsed = (System.nanoTime() - prd.acquireStartTime).nanos
+        log.warning(
+          "Failure during lease read: [{}]. Time since acquire started [{}] exceeds retry budget after [{}] retries.",
+          t.getMessage,
+          elapsed.pretty,
+          prd.retryCount
+        )
+        prd.replyTo ! Failure(t)
+        goto(Idle).using(ReadRequired)
+      }
+    case Event(AcquireRetry(retryCount), _: PendingReadData) =>
+      log.info("Retrying lease read, attempt [{}]", retryCount)
+      pipe(k8sApi.readOrCreateLeaseResource(leaseName).map(ReadResponse.apply)).to(self)
+      stay()
   }
 
   when(Granting) {
-    case Event(
-        WriteResponse(Right(response)),
-        cc @ OperationInProgress(who, oldVersion, leaseLost, operationStartTime)) =>
+    case Event(WriteResponse(Right(response)), op: OperationInProgress) =>
       require(
-        oldVersion != response.version,
-        s"Update response from Kubernetes API should not return the same version: Response: $response. Client: $cc")
-      val operationDuration = System.nanoTime() - operationStartTime
+        op.version != response.version,
+        s"Update response from Kubernetes API should not return the same version: Response: $response. Client: $op")
+      val operationDuration = System.nanoTime() - op.operationStartTime
       if (operationDuration > (settings.timeoutSettings.heartbeatTimeout.toNanos / 2)) {
         log.warning("API server took too long to respond to update: {}. ", operationDuration.nanos.pretty)
-        who ! Failure(
+        op.replyTo ! Failure(
           new LeaseTimeoutException(s"API server took too long to respond: ${operationDuration.nanos.pretty}"))
         goto(Idle).using(ReadRequired)
       } else {
         granted.set(true)
-        who ! LeaseAcquired
-        goto(Granted).using(GrantedVersion(response.version, leaseLost))
+        op.replyTo ! LeaseAcquired
+        goto(Granted).using(GrantedVersion(response.version, op.leaseLostCallback))
       }
 
-    case Event(WriteResponse(Left(LeaseResource(None, version, _))), OperationInProgress(who, oldVersion, _, _)) =>
-      require(oldVersion != version)
-      who ! LeaseAcquired
+    case Event(WriteResponse(Left(LeaseResource(None, version, _))), op: OperationInProgress) =>
+      require(op.version != version)
+      op.replyTo ! LeaseAcquired
       // Try again as lock version has moved on but is not taken
       pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(r => WriteResponse(r))).to(self)
       stay()
-    case Event(WriteResponse(Left(LeaseResource(Some(_), _, _))), OperationInProgress(who, _, _, _)) =>
+    case Event(WriteResponse(Left(LeaseResource(Some(_), _, _))), op: OperationInProgress) =>
       // The audacity, someone else has taken the lease :(
-      who ! LeaseTaken
+      op.replyTo ! LeaseTaken
       goto(Idle).using(ReadRequired) // can't use version as another owner has the lock
+    case Event(Failure(t), op: OperationInProgress) =>
+      val nextRetry = op.retryCount + 1
+      val delay = acquireRetryDelay(nextRetry)
+      if (canRetryWithin(op.acquireStartTime, delay)) {
+        val elapsed = (System.nanoTime() - op.acquireStartTime).nanos
+        log.warning(
+          "Failure during lease update: [{}]. Time since acquire started [{}]. Scheduling retry [{}] in [{}].",
+          t.getMessage,
+          elapsed.pretty,
+          nextRetry,
+          delay.pretty
+        )
+        startSingleTimer("acquire-retry", AcquireRetry(nextRetry), delay)
+        stay().using(op.copy(retryCount = nextRetry))
+      } else {
+        val elapsed = (System.nanoTime() - op.acquireStartTime).nanos
+        log.warning(
+          "Failure during lease update: [{}]. Time since acquire started [{}] exceeds retry budget after [{}] retries.",
+          t.getMessage,
+          elapsed.pretty,
+          op.retryCount
+        )
+        op.replyTo ! Failure(t)
+        goto(Idle).using(ReadRequired)
+      }
+    case Event(AcquireRetry(retryCount), op: OperationInProgress) =>
+      log.info("Retrying lease update, attempt [{}]. Version [{}]", retryCount, op.version)
+      pipe(k8sApi.updateLeaseResource(leaseName, ownerName, op.version).map(WriteResponse.apply)).to(self)
+      // reset operationStartTime so the "too slow" check in Granting measures only the retried call
+      stay().using(op.copy(operationStartTime = System.nanoTime()))
   }
 
   when(Granted) {
@@ -259,23 +323,23 @@ private[akka] class LeaseActor(
 
   when(Releasing) {
     // FIXME deal with failure from releasing the the lock, currently handled in whenUnhandled but could retry to remove: https://github.com/lightbend/akka-commercial-addons/issues/502
-    case Event(WriteResponse(Right(lr)), OperationInProgress(who, _, _, _)) =>
+    case Event(WriteResponse(Right(lr)), op: OperationInProgress) =>
       require(lr.owner.isEmpty, "Released lease has unexpected owner: " + lr)
-      who ! LeaseReleased
+      op.replyTo ! LeaseReleased
       goto(Idle).using(LeaseCleared(lr.version))
-    case Event(WriteResponse(Left(lr @ LeaseResource(None, _, _))), OperationInProgress(who, _, _, _)) =>
+    case Event(WriteResponse(Left(lr @ LeaseResource(None, _, _))), op: OperationInProgress) =>
       log.warning(
         "Release conflict and owner has been removed: {}. Lease will continue to work but TTL must have been reached to allow another node to remove lease.",
         lr
       )
-      who ! LeaseReleased
+      op.replyTo ! LeaseReleased
       goto(Idle).using(ReadRequired)
-    case Event(WriteResponse(Left(lr @ LeaseResource(Some(_), _, _))), OperationInProgress(who, _, _, _)) =>
+    case Event(WriteResponse(Left(lr @ LeaseResource(Some(_), _, _))), op: OperationInProgress) =>
       log.warning(
         "Release conflict and owner has changed: {}. Lease will continue to work but TTL must have been reached to allow another node to update the lease.",
         lr
       )
-      who ! LeaseReleased
+      op.replyTo ! LeaseReleased
       goto(Idle).using(ReadRequired)
   }
 
@@ -298,6 +362,9 @@ private[akka] class LeaseActor(
     case Event(_: HeartbeatRetry, _) =>
       // stale retry after leaving Granted state, ignore
       stay()
+    case Event(_: AcquireRetry, _) =>
+      // stale retry after leaving PendingRead / Granting states, ignore
+      stay()
     case Event(Failure(t), replyRequired: ReplyRequired) =>
       log.warning(
         "Failure communicating with the API server for owner {} lease {}: [{}]. Current state: {}",
@@ -311,19 +378,37 @@ private[akka] class LeaseActor(
 
   onTransition {
     case _ -> Granted =>
+      cancelTimer("acquire-retry")
       startSingleTimer("heartbeat", Heartbeat, settings.timeoutSettings.heartbeatInterval)
     case Granted -> _ =>
       cancelTimer("heartbeat")
       cancelTimer("heartbeat-retry")
       granted.set(false)
+    case _ -> Idle =>
+      cancelTimer("acquire-retry")
   }
 
   private def tryGetLease(
       version: String,
       reply: ActorRef,
-      leaseLost: Option[Throwable] => Unit): FSM.State[LeaseActor.State, Data] = {
+      leaseLost: Option[Throwable] => Unit,
+      acquireStartTime: Long): FSM.State[LeaseActor.State, Data] = {
     pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(r => WriteResponse(r))).to(self)
-    goto(Granting).using(OperationInProgress(reply, version, leaseLost))
+    goto(Granting).using(OperationInProgress(reply, version, leaseLost, acquireStartTime = acquireStartTime))
+  }
+
+  private def acquireRetryDelay(retryCount: Int): FiniteDuration = {
+    val base = settings.timeoutSettings.operationTimeout / 20
+    val cap = settings.timeoutSettings.operationTimeout / 5
+    val delay = base * (1L << math.min(retryCount - 1, 4))
+    delay.min(cap)
+  }
+
+  private def canRetryWithin(acquireStartTime: Long, delay: FiniteDuration): Boolean = {
+    // Caller's ask times out at operationTimeout. Only schedule a retry if after the delay
+    // we'll still have time for another API call within half of the caller's budget.
+    val elapsed = System.nanoTime() - acquireStartTime
+    elapsed + delay.toNanos < settings.timeoutSettings.operationTimeout.toNanos / 2
   }
 
   private def heartbeatRetryDelay(retryCount: Int): FiniteDuration = {
