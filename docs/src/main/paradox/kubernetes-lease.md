@@ -181,6 +181,12 @@ The retry time budget is calculated with safety margins:
 
 Note that version conflicts during heartbeat (meaning another node has modified the lease resource) are *not* retried — they indicate a genuine lease loss.
 
+#### Acquire failure retry
+
+Transient failures during acquire (network timeout, API server unavailability) are retried within the caller's `lease-operation-timeout` budget, spanning both the initial read and the update. A retry is only scheduled while the elapsed time plus the next delay is under half the budget, leaving the rest for the retried call. Backoff starts at `lease-operation-timeout / 20`, doubles each attempt, and is capped at `lease-operation-timeout / 5`.
+
+If an update was applied server-side but the client missed the response, the retry's update is answered with a conflict naming us as owner — this is treated as a successful acquire. Genuine conflicts (a different owner) are not retried.
+
 #### Example configurations
 
 | Configuration | Ratio | Retry deadline | ~Retries on failure |

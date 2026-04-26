@@ -206,8 +206,8 @@ private[akka] class LeaseActor(
 
     case Event(WriteResponse(Left(LeaseResource(None, version, _))), op: OperationInProgress) =>
       require(op.version != version)
-      op.replyTo ! LeaseAcquired
-      // Try again as lock version has moved on but is not taken
+      // Try again as lock version has moved on but is not taken; the follow-up update's
+      // response is the authoritative reply to the caller.
       pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(r => WriteResponse(r))).to(self)
       stay().using(op.copy(version = version))
     case Event(WriteResponse(Left(LeaseResource(Some(currentOwner), version, _))), op: OperationInProgress)

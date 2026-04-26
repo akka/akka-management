@@ -254,9 +254,10 @@ class LeaseActorSpec
       // Fail due to cas, version has moved on by 6 but no one owns the lock
       val failedVersion = currentVersionCount + 6
       updateProbe.reply(Left(LeaseResource(None, failedVersion.toString, System.currentTimeMillis())))
-      // Try again
+      // Try again — successful update bumps the version server-side
       updateProbe.expectMsg((ownerName, failedVersion.toString))
-      updateProbe.reply(Right(LeaseResource(Some(ownerName), failedVersion.toString, System.currentTimeMillis())))
+      val grantedVersion = (failedVersion + 1).toString
+      updateProbe.reply(Right(LeaseResource(Some(ownerName), grantedVersion, System.currentTimeMillis())))
       senderProbe.expectMsg(LeaseAcquired)
     }
 
