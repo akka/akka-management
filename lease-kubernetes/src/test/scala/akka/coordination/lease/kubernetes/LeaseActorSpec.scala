@@ -113,6 +113,22 @@ class LeaseActorSpec
       senderProbe.expectMsg(LeaseAcquired)
     }
 
+    "treat retried update conflict reporting self as owner as acquired" in new Test {
+      // simulates the case where a previous update attempt actually succeeded on the server
+      // even though we observed a transient failure (or never received the response)
+      val k8sApiFailure = new LeaseException("Failed to communicate with API server")
+      underTest ! LeaseActor.Acquire()
+      leaseProbe.expectMsg(leaseName)
+      leaseProbe.reply(LeaseResource(None, currentVersion, System.currentTimeMillis()))
+      updateProbe.expectMsg((ownerName, currentVersion))
+      updateProbe.reply(Failure(k8sApiFailure))
+      // retry sees the lease is already owned by us
+      updateProbe.expectMsg((ownerName, currentVersion))
+      incrementVersion()
+      updateProbe.reply(Left(LeaseResource(Some(ownerName), currentVersion, System.currentTimeMillis())))
+      senderProbe.expectMsg(LeaseAcquired)
+    }
+
     "allow acquire after initial failure on rad" in new Test {
       k8sApiFailureDuringRead()
       acquireLease()

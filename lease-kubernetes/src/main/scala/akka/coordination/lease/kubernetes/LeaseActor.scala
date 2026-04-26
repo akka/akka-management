@@ -173,10 +173,10 @@ private[akka] class LeaseActor(
       } else {
         val elapsed = (System.nanoTime() - prd.acquireStartTime).nanos
         log.warning(
-          "Failure during lease read: [{}]. Time since acquire started [{}] exceeds retry budget after [{}] retries.",
+          "Failure during lease read: [{}]. Time since acquire started [{}] exceeds retry budget after [{}] attempts.",
           t.getMessage,
           elapsed.pretty,
-          prd.retryCount
+          prd.retryCount + 1
         )
         prd.replyTo ! Failure(t)
         goto(Idle).using(ReadRequired)
@@ -209,7 +209,14 @@ private[akka] class LeaseActor(
       op.replyTo ! LeaseAcquired
       // Try again as lock version has moved on but is not taken
       pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(r => WriteResponse(r))).to(self)
-      stay()
+      stay().using(op.copy(version = version))
+    case Event(WriteResponse(Left(LeaseResource(Some(currentOwner), version, _))), op: OperationInProgress)
+        if currentOwner == ownerName =>
+      // A previous attempt's write actually succeeded on the server even though we observed a transient
+      // failure (or never received the response). Treat as acquired.
+      granted.set(true)
+      op.replyTo ! LeaseAcquired
+      goto(Granted).using(GrantedVersion(version, op.leaseLostCallback))
     case Event(WriteResponse(Left(LeaseResource(Some(_), _, _))), op: OperationInProgress) =>
       // The audacity, someone else has taken the lease :(
       op.replyTo ! LeaseTaken
@@ -231,10 +238,10 @@ private[akka] class LeaseActor(
       } else {
         val elapsed = (System.nanoTime() - op.acquireStartTime).nanos
         log.warning(
-          "Failure during lease update: [{}]. Time since acquire started [{}] exceeds retry budget after [{}] retries.",
+          "Failure during lease update: [{}]. Time since acquire started [{}] exceeds retry budget after [{}] attempts.",
           t.getMessage,
           elapsed.pretty,
-          op.retryCount
+          op.retryCount + 1
         )
         op.replyTo ! Failure(t)
         goto(Idle).using(ReadRequired)
