@@ -80,7 +80,68 @@ class LeaseActorSpec
       underTest ! LeaseActor.Acquire()
       leaseProbe.expectMsg(leaseName)
       leaseProbe.reply(Failure(k8sApiFailure))
-      senderProbe.expectMsg(Failure(k8sApiFailure))
+      // retries until budget is exhausted, then replies with the last failure
+      readFailureUntilGiveUp(k8sApiFailure)
+      senderProbe.expectMsg(leaseSettings.timeoutSettings.operationTimeout * 2, Failure(k8sApiFailure))
+    }
+
+    "retry read on transient failure and recover" in new Test {
+      val k8sApiFailure = new LeaseException("Failed to communicate with API server")
+      underTest ! LeaseActor.Acquire()
+      leaseProbe.expectMsg(leaseName)
+      leaseProbe.reply(Failure(k8sApiFailure))
+      // retry succeeds
+      leaseProbe.expectMsg(leaseName)
+      leaseProbe.reply(LeaseResource(None, currentVersion, System.currentTimeMillis()))
+      updateProbe.expectMsg((ownerName, currentVersion))
+      incrementVersion()
+      updateProbe.reply(Right(LeaseResource(Some(ownerName), currentVersion, System.currentTimeMillis())))
+      senderProbe.expectMsg(LeaseAcquired)
+    }
+
+    "retry update on transient failure and recover" in new Test {
+      val k8sApiFailure = new LeaseException("Failed to communicate with API server")
+      underTest ! LeaseActor.Acquire()
+      leaseProbe.expectMsg(leaseName)
+      leaseProbe.reply(LeaseResource(None, currentVersion, System.currentTimeMillis()))
+      updateProbe.expectMsg((ownerName, currentVersion))
+      updateProbe.reply(Failure(k8sApiFailure))
+      // retry succeeds
+      updateProbe.expectMsg((ownerName, currentVersion))
+      incrementVersion()
+      updateProbe.reply(Right(LeaseResource(Some(ownerName), currentVersion, System.currentTimeMillis())))
+      senderProbe.expectMsg(LeaseAcquired)
+    }
+
+    "treat retried update conflict reporting self as owner as acquired" in new Test {
+      // simulates the case where a previous update attempt actually succeeded on the server
+      // even though we observed a transient failure (or never received the response)
+      val k8sApiFailure = new LeaseException("Failed to communicate with API server")
+      underTest ! LeaseActor.Acquire()
+      leaseProbe.expectMsg(leaseName)
+      leaseProbe.reply(LeaseResource(None, currentVersion, System.currentTimeMillis()))
+      updateProbe.expectMsg((ownerName, currentVersion))
+      updateProbe.reply(Failure(k8sApiFailure))
+      // retry sees the lease is already owned by us
+      updateProbe.expectMsg((ownerName, currentVersion))
+      incrementVersion()
+      updateProbe.reply(Left(LeaseResource(Some(ownerName), currentVersion, System.currentTimeMillis())))
+      senderProbe.expectMsg(LeaseAcquired)
+    }
+
+    "report lease taken if retried update conflict reports another owner" in new Test {
+      // transient failure during update, on retry the lease has been taken by another client
+      val k8sApiFailure = new LeaseException("Failed to communicate with API server")
+      underTest ! LeaseActor.Acquire()
+      leaseProbe.expectMsg(leaseName)
+      leaseProbe.reply(LeaseResource(None, currentVersion, System.currentTimeMillis()))
+      updateProbe.expectMsg((ownerName, currentVersion))
+      updateProbe.reply(Failure(k8sApiFailure))
+      // retry sees that someone else has taken the lease
+      updateProbe.expectMsg((ownerName, currentVersion))
+      incrementVersion()
+      updateProbe.reply(Left(LeaseResource(Some("a different client"), currentVersion, System.currentTimeMillis())))
+      senderProbe.expectMsg(LeaseTaken)
     }
 
     "allow acquire after initial failure on rad" in new Test {
@@ -208,9 +269,10 @@ class LeaseActorSpec
       // Fail due to cas, version has moved on by 6 but no one owns the lock
       val failedVersion = currentVersionCount + 6
       updateProbe.reply(Left(LeaseResource(None, failedVersion.toString, System.currentTimeMillis())))
-      // Try again
+      // Try again — successful update bumps the version server-side
       updateProbe.expectMsg((ownerName, failedVersion.toString))
-      updateProbe.reply(Right(LeaseResource(Some(ownerName), failedVersion.toString, System.currentTimeMillis())))
+      val grantedVersion = (failedVersion + 1).toString
+      updateProbe.reply(Right(LeaseResource(Some(ownerName), grantedVersion, System.currentTimeMillis())))
       senderProbe.expectMsg(LeaseAcquired)
     }
 
@@ -505,7 +567,21 @@ class LeaseActorSpec
       underTest ! LeaseActor.Acquire()
       leaseProbe.expectMsg(leaseName)
       leaseProbe.reply(Failure(k8sApiFailure))
-      senderProbe.expectMsg(Failure(k8sApiFailure))
+      readFailureUntilGiveUp(k8sApiFailure)
+      senderProbe.expectMsg(leaseSettings.timeoutSettings.operationTimeout * 2, Failure(k8sApiFailure))
+    }
+
+    def readFailureUntilGiveUp(failure: Throwable): Unit = {
+      // keep failing retries until the time budget is exhausted
+      var done = false
+      while (!done) {
+        try {
+          leaseProbe.expectMsg(leaseSettings.timeoutSettings.operationTimeout, leaseName)
+          leaseProbe.reply(Failure(failure))
+        } catch {
+          case _: AssertionError => done = true
+        }
+      }
     }
 
     def heartBeatConflict(): Unit = {
