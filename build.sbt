@@ -21,7 +21,6 @@ lazy val `akka-management-root` = project
     // in AkkaManagement should also be updated
     `akka-discovery-aws-api`,
     `akka-discovery-aws-api-async`,
-    `akka-discovery-azure-api`,
     `akka-discovery-kubernetes-api`,
     `akka-discovery-marathon-api`,
     `akka-management`,
@@ -69,22 +68,8 @@ lazy val `akka-discovery-kubernetes-api` = project
   .settings(
     name := "akka-discovery-kubernetes-api",
     organization := "com.lightbend.akka.discovery",
-    AutomaticModuleName.settings("akka.discovery.kubernetesapi"),
     libraryDependencies := Dependencies.DiscoveryKubernetesApi,
     mimaPreviousArtifactsSet
-  )
-  .dependsOn(`akka-management-pki`)
-
-lazy val `akka-discovery-azure-api` = (project in file("discovery-azure-api"))
-  .enablePlugins(AutomateHeaderPlugin)
-  .disablePlugins(com.geirsson.CiReleasePlugin)
-  .settings(
-    name := "akka-discovery-azure-api",
-    organization := "com.lightbend.akka.discovery",
-    AutomaticModuleName.settings("akka.discovery.azureapi"),
-    libraryDependencies := Dependencies.DiscoveryAzureApi,
-    // FIXME: update once we have a release out
-    mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(`akka-management-pki`)
 
@@ -95,7 +80,6 @@ lazy val `akka-discovery-marathon-api` = project
   .settings(
     name := "akka-discovery-marathon-api",
     organization := "com.lightbend.akka.discovery",
-    AutomaticModuleName.settings("akka.discovery.marathonapi"),
     libraryDependencies := Dependencies.DiscoveryMarathonApi,
     mimaPreviousArtifactsSet
   )
@@ -107,7 +91,6 @@ lazy val `akka-discovery-aws-api` = project
   .settings(
     name := "akka-discovery-aws-api",
     organization := "com.lightbend.akka.discovery",
-    AutomaticModuleName.settings("akka.discovery.awsapi"),
     libraryDependencies := Dependencies.DiscoveryAwsApi,
     mimaPreviousArtifactsSet
   )
@@ -119,7 +102,6 @@ lazy val `akka-discovery-aws-api-async` = project
   .settings(
     name := "akka-discovery-aws-api-async",
     organization := "com.lightbend.akka.discovery",
-    AutomaticModuleName.settings("akka.discovery.awsasyncapi"),
     libraryDependencies := Dependencies.DiscoveryAwsApiAsync,
     mimaPreviousArtifactsSet
   )
@@ -131,7 +113,6 @@ lazy val `akka-management` = project
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-management",
-    AutomaticModuleName.settings("akka.management"),
     libraryDependencies := Dependencies.ManagementHttp,
     mimaPreviousArtifactsSet
   )
@@ -142,7 +123,6 @@ lazy val `akka-management-pki` = project
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-management-pki",
-    AutomaticModuleName.settings("akka.management.pki"),
     libraryDependencies := Dependencies.ManagementPki,
     mimaPreviousArtifactsSet
   )
@@ -153,7 +133,6 @@ lazy val `loglevels-logback` = project
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-management-loglevels-logback",
-    AutomaticModuleName.settings("akka.management.loglevels.logback"),
     libraryDependencies := Dependencies.LoglevelsLogback,
     mimaPreviousArtifactsSet
   )
@@ -166,7 +145,6 @@ lazy val `loglevels-log4j2` = project
   .disablePlugins(MimaPlugin)
   .settings(
     name := "akka-management-loglevels-log4j2",
-    AutomaticModuleName.settings("akka.management.loglevels.log4j"),
     libraryDependencies := Dependencies.LoglevelsLog4j2
   )
   .dependsOn(`akka-management`)
@@ -177,7 +155,6 @@ lazy val `cluster-http` = project
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-management-cluster-http",
-    AutomaticModuleName.settings("akka.management.cluster.http"),
     libraryDependencies := Dependencies.ClusterHttp,
     mimaPreviousArtifactsSet
   )
@@ -189,7 +166,6 @@ lazy val `cluster-bootstrap` = project
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-management-cluster-bootstrap",
-    AutomaticModuleName.settings("akka.management.cluster.bootstrap"),
     libraryDependencies := Dependencies.ClusterBootstrap,
     mimaPreviousArtifactsSet
   )
@@ -201,7 +177,6 @@ lazy val `rolling-update-kubernetes` = project
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-rolling-update-kubernetes",
-    AutomaticModuleName.settings("akka.management.rollingupdate.kubernetes"),
     libraryDependencies := Dependencies.RollingUpdateKubernetes,
     mimaPreviousArtifacts := Set.empty
   )
@@ -213,7 +188,6 @@ lazy val `lease-kubernetes` = project
   .disablePlugins(com.geirsson.CiReleasePlugin)
   .settings(
     name := "akka-lease-kubernetes",
-    AutomaticModuleName.settings("akka.management.lease.kubernetes"),
     libraryDependencies := Dependencies.LeaseKubernetes,
     mimaPreviousArtifactsSet
   )
@@ -378,20 +352,20 @@ lazy val docs = project
       ),
     previewPath := (Paradox / siteSubdirName).value,
     paradoxGroups := Map("Language" -> Seq("Java", "Scala")),
-    Paradox / siteSubdirName := s"libraries/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
+    Paradox / siteSubdirName := s"docs/akka-management/${if (isSnapshot.value) "snapshot" else version.value}",
     Compile / paradoxProperties ++= Map(
         "date.year" -> Common.currentYear,
-        "project.url" -> "https://doc.akka.io/libraries/akka-management/current/",
-        "canonical.base_url" -> "https://doc.akka.io/libraries/akka-management/current",
+        "project.url" -> "https://doc.akka.io/docs/akka-management/current/",
+        "canonical.base_url" -> "https://doc.akka.io/docs/akka-management/current",
         "scala.binary.version" -> scalaBinaryVersion.value,
         "akka.version" -> Dependencies.AkkaVersion,
         "akka.binary.version" -> Dependencies.AkkaBinaryVersion,
-        "extref.akka.base_url" -> s"https://doc.akka.io/libraries/akka-core/current/%s",
-        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka-core/current/",
-        "extref.akka-http.base_url" -> s"https://doc.akka.io/libraries/akka-http/${Dependencies.AkkaHttpBinaryVersion}/%s",
+        "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/current/%s",
+        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/current/",
+        "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.AkkaHttpBinaryVersion}/%s",
         "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.AkkaHttpBinaryVersion}/",
-        "extref.akka-grpc.base_url" -> s"https://doc.akka.io/libraries/akka-grpc/current/%s",
-        "extref.akka-enhancements.base_url" -> s"https://doc.akka.io/libraries/akka-enhancements/current/%s",
+        "extref.akka-grpc.base_url" -> s"https://doc.akka.io/docs/akka-grpc/current/%s",
+        "extref.akka-enhancements.base_url" -> s"https://doc.akka.io/docs/akka-enhancements/current/%s",
         "scaladoc.akka.management.base_url" -> s"/${(Preprocess / siteSubdirName).value}/"
       ),
     publishRsyncArtifacts += makeSite.value -> "www/",
