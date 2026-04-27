@@ -129,6 +129,21 @@ class LeaseActorSpec
       senderProbe.expectMsg(LeaseAcquired)
     }
 
+    "report lease taken if retried update conflict reports another owner" in new Test {
+      // transient failure during update, on retry the lease has been taken by another client
+      val k8sApiFailure = new LeaseException("Failed to communicate with API server")
+      underTest ! LeaseActor.Acquire()
+      leaseProbe.expectMsg(leaseName)
+      leaseProbe.reply(LeaseResource(None, currentVersion, System.currentTimeMillis()))
+      updateProbe.expectMsg((ownerName, currentVersion))
+      updateProbe.reply(Failure(k8sApiFailure))
+      // retry sees that someone else has taken the lease
+      updateProbe.expectMsg((ownerName, currentVersion))
+      incrementVersion()
+      updateProbe.reply(Left(LeaseResource(Some("a different client"), currentVersion, System.currentTimeMillis())))
+      senderProbe.expectMsg(LeaseTaken)
+    }
+
     "allow acquire after initial failure on rad" in new Test {
       k8sApiFailureDuringRead()
       acquireLease()
