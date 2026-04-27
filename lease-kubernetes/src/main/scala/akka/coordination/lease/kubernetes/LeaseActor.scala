@@ -404,25 +404,24 @@ private[akka] class LeaseActor(
     goto(Granting).using(OperationInProgress(reply, version, leaseLost, acquireStartTime = acquireStartTime))
   }
 
-  private def acquireRetryDelay(retryCount: Int): FiniteDuration = {
-    val base = settings.timeoutSettings.operationTimeout / 20
-    val cap = settings.timeoutSettings.operationTimeout / 5
-    val delay = base * (1L << math.min(retryCount - 1, 4))
-    delay.min(cap)
+  // Exponential backoff: base/4, base/2, base, base, ... capped at base.
+  // Conservative cadence so a struggling API server is not hammered with retries.
+  private def exponentialRetryDelay(base: FiniteDuration, retryCount: Int): FiniteDuration = {
+    val delay = base / 4 * (1L << math.min(retryCount - 1, 2))
+    delay.min(base)
   }
+
+  private def acquireRetryDelay(retryCount: Int): FiniteDuration =
+    exponentialRetryDelay(settings.timeoutSettings.operationTimeout, retryCount)
+
+  private def heartbeatRetryDelay(retryCount: Int): FiniteDuration =
+    exponentialRetryDelay(settings.timeoutSettings.heartbeatInterval, retryCount)
 
   private def canRetryWithin(acquireStartTime: Long, delay: FiniteDuration): Boolean = {
     // Caller's ask times out at operationTimeout. Only schedule a retry if after the delay
     // we'll still have time for another API call within half of the caller's budget.
     val elapsed = System.nanoTime() - acquireStartTime
     elapsed + delay.toNanos < settings.timeoutSettings.operationTimeout.toNanos / 2
-  }
-
-  private def heartbeatRetryDelay(retryCount: Int): FiniteDuration = {
-    val interval = settings.timeoutSettings.heartbeatInterval
-    // Exponential backoff: interval/4, interval/2, interval, interval, ...
-    val delay = interval / 4 * (1L << math.min(retryCount - 1, 2))
-    delay.min(interval)
   }
 
   private def hasTimeLeftForHeartbeatRetry(lastHeartbeatTime: Long): Boolean = {
