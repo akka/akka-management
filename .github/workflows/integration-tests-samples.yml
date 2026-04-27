@@ -16,7 +16,7 @@ permissions:
 jobs:
    integration-test:
     name: Integration Tests for akka-sample-cluster-kubernetes-scala
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -42,6 +42,9 @@ jobs:
         uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
           jvm: temurin:1.17.0
+
+      - name: Run akka/github-actions-scripts
+        uses: akka/github-actions-scripts/setup_global_resolver@main
 
       - name: Setup Minikube
         # https://github.com/manusa/actions-setup-minikube/releases

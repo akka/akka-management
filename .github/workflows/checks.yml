@@ -14,7 +14,7 @@ permissions:
 jobs:
   check-code-style:
     name: Check Code Style
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -42,15 +42,19 @@ jobs:
         with:
           jvm: temurin:1.11.0
 
+      - name: Run akka/github-actions-scripts
+        uses: akka/github-actions-scripts/setup_global_resolver@main
+
       - name: Code style check, compilation and binary-compatibility check
-        run: sbt "scalafmtCheckAll;headerCheckAll;+Test/compile;mimaReportBinaryIssues"
+        run: |-
+          sbt "scalafmtCheckAll;headerCheckAll;+Test/compile;mimaReportBinaryIssues"
 
       - name: Code style check, compilation for integration tests
         run: sbt "akka-management-integration/scalafmtCheckAll;akka-management-integration/headerCheckAll;+akka-management-integration/Test/compile"
 
   check-docs:
     name: Check Docs
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -76,6 +80,9 @@ jobs:
         uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
           jvm: temurin:1.17.0
+
+      - name: Run akka/github-actions-scripts
+        uses: akka/github-actions-scripts/setup_global_resolver@main
 
       - name: Create all API docs for artifacts/website and all reference docs
         run: sbt "unidoc; docs/paradox"
