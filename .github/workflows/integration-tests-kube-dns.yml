@@ -16,7 +16,7 @@ permissions:
 jobs:
    integration-test:
     name: Integration Tests for Kubernetes DNS
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -43,13 +43,16 @@ jobs:
         with:
           jvm: temurin:1.11.0
 
+      - name: Run akka/github-actions-scripts
+        uses: akka/github-actions-scripts/setup_global_resolver@main
+
       - name: Setup Minikube
         # https://github.com/manusa/actions-setup-minikube/releases
         # v2.7.1
         uses: manusa/actions-setup-minikube@4582844dcacbf482729f8d7ef696f515d2141bb9
         with:
-          minikube version: 'v1.32.0'
-          kubernetes version: 'v1.28.4'
+          minikube version: 'v1.38.0'
+          kubernetes version: 'v1.35.0'
           driver: docker
           start args: '--addons=ingress'
 

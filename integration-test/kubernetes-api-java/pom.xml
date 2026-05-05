@@ -23,14 +23,6 @@
     <scala.binary.version>2.13</scala.binary.version>
   </properties>
 
-  <repositories>
-    <repository>
-      <id>akka-repository</id>
-      <name>Akka library repository</name>
-      <url>https://repo.akka.io/maven</url>
-    </repository>
-  </repositories>
-
   <dependencies>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
@@ -144,7 +136,7 @@
       <plugin>
         <groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
-        <version>0.27.2</version>
+        <version>0.38.0</version>
         <configuration>
           <images>
             <image>

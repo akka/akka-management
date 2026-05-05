@@ -18,7 +18,7 @@ jobs:
     # the release environment provides access to secrets required in the release process
     # https://github.com/akka/akka-management/settings/environments
     environment: release
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -46,6 +46,9 @@ jobs:
         with:
           jvm: temurin:1.11.0.17
 
+      - name: Run akka/github-actions-scripts
+        uses: akka/github-actions-scripts/setup_global_resolver@main
+
       - name: Publish artifacts for all Scala versions
         env:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
@@ -56,7 +59,7 @@ jobs:
 
   documentation:
     name: Documentation
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     if: github.event.repository.fork == false
     steps:
       - name: Checkout
@@ -73,6 +76,9 @@ jobs:
         uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
           jvm: temurin:1.17.0
+
+      - name: Run akka/github-actions-scripts
+        uses: akka/github-actions-scripts/setup_global_resolver@main
 
       - name: Publish
         run: |-

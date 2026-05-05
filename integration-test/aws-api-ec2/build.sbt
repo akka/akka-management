@@ -1,7 +1,5 @@
 enablePlugins(JavaAppPackaging)
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
-
 Universal / packageName := "app" // should produce app.zip
 
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-cloudformation" % "1.12.635" % Test

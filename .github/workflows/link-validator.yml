@@ -1,17 +1,17 @@
-name: Dependency License Scanning
+name: Link Validator
 
 on:
   workflow_dispatch:
+  pull_request:
   schedule:
-    - cron: '0 0 * * 0' # At 00:00 on Sunday
+    - cron:  '0 6 * * 1'
 
 permissions:
   contents: read
 
 jobs:
-  fossa:
-    name: Fossa
-    runs-on: Akka-Default-Latest
+  validate-links:
+    runs-on: Akka-Default
     if: github.repository == 'akka/akka-management'
     steps:
       - name: Checkout
@@ -19,8 +19,12 @@ jobs:
         # v4.1.1
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
-          # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
-          fetch-depth: 0
+          # See https://github.com/actions/checkout/issues/299#issuecomment-677674415
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 100
+
+      - name: Fetch tags
+        run: git fetch --depth=100 origin +refs/tags/*:refs/tags/*
 
       - name: Cache Coursier cache
         # https://github.com/coursier/cache-action/releases
@@ -32,14 +36,14 @@ jobs:
         # v1.3.5
         uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
-          jvm: temurin:1.17
+          jvm: temurin:1.17.0.5
+          apps: cs
 
       - name: Run akka/github-actions-scripts
         uses: akka/github-actions-scripts/setup_global_resolver@main
 
-      - name: FOSSA policy check
-        run: |-
-          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
-          fossa analyze && fossa test
-        env:
-          FOSSA_API_KEY: "${{secrets.FOSSA_API_KEY}}"
+      - name: sbt site
+        run: sbt docs/makeSite
+
+      - name: Run Link Validator
+        run: cs launch net.runne::site-link-validator:0.2.5 -- scripts/link-validator.conf
