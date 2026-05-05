@@ -50,7 +50,12 @@ private[akka] object LeaseActor {
       operationStartTime: Long = System.nanoTime())
       extends Data
       with ReplyRequired
-  case class GrantedVersion(version: String, leaseLostCallback: Option[Throwable] => Unit) extends Data
+  case class GrantedVersion(
+      version: String,
+      leaseLostCallback: Option[Throwable] => Unit,
+      lastHeartbeatTime: Long = System.nanoTime(),
+      retryCount: Int = 0)
+      extends Data
 
   sealed trait Command
   case class Acquire(leaseLostCallback: Option[Throwable] => Unit = ConstantFun.scalaAnyToUnit) extends Command
@@ -60,6 +65,7 @@ private[akka] object LeaseActor {
   private case class ReadResponse(response: LeaseResource) extends Command
   private case class WriteResponse(response: Either[LeaseResource, LeaseResource]) extends Command
   private case object Heartbeat extends Command
+  private case class HeartbeatRetry(retryCount: Int) extends Command
 
   sealed trait Response
   case object LeaseAcquired extends Response
@@ -177,7 +183,7 @@ private[akka] class LeaseActor(
   }
 
   when(Granted) {
-    case Event(Heartbeat, GrantedVersion(version, _)) =>
+    case Event(Heartbeat, GrantedVersion(version, _, _, _)) =>
       log.debug("Heartbeat: updating lease time. Version {}", version)
       pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(WriteResponse.apply)).to(self)
       stay()
@@ -187,19 +193,55 @@ private[akka] class LeaseActor(
         "response from API server has different owner for success: " + resource)
       log.debug("Heartbeat: lease time updated: Version {}", resource.version)
       startSingleTimer("heartbeat", Heartbeat, settings.timeoutSettings.heartbeatInterval)
-      stay().using(gv.copy(version = resource.version))
-    case Event(WriteResponse(Left(lr @ _)), GrantedVersion(_, leaseLost)) =>
+      stay().using(gv.copy(version = resource.version, lastHeartbeatTime = System.nanoTime(), retryCount = 0))
+    case Event(WriteResponse(Left(lr @ _)), GrantedVersion(_, leaseLost, _, _)) =>
       log.warning("Conflict during heartbeat to lease {}. Lease assumed to be released.", lr)
       granted.set(false)
       executeLeaseLockCallback(leaseLost, None)
       goto(Idle).using(ReadRequired)
-    case Event(Failure(t), GrantedVersion(_, leaseLost)) =>
-      // FIXME, retry if timeout far enough off: https://github.com/lightbend/akka-commercial-addons/issues/501
-      log.warning("Failure during heartbeat to lease: [{}]. Lease assumed to be released.", t.getMessage)
-      granted.set(false)
-      executeLeaseLockCallback(leaseLost, Some(t))
-      goto(Idle).using(ReadRequired)
-    case Event(Release(), GrantedVersion(version, leaseLost)) =>
+    case Event(Failure(t), gv @ GrantedVersion(_, leaseLost, lastHeartbeatTime, retryCount)) =>
+      if (hasTimeLeftForHeartbeatRetry(lastHeartbeatTime)) {
+        val elapsed = (System.nanoTime() - lastHeartbeatTime).nanos
+        val nextRetry = retryCount + 1
+        val delay = heartbeatRetryDelay(nextRetry)
+        log.warning(
+          "Failure during heartbeat to lease: [{}]. Time since last successful heartbeat [{}]. Scheduling retry [{}] in [{}].",
+          t.getMessage,
+          elapsed.pretty,
+          nextRetry,
+          delay.pretty
+        )
+        startSingleTimer("heartbeat-retry", HeartbeatRetry(nextRetry), delay)
+        stay().using(gv.copy(retryCount = nextRetry))
+      } else {
+        val elapsed = (System.nanoTime() - lastHeartbeatTime).nanos
+        log.warning(
+          "Failure during heartbeat to lease: [{}]. Time since last successful heartbeat [{}] exceeds safe retry window after [{}] retries. Lease assumed lost.",
+          t.getMessage,
+          elapsed.pretty,
+          retryCount
+        )
+        granted.set(false)
+        executeLeaseLockCallback(leaseLost, Some(t))
+        goto(Idle).using(ReadRequired)
+      }
+    case Event(HeartbeatRetry(retryCount), GrantedVersion(version, leaseLost, lastHeartbeatTime, _)) =>
+      if (hasTimeLeftForHeartbeatRetry(lastHeartbeatTime)) {
+        log.info("Retrying heartbeat, attempt [{}]. Version [{}]", retryCount, version)
+        pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(WriteResponse.apply)).to(self)
+        stay()
+      } else {
+        val elapsed = (System.nanoTime() - lastHeartbeatTime).nanos
+        log.warning(
+          "Heartbeat retry [{}] arrived too late, time since last successful heartbeat [{}] exceeds safe retry window. Lease assumed lost.",
+          retryCount,
+          elapsed.pretty
+        )
+        granted.set(false)
+        executeLeaseLockCallback(leaseLost, None)
+        goto(Idle).using(ReadRequired)
+      }
+    case Event(Release(), GrantedVersion(version, leaseLost, _, _)) =>
       pipe(k8sApi.updateLeaseResource(leaseName, "", version).map(WriteResponse.apply)).to(self)
       goto(Releasing).using(OperationInProgress(sender(), version, leaseLost))
     case Event(Acquire(leaseLostCallback), gv: GrantedVersion) =>
@@ -253,6 +295,9 @@ private[akka] class LeaseActor(
         stateName)
       sender() ! InvalidRequest("Tried to release a lease that is not acquired")
       stay().using(data)
+    case Event(_: HeartbeatRetry, _) =>
+      // stale retry after leaving Granted state, ignore
+      stay()
     case Event(Failure(t), replyRequired: ReplyRequired) =>
       log.warning(
         "Failure communicating with the API server for owner {} lease {}: [{}]. Current state: {}",
@@ -269,6 +314,7 @@ private[akka] class LeaseActor(
       startSingleTimer("heartbeat", Heartbeat, settings.timeoutSettings.heartbeatInterval)
     case Granted -> _ =>
       cancelTimer("heartbeat")
+      cancelTimer("heartbeat-retry")
       granted.set(false)
   }
 
@@ -278,6 +324,24 @@ private[akka] class LeaseActor(
       leaseLost: Option[Throwable] => Unit): FSM.State[LeaseActor.State, Data] = {
     pipe(k8sApi.updateLeaseResource(leaseName, ownerName, version).map(r => WriteResponse(r))).to(self)
     goto(Granting).using(OperationInProgress(reply, version, leaseLost))
+  }
+
+  private def heartbeatRetryDelay(retryCount: Int): FiniteDuration = {
+    val interval = settings.timeoutSettings.heartbeatInterval
+    // Exponential backoff: interval/4, interval/2, interval, interval, ...
+    val delay = interval / 4 * (1L << math.min(retryCount - 1, 2))
+    delay.min(interval)
+  }
+
+  private def hasTimeLeftForHeartbeatRetry(lastHeartbeatTime: Long): Boolean = {
+    val elapsed = (System.nanoTime() - lastHeartbeatTime).nanos
+    // Other nodes consider the lease expired at: heartbeatTimeout - 2*heartbeatInterval.
+    // We must give up before that, subtracting:
+    // - operationTimeout: time needed to complete the retry API call itself
+    // - heartbeatInterval: additional buffer for clock skew between nodes
+    val otherNodeTakeover = settings.timeoutSettings.heartbeatTimeout - (2 * settings.timeoutSettings.heartbeatInterval)
+    val safetyMargin = settings.timeoutSettings.operationTimeout + settings.timeoutSettings.heartbeatInterval
+    elapsed < otherNodeTakeover - safetyMargin
   }
 
   private def hasLeaseTimedOut(leaseTime: Long): Boolean = {
