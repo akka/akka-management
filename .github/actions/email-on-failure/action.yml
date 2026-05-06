@@ -1,0 +1,29 @@
+name: Email on failure
+description: Send a notification email when a workflow job fails.
+inputs:
+  username:
+    description: SMTP username
+    required: true
+  password:
+    description: SMTP password
+    required: true
+  to:
+    description: Recipient address
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Send email
+      uses: dawidd6/action-send-mail@v12
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        secure: true
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
+        subject: "Failed: ${{ github.workflow }} / ${{ github.job }}"
+        to: ${{ inputs.to }}
+        from: Akka CI
+        body: |
+          Job ${{ github.job }} in workflow ${{ github.workflow }} of ${{ github.repository }} failed!
+          https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
