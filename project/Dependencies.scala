@@ -24,7 +24,7 @@ object Dependencies {
   val AzureIdentityVersion = "1.18.4"
   val AwsSdkVersion = "1.12.785"
 
-  val JacksonVersion = "2.18.3"
+  val JacksonVersion = "2.18.8"
   val JacksonDatabindVersion = JacksonVersion
 
   val Log4j2Version = "2.24.3"
