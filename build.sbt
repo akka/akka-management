@@ -7,6 +7,7 @@ import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport.*
 ThisBuild / resolvers += Resolver.jcenterRepo
 // append -SNAPSHOT to version when isSnapshot
 ThisBuild / dynverSonatypeSnapshots := true
+ThisBuild / makeBomIncludeDependencies := true
 Global / excludeLintKeys += autoAPIMappings
 Global / excludeLintKeys += projectInfoVersion
 Global / excludeLintKeys += previewPath
@@ -74,6 +75,7 @@ lazy val `akka-discovery-kubernetes-api` = project
     mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management-pki`)
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `akka-discovery-azure-api` = (project in file("discovery-azure-api"))
   .enablePlugins(AutomateHeaderPlugin)
@@ -87,6 +89,7 @@ lazy val `akka-discovery-azure-api` = (project in file("discovery-azure-api"))
     mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(`akka-management-pki`)
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `akka-discovery-marathon-api` = project
   .in(file("discovery-marathon-api"))
@@ -99,6 +102,7 @@ lazy val `akka-discovery-marathon-api` = project
     libraryDependencies := Dependencies.DiscoveryMarathonApi,
     mimaPreviousArtifactsSet
   )
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `akka-discovery-aws-api` = project
   .in(file("discovery-aws-api"))
@@ -111,6 +115,7 @@ lazy val `akka-discovery-aws-api` = project
     libraryDependencies := Dependencies.DiscoveryAwsApi,
     mimaPreviousArtifactsSet
   )
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `akka-discovery-aws-api-async` = project
   .in(file("discovery-aws-api-async"))
@@ -123,6 +128,7 @@ lazy val `akka-discovery-aws-api-async` = project
     libraryDependencies := Dependencies.DiscoveryAwsApiAsync,
     mimaPreviousArtifactsSet
   )
+  .enablePlugins(ArtifactBomPlugin)
 
 // gathers all enabled routes and serves them (HTTP or otherwise)
 lazy val `akka-management` = project
@@ -135,6 +141,7 @@ lazy val `akka-management` = project
     libraryDependencies := Dependencies.ManagementHttp,
     mimaPreviousArtifactsSet
   )
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `akka-management-pki` = project
   .in(file("management-pki"))
@@ -146,6 +153,7 @@ lazy val `akka-management-pki` = project
     libraryDependencies := Dependencies.ManagementPki,
     mimaPreviousArtifactsSet
   )
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `loglevels-logback` = project
   .in(file("loglevels-logback"))
@@ -158,6 +166,7 @@ lazy val `loglevels-logback` = project
     mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management`)
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `loglevels-log4j2` = project
   .in(file("loglevels-log4j2"))
@@ -170,6 +179,7 @@ lazy val `loglevels-log4j2` = project
     libraryDependencies := Dependencies.LoglevelsLog4j2
   )
   .dependsOn(`akka-management`)
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `cluster-http` = project
   .in(file("cluster-http"))
@@ -182,6 +192,7 @@ lazy val `cluster-http` = project
     mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management`)
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `cluster-bootstrap` = project
   .in(file("cluster-bootstrap"))
@@ -194,6 +205,7 @@ lazy val `cluster-bootstrap` = project
     mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management`)
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `rolling-update-kubernetes` = project
   .in(file("rolling-update-kubernetes"))
@@ -206,6 +218,7 @@ lazy val `rolling-update-kubernetes` = project
     mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(`akka-management-pki`)
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `lease-kubernetes` = project
   .in(file("lease-kubernetes"))
@@ -218,6 +231,7 @@ lazy val `lease-kubernetes` = project
     mimaPreviousArtifactsSet
   )
   .dependsOn(`akka-management-pki`)
+  .enablePlugins(ArtifactBomPlugin)
 
 lazy val `lease-kubernetes-integration` = project
   .in(file("integration-test/lease-kubernetes"))

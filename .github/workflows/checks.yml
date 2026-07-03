@@ -49,6 +49,9 @@ jobs:
       - name: Code style check, compilation for integration tests
         run: sbt "akka-management-integration/scalafmtCheckAll;akka-management-integration/headerCheckAll;+akka-management-integration/Test/compile"
 
+      - name: Artifact BOM validation
+        uses: akka/github-actions-scripts/artifact_bom_validation@main
+
   check-docs:
     name: Check Docs
     runs-on: Akka-Default
