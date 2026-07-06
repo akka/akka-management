@@ -51,7 +51,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
-  )
+  ) ++ JacksonDatabind
 
   val DiscoveryMarathonApi = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
