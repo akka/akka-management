@@ -44,14 +44,14 @@ object Dependencies {
   )
 
   val DiscoveryAzureApi = Seq(
-    "com.azure" % "azure-identity" % AzureIdentityVersion,
-    "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
-    "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
-  ) ++ JacksonDatabind
+      "com.azure" % "azure-identity" % AzureIdentityVersion,
+      "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+      "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+      "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+    ) ++ JacksonDatabind
 
   val DiscoveryMarathonApi = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
@@ -130,7 +130,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http-core" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
-    "org.mockito" % "mockito-core" % "5.18.0" % Test,
+    "org.mockito" % "mockito-core" % "5.23.0" % Test,
     "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
     "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
