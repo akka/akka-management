@@ -44,14 +44,14 @@ object Dependencies {
   )
 
   val DiscoveryAzureApi = Seq(
-    "com.azure" % "azure-identity" % AzureIdentityVersion,
-    "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
-    "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
-  ) ++ JacksonDatabind
+      "com.azure" % "azure-identity" % AzureIdentityVersion,
+      "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+      "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+      "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+    ) ++ JacksonDatabind
 
   val DiscoveryMarathonApi = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
@@ -76,7 +76,7 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
       "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-      ("software.amazon.awssdk" % "ecs" % "2.46.13").exclude("software.amazon.awssdk", "apache-client"),
+      ("software.amazon.awssdk" % "ecs" % "2.46.21").exclude("software.amazon.awssdk", "apache-client"),
       "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
     ) ++ JacksonDatabind // aws-java-sdk depends on insecure version of jackson
 
