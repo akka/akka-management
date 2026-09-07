@@ -21,7 +21,7 @@ object Dependencies {
   val ScalaTestVersion = "3.2.19"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
-  val AzureIdentityVersion = "1.18.4"
+  val AzureIdentityVersion = "1.18.5"
   val AwsSdkVersion = "1.12.785"
 
   val JacksonVersion = "2.18.8"
@@ -44,14 +44,14 @@ object Dependencies {
   )
 
   val DiscoveryAzureApi = Seq(
-    "com.azure" % "azure-identity" % AzureIdentityVersion,
-    "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
-    "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-    "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
-  ) ++ JacksonDatabind
+      "com.azure" % "azure-identity" % AzureIdentityVersion,
+      "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+      "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+      "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
+    ) ++ JacksonDatabind
 
   val DiscoveryMarathonApi = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
