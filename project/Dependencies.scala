@@ -5,7 +5,7 @@ object Dependencies {
   // Java Platform version for JavaDoc creation
   lazy val JavaDocLinkVersion = scala.util.Properties.javaSpecVersion
 
-  val Scala213 = "2.13.17"
+  val Scala213 = "2.13.18"
   val Scala3 = "3.3.8"
   val CrossScalaVersions = Seq(Scala213, Scala3)
 
