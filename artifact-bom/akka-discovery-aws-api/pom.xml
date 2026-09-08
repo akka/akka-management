@@ -9,7 +9,7 @@
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-core</artifactId>
-                <version>1.12.785</version>
+                <version>1.12.797</version>
             </dependency>
             <dependency>
                 <groupId>com.amazonaws</groupId>
@@ -19,12 +19,12 @@
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-ecs</artifactId>
-                <version>1.12.785</version>
+                <version>1.12.797</version>
             </dependency>
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>jmespath-java</artifactId>
-                <version>1.12.785</version>
+                <version>1.12.797</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-core</artifactId>
-            <version>1.12.785</version>
+            <version>1.12.797</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -107,12 +107,12 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-ecs</artifactId>
-            <version>1.12.785</version>
+            <version>1.12.797</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>jmespath-java</artifactId>
-            <version>1.12.785</version>
+            <version>1.12.797</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
