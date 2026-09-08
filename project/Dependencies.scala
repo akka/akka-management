@@ -5,8 +5,8 @@ object Dependencies {
   // Java Platform version for JavaDoc creation
   lazy val JavaDocLinkVersion = scala.util.Properties.javaSpecVersion
 
-  val Scala213 = "2.13.17"
-  val Scala3 = "3.3.7"
+  val Scala213 = "2.13.18"
+  val Scala3 = "3.3.8"
   val CrossScalaVersions = Seq(Scala213, Scala3)
 
   // Align the versions in integration-test/kubernetes-api-java/pom.xml
@@ -22,12 +22,12 @@ object Dependencies {
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
   val AzureIdentityVersion = "1.18.5"
-  val AwsSdkVersion = "1.12.785"
+  val AwsSdkVersion = "1.12.797"
 
   val JacksonVersion = "2.18.8"
   val JacksonDatabindVersion = JacksonVersion
 
-  val Log4j2Version = "2.24.3"
+  val Log4j2Version = "2.26.1"
 
   // often called-in transitively with insecure versions of databind / core
   private val JacksonDatabind = Seq(
