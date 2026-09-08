@@ -22,7 +22,7 @@ object Dependencies {
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
   val AzureIdentityVersion = "1.18.5"
-  val AwsSdkVersion = "1.12.785"
+  val AwsSdkVersion = "1.12.797"
 
   val JacksonVersion = "2.18.8"
   val JacksonDatabindVersion = JacksonVersion
