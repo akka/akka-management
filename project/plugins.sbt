@@ -12,6 +12,6 @@ addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.12.1")
 addSbtPlugin("com.github.sbt" % "sbt-git" % "2.2.0")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.6")
 // create pom.xml for scanning tools
-addSbtPlugin("io.akka.sbt" % "sbt-artifact-bom" % "0.2.0")
+addSbtPlugin("io.akka.sbt" % "sbt-artifact-bom" % "0.3.0")
 
 resolvers += Resolver.jcenterRepo
