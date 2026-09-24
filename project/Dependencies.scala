@@ -18,7 +18,7 @@ object Dependencies {
     case Seq(major, minor, _*) => s"$major.$minor"
   }
 
-  val ScalaTestVersion = "3.2.19"
+  val ScalaTestVersion = "3.2.20"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
   val AzureIdentityVersion = "1.18.6"
@@ -130,7 +130,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http-core" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
     "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
-    "org.mockito" % "mockito-core" % "5.18.0" % Test,
+    "org.mockito" % "mockito-core" % "5.23.0" % Test,
     "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
     "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Test,
     "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
