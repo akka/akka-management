@@ -4,7 +4,6 @@ import sbt.Keys.*
 import sbt.*
 import sbtheader.HeaderPlugin
 import sbtheader.HeaderPlugin.autoImport._
-import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object Common extends AutoPlugin {
 
