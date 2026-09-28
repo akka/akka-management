@@ -32,7 +32,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream-typed" % akkaVersion,
     "com.typesafe.akka" %% "akka-discovery" % akkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.5.38",
+    "ch.qos.logback" % "logback-classic" % "1.6.3",
     "com.lightbend.akka.discovery" %% "akka-discovery-kubernetes-api" % akkaManagementVersion,
     "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % akkaManagementVersion,
     "com.lightbend.akka.management" %% "akka-management-cluster-http" % akkaManagementVersion,
