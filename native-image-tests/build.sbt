@@ -46,5 +46,7 @@ nativeImageOptions := Seq(
   "--no-fallback",
   "--verbose",
   "--initialize-at-build-time=ch.qos.logback",
+  // logback's ClassicConstants initializes MarkerFactory in its static initializer
+  "--initialize-at-build-time=org.slf4j.MarkerFactory",
   "-Dakka.native-image.debug=true"
 )
