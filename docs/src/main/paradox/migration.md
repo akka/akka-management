@@ -1,5 +1,12 @@
 # Migration guide
 
+## 1.7.0
+
+### Jackson
+
+The AWS, AWS async, and Azure discovery modules now depend on the Jackson 2.21 long-term-support line,
+aligned with Akka core 2.11.
+
 ## 1.0 
 
 Version requirements:
