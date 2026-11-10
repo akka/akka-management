@@ -21,7 +21,7 @@ object Dependencies {
   val ScalaTestVersion = "3.2.20"
   val ScalaTestPlusJUnitVersion = ScalaTestVersion + ".0"
 
-  val AzureIdentityVersion = "1.18.6"
+  val AzureIdentityVersion = "1.19.0"
   val AwsSdkVersion = "1.12.785"
 
   val JacksonVersion = "2.21.8"
