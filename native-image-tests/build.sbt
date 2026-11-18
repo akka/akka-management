@@ -2,10 +2,10 @@ name := "native-image-tests"
 
 version := "1.0"
 
-scalaVersion := "2.13.17"
+scalaVersion := "2.13.18"
 
-lazy val akkaVersion = sys.props.getOrElse("akka.version", "2.10.11")
-lazy val akkaHttpVersion = sys.props.getOrElse("akka.http.version", "10.7.3")
+lazy val akkaVersion = sys.props.getOrElse("akka.version", "2.11.0")
+lazy val akkaHttpVersion = sys.props.getOrElse("akka.http.version", "10.8.0")
 
 // Note: this default isn't really used anywhere so not important to bump
 lazy val akkaManagementVersion = sys.props.getOrElse("akka.management.version", "1.5.2")
